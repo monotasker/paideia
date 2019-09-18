@@ -16,8 +16,13 @@ from pprint import pprint
 from pytz import timezone
 from gluon import current
 from paideia_stats import Stats
-from test_paideia import log_generator
+# from test_paideia import log_generator
 from plugin_utils import make_json
+if 0:
+    from web2py.applications.paideia.modules.paideia_stats import Stats
+    # from web2py.applications.paideia.tests.modules.test_paideia import log_generator
+    from web2py.applications.paideia.controllers.plugin_utils import make_json
+    from web2py.gluon import current
 
 
 @pytest.fixture()  # params=[n for n in range(4)]
@@ -38,42 +43,42 @@ def myStats(user_login, web2py, db):  # request
                'step': tagsteps[0].id,
                'in_path': tagpaths[0],
                'score': 1.0,
-               'dt_attempted': datetime.datetime(2014, 1, 27),
+               'dt_attempted': datetime.datetime(2014, 1, 27, 10, 0),
                'user_response': 'βλα',
                },
               {'name': user_login['id'],
                'step': tagsteps[0].id,
                'in_path': tagpaths[0],
                'score': 1.0,
-               'dt_attempted': datetime.datetime(2014, 1, 29),
+               'dt_attempted': datetime.datetime(2014, 1, 29, 10, 0),
                'user_response': 'βλα',
                },
               {'name': user_login['id'],
                'step': tagsteps[0].id,
                'in_path': tagpaths[0],
                'score': 0.5,
-               'dt_attempted': datetime.datetime(2014, 1, 29),
+               'dt_attempted': datetime.datetime(2014, 1, 29, 10, 0),
                'user_response': 'βλα',
                },
               {'name': user_login['id'],
                'step': tagsteps[0].id,
                'in_path': tagpaths[0],
                'score': 0,
-               'dt_attempted': datetime.datetime(2014, 1, 29),
+               'dt_attempted': datetime.datetime(2014, 1, 29, 10, 0),
                'user_response': 'βλα',
                },
               {'name': user_login['id'],
                'step': tagsteps[0].id,
                'in_path': tagpaths[0],
                'score': 0,
-               'dt_attempted': datetime.datetime(2014, 1, 31),
+               'dt_attempted': datetime.datetime(2014, 1, 31, 10, 0),
                'user_response': 'βλα',
                },
               {'name': user_login['id'],
                'step': tagsteps[0].id,
                'in_path': tagpaths[0],
                'score': 1.0,
-               'dt_attempted': datetime.datetime(2014, 2, 1),
+               'dt_attempted': datetime.datetime(2014, 2, 1, 10, 0),
                'user_response': 'βλα',
                }]
     logs = db.attempt_log.bulk_insert(aldata)
@@ -113,32 +118,33 @@ def myStats(user_login, web2py, db):  # request
     db.tag_records.insert(**trdata)
     db.commit()
 
-    usrows = db(db.weekly_user_stats.day1 == datetime.date(2014, 1, 26))
+    usrows = db(db.weekly_user_stats.week_start == datetime.datetime(
+        2014, 1, 26, 0, 0))
     if not usrows.isempty():
         usrows.delete()
     usdata = {'name': user_login['id'],
               'year': 2014,
+              'tag': 72,
               'month': 1,
               'week': 5,
-              'updated': datetime.datetime.now(),
-              'day1': datetime.date(2014, 1, 26),
-              'day2': datetime.date(2014, 1, 27),
-              'day3': datetime.date(2014, 1, 28),
-              'day4': datetime.date(2014, 1, 29),
-              'day5': datetime.date(2014, 1, 30),
-              'day6': datetime.date(2014, 1, 31),
-              'day7': datetime.date(2014, 2, 1),
-              'count1': [],
-              'count2': [logs[0]],
-              'count3': [],
-              'count4': [l for l in logs[1:4]],
-              'count5': [],
-              'count6': [logs[4]],
-              'count7': [logs[5]],
-              'logs_by_tag': make_json({72: logs}),
-              'logs_right': [logs[0], logs[1], logs[5]],
-              'logs_wrong': [logs[2], logs[3], logs[4]],
-              'done': 6}
+              'week_start': datetime.datetime(2014, 1, 26, 0, 0),
+              'weed_end': datetime.datetime(2014, 2, 1, 0, 0),
+              'day1_right': [],
+              'day2_right': [logs[0]],
+              'day3_right': [],
+              'day4_right': [logs[1]],
+              'day5_right': [],
+              'day6_right': [],
+              'day7_right': [logs[5]],
+              'day1_wrong': [],
+              'day2_wrong': [],
+              'day3_wrong': [],
+              'day4_wrong': [logs[2], logs[3]],
+              'day5_wrong': [],
+              'day6_wrong': [logs[4]],
+              'day7_wrong': [],
+              'modified_on': datetime.datetime(2014, 2, 4, 0, 0)
+              }
     db.weekly_user_stats.insert(**usdata)
     db.commit()
 
@@ -257,15 +263,12 @@ class TestStats():
         """docstring for _get_stats_from_logs"""
         db = web2py.db
         logs = myStats[1]
-        expected = {2014: {4: ({datetime.date(2014, 1, 26): [logs[0]]},
-                               {72: [logs[0]]},
-                               [logs[0]],
-                               []),
-                           5: ({datetime.date(2014, 1, 28): logs[1:4],
-                               datetime.date(2014, 1, 30): [logs[4]],
-                               datetime.date(2014, 1, 31): [logs[5]]},
-                               {72: logs[1:6]},
-                               [logs[1], logs[5]],
+        expected = {2014: {5: ({datetime.date(2014, 1, 27): [logs[0]],
+                               datetime.date(2014, 1, 29): logs[1:4],
+                               datetime.date(2014, 1, 31): [logs[4]],
+                               datetime.date(2014, 2, 1): [logs[5]]},
+                               {72: logs[0:6]},
+                               [logs[0], logs[1], logs[5]],
                                logs[2:5])}}
         logs = db(db.attempt_log.id.belongs(myStats[1])).select()
         actual = myStats[0]._make_logs_into_weekstats(logs)
@@ -278,6 +281,7 @@ class TestStats():
                     assert lst == expected[year][weeknum][1][tag]
                 assert tup[2:] == expected[year][weeknum][2:]
 
+    @pytest.mark.skipif(True, reason='method deprecated')
     def test_add_log_data(self, myStats, web2py, user_login):
         """docstring for test_add_log_data"""
         db = web2py.db
@@ -295,19 +299,23 @@ class TestStats():
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
                      'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
                      # below is added by this method
-                     'logs_by_week': {2012: {},
-                                      2013: {},
-                                      2014: {5: {datetime.datetime(2014, 1, 26, 0, 0): [],
-                                                  datetime.datetime(2014, 1, 27, 0, 0): [logs[0]],
-                                                  datetime.datetime(2014, 1, 28, 0, 0): [],
-                                                  datetime.datetime(2014, 1, 29, 0, 0): [logs[1],
-                                                                                         logs[2],
-                                                                                         logs[3]],
-                                                  datetime.datetime(2014, 1, 30, 0, 0): [],
-                                                  datetime.datetime(2014, 1, 31, 0, 0): [logs[4]],
-                                                  datetime.datetime(2014, 2, 1, 0, 0): [logs[5]]},
-                                             }
-                                      },
+                     'logs_by_week': {
+                         2012: {},
+                         2013: {},
+                         2014: {5: {datetime.datetime(2014, 1, 26, 0, 0): [],
+                                    datetime.datetime(2014, 1, 27, 0, 0): [
+                                        logs[0]],
+                                    datetime.datetime(2014, 1, 28, 0, 0): [],
+                                    datetime.datetime(2014, 1, 29, 0, 0): [
+                                        logs[1], logs[2], logs[3]],
+                                     datetime.datetime(2014, 1, 30, 0, 0): [],
+                                     datetime.datetime(2014, 1, 31, 0, 0): [
+                                        logs[4]],
+                                     datetime.datetime(2014, 2, 1, 0, 0): [
+                                         logs[5]]
+                                     },
+                                }
+                         },
                      'logs_right': [logs[0], logs[1], logs[5]],
                      'logs_wrong': [logs[2], logs[3], logs[4]]
                      }]
@@ -337,11 +345,15 @@ class TestStats():
         """
         toronto = timezone('America/Toronto')
         logs = myStats[1]
-        now = datetime.datetime(2014, 2, 2, 2, 0)
+        now = datetime.datetime(2014, 2, 2, 6, 0)
         dtw = datetime.datetime(2014, 1, 31, 10, 0)
         dtr = datetime.datetime(2014, 2, 1, 20, 0)
-        dtw_local = toronto.localize(datetime.datetime(2014, 1, 31, 0o5, 0))
+        dtw_local = toronto.localize(datetime.datetime(2014, 1, 31, 5, 0))
         dtr_local = toronto.localize(datetime.datetime(2014, 2, 1, 15, 0))
+
+        # must regenerate since new attempt_log rows being created
+        # TODO: Test using pre-processed weekly_user_stats data
+        db(db.weekly_user_stats.name==user_login['id']).delete()
         #print 'delta_right:', now - dtr
         #print 'delta_wrong:', now - dtw
         tagnum = 72
@@ -349,12 +361,12 @@ class TestStats():
 
         expected = [{'tag': tagnum,
                      'first_attempt': None,
-                     'avg_score': 0.5,
+                     'avg_score': 0.58,
                      'tright': 3.5,
                      'twrong': 2.0,
                      'tlw': (dtw_local, 'Jan 31'),
                      'tlr': (dtr_local, 'Feb  1'),
-                     'todaycount': 0,
+                     'todaycount': 1,
                      'yestcount': 1,
                      'secondary_right': [],
                      'set': 2,
@@ -411,6 +423,103 @@ class TestStats():
                 print('actual:', actual[0][k])
                 print('expected:', expected[0][k])
                 assert actual[0][k] == expected[0][k]
+
+    def test_initialize_weekly_stats(self, user_login, web2py, myStats, db):
+        """
+        
+        """
+        mynow = datetime.datetime(2014, 2, 15)
+        new_attempts = [{'name': user_login['id'],
+                         'step': 1,  # FIXME: step and path ids are wrong
+                         'in_path': 1,
+                         'score': 0,
+                         'dt_attempted': datetime.datetime(2014, 2, 3),
+                         'user_response': 'παρ',
+                         },
+                        {'name': user_login['id'],
+                         'step': 2,  # FIXME: step and path ids are wrong
+                         'in_path': 2,
+                         'score': 1.0,
+                         'dt_attempted': datetime.datetime(2014, 2, 3),
+                         'user_response': 'παρ',
+                         },
+                        {'name': user_login['id'],
+                         'step': 2,  # FIXME: step and path ids are wrong
+                         'in_path': 2,
+                         'score': 0.3,
+                         'dt_attempted': datetime.datetime(2014, 2, 14),
+                         'user_response': 'παμ',
+                         }
+                        ]
+        newlogids = db.attempt_log.bulk_insert(new_attempts)
+        latest = datetime.datetime(2014, 2, 1, 10)
+        tag_id = 72
+              
+        actualreturn = myStats[0]._initialize_weekly_stats(72,
+                                                        most_recent_row=latest,
+                                                        now=mynow)
+
+        myreturn = [{'name': user_login['id'],
+                     'tag': 72,
+                     'year': 2014,
+                     'month': 2,
+                     'week': 6,  
+                     'week_start': datetime.datetime(2014, 2, 1, 20),
+                     'week_end': datetime.datetime(2014, 2, 8, 20),
+                     'day1_right': [],
+                     'day2_right': [newlogids[1]],
+                     'day3_right': [],
+                     'day4_right': [],
+                     'day5_right': [],
+                     'day6_right': [],
+                     'day7_right': [],
+                     'day1_wrong': [],
+                     'day2_wrong': [newlogids[0]],
+                     'day3_wrong': [],
+                     'day4_wrong': [],
+                     'day5_wrong': [],
+                     'day6_wrong': [],
+                     'day7_wrong': [],
+                     },
+                    {'name': user_login['id'],
+                     'tag': 72,
+                     'year': 2014,
+                     'month': 2,
+                     'week': 7,  
+                     'week_start': datetime.datetime(2014, 2, 8, 20),
+                     'week_end': datetime.datetime(2014, 2, 15, 20),
+                     'day1_right': [],
+                     'day2_right': [],
+                     'day3_right': [],
+                     'day4_right': [],
+                     'day5_right': [],
+                     'day6_right': [],
+                     'day7_right': [],
+                     'day1_wrong': [],
+                     'day2_wrong': [],
+                     'day3_wrong': [],
+                     'day4_wrong': [],
+                     'day5_wrong': [],
+                     'day6_wrong': [newlogids[2]],
+                     'day7_wrong': [],
+                    }
+                    ]
+        pprint(actualreturn)
+        assert len(actualreturn) == len(myreturn)
+        for idx in range(len(actualreturn)):
+            for k, v in myreturn[idx].items():
+                assert actualreturn[idx][k] == v
+        actualstored = db((db.weekly_user_stats.name==user_login['id']) &
+                       (db.weekly_user_stats.tag==72) &
+                       (db.weekly_user_stats.week_start > latest)
+                       ).select().as_list()
+        assert len(actualstored) == 1
+        for k, v in myreturn[0].items():
+            assert actualstored[0][k] == v
+        # clean up from test
+        db(db.weekly_user_stats.id == actualstored[0]['id']).delete()  
+        db(db.attempt_log.id.belongs(newlogids)).delete()  
+
 
     # @pytest.mark.skipif(True, reason='just because')
     def test_monthcal(self, myStats):

@@ -1469,3 +1469,158 @@ ALTER TABLE "tagged_attempts_by_week" ADD "attempts_wrong" TEXT;
 timestamp: 2019-09-16T10:12:34.892701
 ALTER TABLE "tagged_attempts_by_week" DROP COLUMN "attempts";
 success!
+timestamp: 2019-09-17T09:51:24.326645
+ALTER TABLE "tagged_attempts_by_week" ADD "year" INTEGER;
+timestamp: 2019-09-17T09:51:24.372638
+ALTER TABLE "tagged_attempts_by_week" ADD "month" INTEGER;
+timestamp: 2019-09-17T09:51:24.374832
+ALTER TABLE "tagged_attempts_by_week" ADD "week" INTEGER;
+timestamp: 2019-09-17T09:51:24.384037
+ALTER TABLE "tagged_attempts_by_week" ADD "attempts_right" TEXT;
+timestamp: 2019-09-17T09:51:24.387146
+ALTER TABLE "tagged_attempts_by_week" ADD "attempts_wrong" TEXT;
+timestamp: 2019-09-17T09:51:24.394435
+ALTER TABLE "tagged_attempts_by_week" DROP COLUMN "attempts";
+success!
+timestamp: 2019-09-17T10:27:27.345582
+ALTER TABLE "weekly_user_stats" ADD "tag" INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-17T10:27:27.498096
+ALTER TABLE "weekly_user_stats" ADD "week_start" TIMESTAMP;
+timestamp: 2019-09-17T10:27:27.499624
+ALTER TABLE "weekly_user_stats" ADD "week_end" TIMESTAMP;
+timestamp: 2019-09-17T10:27:27.501244
+ALTER TABLE "weekly_user_stats" ADD "day1_right" TEXT;
+timestamp: 2019-09-17T10:27:27.502925
+ALTER TABLE "weekly_user_stats" ADD "day2_right" TEXT;
+timestamp: 2019-09-17T10:27:27.504683
+ALTER TABLE "weekly_user_stats" ADD "day3_right" TEXT;
+timestamp: 2019-09-17T10:27:27.506216
+ALTER TABLE "weekly_user_stats" ADD "day4_right" TEXT;
+timestamp: 2019-09-17T10:27:27.508068
+ALTER TABLE "weekly_user_stats" ADD "day5_right" TEXT;
+timestamp: 2019-09-17T10:27:27.509642
+ALTER TABLE "weekly_user_stats" ADD "day6_right" TEXT;
+timestamp: 2019-09-17T10:27:27.511260
+ALTER TABLE "weekly_user_stats" ADD "day7_right" TEXT;
+timestamp: 2019-09-17T10:27:27.512572
+ALTER TABLE "weekly_user_stats" ADD "day1_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.514292
+ALTER TABLE "weekly_user_stats" ADD "day2_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.515899
+ALTER TABLE "weekly_user_stats" ADD "day3_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.518413
+ALTER TABLE "weekly_user_stats" ADD "day4_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.520452
+ALTER TABLE "weekly_user_stats" ADD "day5_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.522285
+ALTER TABLE "weekly_user_stats" ADD "day6_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.523756
+ALTER TABLE "weekly_user_stats" ADD "day7_wrong" TEXT;
+timestamp: 2019-09-17T10:27:27.544537
+ALTER TABLE "weekly_user_stats" DROP COLUMN "updated";
+timestamp: 2019-09-17T10:27:27.546877
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day1";
+timestamp: 2019-09-17T10:27:27.549025
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day2";
+timestamp: 2019-09-17T10:27:27.551213
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day3";
+timestamp: 2019-09-17T10:27:27.553592
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day4";
+timestamp: 2019-09-17T10:27:27.555305
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day5";
+timestamp: 2019-09-17T10:27:27.556982
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day6";
+timestamp: 2019-09-17T10:27:27.558780
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day7";
+timestamp: 2019-09-17T10:27:27.560340
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count1";
+timestamp: 2019-09-17T10:27:27.561808
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count2";
+timestamp: 2019-09-17T10:27:27.563544
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count3";
+timestamp: 2019-09-17T10:27:27.565506
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count4";
+timestamp: 2019-09-17T10:27:27.567139
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count5";
+timestamp: 2019-09-17T10:27:27.569113
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count6";
+timestamp: 2019-09-17T10:27:27.571260
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count7";
+timestamp: 2019-09-17T10:27:27.572852
+ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_by_tag";
+timestamp: 2019-09-17T10:27:27.574606
+ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_right";
+timestamp: 2019-09-17T10:27:27.576263
+ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_wrong";
+success!
+timestamp: 2019-09-17T15:59:11.498850
+ALTER TABLE "weekly_user_stats" ADD "tag" INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-17T15:59:11.644234
+ALTER TABLE "weekly_user_stats" ADD "week_start" TIMESTAMP;
+timestamp: 2019-09-17T15:59:11.646518
+ALTER TABLE "weekly_user_stats" ADD "week_end" TIMESTAMP;
+timestamp: 2019-09-17T15:59:11.648461
+ALTER TABLE "weekly_user_stats" ADD "day1_right" TEXT;
+timestamp: 2019-09-17T15:59:11.651319
+ALTER TABLE "weekly_user_stats" ADD "day2_right" TEXT;
+timestamp: 2019-09-17T15:59:11.652939
+ALTER TABLE "weekly_user_stats" ADD "day3_right" TEXT;
+timestamp: 2019-09-17T15:59:11.655557
+ALTER TABLE "weekly_user_stats" ADD "day4_right" TEXT;
+timestamp: 2019-09-17T15:59:11.657598
+ALTER TABLE "weekly_user_stats" ADD "day5_right" TEXT;
+timestamp: 2019-09-17T15:59:11.659658
+ALTER TABLE "weekly_user_stats" ADD "day6_right" TEXT;
+timestamp: 2019-09-17T15:59:11.661525
+ALTER TABLE "weekly_user_stats" ADD "day7_right" TEXT;
+timestamp: 2019-09-17T15:59:11.663476
+ALTER TABLE "weekly_user_stats" ADD "day1_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.665233
+ALTER TABLE "weekly_user_stats" ADD "day2_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.667023
+ALTER TABLE "weekly_user_stats" ADD "day3_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.668782
+ALTER TABLE "weekly_user_stats" ADD "day4_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.671179
+ALTER TABLE "weekly_user_stats" ADD "day5_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.674168
+ALTER TABLE "weekly_user_stats" ADD "day6_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.676713
+ALTER TABLE "weekly_user_stats" ADD "day7_wrong" TEXT;
+timestamp: 2019-09-17T15:59:11.699236
+ALTER TABLE "weekly_user_stats" DROP COLUMN "updated";
+timestamp: 2019-09-17T15:59:11.701651
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day1";
+timestamp: 2019-09-17T15:59:11.703537
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day2";
+timestamp: 2019-09-17T15:59:11.705267
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day3";
+timestamp: 2019-09-17T15:59:11.718125
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day4";
+timestamp: 2019-09-17T15:59:11.720139
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day5";
+timestamp: 2019-09-17T15:59:11.722202
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day6";
+timestamp: 2019-09-17T15:59:11.724176
+ALTER TABLE "weekly_user_stats" DROP COLUMN "day7";
+timestamp: 2019-09-17T15:59:11.725737
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count1";
+timestamp: 2019-09-17T15:59:11.727381
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count2";
+timestamp: 2019-09-17T15:59:11.729147
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count3";
+timestamp: 2019-09-17T15:59:11.730945
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count4";
+timestamp: 2019-09-17T15:59:11.732390
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count5";
+timestamp: 2019-09-17T15:59:11.733761
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count6";
+timestamp: 2019-09-17T15:59:11.736003
+ALTER TABLE "weekly_user_stats" DROP COLUMN "count7";
+timestamp: 2019-09-17T15:59:11.738607
+ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_by_tag";
+timestamp: 2019-09-17T15:59:11.742754
+ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_right";
+timestamp: 2019-09-17T15:59:11.745388
+ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_wrong";
+success!
