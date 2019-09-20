@@ -109,7 +109,6 @@ function update_row(myid){
             type: 'POST',
             data: myvals,
             success: function(result){
-                $.alert(result);
             },
             error: function(result){
                 $.alert({title: 'Error updating query', content: result});
