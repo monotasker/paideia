@@ -1730,7 +1730,7 @@ class StepEvaluator(object):
         Special responses (and a score of 0.9) are also given if the only error
         is the presence or absence of appropriate final punctuation.
         """
-        debug = current.paideia_DEBUG_MODE
+        debug = True  # current.paideia_DEBUG_MODE
         if not user_response:
             request = current.request
             user_response = request.vars['response']
@@ -1738,7 +1738,7 @@ class StepEvaluator(object):
             print('\n\nin get_eval user_response is', user_response)
         clean_user_response = GreekNormalizer().normalize(user_response)
         if debug:
-            print('\n\nin get_eval user_response is', clean_user_response)
+            print('\n\nin get_eval user_response is', clean_user_response.encode('utf8'))
         responses = {k: r for k, r in list(self.responses.items())
                      if r and r not in [None, 'null', '']}
         # Compare the student's response to the regular expressions
@@ -1747,6 +1747,7 @@ class StepEvaluator(object):
         score = 0
 
         try:
+            if debug: print('response1', responses['response1'].encode('utf8'))
             regex1 = re.compile(responses['response1'], re.I)
             if 'response2' in list(responses.keys()):
                 regex2 = re.compile(responses['response2'], re.I)
