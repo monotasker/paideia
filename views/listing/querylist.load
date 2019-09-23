@@ -1,3 +1,4 @@
+<span class="query_count_badge">{{=len(queries) if queries else 0}}</span>
 <table id='query_list_table' class='query_list_table table'>
 <thead>
     <tr>
