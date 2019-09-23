@@ -22,13 +22,15 @@ from gluon.tools import IS_IN_SET
 from gluon.globals import current
 import bootstrap3 as bs3  # needed here even though not used
 if 0:
-    from gluon import DAL, URL, Field, SQLFORM
+    from web2py.gluon import DAL, URL, Field, SQLFORM
+    from web2py.gluon.tools import Recaptcha2, Auth, Mail, Crud, Service, PluginManager
+    from web2py.gluon.tools import IS_IN_SET
+    from web2py.gluon.globals import current
 
 response = current.response
 request = current.request
 now = datetime.datetime.utcnow()
 
-print('is_local:', request.is_local)
 if request.is_local:  # disable in production enviroment
     from gluon.custom_import import track_changes
     track_changes(True)
