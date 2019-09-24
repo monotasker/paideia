@@ -112,7 +112,8 @@ class Stats(object):
             self.tag_progress = db(db.tag_progress.name == self.user_id
                                    ).select().first().as_dict()
         except AttributeError:
-            self.tag_progress = {}
+            self.tag_progress = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
+                                 'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []} 
         # print 'Stats.__init__:: tag_progress:', self.tag_progress
 
         # TODO: find and notify re. duplicate tag_records rows
@@ -396,6 +397,7 @@ class Stats(object):
         Returns a dictionary whose keys are datetimes for the beginning of each day with logs since "recent_start". The value for each day is a 2-member tuple. The first member is a list of log id numbers for correct answers on that day. The second is a list of log id numbers for incorrect (score<1.0).
         '''
         db = current.db
+        debug = 1
         
 
         mystats = db((db.weekly_user_stats.name==self.user_id) &
@@ -403,10 +405,10 @@ class Stats(object):
                      (db.weekly_user_stats.week_end > recent_start)
                      ).select(orderby=db.weekly_user_stats.week_end
                               ).as_list()
-        print('got from db:', len(mystats))
+        if debug: print('got from db:', len(mystats))
 
         most_recent_stats = mystats[-1]['week_end'] if mystats else None
-        print('most_recent is', most_recent_stats)
+        if debug: print('most_recent is', most_recent_stats)
 
         if not most_recent_stats:
             latest = db((db.weekly_user_stats.name==self.user_id) &
@@ -414,18 +416,18 @@ class Stats(object):
                         ).select(orderby=db.weekly_user_stats.week_end
                                  ).as_list()
             most_recent_stats = latest[-1]['week_end'] if latest else None
-            print('most_recent is', most_recent_stats)
+            if debug: print('most_recent is', most_recent_stats)
         if not most_recent_stats:
                 mylog = db((db.attempt_log.name == self.user_id) &
                            (db.attempt_log.step == db.step2tags.step_id) &
                            (db.step2tags.tag_id == tag_id)
                            ).select().last()
                 if mylog:
-                    print('any logs?', mylog.attempt_log.id)
+                    if debug: print('any logs?', mylog.attempt_log.id)
 
         newstats = self._initialize_weekly_stats(tag_id, recent_start,
                                                  most_recent_stats)
-        print('got from method:', len(newstats))
+        if debug: print('got from method:', len(newstats))
         mystats = mystats + newstats
 
         flatstats = {}
@@ -505,7 +507,7 @@ class Stats(object):
                                         tags_ahead
 
         '''
-        debug = 0
+        debug = 1
         if debug: print('A')
         db = current.db if not db else db
 
@@ -832,12 +834,12 @@ class Stats(object):
                          r['attempt_log']['dt_attempted'] > most_recent_row and
                          r['attempt_log']['dt_attempted'] >= days[n-1] and
                          r['attempt_log']['dt_attempted'] < days[n] and
-                         (abs(r['attempt_log']['score'] - 1.0) < 0.01)]
+                         (abs((r['attempt_log']['score'] or 0) - 1.0) < 0.01)]
                 wlogs = [r['attempt_log']['id'] for r in weeklogs if 
                          r['attempt_log']['dt_attempted'] > most_recent_row and
                          r['attempt_log']['dt_attempted'] >= days[n-1] and
                          r['attempt_log']['dt_attempted'] < days[n] and
-                         abs(r['attempt_log']['score'] - 1.0) > 0.01]
+                         abs((r['attempt_log']['score'] or 0) - 1.0) > 0.01]
                 if len(rlogs) or len(wlogs):
                     valid = 1
                 weekdict['day{}_right'.format(str(n))] = rlogs
@@ -846,7 +848,7 @@ class Stats(object):
 
         return_list = []
         for year in range(firstyear, now.year+1):
-            # print(year)
+            print(year)
             for week in range(firstweek, 54):
                 # print(week)
                 naivestart = datetime.datetime.strptime(
@@ -876,6 +878,7 @@ class Stats(object):
                             return_list.append(weekdict)
                     else:
                         pass  # week had no logs
+        print ('finished')
 
         return return_list
         

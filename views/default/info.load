@@ -96,6 +96,7 @@ import json
             <div class="tabbable tabs-left ">
               <ul class="nav nav-tabs">
                 <li><a href="#master" data-toggle="tab">master
+                    {{print(badge_levels)}}
                     <span class='badge-level-count'>{{=len(badge_levels[4])}}<span>
                   </a>
                 </li>

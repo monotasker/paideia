@@ -226,7 +226,7 @@ def info():
             blist(list):                list of User's bug reports
             max_set(int):               Furthest badge set reached to date by
                                             user (from Stats.max)
-            badge_levels(dict):         Dictionary with badle levels (int) as
+            badge_levels(dict):         Dictionary with badge levels (int) as
                                             keys and a list of badge names (or
                                             tag: int) as each value.
             badge_table_data(list):     A list of dictionaries with info on
