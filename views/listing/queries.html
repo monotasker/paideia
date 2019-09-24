@@ -50,6 +50,7 @@
                 {{pass}}
             </select>
         </div>
+        <button id='filter-refresh-button' class="btn btn-success"><i class='fa fa-refresh '></i></button>
     </div>
 </form>
 {{pass}}
@@ -70,6 +71,13 @@
 
 // handle select boxes that change classes and filters
  $(document).on('change', '#class-chooser, #query-filter', function(event){
+	ajax("{{=URL('listing', 'querylist.load')}}", ['agid', 'filter'], 'query_list');
+    event.preventDefault();
+	}
+);
+
+// handle refresh button
+ $(document).on('click', '#filter-refresh-button', function(event){
 	ajax("{{=URL('listing', 'querylist.load')}}", ['agid', 'filter'], 'query_list');
     event.preventDefault();
 	}
