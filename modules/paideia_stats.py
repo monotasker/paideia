@@ -397,7 +397,7 @@ class Stats(object):
         Returns a dictionary whose keys are datetimes for the beginning of each day with logs since "recent_start". The value for each day is a 2-member tuple. The first member is a list of log id numbers for correct answers on that day. The second is a list of log id numbers for incorrect (score<1.0).
         '''
         db = current.db
-        debug = 1
+        debug = 0
         
 
         mystats = db((db.weekly_user_stats.name==self.user_id) &
@@ -507,7 +507,7 @@ class Stats(object):
                                         tags_ahead
 
         '''
-        debug = 1
+        debug = 0
         if debug: print('A')
         db = current.db if not db else db
 
@@ -848,7 +848,7 @@ class Stats(object):
 
         return_list = []
         for year in range(firstyear, now.year+1):
-            print(year)
+            # print(year)
             for week in range(firstweek, 54):
                 # print(week)
                 naivestart = datetime.datetime.strptime(
@@ -878,7 +878,7 @@ class Stats(object):
                             return_list.append(weekdict)
                     else:
                         pass  # week had no logs
-        print ('finished')
+        # print ('finished')
 
         return return_list
         
