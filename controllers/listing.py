@@ -424,9 +424,12 @@ def lessons():
         active_video = db.lessons(active_lesson).video_url[17:]
         active_set = str(db.lessons(active_lesson).lesson_position)[:-1]
     elif auth.is_logged_in():
-        active_set = db(db.tag_progress.name == auth.user_id
-                        ).select().first().latest_new
-        active_set = str(active_set)
+        try:
+            active_set = db(db.tag_progress.name == auth.user_id
+                            ).select().first().latest_new
+            active_set = str(active_set)
+        except AttributeError:  # no tag_progress record
+            active_set = None
     else:
         active_set = None
     lessons = db(db.lessons.active == True
