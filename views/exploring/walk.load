@@ -160,9 +160,18 @@ ap.append(form) }}
         <!--# path counter for prompt/reply=================================-->
         <small class='path-counter progress_text small muted'>
             {{if 'score' in globals():}}
-                You have now completed {{=completed_count}} paths today.
+                You have now completed 
+                <span class='badge badge-success'>{{=completed_count}}</span>
+                 paths today.
             {{else:}}
-                You have already finished {{=completed_count}} paths so far today.
+                You have already finished 
+                <span class='badge badge-success'>{{=completed_count}}</span>
+                 paths so far today.
+            {{pass}}
+            {{if reviewing_set:}}
+                <span class='label label-warning'>
+                    <i class='fa fa-clock-o'></i>Reviewing set {{=reviewing_set}}
+                </span>
             {{pass}}
         </small>
 

@@ -177,5 +177,7 @@ def walk():
     if 'bmodal' not in list(resp.keys()):
         resp['bmodal'] = ''
     resp['form'] = testform
+    resp['reviewing_set'] = session.set_review \
+        if 'set_review' in list(session.keys()) else None
 
     return resp
