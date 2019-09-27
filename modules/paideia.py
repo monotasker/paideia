@@ -787,6 +787,7 @@ class Walk(object):
                     if user.tag_records else [],
                 'tag_progress': json.dumps(user.tag_progress, default=str) \
                     if user.tag_progress else None,
+                'reviewing': user.reviewing,
                 'promoted': json.dumps(user.promoted, default=str),
                 'demoted': json.dumps(user.demoted, default=str),
                 'new_tags': json.dumps(user.new_tags, default=str),
@@ -810,6 +811,7 @@ class Walk(object):
             print('remaining_steps:', userdict['remaining_steps'])
             print('step_for_reply:', userdict['step_for_reply'])
             print('step_for_prompt:', userdict['step_for_prompt'])
+            print({k: v for k, v in userdict.items() if v == 'reviewing set 1'})
             myrow = db.session_data.update_or_insert({'name': user.get_id()},
                                                      name=user.get_id(),
                                                      **userdict)
@@ -888,6 +890,7 @@ class Npc(object):
             self.id_num = id_num.get_id()
         else:
             self.id_num = id_num
+        print("Npc::init: id_num is", id_num)
         self.data = db.npcs(id_num).as_dict()
         # get image here so that db interaction stays in __init__ method
         self.image_id = self.data['npc_image']
@@ -2615,6 +2618,7 @@ class User(object):
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
 
             if debug: print('Q')
+            self.reviewing = None
             self.promoted = None
             self.demoted = None
             self.new_tags = None
@@ -2654,10 +2658,14 @@ class User(object):
                     setattr(self, k, json.loads(sd[k]))
                 for k in ['cats_counter', 'rank', 
                         'session_start', 'prev_loc', 'prev_npc', 'past_quota',
-                        'viewed_slides', 'reported_badges', 'reported_promotions',
+                        'viewed_slides', 'reported_badges', 'reported_promotions', 'reviewing', 
                         'repeating', 'new_content', 'active_cat', 'quota']:
-                    setattr(self, k, sd[k])
-                    print(k, sd[k], type(sd[k]))
+                    if k in list(sd.keys()):
+                        setattr(self, k, sd[k])
+                        print(k, sd[k], type(sd[k]))
+                    else:
+                        setattr(self, k, None)
+                        print(k, None)
                 # Blocks must be set after flags above are set
                 for condition, kwargs in json.loads(sd['blocks']).items():
                     print(sd['blocks'])
@@ -2993,7 +3001,8 @@ class User(object):
         if mode:
             path = Path(path_id=choice['id'])
             if re.match(r'reviewing.*', mode, re.I):  # show mode if not reg
-                cat = mode
+                self.reviewing = int(mode.replace('reviewing set ', ''))
+                cat = self.reviewing
                 if debug:
                     'User::_make_path_choice: reviewing, cat is: ', cat
             if debug:
