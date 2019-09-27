@@ -162,11 +162,11 @@ ap.append(form) }}
             {{if 'score' in globals():}}
                 You have now completed 
                 <span class='badge badge-success'>{{=completed_count}}</span>
-                 paths today.
+                 path{{='s' if int(completed_count) != 1 else ''}} today.
             {{else:}}
                 You have already finished 
                 <span class='badge badge-success'>{{=completed_count}}</span>
-                 paths so far today.
+                 path{{='s' if int(completed_count) != 1 else ''}} so far today.
             {{pass}}
             {{if reviewing_set:}}
                 <span class='label label-warning'>
