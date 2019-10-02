@@ -107,6 +107,7 @@ for infodict in userlist:
 tbl.append(row)
 pass
 }}
+<span class='userlist-member-count'>{{=len(userlist)}}</span>
 {{=tbl}}
 {{=modal[1]}}
 

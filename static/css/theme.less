@@ -530,6 +530,20 @@ body.appadmin                   {
     }
 }
 
+/*--editing------------------------------------------------------*/
+body.editing                    {
+    div#masthead                {display: none;
+    }
+    div#editing-paths-top-container         {display: flex;
+                                             flex-direction: column;
+        div#editing-paths-list-container    {overflow-y: auto;
+                                            overflow-x: hidden;
+                                            height: 100%;
+                                            max-height: 100%;
+        }
+    }
+}
+
 /*-- exploring --------------------------------------------------*/
 body.exploring                  {
     div#masthead                {display: none;
@@ -912,6 +926,12 @@ body.user                           {
     #add_members_trigger            {position: absolute;
                                      right: 0;
                                      top: 5em;
+    }
+    span.userlist-member-count          {display: block;
+                                     float: right;
+                                     font-size: 3em;
+                                     padding-right: 0.5em;
+                                     color: @pallette2;
     }
     .table-condensed                {
         tbody                       {
