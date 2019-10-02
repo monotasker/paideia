@@ -1,0 +1,38 @@
+{{extend 'layout.html'}}
+
+<div id="editing-paths-top-container" class="container-fluid">
+    <h2>Path Editing</h2>
+
+    <form id="path-filter-form">
+        <label>Badge</label>
+        <label>Badge Set</label>
+        <label>Npc</label>
+        <label>Location</label>
+        <label>Vocabulary Word</label>
+    </form>
+
+    <div id="editing-paths-list-container" class="col-sm-4">
+        <ul class="path-list nav nav-stacked">
+            {{for p in pathlist:}}
+            <li class="path-item">
+                <span class="path-item-id">{{=p['path_id']}}</span>
+                <span class="path-item-label">{{=p['path_label']}}</span>
+            </li>
+            {{pass}}
+        </ul>
+    </div>
+    <div id="editing-paths-focus-container" class="col-sm-8">
+        
+    </div>
+</div>
+
+<script>
+function fit_to_height_beta() {
+    var headroom = document.getElementsByClassName('navbar')[0].offsetHeight;
+    var footroom = document.getElementById('footer').offsetHeight;
+    var divheight = window.innerHeight - (headroom + footroom);
+    document.getElementById('editing-paths-top-container').style.height = divheight + "px";
+}
+window.addEventListener('load', fit_to_height_beta);
+window.addEventListener('resize', fit_to_height_beta);
+</script>

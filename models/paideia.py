@@ -527,11 +527,7 @@ db.define_table('path_styles',
 
 db.define_table('paths',
                 Field('label'),
-                # JOB ... turning steps into a list of  integers as it seems to
-                #  have issues
-                # FIXME: turn back into list:reference
                 Field('steps', 'list:reference steps'),
-                # Field('steps', 'list:integer'),
                 Field('path_style', 'reference path_styles'),
                 Field('path_tags', compute=lambda row: row.steps),
                 # compute=lambda row: [tag for step in row.paths.steps

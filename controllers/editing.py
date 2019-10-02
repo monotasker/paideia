@@ -13,6 +13,44 @@ import re
 def listing():
     return dict()
 
+
+@auth.requires_membership(role='administrators')
+def paths():
+    pathlist = []
+    for r in db(db.paths.id > 0).select(): 
+        pathdict = {'path_id': r.id,
+                    'path_label': r.label,
+                    'steps': [],
+                    'path_tags': [],
+                    'path_tags_secondary': [],
+                    'path_locations': [],
+                    'path_lemmas': [],
+                    'path_npcs': [],
+                    'path_status': 1
+                    }
+        for s in r.steps:
+            mystep = db.steps[s]
+            stepdict = {'step_id': s,
+                        'step_prompt': mystep['prompt'],
+                        'step_tags': mystep['tags'],
+                        'step_tags_secondary': mystep['tags_secondary'],
+                        'step_lemmas': mystep['lemmas'],
+                        'step_npcs': mystep['npcs'],
+                        'step_locations': mystep['locations'],
+                        'step_status': mystep['status']
+                        }
+            pathdict['steps'].append(stepdict)
+            pathdict['path_tags'].append(mystep['tags'])
+            pathdict['path_tags_secondary'].append(mystep['tags_secondary'])
+            pathdict['path_locations'].append(mystep['locations'])
+            pathdict['path_lemmas'].append(mystep['lemmas'])
+            pathdict['path_npcs'].append(mystep['npcs'])
+            if mystep['status'] != 1:
+                pathdict['path_status'] = mystep['status']
+        pathlist.append(pathdict)           
+    
+    return {'pathlist': pathlist}
+
 @auth.requires_membership(role='administrators')
 def undo_bug():
     '''
