@@ -1,9 +1,45 @@
 {{from plugin_widgets import TOOLTIP, ROLE, POPOVER}}
 
 <!--# ADMIN PANEL ========================================================-->
-{{ap = DIV(H3('Admin Panel'), _class='admin-panel')
-ap.append(form) }}
-{{=ROLE(ap)}}
+{{if auth.has_membership('administrators'):}}
+<div class="admin-panel">
+    <h3>Admin Panel</h3>
+    <form action="#" enctype="multipart/form-data" method="post" data-w2p_target="walk_frame">
+        <table>
+            <tbody>
+                <tr id="no_table_path__row">
+                    <td class="w2p_fl"><label class="" for="no_table_path" id="no_table_path__label">Path: </label></td><td class="w2p_fw"><input class="integer" id="no_table_path" name="path" type="text" value="" style="background-repeat: repeat; background-image: none; background-position: 0% 0%;" tabindex='-1'></td>
+                    <td class="w2p_fc"></td>
+                </tr>
+                <tr id="no_table_location__row">
+                    <td class="w2p_fl"><label class="" for="no_table_location" id="no_table_location__label">Location: </label></td>
+                    <td class="w2p_fw"><input class="string" id="no_table_location" name="location" type="text" value="" style="background-repeat: repeat; background-image: none; background-position: 0% 0%;" tabindex='-1'></td>
+                    <td class="w2p_fc"></td>
+                </tr>
+                <tr id="no_table_blocks__row">
+                    <td class="w2p_fl"><label class="" for="no_table_blocks" id="no_table_blocks__label">Blocks: </label></td>
+                    <td class="w2p_fw"><input class="string" id="no_table_blocks" name="blocks" type="text" value="" style="background-repeat: repeat; background-image: none; background-position: 0% 0%;" tabindex='-1'></td>
+                    <td class="w2p_fc"></td>
+                </tr>
+                <tr id="no_table_new_user__row">
+                    <td class="w2p_fl"><label class="" for="no_table_new_user" id="no_table_new_user__label">New User: </label></td>
+                    <td class="w2p_fw"><input class="boolean" id="no_table_new_user" name="new_user" type="checkbox" value="on" tabindex='-1'></td>
+                    <td class="w2p_fc"></td>
+                </tr>
+                <tr id="submit_record__row">
+                    <td class="w2p_fl"></td>
+                    <td class="w2p_fw"><input type="submit" value="Submit" class="btn" tabindex='-1'></td>
+                    <td class="w2p_fc"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="display:none;">
+            <input name="_formkey" type="hidden" value="0063173a-7d91-4a1c-b575-a375b9cfedbf">
+            <input name="_formname" type="hidden" value="no_table/create">
+        </div>
+    </form>
+</div>
+{{pass}}
 
 <!--# ======================================================================-->
 <!--# MAP INTERFACE ========================================================-->
@@ -44,7 +80,7 @@ ap.append(form) }}
 		    <div class="jp-gui jp-interface">
 		      <div class="jp-controls-holder">
 		        <div class="jp-controls">
-		          <i class="fa fa-play-circle-o fa-2x jp-play" role="button" tabindex="0""></i>
+		          <i class="fa fa-play-circle-o fa-2x jp-play" role="button" tabindex="6""></i>
 		        </div>
 		      </div>
 		    </div>
@@ -114,12 +150,11 @@ ap.append(form) }}
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
         {{pass
-        mytabindex = 1
+        mytabindex = 0
         if 'continue' in response_buttons:}}
             {{=A("Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
             cid='walk_frame', _class='continue btn btn-success next_q',
             _tabindex=mytabindex)}}
-            {{mytabindex += 1}}
         {{pass}}
 
         {{if 'retry' in response_buttons:}}
@@ -127,7 +162,6 @@ ap.append(form) }}
                  cid='walk_frame',
                  _class='btn btn-warning retry',
                  _tabindex=mytabindex)}}
-            {{mytabindex += 1}}
         {{pass}}
 
         {{if 'map' in response_buttons:}}
@@ -135,16 +169,17 @@ ap.append(form) }}
                 tabindex="{{=mytabindex}}">
                 Back to map
             </a>
-            {{mytabindex += 1}}
         {{pass}}
         {{if sid and pid:}}
             {{stepedit = A('step {}'.format(sid),
                         _href=URL('editing', 'listing.html', args=['steps', sid]),
-                        _class='prompt-s-editlink'
+                        _class='prompt-s-editlink',
+                        _tabindex=0
                         )
             pathedit = A('path {}'.format(pid),
                         _href=URL('editing', 'listing.html', args=['paths', pid]),
-                        _class='prompt-p-editlink'
+                        _class='prompt-p-editlink',
+                        _tabindex=0
                         )
                         catnum = ' choosing from category {}, new content is {}'.format(category, new_content)}}
             <small>
