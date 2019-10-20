@@ -16,17 +16,50 @@
             {{for p in pathlist:}}
             <li class="path-item">
                 <span class="path-item-id">{{=p['path_id']}}</span>
-                <span class="path-item-label">{{=p['path_label']}}</span>
+                <span class="path-item-label">
+                    <a href={{=p['path_id']}} class="path-item-link">
+                        {{=p['path_label']}}
+                    </a>
+                </span>
+                    <ul class="step-list">
+                    {{for s in p['steps']:}}
+                        <li class="step-item">
+                            <span class="step-item-id">{{=s['step_id']}}</span>
+                            <span class="step-item-prompt">
+                                <a href={{=s['step_id']}} class="step-item-link">
+                                {{=s['step_prompt']}}
+                                </a>
+                            </span>
+                        </li>
+                    {{pass}}
+                    </ul>
             </li>
             {{pass}}
         </ul>
     </div>
+
     <div id="editing-paths-focus-container" class="col-sm-8">
-        
+       <form class="form">
+           <input type="text">
+       </form> 
     </div>
+
 </div>
 
 <script>
+function populate_form(mypathid, mystepid) {
+    const my_url = '/paideia/editing/get_step_data';
+    $.ajax({url: my_url,
+            type: 'GET',
+            data: {'path_id': mypathid, mystepid},
+            success: function(result){
+            },
+            error: function(result){
+                $.alert({title: 'Error getting step data', content: result});
+            }
+    });
+}
+    
 function fit_to_height_beta() {
     var headroom = document.getElementsByClassName('navbar')[0].offsetHeight;
     var footroom = document.getElementById('footer').offsetHeight;
