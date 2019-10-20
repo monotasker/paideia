@@ -146,9 +146,30 @@ db.define_table('categories',
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(category)s')
 
+db.define_table('narrative_flags',
+                Field('flag_label', 'string'),
+                Field('flag_description', 'text'),
+                Field('valid_states', 'list:string'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=request.now),
+                format=lambda row: '{}: {}'.format(row['id'], row['flag_label'])
+                )
+
+db.define_table('narrative_flag_states',
+                Field('narrative_flag', 'reference narrative_flags'),
+                Field('user', 'reference auth_user', default=auth.user_id),
+                Field('modified_on', 'datetime', default=request.now),
+                Field('flag_state', 'string'),
+                format=lambda row: '{}: {}'.format(row['user'],
+                                                   row['narrative_flag'])
+                )
+db.narrative_flag_states.flag_state.requires = IS_EMPTY_OR(IS_IN_SET(
+    lambda field, value: s for s in db.narrative_flags[value].valid_states))
+
 db.define_table('tags',
                 Field('tag', 'string', unique=True),
                 Field('tag_position', 'integer'),  # was position (reserved)
+                Field('tag_subset', 'integer'),
                 Field('slides', 'list:reference plugin_slider_decks'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
