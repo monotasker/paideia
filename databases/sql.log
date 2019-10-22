@@ -1652,3 +1652,20 @@ success!
 timestamp: 2019-10-21T15:33:33.050258
 ALTER TABLE "session_data" ADD "rank_subset" INTEGER;
 success!
+timestamp: 2019-10-22T09:39:11.814488
+ALTER TABLE "paths" ADD "threshold_tag_1" INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-10-22T09:39:11.826891
+ALTER TABLE "paths" ADD "threshold_avg_1" FLOAT8;
+timestamp: 2019-10-22T09:39:11.829886
+ALTER TABLE "paths" ADD "threshold_tag_2" INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-10-22T09:39:11.832688
+ALTER TABLE "paths" ADD "threshold_avg_2" FLOAT8;
+timestamp: 2019-10-22T09:39:11.841344
+ALTER TABLE "paths" ADD "threshold_tag_3" INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-10-22T09:39:11.853964
+ALTER TABLE "paths" ADD "threshold_avg_3" FLOAT8;
+timestamp: 2019-10-22T09:39:11.857689
+ALTER TABLE "paths" ADD "required_narrative_flags" TEXT;
+timestamp: 2019-10-22T09:39:11.861324
+ALTER TABLE "paths" ADD "excluded_narrative_flags" TEXT;
+success!

@@ -25,7 +25,7 @@ if 0:
 
 from ast import literal_eval
 import base64
-from copy import copy
+from copy import copy, deepcopy
 import datetime
 # from dateutil import parser
 from difflib import Differ
@@ -3200,9 +3200,129 @@ def mycases(casenum, user_login, db):
                        'promoted': {'cat2': [61]},
                        'demoted': {},
                        'steps_here': [1, 2, 30, 125, 126, 127],
-                       'completed': []}
+                       'completed': []},
+                'case6':  # 
+                      case_factory(casenum=6,
+                                   now_dt=dt('2013-01-29'),
+                                   user_id=user_login['id'],
+                                   location='domus_A',
+                                   prev_loc='domus_A',
+                                   prev_npc=1,
+                                   path_id=None,
+                                   blocks=None,
+                                   current_set=6,
+                                   current_subset=2,
+                                   no_cat1=True,
+                                   untried_tags=[],
+                                   promote_for_avg=[],
+                                   promote_for_time=[],
+                                   all_cat1_paths_tried=False
+                                   )  
+                      {
+                       'tag_records': [{'name': 1,
+                                        'tag': 61,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
+                                        'times_right': 10,
+                                        'times_wrong': 2,
+                                        'secondary_right': None}],
+                       'tag_progress_out': {'latest_new': 7,
+                                            'latest_subset': 1,
+                                            'cat1': [62], 'cat2': [61],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_start': {'cat1': [61], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_out': {'cat1': [62], 'cat2': [61],
+                                          'cat3': [], 'cat4': [],
+                                          'rev1': [], 'rev2': [],
+                                          'rev3': [], 'rev4': []},
+                       'paths': {'cat1': [p.id for t in [62]
+                                          for p in allpaths if t in p.tags],
+                                 'cat2': [p.id for t in [61]
+                                          for p in allpaths if t in p.tags],
+                                 'cat3': [],
+                                 'cat4': []},
+                       'new_badges': [62],
+                       'promoted': {'cat2': [61]},
+                       'demoted': {},
+                       'steps_here': [1, 2, 30, 125, 126, 127],
+                       'completed': []},' 
              }
     return cases[casenum]
+
+
+def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
+                 prev_loc=None, prev_npc=None, path_id=None, blocks=None,
+                 current_set=None, current_subset=None, no_cat1=False,
+                 untried_tags=False, promote_for_avg=None, 
+                 promote_for_time=None, all_cat1_paths_tried=False,
+                 start_new_set=False,
+                 generate_tagrecs=False,
+                 generate_logs=False
+                 ):
+
+    def make_core_out(current_set, current_subset, no_cat1):
+        current_tags = [t.id for t in
+                        db((db.tags.tag_position == current_set) &
+                            (db.tags.tag_subset <= current_subset)
+                            ).iterselect()
+                        ]
+        past_tags = [t.id for t in
+                     db(db.tags.tag_position < current_set).iterselect()
+                     ]
+        if past_tags:
+            if len(past_tags) > 3:
+                mycat2, mycat3 
+        mycat1, mycat2, mycat3, mycat4 = current_tags, past_tags, [], []
+        if no_cat1:
+            mycat1 = [],
+            mycat2.extend(current_tags),
+        if promote_for_time or promote_for_avg:
+
+        return {'cat1': mycat1, 'cat2': mycat2, 'cat3': mycat3, 'cat4': mycat4}
+
+    def make_untried_out(untried_tags, mycoreout):
+        untriedout = deepcopy(mycoreout)
+        if untried_tags:
+            untriedout = {k: [v for v in val if v not in untried_tags]
+                          for k, val in untriedout.items()}
+            untriedout['cat1'].extend(untried_tags)
+        return untriedout
+
+    npcs_here = {'domus_A': [2, 14, 17, 31, 40, 41, 42]
+                 }
+    mycoreout = make_core_out(current_set, current_subset, no_cat1)
+    myuntriedout = make_untried_out(untried_tags, mycoreout)
+    casedict = {'casenum': casenum,
+                'mynow': now_dt,
+                'uid': user_id,
+                'name': db.auth_user(user_id).first_name,
+                'loc': Location(location, db),  # loc 1
+                'prev_loc': Location(prev_loc, db),  # loc 1
+                'next_loc': None,
+                'prev_npc': Npc(prev_npc, db),
+                'pathid': path_id,
+                'npcs_here': npcs_here[location],
+                'blocks_in': blocks,
+                'blocks_out': None,
+                'core_out': mycoreout,
+                }
+
+                       'untried_out': {'cat1': [], 'cat2': [61],
+                                       'cat3': [], 'cat4': []},
+                       'tag_progress': {'latest_new': 6,
+                                        'latest_subset': 2,
+                                        'cat1': [], 'cat2': [4, 46, 47, 69, 95, 118, 156, 216],
+                                        'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [],
+                                        'rev3': [], 'rev4': []},
+                       'introduced': [2, 10, 121, 122],  # set 7 subset 1, assuming we call _introduce_tags
+
+    return casedict
 
 
 @pytest.fixture
@@ -5235,9 +5355,11 @@ class TestCategorizer():
             assert [int(t) for t in tags] == expected[cat]
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casename,rank,catsin,tagrecs,introduced',
+    @pytest.mark.parametrize('casename,rank,rank_subset,catsin,tagrecs,'
+                             'introduced',
                              [('case1',  # ???
-                               1,
+                               1,  # rank
+                               1,  # rank_subset
                                {'cat1': [1], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [1], 'rev2': [],
@@ -5252,7 +5374,23 @@ class TestCategorizer():
                                [9, 36, 63, 66, 68, 72, 89, 115]
                                ),
                               ('case2',  # promote to rank 2, introduce 62
-                               1,
+                               1,  # rank
+                               1,  # rank_subset
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 10,
+                                 'times_wrong': 2,
+                                 'secondary_right': []}],
+                               [9, 36, 63, 66, 68, 72, 89, 115]
+                               ),
+                              ('case3',  # promote to rank 2, introduce 62
+                               6,
                                {'cat1': [], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [61],
@@ -5267,11 +5405,11 @@ class TestCategorizer():
                                [9, 36, 63, 66, 68, 72, 89, 115]
                                )
                               ])
-    def test_categorizer_introduce_tags(self, casename, rank, catsin, tagrecs,
-                                        introduced):
+    def test_categorizer_introduce_tags(self, casename, rank, rank_subset,
+                                        catsin, tagrecs, introduced):
         """Unit test for the paideia.Categorizer._introduce_tags method"""
         now = dt('2013-01-29')
-        catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
+        catzr = Categorizer(rank, rank_subset, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._introduce_tags()
         print('actual', actual)
