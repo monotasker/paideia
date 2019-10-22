@@ -1624,3 +1624,31 @@ ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_right";
 timestamp: 2019-09-17T15:59:11.745388
 ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_wrong";
 success!
+timestamp: 2019-10-21T12:22:33.514224
+CREATE TABLE "narrative_flags"(
+    "id" SERIAL PRIMARY KEY,
+    "flag_label" VARCHAR(512),
+    "flag_description" TEXT,
+    "valid_states" TEXT,
+    "uuid" VARCHAR(64),
+    "modified_on" TIMESTAMP
+);
+success!
+timestamp: 2019-10-21T12:24:02.508637
+CREATE TABLE "narrative_flag_states"(
+    "id" SERIAL PRIMARY KEY,
+    "narrative_flag" INTEGER REFERENCES "narrative_flags" ("id") ON DELETE CASCADE  ,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "modified_on" TIMESTAMP,
+    "flag_state" VARCHAR(512)
+);
+success!
+timestamp: 2019-10-21T15:33:32.882643
+ALTER TABLE "tags" ADD "tag_subset" INTEGER;
+success!
+timestamp: 2019-10-21T15:33:32.935952
+ALTER TABLE "tag_progress" ADD "latest_subset" INTEGER;
+success!
+timestamp: 2019-10-21T15:33:33.050258
+ALTER TABLE "session_data" ADD "rank_subset" INTEGER;
+success!

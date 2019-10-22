@@ -157,14 +157,13 @@ db.define_table('narrative_flags',
 
 db.define_table('narrative_flag_states',
                 Field('narrative_flag', 'reference narrative_flags'),
-                Field('user', 'reference auth_user', default=auth.user_id),
+                Field('user_id', 'reference auth_user', default=auth.user_id),
                 Field('modified_on', 'datetime', default=request.now),
                 Field('flag_state', 'string'),
                 format=lambda row: '{}: {}'.format(row['user'],
                                                    row['narrative_flag'])
                 )
-db.narrative_flag_states.flag_state.requires = IS_EMPTY_OR(IS_IN_SET(
-    lambda field, value: s for s in db.narrative_flags[value].valid_states))
+# TODO: Add validator for 'flag_state' based on valid_states in narrative_flags record
 
 db.define_table('tags',
                 Field('tag', 'string', unique=True),
@@ -522,6 +521,7 @@ db.define_table('tag_progress',
                 Field('name', 'reference auth_user', default=auth.user_id,
                       unique=True),
                 Field('latest_new', 'integer', default=1),  # order ranking
+                Field('latest_subset', 'integer', default=1),  # active stage of current set 
                 # FIXME: change cat fields back to list:reference
                 # (will require removing legacy tag ids)
                 Field('cat1', 'list:integer'),
@@ -553,6 +553,14 @@ db.define_table('paths',
                 Field('path_tags', compute=lambda row: row.steps),
                 # compute=lambda row: [tag for step in row.paths.steps
                 # for tag in db.steps[step].tags]),
+                Field('threshold_tag_1', 'reference tags'),
+                Field('threshold_avg_1', 'double'),  
+                Field('threshold_tag_2', 'reference tags'),
+                Field('threshold_avg_2', 'double'),  
+                Field('threshold_tag_3', 'reference tags'),
+                Field('threshold_avg_3', 'double'),  
+                Field('required_narrative_flags', 'list:reference narrative_flags'),
+                Field('excluded_narrative_flags', 'list:reference narrative_flags'),
                 Field('path_active', 'boolean',
                       compute=lambda row: all([s for s in row.paths.steps
                                                if (db.steps[s].status != 2) and
@@ -685,6 +693,7 @@ db.define_table('session_data',
                 Field('tag_records', 'text'),
                 Field('tag_progress', 'text'),
                 Field('rank', 'integer'),
+                Field('rank_subset', 'integer'),
                 Field('promoted', 'text'),
                 Field('demoted', 'text'),
                 Field('new_tags', 'string'),

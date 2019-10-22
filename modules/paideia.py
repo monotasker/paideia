@@ -248,7 +248,6 @@ class Walk(object):
 
             # allow artificial setting of blocks during interface testing
             if set_blocks:
-                print('BLOCK SET IS TRUE')
                 for c, v in list(set_blocks.items()):
                     myargs = {n: a for n, a in list(v.items())}
                     current.sequence_counter += 1
@@ -3076,8 +3075,8 @@ class User(object):
             break
         return (self.path, cat, redir, pastq, new_content)
 
-    def get_categories(self, user_id=None, rank=None, old_categories=None,
-                       tag_records=None, utcnow=None):
+    def get_categories(self, user_id=None, rank=None, rank_subset=None,
+                       old_categories=None, tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
         This method is important primarily to decide whether a new
@@ -3095,6 +3094,7 @@ class User(object):
             tag_records = db(db.tag_records.name == user_id).select().as_list()
         self.tag_records = tag_records
 
+        # don't recategorize every time
         if (self.cats_counter in range(0, 4)) \
                 and hasattr(self, 'categories') \
                 and self.tag_progress \
@@ -3112,6 +3112,7 @@ class User(object):
                     tpdict = tp_sel.first().as_dict()
                 self.tag_progress = tpdict
                 rank = tpdict['latest_new']
+                rank_subset = tpdict['latest_subset']
                 cat1_choices = tpdict['cat1_choices'] \
                     if 'cat1_choices' in list(tpdict.keys()) else 0
                 all_choices = tpdict['all_choices'] \
@@ -3124,7 +3125,7 @@ class User(object):
                 categories = None
             self.old_categories = copy(categories)
 
-            c = Categorizer(rank, categories, tag_records, user_id,
+            c = Categorizer(rank, rank_subset, categories, tag_records, user_id,
                             utcnow=utcnow)
             cat_result = c.categorize_tags(old_categories=old_categories)
             # passing 'old_categories' allows it to be passed on in testing
@@ -3202,12 +3203,13 @@ class Categorizer(object):
     (integers) of the tags that are currently in the given category.
     """
 
-    def __init__(self, rank, tag_progress, tag_records, user_id,
+    def __init__(self, rank, rank_subset, tag_progress, tag_records, user_id,
                  secondary_right=None, utcnow=None, db=None):
         """Initialize a paideia.Categorizer object"""
         self.db = current.db if not db else db
         self.user_id = user_id
         self.rank = rank
+        self.rank_subset = rank_subset
         self.tag_records = tag_records
         self.old_categories = tag_progress
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
@@ -3234,7 +3236,7 @@ class Categorizer(object):
 
         return tag_records
 
-    def categorize_tags(self, rank=None, tag_records=None,
+    def categorize_tags(self, rank=None, rank_subset=None, tag_records=None,
                         old_categories=None, db=None):
         """
         Return a categorized dictionary of grammatical tags.
@@ -3244,6 +3246,7 @@ class Categorizer(object):
         performance (drawn from tag_records) and timing (spaced repetition).
         """
         rank = self.rank if not rank else rank
+        rank_subset = self.rank_subset if not rank_subset else rank_subset
         if not rank:
             rank = 1
         old_categories = self.old_categories if not old_categories \
@@ -3307,10 +3310,11 @@ class Categorizer(object):
             # If there are no tags left in category 1, introduce next set
             if self._check_if_cat1_needed(tag_progress):
                 while True:
-                    newlist = self._introduce_tags(rank=rank)
+                    newlist = self._introduce_tags(rank=rank, 
+                                                   rank_subset=rank_subset)
                     if not newlist:
-                        print("ERROR: failed to get tags for rank {}"
-                              "".format(rank),
+                        print("ERROR: failed to get tags for rank {}, subset {}"
+                              "".format(rank, rank_subset),
                               'Categorizer.categorize_tags')
                         break
                     curr_rev1 = tag_progress['rev1'] \
@@ -3561,7 +3565,7 @@ class Categorizer(object):
 
         return categories
 
-    def _introduce_tags(self, rank=None, db=None):
+    def _introduce_tags(self, rank=None, rank_subset=None, db=None):
         """
         Add the next set of tags to cat1 in the user's tag_progress
         Returns a dictionary of categories identical to that returned by
@@ -3569,15 +3573,20 @@ class Categorizer(object):
         """
         db = current.db if not db else db
         rank = self.rank if rank is None else rank
+        rank_subset = self.rank_subset if rank_subset is None else rank_subset
 
         if rank in (None, 0):
             rank = 1
+            max_rank_subset = max(r.tag_subset for r in
+                                  db(db.tags.tag_position == rank).iterselect())
         else:
             rank += 1
         self.rank = rank
+        self.rank_subset = rank_subset = 1
 
         newtags = [t['id'] for t in
-                   db(db.tags.tag_position == rank).select().as_list()]
+                   db((db.tags.tag_position == rank) &
+                      (db.tags.tag_subset == rank_subset)).select().as_list()]
         # debug ... dont forget to take this out
         # newtags.append(82)
         # end of debug
