@@ -15,6 +15,7 @@ from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter, Map
 from gluon import current, IMG
+from plugin_utils import grouper
 if 0:
     from web2py.applications.paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
     from web2py.applications.paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
@@ -22,6 +23,7 @@ if 0:
     from web2py.applications.paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
     from web2py.applications.paideia import Block, BugReporter, Map
     from web2py.gluon import current, IMG
+    from web2py.applications.paideia.plugin_utils import grouper
 
 from ast import literal_eval
 import base64
@@ -34,7 +36,7 @@ import pickle
 from pprint import pprint
 import pytest
 import re
-from random import randint, randrange
+from random import randint, randrange, shuffle
 # from urllib import quote_plus
 
 
@@ -3215,65 +3217,33 @@ def mycases(casenum, user_login, db):
                                    no_cat1=True,
                                    untried_tags=[],
                                    promote_for_avg=[],
-                                   promote_for_time=[],
-                                   all_cat1_paths_tried=False
+                                   promote_for_time={},
+                                   demote={},
+                                   all_cat1_paths_tried=False,
+                                   start_new_set=True,
+                                   start_new_subset=False,
+                                   generate_logs=False,
+                                   db=db
                                    )  
-                      {
-                       'tag_records': [{'name': 1,
-                                        'tag': 61,
-                                        'tlast_right': dt('2013-01-29'),
-                                        'tlast_wrong': dt('2013-01-28'),
-                                        'times_right': 10,
-                                        'times_wrong': 2,
-                                        'secondary_right': None}],
-                       'tag_progress_out': {'latest_new': 7,
-                                            'latest_subset': 1,
-                                            'cat1': [62], 'cat2': [61],
-                                            'cat3': [], 'cat4': [],
-                                            'rev1': [], 'rev2': [],
-                                            'rev3': [], 'rev4': []},
-                       'categories_start': {'cat1': [61], 'cat2': [],
-                                            'cat3': [], 'cat4': [],
-                                            'rev1': [], 'rev2': [],
-                                            'rev3': [], 'rev4': []},
-                       'categories_out': {'cat1': [62], 'cat2': [61],
-                                          'cat3': [], 'cat4': [],
-                                          'rev1': [], 'rev2': [],
-                                          'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [p.id for t in [62]
-                                          for p in allpaths if t in p.tags],
-                                 'cat2': [p.id for t in [61]
-                                          for p in allpaths if t in p.tags],
-                                 'cat3': [],
-                                 'cat4': []},
-                       'new_badges': [62],
-                       'promoted': {'cat2': [61]},
-                       'demoted': {},
-                       'steps_here': [1, 2, 30, 125, 126, 127],
-                       'completed': []},' 
-             }
     return cases[casenum]
 
 
 def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                  prev_loc=None, prev_npc=None, path_id=None, blocks=None,
                  current_set=None, current_subset=None, no_cat1=False,
-                 untried_tags=False, promote_for_avg=None, 
-                 promote_for_time=None, all_cat1_paths_tried=False,
-                 start_new_set=False,
-                 generate_tagrecs=False,
-                 generate_logs=False
+                 untried_tags=False, promote_for_avg=[], 
+                 promote_for_time={}, demote={}, all_cat1_paths_tried=False,
+                 start_new_set=False, start_new_subset=False,
+                 generate_logs=False, db=None
                  ):
 
-    def make_core_out(current_set, current_subset, no_cat1):
-        current_tags = [t.id for t in
-                        db((db.tags.tag_position == current_set) &
-                            (db.tags.tag_subset <= current_subset)
-                            ).iterselect()
-                        ]
-        past_tags = [t.id for t in
-                     db(db.tags.tag_position < current_set).iterselect()
-                     ]
+    def make_core_out(current_set, current_subset, no_cat1, promote_for_time,
+                      promote_for_avg, demote):
+        '''
+        Returns two dictionaries.
+        
+        The first is categorization altered with only promotions. The second is the same categorization altered with both promotions and demotions. These two are the basis to be used for the "catn" and "revn" items (respectively) in the tag_progress record.
+        '''
         if past_tags:
             if len(past_tags) > 3:
                 mycat2, mycat3 
@@ -3282,8 +3252,25 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
             mycat1 = [],
             mycat2.extend(current_tags),
         if promote_for_time or promote_for_avg:
-
-        return {'cat1': mycat1, 'cat2': mycat2, 'cat3': mycat3, 'cat4': mycat4}
+            mycat1 = [t for t in mycat1 if t not in promote_for_avg]
+            mycat2.extend(promote_for_avg)
+            for n in range(1, 5):
+                if 'cat{}'.format(str(n)) in promote_for_time.keys():
+                    mycat = locals()['cat{}'.format(str(n))]
+                    mycat.extend(promote_for_time['cat{}'.format(str(n))])
+        catsout = {'cat1': mycat1, 'cat2': mycat2,
+                   'cat3': mycat3, 'cat4': mycat4}
+        
+        revout = copy(catsout)
+        if demote:
+            for n in range(1, 5):
+                mylabel = 'cat{}'.format(str(n))
+                if mylabel in demote.keys():
+                    revout[mylabel] = [t for t in mylabel
+                                       if t not in demote[mylabel]]
+                    revout['cat{}'.format(str(n-1))].extend(demote[mylabel])
+            
+        return catsout, revout
 
     def make_untried_out(untried_tags, mycoreout):
         untriedout = deepcopy(mycoreout)
@@ -3293,10 +3280,143 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
             untriedout['cat1'].extend(untried_tags)
         return untriedout
 
+    def make_introduced(mycoreout, myuntriedout, current_set, current_subset,
+                        start_new_set, start_new_subset):
+        untriedtags = [t for t in myuntriedout['cat1']
+                       if t not in mycoreout['cat1']]
+        newset = untriedtags
+        newrank = current_set
+        newsubset = current_subset
+        if (not newset) and start_new_set:
+            newrank = current_set + 1
+            newsubset = 1
+            newset = [t.id for t in
+                      db((db.tags.tag_position==newrank) &
+                         (db.tags.tag_subset==1)).iterselect()]
+        elif start_new_subset:
+            newsubset = current_subset + 1
+            newset.extend([t.id for t in
+                           db((db.tags.tag_position==newrank) &
+                              (db.tags.tag_subset==newsubset)).iterselect()]
+                          ) 
+        return newset, newrank, newsubset
+
+    def make_tag_progress_in(current_set, current_subset, no_cat1,
+                             promote_for_time, promote_for_avg, demote,
+                             current_tags, past_tags):
+        mytp = {'latest_new': current_set,
+                'latest_subset': current_subset,
+                'cat1': promote_for_avg, 
+                'cat2': [],
+                'cat3': [], 'cat4': [],
+                'rev1': [], 'rev2': [],
+                'rev3': [], 'rev4': []
+                }
+        alldemoted = chain(*demote.values())
+        allpromoted = chain(promote_for_avg, *promote_for_time.values())
+        past_tags_filtered = [t for t in past_tags if t not in alldemoted]
+        current_tags_filtered = [t for t in current_tags if t not in alldemoted]
+        # add tags from previous sets
+        mytp['cat2'], mytp['cat3'], mytp['cat4'] =  \
+            grouper(shuffle(past_tags_filtered), 3)
+        
+        # add current tags
+        # randomly assume some promoted already
+        if current_tags and len(current_tags_filtered) > 2:
+            slicepoint = randrange(2, len(current_tags))
+            mytp['cat1'].extend(current_tags_filtered[:slicepoint])
+            mytp['cat2'].extend(current_tags_filtered[slicepoint:])
+
+        # add tags promoted based on time
+        for n in range(2, 5):
+            mylabel = 'cat{}'.format(str(n))
+            if mylabel in promote_for_time.keys():
+                mytp[mylabel].extend(promote_for_time[mylabel]) 
+            mytp[mylabel] = list(set(mytp[mylabel]))
+
+        # assign tags for demotion to correct position
+        for n in range(1, 5):
+            mylabel = 'cat{}'.format(str(n))
+            if mylabel in demote.keys():
+                mytp[mylabel].extend(promote_for_time[mylabel]) 
+            mytp[mylabel] = list(set(mytp[mylabel]))
+
+        mycatsin = {k: v for k, v in mytp if k[:3] in ['cat', 'rev']}
+            
+        return mytp, mycatsin                
+
+    def make_tag_progress_out(untriedout, introduced, rankout,
+                              subsetout):
+        tpout = untriedout
+        tpout['cat1'].extend(introduced)
+        tpout['rev1'].extend(introduced)
+        tpout['latest_new'] = rankout
+        tpout['latest_subset'] = subsetout
+        catsout = {k: list(set(v)) for k, v in tpout.items() 
+                   if k[:3] in ['cat', 'rev']}
+
+        return tpout, catsout
+
+    def make_open_paths(tpout):
+        paths = {}
+        for n in range(1, 5):
+            label = 'cat{}'.format(str(n))
+            paths[label] = [p.id for t in tpout['rev{}'.format(str(n))] 
+                            for p in db(db.paths.ALL).iterselect()
+                            if t in p.tags]
+        return paths
+
+    def make_steps_here(openpaths):
+        paths = {}
+        for n in range(1, 5):
+            label = 'cat{}'.format(str(n))
+
+    def make_tag_recs_in(tp, ):
+        trs = {
+            'tag_records': [{'name': 1,
+                            'tag': 61,
+                            'tlast_right': dt('2013-01-29'),
+                            'tlast_wrong': dt('2013-01-28'),
+                            'times_right': 10,
+                            'times_wrong': 2,
+                            'secondary_right': None}],
+            'demoted': {},
+            'steps_here': [1, 2, 30, 125, 126, 127],
+            'completed': []},' 
+
+    current_tags = [t.id for t in
+                    db((db.tags.tag_position == current_set) &
+                        (db.tags.tag_subset <= current_subset)
+                        ).iterselect()
+                    ]
+    past_tags = [t.id for t in
+                 db(db.tags.tag_position < current_set).iterselect()
+                 ]
+
     npcs_here = {'domus_A': [2, 14, 17, 31, 40, 41, 42]
                  }
-    mycoreout = make_core_out(current_set, current_subset, no_cat1)
-    myuntriedout = make_untried_out(untried_tags, mycoreout)
+    mycoreout_cat, mycoreout_rev = make_core_out(current_set,
+        current_subset, no_cat1, promote_for_time, promote_for_avg,
+        current_tags, past_tags)
+    mypromotedout = copy(promote_for_time)
+    if 'cat1' in mypromoted.keys():
+        mypromoted['cat1'].extend(promote_for_avg)
+    else:
+        mypromoted['cat1'] = promote_for_avg
+    myuntriedout = make_untried_out(untried_tags, mycoreout_cat)
+    myrankout, mysubsetout = copy(current_set), copy(current_subset)
+    myintroduced, myrankout, mysubsetout = make_introduced(
+        mycoreout_cat, myuntriedout, current_set, current_subset,
+        start_new_set, start_new_subset)
+    mytagprogressin, mycatsstart = make_tag_progress_in(
+        current_set, current_subset, no_cat1, promote_for_time,
+        promote_for_avg, demote, current_tags, past_tags)
+    mytagprogressout, mycatsout = make_tag_progress_out(myuntriedout,
+        myintroduced, myrankout, mysubsetout)
+    mydemoted = copy(demote)
+    myopenpaths = make_open_paths(mytagprogressout)
+    mytagrecsin = make_tag_recs_in(mytagprogressin, no_cat1, promote_for_time,
+                                   promote_for_avg, current_tags, past_tags)
     casedict = {'casenum': casenum,
                 'mynow': now_dt,
                 'uid': user_id,
@@ -3309,18 +3429,20 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                 'npcs_here': npcs_here[location],
                 'blocks_in': blocks,
                 'blocks_out': None,
+                'tag_progress': mytagprogressin,
+                'categories_start': mycatsstart,
                 'core_out': mycoreout,
+                'promoted': mypromotedout,
+                'demoted': mydemoted,
+                'untried_out': myuntriedout,
+                'rank_out': myrankout,
+                'subset_out': mysubsetout,
+                'introduced': myintroduced,
+                'new_badges': myintroduced,  # redundant?
+                'tag_progress_out': mytagprogressout,
+                'categories_out': mycatsout,
+                'paths': myopenpaths,
                 }
-
-                       'untried_out': {'cat1': [], 'cat2': [61],
-                                       'cat3': [], 'cat4': []},
-                       'tag_progress': {'latest_new': 6,
-                                        'latest_subset': 2,
-                                        'cat1': [], 'cat2': [4, 46, 47, 69, 95, 118, 156, 216],
-                                        'cat3': [], 'cat4': [],
-                                        'rev1': [], 'rev2': [],
-                                        'rev3': [], 'rev4': []},
-                       'introduced': [2, 10, 121, 122],  # set 7 subset 1, assuming we call _introduce_tags
 
     return casedict
 
