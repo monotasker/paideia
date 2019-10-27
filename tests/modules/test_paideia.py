@@ -23,7 +23,7 @@ if 0:
     from web2py.applications.paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
     from web2py.applications.paideia import Block, BugReporter, Map
     from web2py.gluon import current, IMG
-    from web2py.applications.paideia.plugin_utils import grouper
+    from web2py.applications.paideia.modules.plugin_utils import grouper
 
 from ast import literal_eval
 import base64
@@ -3229,81 +3229,79 @@ def mycases(casenum, user_login, db):
 
 
 def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
-                 prev_loc=None, prev_npc=None, path_id=None, blocks=None,
+                 db=None, prev_loc=None, prev_npc=None, path_id=None,
+                 blocks=None,
                  current_set=None, current_subset=None, no_cat1=False,
                  untried_tags=False, promote_for_avg=[], 
                  promote_for_time={}, demote={}, all_cat1_paths_tried=False,
                  start_new_set=False, start_new_subset=False,
-                 generate_logs=False, db=None
+                 generate_logs=False
                  ):
+    '''
+    Produces test cases for tag categorization and path/step selection.
 
-    def make_core_out(current_set, current_subset, no_cat1, promote_for_time,
-                      promote_for_avg, demote):
-        '''
-        Returns two dictionaries.
-        
-        The first is categorization altered with only promotions. The second is the same categorization altered with both promotions and demotions. These two are the basis to be used for the "catn" and "revn" items (respectively) in the tag_progress record.
-        '''
-        if past_tags:
-            if len(past_tags) > 3:
-                mycat2, mycat3 
-        mycat1, mycat2, mycat3, mycat4 = current_tags, past_tags, [], []
-        if no_cat1:
-            mycat1 = [],
-            mycat2.extend(current_tags),
-        if promote_for_time or promote_for_avg:
-            mycat1 = [t for t in mycat1 if t not in promote_for_avg]
-            mycat2.extend(promote_for_avg)
-            for n in range(1, 5):
-                if 'cat{}'.format(str(n)) in promote_for_time.keys():
-                    mycat = locals()['cat{}'.format(str(n))]
-                    mycat.extend(promote_for_time['cat{}'.format(str(n))])
-        catsout = {'cat1': mycat1, 'cat2': mycat2,
-                   'cat3': mycat3, 'cat4': mycat4}
-        
-        revout = copy(catsout)
-        if demote:
-            for n in range(1, 5):
-                mylabel = 'cat{}'.format(str(n))
-                if mylabel in demote.keys():
-                    revout[mylabel] = [t for t in mylabel
-                                       if t not in demote[mylabel]]
-                    revout['cat{}'.format(str(n-1))].extend(demote[mylabel])
-            
-        return catsout, revout
+    Required parameters
+    ===================
+    :param int casenum: An arbitrary integer allowing identification of the 
+                        test case.
+    :param datetime now_dt: The datetime to be treated as "now" for the 
+                        purposes of the test case.
+    :param int user_id: The id of an auth_user record in the test database. If
+                        actual logs and tag_record entries are to be produced
+                        in the test db this must be an actual user id.
+                        Otherwise it may be an arbitrary int.
+    :param int current_set: The highest tag set the mocked user has reached.
+    :param int current_subset: The highest subset the mocked user has reached 
+                        within the current tag set.
+    :param dba:
 
-    def make_untried_out(untried_tags, mycoreout):
-        untriedout = deepcopy(mycoreout)
-        if untried_tags:
-            untriedout = {k: [v for v in val if v not in untried_tags]
-                          for k, val in untriedout.items()}
-            untriedout['cat1'].extend(untried_tags)
-        return untriedout
+    Optional parameters
+    ===================
+    These parameters allow mocking of specific conditions in the test case.
 
-    def make_introduced(mycoreout, myuntriedout, current_set, current_subset,
-                        start_new_set, start_new_subset):
-        untriedtags = [t for t in myuntriedout['cat1']
-                       if t not in mycoreout['cat1']]
-        newset = untriedtags
-        newrank = current_set
-        newsubset = current_subset
-        if (not newset) and start_new_set:
-            newrank = current_set + 1
-            newsubset = 1
-            newset = [t.id for t in
-                      db((db.tags.tag_position==newrank) &
-                         (db.tags.tag_subset==1)).iterselect()]
-        elif start_new_subset:
-            newsubset = current_subset + 1
-            newset.extend([t.id for t in
-                           db((db.tags.tag_position==newrank) &
-                              (db.tags.tag_subset==newsubset)).iterselect()]
-                          ) 
-        return newset, newrank, newsubset
+    :param list blocks:
+    :param str location: If no value is given a valid location will be assigned
+                        to the test case at random.
+    :param str prev_loc: The string label of the location of the mocked user's
+                        last step interaction.
+    :param str prev_npc: The string label of the npc involved in the mocked
+                        user's last step interaction.
+    :param bool no_cat1: A flag indicating whether 'cat1' is to be left 
+                        empty after promotions.
+    :param list untried_tags: A list of integers representing tags in 
+                        the user's current newest set that have not
+                        yet been tried.
+    :param dict promote_for_time: A dict with keys 'cat1' through 'cat3'.
+                        Each value is a list of tag ids that start at the
+                        given category and should be promoted one higher in
+                        this categorization based on time since last wrong.
+    :param list promote_for_avg: A list of integers representing tags to be
+                        promoted from 'cat1' to 'cat2' in this
+                        categorization based on the ratio of right attempts
+                        to wrong attempts.
+    :param dict demote: A dict with keys 'cat2' through 'cat4'.
+                        Each value is a list of tag ids that start at the
+                        given category and should be demoted one lower in
+                        this categorization based on time since last wrong.
+    :param bool all_cat1_paths_tried:
+    :param bool start_new_set:
+    :param bool start_new_subset:
+    :param generate_logs:
+
+
+    Return values
+    =============
+    :return dict: 
+
+    '''
 
     def make_tag_progress_in(current_set, current_subset, no_cat1,
                              promote_for_time, promote_for_avg, demote,
-                             current_tags, past_tags):
+                             current_tags, past_tags, untried):
+        '''
+        Returns two dictionaries representing tag_progress data at case start.
+
+        '''
         mytp = {'latest_new': current_set,
                 'latest_subset': current_subset,
                 'cat1': promote_for_avg, 
@@ -3314,8 +3312,10 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                 }
         alldemoted = chain(*demote.values())
         allpromoted = chain(promote_for_avg, *promote_for_time.values())
-        past_tags_filtered = [t for t in past_tags if t not in alldemoted]
-        current_tags_filtered = [t for t in current_tags if t not in alldemoted]
+        past_tags_filtered = [t for t in past_tags if t not in alldemoted
+                              and t not in untried]
+        current_tags_filtered = [t for t in current_tags if t not in alldemoted
+                                 and t not in untried]
         # add tags from previous sets
         mytp['cat2'], mytp['cat3'], mytp['cat4'] =  \
             grouper(shuffle(past_tags_filtered), 3)
@@ -3345,8 +3345,116 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
             
         return mytp, mycatsin                
 
+    def make_core_out(tpin, no_cat1, promote_for_time, promote_for_avg, demote):
+        '''
+        Returns two dictionaries mocking Categorizer.core_alorithm output.
+        :param dict tpin: A mock of tag_progress data prior to promotions and
+                            demotions for this categorization.        
+        :param bool no_cat1: A flag indicating whether 'cat1' is to be left 
+                            empty after promotions.
+        :param dict promote_for_time: A dict with keys 'cat1' through 'cat3'.
+                            Each value is a list of tag ids that start at the
+                            given category and should be promoted one higher in
+                            this categorization based on time since last wrong.
+        :param list promote_for_avg: A list of integers representing tags to be
+                            promoted from 'cat1' to 'cat2' in this
+                            categorization based on the ratio of right attempts
+                            to wrong attempts.
+        :param dict demote: A dict with keys 'cat2' through 'cat4'.
+                            Each value is a list of tag ids that start at the
+                            given category and should be demoted one lower in
+                            this categorization based on time since last wrong.
+
+        :return dict catsout: Tag categorization based on incoming tag_progress
+                            and altered with only promotions. 
+        :return dict revout: Tag categorization altered with both promotions
+                            and demotions.
+        These two are the basis to be used for the "catn" and "revn" items
+        (respectively) in the new tag_progress record after categorization.
+        '''
+        catsout = {k: v for k, v in tpin.items() if k[:3] == 'cat'}
+        if no_cat1 and catsout['cat1']:
+            allpromoted = chain(promote_for_avg, promote_for_time['cat1'])
+            assert all(t for t in catsout['cat1'] if t in allpromoted)
+        if promote_for_time or promote_for_avg:
+            promote_for_time['cat1'].extend(promote_for_avg)
+            for n in range(1, 4):
+                label = 'cat{}'.format(str(n))
+                nextlabel = 'cat{}'.format(str(n+1))
+                catsout[label] = [t for t in catsout[label]
+                                  if t not in promote_for_time[label]]
+                catsout[nextlabel].extend(promote_for_time[label])
+        
+        revout = copy(catsout)
+        if demote:
+            for n in range(2, 5):
+                label = 'cat{}'.format(str(n))
+                if label in demote.keys():
+                    revout[label] = [t for t in label
+                                       if t not in demote[label]]
+                    revout['cat{}'.format(str(n-1))].extend(demote[label])
+            
+        return catsout, revout
+
+    def make_untried_out(untried_tags, mycoreout):
+        '''
+        Mocks categorization output after untried tags added.
+
+        :param list untried_tags: A list of integers representing tags in 
+                                the user's current newest set that have not
+                                yet been tried.
+        :param dict mycoreout: A mock of tag categorization before untried
+                                tags have been added to 'cat1'
+
+        :return dict untriedout: The same mocked tag categorization but with
+                                untried tags added in 'cat1'.
+        '''
+        untriedout = deepcopy(mycoreout)
+        if untried_tags:
+            untriedout = {k: [v for v in val if v not in untried_tags]
+                          for k, val in untriedout.items()}
+            untriedout['cat1'].extend(untried_tags)
+        return untriedout
+
+    def make_introduced(mycoreout, myuntriedout, current_set, current_subset,
+                        start_new_set, start_new_subset):
+        '''
+        Returns info on tags newly introduced and set/subset promotion.
+
+        :return list newset: A list of integers corresponding to tags newly
+                            introduced during this categorization, whether from
+                            promotion or because untried.
+        :return int newrank: The current set number after any possible 
+                            promotions during this categorization.
+        :return int newsubset: The current subset number within the current set
+                            after any possible promotions during this
+                            categorization.
+        '''
+        untriedtags = [t for t in myuntriedout['cat1']
+                       if t not in mycoreout['cat1']]
+        newset = untriedtags
+        newrank = current_set
+        newsubset = current_subset
+        if (not newset) and start_new_set:
+            newrank = current_set + 1
+            newsubset = 1
+            newset = [t.id for t in
+                      db((db.tags.tag_position==newrank) &
+                         (db.tags.tag_subset==1)).iterselect()]
+        elif start_new_subset:
+            newsubset = current_subset + 1
+            newset.extend([t.id for t in
+                           db((db.tags.tag_position==newrank) &
+                              (db.tags.tag_subset==newsubset)).iterselect()]
+                          ) 
+        return newset, newrank, newsubset
+
     def make_tag_progress_out(untriedout, introduced, rankout,
                               subsetout):
+        '''
+        Return tag_progress data after completed mock categorization.
+
+        '''
         tpout = untriedout
         tpout['cat1'].extend(introduced)
         tpout['rev1'].extend(introduced)
@@ -3358,6 +3466,10 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
         return tpout, catsout
 
     def make_open_paths(tpout):
+        '''
+        Return a list of path ids for each category of mock user's tags.
+
+        '''
         paths = {}
         for n in range(1, 5):
             label = 'cat{}'.format(str(n))
@@ -3367,23 +3479,57 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
         return paths
 
     def make_steps_here(openpaths):
+        '''
+        Return a steps available at this location for each category of tags
+
+        '''
         paths = {}
         for n in range(1, 5):
             label = 'cat{}'.format(str(n))
 
-    def make_tag_recs_in(tp, ):
-        trs = {
-            'tag_records': [{'name': 1,
-                            'tag': 61,
-                            'tlast_right': dt('2013-01-29'),
-                            'tlast_wrong': dt('2013-01-28'),
-                            'times_right': 10,
-                            'times_wrong': 2,
-                            'secondary_right': None}],
-            'demoted': {},
-            'steps_here': [1, 2, 30, 125, 126, 127],
-            'completed': []},' 
+    def make_tag_recs_in(user_id, now_dt, revcats, promote_for_time,
+                         promote_for_avg, demote, current_tags, past_tags):
+        '''
+        Return tag_records data that would produce the mocked categorization.
 
+        '''
+        tagrecs = []
+        alltags = chain(*revcats.values())
+        for tag in alltags:
+            rec = {'name': user_id,
+                   'tag': tag,
+                   }
+            if tag in revcats['cat1'] and tag not in promote_for_avg and tag not in promote_for_time['cat1'] and tag not in demote['cat2']:
+                total_attempts < 20
+                times_right/times_wrong < 8
+                right_wrong_delta > now_right_delta and now_right_delta < ???
+            elif tag in demote['cat2']:
+                total_attempts > 20
+                times_right/times_wrong > 8
+                right_wrong_delta > now_right_delta and now_right_delta < ???
+            elif tag in promote_for_avg:
+                total_attempts > 20
+                times_right/times_wrong > 8
+            elif tag in promote_for_time['cat1']:
+                total_attempts > 20
+                times_right/times_wrong < 8
+                right_wrong_delta > now_right_delta and now_right_delta < ???
+            elif tag in revcats['cat2'] or tag in demote['cat3']:
+                right_wrong_delta > now_right_delta
+                    and now_right_delta < ???
+                    and now_right_delta > ???
+            elif tag in revcats['cat3'] or tag in promote_for_time['cat3'] or tag in demote['cat4']:
+
+            elif tag in revcats['cat3'] or tag in promote_for_time['cat3'] or tag in demote['cat4']:
+
+            rec['tlast_right'] = dt('2013-01-29')
+            rec['tlast_wrong'] = dt('2013-01-28')
+            rec['times_right'] = 10
+            rec['times_wrong'] = 2
+            rec['secondary_right'] = None
+
+    npcs_here = {'domus_A': [2, 14, 17, 31, 40, 41, 42]
+                 }
     current_tags = [t.id for t in
                     db((db.tags.tag_position == current_set) &
                         (db.tags.tag_subset <= current_subset)
@@ -3393,36 +3539,33 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                  db(db.tags.tag_position < current_set).iterselect()
                  ]
 
-    npcs_here = {'domus_A': [2, 14, 17, 31, 40, 41, 42]
-                 }
-    mycoreout_cat, mycoreout_rev = make_core_out(current_set,
-        current_subset, no_cat1, promote_for_time, promote_for_avg,
-        current_tags, past_tags)
+    mytagprogressin, mycatsstart = make_tag_progress_in(
+        current_set, current_subset, no_cat1, promote_for_time,
+        promote_for_avg, demote, current_tags, past_tags, untried_tags)
+    mycoreout_cat, mycoreout_rev = make_core_out(mytagprogressin, no_cat1,
+        promote_for_time, promote_for_avg, demote, untried_tags)
     mypromotedout = copy(promote_for_time)
     if 'cat1' in mypromoted.keys():
         mypromoted['cat1'].extend(promote_for_avg)
     else:
         mypromoted['cat1'] = promote_for_avg
-    myuntriedout = make_untried_out(untried_tags, mycoreout_cat)
+    myuntriedout = make_untried_out(untried_tags, mycoreout_rev)
     myrankout, mysubsetout = copy(current_set), copy(current_subset)
     myintroduced, myrankout, mysubsetout = make_introduced(
         mycoreout_cat, myuntriedout, current_set, current_subset,
         start_new_set, start_new_subset)
-    mytagprogressin, mycatsstart = make_tag_progress_in(
-        current_set, current_subset, no_cat1, promote_for_time,
-        promote_for_avg, demote, current_tags, past_tags)
     mytagprogressout, mycatsout = make_tag_progress_out(myuntriedout,
         myintroduced, myrankout, mysubsetout)
     mydemoted = copy(demote)
     myopenpaths = make_open_paths(mytagprogressout)
-    mytagrecsin = make_tag_recs_in(mytagprogressin, no_cat1, promote_for_time,
-                                   promote_for_avg, current_tags, past_tags)
+    mytagrecsin = make_tag_recs_in(mycoreout_rev, promote_for_time,
+                                   promote_for_avg, demote, current_tags, past_tags)
     casedict = {'casenum': casenum,
                 'mynow': now_dt,
                 'uid': user_id,
                 'name': db.auth_user(user_id).first_name,
-                'loc': Location(location, db),  # loc 1
-                'prev_loc': Location(prev_loc, db),  # loc 1
+                'loc': Location(location, db),  
+                'prev_loc': Location(prev_loc, db),  
                 'next_loc': None,
                 'prev_npc': Npc(prev_npc, db),
                 'pathid': path_id,
@@ -3443,6 +3586,8 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                 'categories_out': mycatsout,
                 'paths': myopenpaths,
                 }
+            'steps_here': [1, 2, 30, 125, 126, 127],
+            'completed': []
 
     return casedict
 
