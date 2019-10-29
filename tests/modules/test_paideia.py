@@ -36,7 +36,7 @@ import pickle
 from pprint import pprint
 import pytest
 import re
-from random import randint, randrange, shuffle
+from random import randint, randrange, shuffle, uniform
 # from urllib import quote_plus
 
 
@@ -3210,21 +3210,14 @@ def mycases(casenum, user_login, db):
                                    location='domus_A',
                                    prev_loc='domus_A',
                                    prev_npc=1,
-                                   path_id=None,
-                                   blocks=None,
                                    current_set=6,
                                    current_subset=2,
                                    no_cat1=True,
-                                   untried_tags=[],
-                                   promote_for_avg=[],
-                                   promote_for_time={},
-                                   demote={},
-                                   all_cat1_paths_tried=False,
                                    start_new_set=True,
                                    start_new_subset=False,
-                                   generate_logs=False,
                                    db=db
                                    )  
+                }
     return cases[casenum]
 
 
@@ -3233,7 +3226,7 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                  blocks=None,
                  current_set=None, current_subset=None, no_cat1=False,
                  untried_tags=False, promote_for_avg=[], 
-                 promote_for_time={}, demote={}, all_cat1_paths_tried=False,
+                 promote_for_time={}, promote_for_ratio=[], demote={}, paths_tried=[], all_cat1_paths_tried=False,
                  start_new_set=False, start_new_subset=False,
                  generate_logs=False
                  ):
@@ -3296,7 +3289,7 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
     '''
 
     def make_tag_progress_in(current_set, current_subset, no_cat1,
-                             promote_for_time, promote_for_avg, demote,
+                             promote_for_time, promote_for_avg, promote_for_ratio, demote,
                              current_tags, past_tags, untried):
         '''
         Returns two dictionaries representing tag_progress data at case start.
@@ -3311,7 +3304,8 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                 'rev3': [], 'rev4': []
                 }
         alldemoted = chain(*demote.values())
-        allpromoted = chain(promote_for_avg, *promote_for_time.values())
+        allpromoted = chain(promote_for_avg, promote_for_ratio,
+                            *promote_for_time.values())
         past_tags_filtered = [t for t in past_tags if t not in alldemoted
                               and t not in untried]
         current_tags_filtered = [t for t in current_tags if t not in alldemoted
@@ -3345,7 +3339,8 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
             
         return mytp, mycatsin                
 
-    def make_core_out(tpin, no_cat1, promote_for_time, promote_for_avg, demote):
+    def make_core_out(tpin, no_cat1, promote_for_time, promote_for_avg,
+                      promote_for_ratio, demote):
         '''
         Returns two dictionaries mocking Categorizer.core_alorithm output.
         :param dict tpin: A mock of tag_progress data prior to promotions and
@@ -3374,10 +3369,12 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
         '''
         catsout = {k: v for k, v in tpin.items() if k[:3] == 'cat'}
         if no_cat1 and catsout['cat1']:
-            allpromoted = chain(promote_for_avg, promote_for_time['cat1'])
+            allpromoted = chain(promote_for_avg, promote_for_ratio,         
+                                promote_for_time['cat1'])
             assert all(t for t in catsout['cat1'] if t in allpromoted)
-        if promote_for_time or promote_for_avg:
+        if promote_for_time or promote_for_avg or promote_for_ratio:
             promote_for_time['cat1'].extend(promote_for_avg)
+            promote_for_time['cat1'].extend(promote_for_ratio)
             for n in range(1, 4):
                 label = 'cat{}'.format(str(n))
                 nextlabel = 'cat{}'.format(str(n+1))
@@ -3478,17 +3475,21 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                             if t in p.tags]
         return paths
 
-    def make_steps_here(openpaths):
+    def make_steps_here(openpaths, loc_id):
         '''
         Return a steps available at this location for each category of tags
 
         '''
-        paths = {}
+        steps = {}
         for n in range(1, 5):
             label = 'cat{}'.format(str(n))
+            steps[label] = [r.steps[0] for r in
+                            db(db.paths.id.belongs(openpaths[label]))
+                            if loc_id in db.steps(r.steps[0]).locations]
+        return steps
 
     def make_tag_recs_in(user_id, now_dt, revcats, promote_for_time,
-                         promote_for_avg, demote, current_tags, past_tags):
+                         promote_for_avg, promote_for_ratio, demote, current_tags, past_tags):
         '''
         Return tag_records data that would produce the mocked categorization.
 
@@ -3497,36 +3498,72 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
         alltags = chain(*revcats.values())
         for tag in alltags:
             rec = {'name': user_id,
-                   'tag': tag,
-                   }
-            if tag in revcats['cat1'] and tag not in promote_for_avg and tag not in promote_for_time['cat1'] and tag not in demote['cat2']:
-                total_attempts < 20
-                times_right/times_wrong < 8
-                right_wrong_delta > now_right_delta and now_right_delta < ???
+                   'tag': tag}
+            # set default parameters first (pass cat1 tests)
+            times_right = randint(20, 500) 
+            wr_ratio = uniform(0.0, 0.199)
+            days_avg = uniform(0.7, 1.0)
+            since_first_try = None 
+            since_last_right = datetime.timedelta(days=randint(0, 29),
+                                                  minutes=randint(1, 1440))
+            rw_factor = uniform(0.09, 1.99)  # to get last_wrong from last_right
+
+            # set parameter that will determine categorization
+            if tag in revcats['cat1'] and tag not in promote_for_avg and tag not in promote_for_ratio and tag not in promote_for_time['cat1'] and tag not in demote['cat2']:
+                optint = randint(1,6) 
+                if optint == 1:  # not enough attempts
+                    times_right = randint(0, 19) 
+                elif optint == 2:  # bad ratio
+                    rw_factor = uniform(2.0, 5.0)
+                    wr_ratio = uniform(0.2, 1.0)
+                elif optint == 3:  # 5-day average less than 0.7
+                    rw_factor = uniform(2.0, 5.0)
+                    days_avg = uniform(0.0, 0.699)
+                elif optint == 4:  # less time since right than between r&w
+                    rw_factor = uniform(2.0, 5.0)
+                    since_last_right = datetime.timedelta(days=randint(31, 365))
+                elif optint == 5:  # less than a day since started
+                    since_first_try = datetime.timedelta(hours=randint(1, 23))
+                elif optint == 6:
+                    since_last_right = datetime.timedelta(days=randint(181,365))
             elif tag in demote['cat2']:
-                total_attempts > 20
-                times_right/times_wrong > 8
-                right_wrong_delta > now_right_delta and now_right_delta < ???
+                rw_factor = uniform(2.0, 5.0)
             elif tag in promote_for_avg:
-                total_attempts > 20
-                times_right/times_wrong > 8
+                rw_factor = uniform(2.0, 5.0)
+                wr_ratio = uniform(0.2, 1.0)
+                since_last_right = datetime.timedelta(days=randint(1, 13))
+            elif tag in promote_for_ratio:
+                rw_factor = uniform(2.0, 5.0)
+                days_avg = uniform(0.0, 0.699)
+                since_last_right = datetime.timedelta(days=randint(1, 13))
             elif tag in promote_for_time['cat1']:
-                total_attempts > 20
-                times_right/times_wrong < 8
-                right_wrong_delta > now_right_delta and now_right_delta < ???
+                wr_ratio = uniform(0.2, 1.0)
+                days_avg = uniform(0.0, 0.699)
+                since_last_right = datetime.timedelta(days=randint(1, 13))
             elif tag in revcats['cat2'] or tag in demote['cat3']:
-                right_wrong_delta > now_right_delta
-                    and now_right_delta < ???
-                    and now_right_delta > ???
-            elif tag in revcats['cat3'] or tag in promote_for_time['cat3'] or tag in demote['cat4']:
+                since_last_right = datetime.timedelta(days=randint(1, 13))
+            elif tag in revcats['cat3'] or tag in promote_for_time['cat2'] or tag in demote['cat4']:
+                since_last_right = datetime.timedelta(days=randint(14, 60))
+            elif tag in revcats['cat4'] or tag in promote_for_time['cat3']:
+                since_last_right = datetime.timedelta(days=randint(61, 180))
+            else:
+                break
 
-            elif tag in revcats['cat3'] or tag in promote_for_time['cat3'] or tag in demote['cat4']:
+            if not since_first_try:
+                since_first_try = datetime.timedelta(days=randint(
+                    (since_last_right.days * rw_factor),
+                    (since_last_right.days * rw_factor * 2)))
 
-            rec['tlast_right'] = dt('2013-01-29')
-            rec['tlast_wrong'] = dt('2013-01-28')
-            rec['times_right'] = 10
-            rec['times_wrong'] = 2
+            rec['tlast_right'] = now_dt - since_last_right
+            rec['tlast_wrong'] = now_dt - (since_last_right * rw_factor)
+            rec['times_right'] = times_right
+            rec['times_wrong'] = times_right * wr_ratio
             rec['secondary_right'] = None
+            rec['first_attempt'] = now_dt - since_first_try
+            rec['days_avg'] = days_avg
+
+            tagrecs.append(rec)
+        return tagrecs
 
     npcs_here = {'domus_A': [2, 14, 17, 31, 40, 41, 42]
                  }
@@ -3541,14 +3578,16 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
 
     mytagprogressin, mycatsstart = make_tag_progress_in(
         current_set, current_subset, no_cat1, promote_for_time,
-        promote_for_avg, demote, current_tags, past_tags, untried_tags)
+        promote_for_avg, promote_for_ratio, demote, current_tags,
+        past_tags, untried_tags)
     mycoreout_cat, mycoreout_rev = make_core_out(mytagprogressin, no_cat1,
-        promote_for_time, promote_for_avg, demote, untried_tags)
+        promote_for_time, promote_for_avg, promote_for_ratio, demote, untried_tags)
     mypromotedout = copy(promote_for_time)
     if 'cat1' in mypromoted.keys():
         mypromoted['cat1'].extend(promote_for_avg)
+        mypromoted['cat1'].extend(promote_for_ratio)
     else:
-        mypromoted['cat1'] = promote_for_avg
+        mypromoted['cat1'] = promote_for_avg.extend(promote_for_ratio)
     myuntriedout = make_untried_out(untried_tags, mycoreout_rev)
     myrankout, mysubsetout = copy(current_set), copy(current_subset)
     myintroduced, myrankout, mysubsetout = make_introduced(
@@ -3557,15 +3596,19 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
     mytagprogressout, mycatsout = make_tag_progress_out(myuntriedout,
         myintroduced, myrankout, mysubsetout)
     mydemoted = copy(demote)
+    mycompleted = paths_tried
     myopenpaths = make_open_paths(mytagprogressout)
+    mystepshere = make_steps_here(myopenpaths, location)
     mytagrecsin = make_tag_recs_in(mycoreout_rev, promote_for_time,
                                    promote_for_avg, demote, current_tags, past_tags)
+    myloc_id = db(db.locations.loc_alias == location).select().first().id
+    prevloc_id = db(db.locations.loc_alias == prev_loc).select().first().id
     casedict = {'casenum': casenum,
                 'mynow': now_dt,
                 'uid': user_id,
                 'name': db.auth_user(user_id).first_name,
-                'loc': Location(location, db),  
-                'prev_loc': Location(prev_loc, db),  
+                'loc': Location(myloc_id, db),  
+                'prev_loc': Location(prevloc_id, db),  
                 'next_loc': None,
                 'prev_npc': Npc(prev_npc, db),
                 'pathid': path_id,
@@ -3574,7 +3617,7 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                 'blocks_out': None,
                 'tag_progress': mytagprogressin,
                 'categories_start': mycatsstart,
-                'core_out': mycoreout,
+                'core_out': mycoreout_rev,
                 'promoted': mypromotedout,
                 'demoted': mydemoted,
                 'untried_out': myuntriedout,
@@ -3585,9 +3628,10 @@ def case_factory(casenum=None, now_dt=None, user_id=None, location=None,
                 'tag_progress_out': mytagprogressout,
                 'categories_out': mycatsout,
                 'paths': myopenpaths,
+                'steps_here': mystepshere,
+                'completed': mycompleted,
+                'tag_records': mytagrecsin
                 }
-            'steps_here': [1, 2, 30, 125, 126, 127],
-            'completed': []
 
     return casedict
 
@@ -5604,6 +5648,16 @@ class TestCategorizer():
         now = dt('2013-01-29')
         if casename == 'case9':
             now = dt('2014-03-21')
+
+        mycase = case_factory(casenum=casename,
+                              now_dt=now,
+                              user_id=150,
+                              location=1,
+                              db=db,
+                              current_set=1,
+                              current_subset=1,
+                              )
+
         # 150 is random user id
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 

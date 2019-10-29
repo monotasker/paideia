@@ -3516,7 +3516,7 @@ class Categorizer(object):
                 print('times right:', record['times_right'])
                 print('times wrong:', record['times_wrong'])
                 print('total attempts', tr + tw, '>= 20 (', tr + tw >= 20, ')')
-                print(since_started, 'since started >= 1 day ')
+                print(since_started, 'since started >= 1 day')
                 print('(', since_started >= datetime.timedelta(days=1), ')')
                 print('and')
                 print('rdur.days:', rdur.days, '<', 'rwdur.days', rwdur.days)
@@ -3534,7 +3534,8 @@ class Categorizer(object):
             # cat2? ======================================================
             if ((tr >= 20) and  # at least 20 right
                 (since_started.days >= 1) and  # not within the first day
-                ((rdur < rwdur)  # delta right < delta right/wrong
+                ((rdur < rwdur)
+                # delta right < delta right/wrong
                  or
                  ((self._get_ratio(record) < 0.2) and
                   # less than 1w to 5r total
