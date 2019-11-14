@@ -15,8 +15,7 @@ function isLikelyASyntaxError(message) {
 }
 
 // Cleans up webpack error messages.
-// eslint-disable-next-line no-unused-vars
-function formatMessage(message, isError) {
+function formatMessage(message) {
   let lines = message.split('\n');
 
   // Strip Webpack-added headers off errors/warnings
@@ -42,9 +41,6 @@ function formatMessage(message, isError) {
     /SyntaxError\s+\((\d+):(\d+)\)\s*(.+?)\n/g,
     `${friendlySyntaxErrorLabel} $3 ($1:$2)\n`
   );
-  // Remove columns from ESLint formatter output (we added these for more
-  // accurate syntax errors)
-  message = message.replace(/Line (\d+):\d+:/g, 'Line $1:');
   // Clean up export errors
   message = message.replace(
     /^.*export '(.+?)' was not found in '(.+?)'.*$/gm,

@@ -1,12 +1,15 @@
 'use strict';
 
 exports.__esModule = true;
+exports.IndexLinkContainer = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
+
+var _reactRouterDom = require('react-router-dom');
 
 var _LinkContainer = require('./LinkContainer');
 
@@ -22,7 +25,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 // Don't use a stateless function, to allow users to set a ref.
 /* eslint-disable react/prefer-stateless-function */
-var IndexLinkContainer = function (_React$Component) {
+var IndexLinkContainer = exports.IndexLinkContainer = function (_React$Component) {
   _inherits(IndexLinkContainer, _React$Component);
 
   function IndexLinkContainer() {
@@ -39,6 +42,4 @@ var IndexLinkContainer = function (_React$Component) {
 }(_react2.default.Component);
 /* eslint-enable react/prefer-stateless-function */
 
-
-exports.default = IndexLinkContainer;
-module.exports = exports['default'];
+exports.default = (0, _reactRouterDom.withRouter)(IndexLinkContainer);

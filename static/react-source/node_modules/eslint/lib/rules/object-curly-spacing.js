@@ -4,7 +4,7 @@
  */
 "use strict";
 
-const astUtils = require("../util/ast-utils");
+const astUtils = require("./utils/ast-utils");
 
 //------------------------------------------------------------------------------
 // Rule Definition
@@ -50,7 +50,7 @@ module.exports = {
          * Determines whether an option is set, relative to the spacing option.
          * If spaced is "always", then check whether option is set to false.
          * If spaced is "never", then check whether option is set to true.
-         * @param {Object} option - The option to exclude.
+         * @param {Object} option The option to exclude.
          * @returns {boolean} Whether or not the property is excluded.
          */
         function isOptionSet(option) {
@@ -69,8 +69,8 @@ module.exports = {
 
         /**
          * Reports that there shouldn't be a space after the first token
-         * @param {ASTNode} node - The node to report in the event of an error.
-         * @param {Token} token - The token to use for the report.
+         * @param {ASTNode} node The node to report in the event of an error.
+         * @param {Token} token The token to use for the report.
          * @returns {void}
          */
         function reportNoBeginningSpace(node, token) {
@@ -82,7 +82,7 @@ module.exports = {
                     token: token.value
                 },
                 fix(fixer) {
-                    const nextToken = context.getSourceCode().getTokenAfter(token);
+                    const nextToken = context.getSourceCode().getTokenAfter(token, { includeComments: true });
 
                     return fixer.removeRange([token.range[1], nextToken.range[0]]);
                 }
@@ -91,8 +91,8 @@ module.exports = {
 
         /**
          * Reports that there shouldn't be a space before the last token
-         * @param {ASTNode} node - The node to report in the event of an error.
-         * @param {Token} token - The token to use for the report.
+         * @param {ASTNode} node The node to report in the event of an error.
+         * @param {Token} token The token to use for the report.
          * @returns {void}
          */
         function reportNoEndingSpace(node, token) {
@@ -104,7 +104,7 @@ module.exports = {
                     token: token.value
                 },
                 fix(fixer) {
-                    const previousToken = context.getSourceCode().getTokenBefore(token);
+                    const previousToken = context.getSourceCode().getTokenBefore(token, { includeComments: true });
 
                     return fixer.removeRange([previousToken.range[1], token.range[0]]);
                 }
@@ -113,8 +113,8 @@ module.exports = {
 
         /**
          * Reports that there should be a space after the first token
-         * @param {ASTNode} node - The node to report in the event of an error.
-         * @param {Token} token - The token to use for the report.
+         * @param {ASTNode} node The node to report in the event of an error.
+         * @param {Token} token The token to use for the report.
          * @returns {void}
          */
         function reportRequiredBeginningSpace(node, token) {
@@ -133,8 +133,8 @@ module.exports = {
 
         /**
          * Reports that there should be a space before the last token
-         * @param {ASTNode} node - The node to report in the event of an error.
-         * @param {Token} token - The token to use for the report.
+         * @param {ASTNode} node The node to report in the event of an error.
+         * @param {Token} token The token to use for the report.
          * @returns {void}
          */
         function reportRequiredEndingSpace(node, token) {
@@ -167,7 +167,7 @@ module.exports = {
                 if (options.spaced && !firstSpaced) {
                     reportRequiredBeginningSpace(node, first);
                 }
-                if (!options.spaced && firstSpaced) {
+                if (!options.spaced && firstSpaced && second.type !== "Line") {
                     reportNoBeginningSpace(node, first);
                 }
             }
@@ -201,8 +201,7 @@ module.exports = {
          * Because the last token of object patterns might be a type annotation,
          * this traverses tokens preceded by the last property, then returns the
          * first '}' token.
-         *
-         * @param {ASTNode} node - The node to get. This node is an
+         * @param {ASTNode} node The node to get. This node is an
          *      ObjectExpression or an ObjectPattern. And this node has one or
          *      more properties.
          * @returns {Token} '}' token.
@@ -215,7 +214,7 @@ module.exports = {
 
         /**
          * Reports a given object node if spacing in curly braces is invalid.
-         * @param {ASTNode} node - An ObjectExpression or ObjectPattern node to check.
+         * @param {ASTNode} node An ObjectExpression or ObjectPattern node to check.
          * @returns {void}
          */
         function checkForObject(node) {
@@ -225,15 +224,15 @@ module.exports = {
 
             const first = sourceCode.getFirstToken(node),
                 last = getClosingBraceOfObject(node),
-                second = sourceCode.getTokenAfter(first),
-                penultimate = sourceCode.getTokenBefore(last);
+                second = sourceCode.getTokenAfter(first, { includeComments: true }),
+                penultimate = sourceCode.getTokenBefore(last, { includeComments: true });
 
             validateBraceSpacing(node, first, second, penultimate, last);
         }
 
         /**
          * Reports a given import node if spacing in curly braces is invalid.
-         * @param {ASTNode} node - An ImportDeclaration node to check.
+         * @param {ASTNode} node An ImportDeclaration node to check.
          * @returns {void}
          */
         function checkForImport(node) {
@@ -253,15 +252,15 @@ module.exports = {
 
             const first = sourceCode.getTokenBefore(firstSpecifier),
                 last = sourceCode.getTokenAfter(lastSpecifier, astUtils.isNotCommaToken),
-                second = sourceCode.getTokenAfter(first),
-                penultimate = sourceCode.getTokenBefore(last);
+                second = sourceCode.getTokenAfter(first, { includeComments: true }),
+                penultimate = sourceCode.getTokenBefore(last, { includeComments: true });
 
             validateBraceSpacing(node, first, second, penultimate, last);
         }
 
         /**
          * Reports a given export node if spacing in curly braces is invalid.
-         * @param {ASTNode} node - An ExportNamedDeclaration node to check.
+         * @param {ASTNode} node An ExportNamedDeclaration node to check.
          * @returns {void}
          */
         function checkForExport(node) {
@@ -273,8 +272,8 @@ module.exports = {
                 lastSpecifier = node.specifiers[node.specifiers.length - 1],
                 first = sourceCode.getTokenBefore(firstSpecifier),
                 last = sourceCode.getTokenAfter(lastSpecifier, astUtils.isNotCommaToken),
-                second = sourceCode.getTokenAfter(first),
-                penultimate = sourceCode.getTokenBefore(last);
+                second = sourceCode.getTokenAfter(first, { includeComments: true }),
+                penultimate = sourceCode.getTokenBefore(last, { includeComments: true });
 
             validateBraceSpacing(node, first, second, penultimate, last);
         }

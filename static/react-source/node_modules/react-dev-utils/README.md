@@ -44,7 +44,7 @@ module.exports = {
       template: path.resolve('public/index.html'),
     }),
     // Makes the public URL available as %PUBLIC_URL% in index.html, e.g.:
-    // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    // <link rel="icon" href="%PUBLIC_URL%/favicon.ico">
     new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
       PUBLIC_URL: publicUrl,
       // You can pass any key-value pairs, this was just an example.
@@ -325,9 +325,20 @@ printHostingInstructions(appPackage, publicUrl, publicPath, 'build', true);
 
 Returns a Promise resolving to either `defaultPort` or next available port if the user confirms it is okay to do. If the port is taken and the user has refused to use another port, or if the terminal is not interactive and can’t present user with the choice, resolves to `null`.
 
-##### `createCompiler(webpack: Function, config: Object, appName: string, urls: Object, useYarn: boolean): WebpackCompiler`
+##### `createCompiler(args: Object): WebpackCompiler`
 
-Creates a Webpack compiler instance for WebpackDevServer with built-in helpful messages. Takes the `require('webpack')` entry point as the first argument. To provide the `urls` argument, use `prepareUrls()` described below.
+Creates a Webpack compiler instance for WebpackDevServer with built-in helpful messages.
+
+The `args` object accepts a number of properties:
+
+- **appName** `string`: The name that will be printed to the terminal.
+- **config** `Object`: The webpack configuration options to be provided to the webpack constructor.
+- **devSocket** `Object`: Required if `useTypeScript` is `true`. This object should include `errors` and `warnings` which are functions accepting an array of errors or warnings emitted by the type checking. This is useful when running `fork-ts-checker-webpack-plugin` with `async: true` to report errors that are emitted after the webpack build is complete.
+- **urls** `Object`: To provide the `urls` argument, use `prepareUrls()` described below.
+- **useYarn** `boolean`: If `true`, yarn instructions will be emitted in the terminal instead of npm.
+- **useTypeScript** `boolean`: If `true`, TypeScript type checking will be enabled. Be sure to provide the `devSocket` argument above if this is set to `true`.
+- **tscCompileOnError** `boolean`: If `true`, errors in TypeScript type checking will not prevent start script from running app, and will not cause build script to exit unsuccessfully. Also downgrades all TypeScript type checking error messages to warning messages.
+- **webpack** `function`: A reference to the webpack constructor.
 
 ##### `prepareProxy(proxySetting: string, appPublicFolder: string): Object`
 
