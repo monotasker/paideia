@@ -1,39 +1,49 @@
-import React, { Component } from 'react';
+import React, {
+  Component,
+  useState
+} from 'react';
 import {
   Container,
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
+import { withRouter } from "react-router";
+import {
+  Switch,
+  Route,
+  BrowserRouter,
+  useParams,
+  useHistory
+} from "react-router-dom";
 
 import TypingGreekContent from "../Content/TypingGreek";
 import HowItWorksContent from "../Content/HowItWorks";
 import FaqContent from "../Content/Faq";
 import KnownBugsContent from "../Content/KnownBugs";
 
-class Info extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currentPage: props.match.params.infoPage
-    }
-    this.goBack = this.goBack.bind(this);
-  }
-
-  goBack() {
-    this.props.history.goBack();
-  }
-
-  render() {
-    const content = {
-      "faq": <FaqContent backFunc={this.goBack} />,
-      "how-it-works": <HowItWorksContent backFunc={this.goBack} />,
-      "typing-greek": <TypingGreekContent backFunc={this.goBack} />,
-      "known-bugs": <KnownBugsContent backFunc={this.goBack} />
-    }
-
-    return(
-      content[this.state.currentPage]
-    )
-  }
+function goBack() {
+  history.goBack();
 }
 
-export default Info;
+function Info() {
+  let { infoPage } = useParams();
+
+  let history = useHistory();
+  console.log(history);
+
+  const content = {
+    "faq": <FaqContent backFunc={history.goBack} />,
+    "how-it-works": <HowItWorksContent backFunc={history.goBack} />,
+    "typing-greek": <TypingGreekContent backFunc={history.goBack} />,
+    "known-bugs": <KnownBugsContent backFunc={history.goBack} />
+  }
+
+  console.log(infoPage);
+
+  return(
+    <div className="info-component">
+      { content[infoPage] }
+    </div>
+  )
+}
+
+export default withRouter(Info);

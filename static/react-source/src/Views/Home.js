@@ -173,11 +173,9 @@ class Home extends Component {
 
   render() {
     return (
-
-      <Container fluid>
-
+      <div className="home-component">
       {/* Masthead row --------------------------------------------------*/}
-      <Row>
+      <Row className="masthead-row">
         <Masthead className="masthead">
 
           <img className="welcome-maria" src={ imgMaria } />
@@ -225,7 +223,7 @@ class Home extends Component {
           {modalTriggers}
       </ModalRow>
 
-    </Container>
+    </div>
     );
   }
 }

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import styled from "styled-components";
 import {
-  Container,
   Navbar,
   Nav,
   NavDropdown
@@ -170,8 +169,7 @@ class TopNavbar extends Component {
 
   render(){
     return(
-      <TopNav bg="light" expand="md" className="fixed">
-        <Container>
+      <TopNav bg="light" expand="sm" className="fixed">
           <LinkContainer to="/">
             <Navbar.Brand>Paideia</Navbar.Brand>
           </LinkContainer>
@@ -188,7 +186,6 @@ class TopNavbar extends Component {
               </LinkContainer>
             </Nav>
           </Navbar.Collapse>
-        </Container>
       </TopNav>
     )
   }

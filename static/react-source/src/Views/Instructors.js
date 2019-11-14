@@ -1,24 +1,25 @@
 import React, { Component } from 'react';
 import {
-  Container,
+  Row,
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
+import { withRouter } from "react-router";
 
 class Instructors extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentPage: this.props.match.params.instrPage
+      currentPage: this.props.location.search
     }
   }
 
   render() {
     return(
-      <Container fluid>
+      <div className="instructors-component">
         {this.state.currentPage}
-      </Container>
+      </div>
     )
   }
 }
 
-export default Instructors;
+export default withRouter(Instructors);

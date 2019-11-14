@@ -1,17 +1,13 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import {
-  Container,
-} from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
-import {
-  CSSTransition,
-  TransitionGroup
-} from "react-transition-group";
+// import { Container } from "react-bootstrap";
+// import { LinkContainer } from "react-router-bootstrap";
+import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
-import Velocity from "velocity-animate";
+// import Velocity from "velocity-animate";
+import { withRouter } from "react-router";
 
-import { make_map_pan } from "../Services/mapNavService";
+// import { make_map_pan } from "../Services/mapNavService";
 import SvgMap from "./SvgMap.js";
 import Step from "./Step.js";
 
@@ -69,9 +65,10 @@ const WalkRow = styled.div`
 class Walk extends Component {
   constructor(props) {
     super(props);
+    console.log(props);
     this.activeRoutes = ["path5424", "path5418"];
     this.state = {
-      currentPage: (props.match.params.walkPage || "map"),
+      currentPage: (props.location.search || "map"),
       mapIn: true,
       stepIn: false
     }
@@ -132,4 +129,4 @@ class Walk extends Component {
 
 
 
-export default Walk;
+export default withRouter(Walk);

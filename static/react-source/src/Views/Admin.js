@@ -3,22 +3,23 @@ import {
   Container,
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
+import { withRouter } from "react-router";
 
 class Admin extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentPage: props.match.params.adminPage
+      currentPage: props.location.search
     }
   }
 
   render() {
     return(
-      <Container>
-        {this.state.currentPage}
-      </Container>
+      <div className="admin-component">
+          {this.state.currentPage}
+      </div>
     )
   }
 }
 
-export default Admin;
+export default withRouter(Admin);
