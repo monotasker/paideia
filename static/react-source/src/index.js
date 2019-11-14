@@ -2,9 +2,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+// const crypto = require('crypto');
+
 import './index.css';
 import Main from './Views/Main';
 import * as serviceWorker from './serviceWorker';
+
+const __webpack_nonce__ =  "blabla"; // crypto.randomBytes(16).toString('base64');
 
 ReactDOM.render(<Main />, document.getElementById('root'));
 

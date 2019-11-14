@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {
-  Container,
   Row,
   Col,
 } from "react-bootstrap";
@@ -10,8 +9,8 @@ import {
   BrowserRouter
 } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
-import { TransitionGroup, Transition } from "react-transition-group";
-import { TimelineLite, CSSPlugin } from "gsap";
+import { Transition } from "react-transition-group";
+import { TimelineLite } from "gsap";
 
 // import './Main.css';
 // import './Main.scss';
@@ -32,11 +31,9 @@ import {
 } from "../variables.js";
 
 const Div = styled.div`
-  fontFamily: {props => props.theme.typography.$sansFonts};
-
-  .content > div {position: relative;
-                  left: -100vw;
-  }
+  // .content > div {margin-left: 0;
+  //                 margin-right: 0;
+  // 12:25 PM}
 `;
 
 function FirstChild(props) {
@@ -62,6 +59,9 @@ class Main extends Component {
   }
 
   play(pathname, node, appears) {
+    console.log(node);
+    console.log('pathname');
+    console.log(pathname);
     const delay = appears ? 0 : 0.5;
     let timeline;
 
@@ -98,45 +98,49 @@ class Main extends Component {
     return timeline;
   }
 
+
   render() {
+    const myroutes = [
+      {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
+      {path: "/walk/:walkPage", exact: false, Component: Walk},
+      {path: "/videos", exact: false, Component: Videos},
+      {path: "/profile", exact: false, Component: Profile},
+      {path: "/info/:infoPage", exact: false, Component: Info},
+      {path: "/admin/:adminPage", exact: false, Component: Admin},
+      {path: "/instructors/:instrPage", exact: false, Component: Instructors},
+      {path: "/login", exact: false, Component: Login}
+    ]
     return (
       <ThemeProvider theme={Theme}>
       <UserProvider>
       <BrowserRouter>
         <React.Fragment>
         <GlobalStyle />
-        <Div className="Main">
-          <TopNavbar />
-          <Row>
+          <TopNavbar routes={myroutes} />
+          <Row className="Main">
             <Col className="content">
-              <Route render={ ({location}) => {
-                const {pathname, key} = location;
-                return(
-                  <TransitionGroup component={null}>
+              <Switch>
+              {myroutes.map(({ path, exact, Component }) => (
+                <Route key={path} exact={exact} path={path}>
+                  {( match, location ) => (
                     <Transition
-                      key={key}
+                      key={path}
+                      in={match != null}
                       appear={true}
-                      onEnter={(node, appears) => this.play(pathname, node, appears)}
+                      onEnter={(node, appears) => this.play(match.location.pathname, node, appears)}
                       timeout={{enter: 750, exit: 0}}
+                      mountOnEnter
+                      unmountOnExit
                     >
-                      <Switch location={location.location}>
-                        <Route exact path="/" component={Home}/>
-                        <Route path="/walk/:walkPage" component={Walk}/>
-                        <Route path="/videos" component={Videos}/>
-                        <Route path="/profile" component={Profile}/>
-                        <Route path="/info/:infoPage" component={Info}/>
-                        <Route path="/admin/:adminPage" component={Admin}/>
-                        <Route path="/instructors/:instrPage"
-                          component={Instructors}/>
-                        <Route path="/login" component={Login}/>
-                      </Switch>
+                      <Component />
                     </Transition>
-                  </TransitionGroup>
-                )
-              }} />
+                  )}
+                </Route>
+              )
+              )}
+              </Switch>
             </Col>
           </Row>
-        </Div>
       </React.Fragment>
       </BrowserRouter>
       </UserProvider>

@@ -25,6 +25,12 @@ const GlobalStyle = createGlobalStyle`
 
   .svg-inline--fa               {margin-right: 0.5rem;
   }
+
+  font-family: ${props => typography.$sansFonts};
+
+  h2                            {font-family: 'Amatic SC';
+                                 color: ${props => colors.$putty};
+  }
 `;
 
 const images = {
@@ -32,7 +38,10 @@ const images = {
 }
 
 const breakpoints = {
-  $breakpointSm: "576px"
+  $breakpointSm: "576px",
+  $breakpointMd: "768px",
+  $breakpointLg: "992px",
+  $breakpointXl: "1200px",
 }
 
 const colors = {
