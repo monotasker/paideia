@@ -1,0 +1,232 @@
+@import "../../node_modules/bootstrap/scss/_variables.scss";
+$mapPng: "../Images/town_map.png";
+
+// layout
+// -----------------------------------
+
+$breakpoint-sm: "576px";
+
+// basic colors
+// -----------------------------
+$red:                   #B10808;
+$warning:               #a40000;
+$wine:                  #701;
+$cranberry:             #852625;
+$cinnamon:              #845852;
+$cream:                 #F8F0E5;
+$tapioca:               #F2E5D4;
+$white:                 #fff;
+$green:                 #5BA917;
+$neutralLight:          #f2eed5;
+$putty:                 #d8d3b3;
+$green:                 #96BC44;
+$greenDark:             #809240;
+// $red:                   #9d261d;
+$blueDark:              #1c7f99; // #006699;
+$blue:                  #049cdb;
+$yellow:                #ffc40d;
+$orange:                #f89406;
+
+// Applied Pallette (modded)
+// -------------------------
+$palletteBG: $white;
+$pallette1: $neutralLight;
+$pallette2: $putty;
+$pallette3: $green;
+$pallette4: $greenDark;
+$accent1: $red;
+$accent2: $blueDark;
+$accent3: $orange;
+
+$textColor: #333;
+$linkColor: $pallette2;
+$navbarLinkColor: $pallette2;
+
+// semantic colors (modded)
+// -------------------------
+$danger-bg: #fcf2f2;
+$danger: #bd362f; // #a84f4c; // default #dFb5b4;
+$info-bg: #f0f7fd; //#d0e3f0;
+$info: #5bc0de;
+$info-dark: #2f96b4; // #5387B2;
+$warning-bg: #fefbed;
+$warning: $orange; // #f1e7bc;
+$error: $red;
+$success-bg: #dff0d8;
+$success: $pallette3;  // #d6e9c6;
+$successDark: $pallette4; // #d6e9c6;
+
+//---------------------------------------------------
+// typography
+
+@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans');
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+    src: url('../Fonts/glyphicons-halflings-regular.eot');
+    src: url('../Fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons-halflings-regular.woff') format('woff'), url('../Fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../Fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SBLGreekRegular';
+    src: url('../Fonts/sbl_grk-webfont.eot');
+    src: local('☺'),
+    url('../Fonts/sbl_grk-webfont.woff') format('woff'),
+    url('../Fonts/sbl_grk-webfont.ttf') format('truetype'),
+    url('../Fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+$font-size-base:               1rem;
+$font-size-lg:                 $font-size-base * 1.25;
+$sans-fonts:                   "Open Sans", sans-serif;
+
+.svg-inline--fa               {margin-right: 0.5rem;
+}
+
+// navbar ---------------------------------------------
+
+
+//-- basic layout -------------------------------------------
+
+.content > div {position: relative;
+                left: -100vw;
+}
+
+
+//-- masthead --------------------------------------------------
+
+div.masthead                {background-image: url($mapPng);
+                             min-height: 360px;
+                             margin-top: 0;
+                             margin-bottom: 0;
+                             padding-bottom: 0;
+                             border: 0px solid transparent;
+                             overflow: hidden;
+                             height: 28rem;
+    @media (max-width: map-get($grid-breakpoints, md))          {height: 10rem;
+    }
+    img.welcome-maria                           {position: absolute;
+                                                 left:0;
+        @media (max-width: map-get($grid-breakpoints, md))      {height:36rem;
+        }
+    }
+}
+
+// home----------------------------------------------
+
+div.maria-bubble               {position:absolute;
+                                top:5rem;
+                                left:360px;
+                                box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
+                                border-radius:2rem;
+                                z-index: 10;
+                                display: none;
+                                overflow-y: hidden;
+    &:after {                   border-right: 25px solid #fff;
+                                border-top: 25px solid transparent;
+                                left: -25px;
+                                top: 40%;
+                                content: '';
+                                position: absolute;
+    }
+    &:before {
+        border-right: 23px solid rgba(0,0,0,0.5);
+        border-top: 23px solid transparent;
+        left: -23px;
+        top: 42%;
+        content: '';
+        position: absolute;
+    }
+}
+div.maria-bubble,
+div.maria-bubble-mobile        {background-color: white;
+                                padding:2rem;
+    h1                         {font-family: 'Amatic SC', cursive;
+                                font-weight: regular;
+                                font-size: 3rem;
+                                color: darken($pallette1, 30%);
+    }
+    button                     {background-color: $pallette4;
+                                border: 1px solid $palletteBG;
+                                margin-top: 0.5rem;
+    }
+    p.index-openmessage         {font-size: $font-size-base;
+                                color: #888;
+    }
+}
+
+div.warning.row                {background-color: $danger;
+                                color: $warning;
+                                padding: 1.25rem 0;
+    p                          {text-align: center;
+    }
+}
+
+
+div.modal-set.row              {color: #efefef;
+                                background-color: $pallette3;
+                                text-align: center;
+                                padding-top: 3rem;
+                                padding-bottom: 3rem;
+    @media (max-width: map-get($grid-breakpoints, md))  {padding: 0;
+                                         text-align: left;
+                                         padding-left: 2rem;
+                                         padding-right: 2rem;
+    }
+    .info-pane                 {
+      .info-illustration-wrapper          {//text-align: center;
+                                           // width:100%;
+          @media (max-width: map-get($grid-breakpoints, md)) {text-align: left;
+          }
+          .info-pane-illustration {width:12rem;
+                                   background-color: rgba(255, 255, 255, 0.3);
+                                   border-radius: 50%;
+                                   padding: 0.5rem;
+                                   // margin: 0px auto;
+              @media (max-width: $breakpoint-sm) {float: right;
+                                                  width: 3rem;
+                                                  padding: 1rem;
+              }
+          }
+          h4 a                                   {color: $white;
+                                                  margin-top: 2rem;
+                                                  font-size: $font-size-base;
+              @media (max-width: $breakpoint-sm) {line-height: 3em;
+                                                  height: 3em;
+              }
+              &:hover                            {text-decoration: dotted;
+              }
+          }
+      }
+    }
+    p                       {hyphens: auto;
+                            -moz-hyphens: auto;
+                            -webkit-hyphens: auto;
+                            -ms-hyphens: auto;
+    }
+}
+
+// walk interface---------------------------------------
+
+div.content > .walk-container                 {
+  div#exploring-mask                          {display: block;
+                                               position: absolute;
+                                               background-color: rgba(255,255,255,1.0);
+                                               width: 100%;
+                                               height: 100%;
+                                               text-align: center;
+      img                                     {position: absolute;
+      }
+  }
+  object#town_map                             {width: 100%;
+                                               margin:0 auto;
+                                               cursor: move;
+                                               opacity: 0;
+    svg                                       {cursor: move;
+    }
+  }
+}

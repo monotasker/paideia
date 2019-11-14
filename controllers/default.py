@@ -1,4 +1,4 @@
-#! /usr/bin/python2.7
+#! /usr/bin/python3.6
 # -*- coding: utf-8 -*-
 
 from copy import copy
@@ -498,7 +498,10 @@ def download():
     return response.download(request, db)
 
 
-"""
+auth.settings.allow_basic_login = True
+
+
+@auth.requires_login()
 def call():
     '''
     exposes services. for example:
@@ -506,9 +509,22 @@ def call():
     decorate with @services.jsonrpc the functions to expose
     supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
     '''
+    response.headers["Access-Control-Allow-Origin"] = '*'
+    response.headers['Access-Control-Max-Age'] = 86400
+    response.headers['Access-Control-Allow-Headers'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = '*'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+
     return service()
 
 
+@service.json
+def get_login():
+
+    return json({"myword": "gotcha"})
+
+
+"""
 @auth.requires_signature()
 def data():
     '''
