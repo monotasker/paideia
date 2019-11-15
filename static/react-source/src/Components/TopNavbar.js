@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from "react-router";
 import styled from "styled-components";
 import {
   Navbar,
@@ -161,13 +162,7 @@ const drops = dropData.map( (item) =>
   </NavDropdown>
 );
 
-class TopNavbar extends Component {
-  constructor(props){
-    super(props);
-    this.state = {};
-  }
-
-  render(){
+const TopNavbar = () => {
     return(
       <TopNav bg="light" expand="sm" className="fixed">
           <LinkContainer to="/">
@@ -188,7 +183,6 @@ class TopNavbar extends Component {
           </Navbar.Collapse>
       </TopNav>
     )
-  }
 }
 
-export default TopNavbar;
+export default withRouter(TopNavbar);

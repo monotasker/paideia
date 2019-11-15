@@ -7,19 +7,15 @@ import {
   faChevronLeft,
 } from '@fortawesome/free-solid-svg-icons';
 
-class ContentPage extends Component {
-
-  render() {
-    return(
-        <Container>
-            <a onClick={this.props.backFunc}>
-              <FontAwesomeIcon icon={faChevronLeft} size="lg" pull="left" />
-            </a>
-          <h2>{this.props.title}</h2>
-          {this.props.children}
-        </Container>
-    )
-  }
-}
+const ContentPage = (props) => {
+  return(
+    <Row className='content-page-component'>
+        <a onClick={this.props.backFunc}>
+          <FontAwesomeIcon icon={faChevronLeft} size="lg" pull="left" />
+        </a>
+      <h2>{this.props.title}</h2>
+      {this.props.children}
+    </Row>
+)}
 
 export default ContentPage;

@@ -518,10 +518,13 @@ def call():
     return service()
 
 
-@service.json
 def get_login():
-
-    return json({"myword": "gotcha"})
+    print(request.args)
+    print(request.vars)
+    mylogin = auth.login_bare(request.vars['email'], request.vars['password'])
+    myuser = {k:v for k, v in mylogin.items() if k in 
+              ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+    return json(myuser)
 
 
 """

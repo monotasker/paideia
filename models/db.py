@@ -141,6 +141,7 @@ current.auth = auth
 auth.settings.create_user_groups = False
 auth.settings.label_separator = ''
 auth.settings.email_case_sensitive = True
+auth.settings.allow_basic_login = True
 
 # -------------------------------------------------------------
 # Customizing auth tables
