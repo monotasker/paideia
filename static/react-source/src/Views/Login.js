@@ -1,21 +1,42 @@
-import React, { Component } from "react";
+import React, {
+  useContext
+} from "react";
 import {
   Form,
   Button,
   Row,
   Col
 } from "react-bootstrap";
+import { login } from '../Services/authService';
+import UserContext from '../UserContext/UserContext';
+import { withRouter } from 'react-router';
 
-const getLogin = (event) => {
+const getLogin = async (event) => {
   console.log('getting login');
-  let response = fetch('/paideia/default/get_login', {
-      method: "POST",
-      cache: "no-cache",
-      // mode: "cors",
-      body: new FormData(event.target)
-  })
-  .then( myjson => {console.log(myjson);
-  });
+  let formdata = new FormData(event.target);
+  const { user } = useContext(UserContext);
+
+  let userdata = await login(formdata);
+  console.log(myjson);
+  if ( userdata['id'] ) {
+    console.log(`got ${myjson['id']}`);
+    return dispatch({
+      type: 'initializeUser',
+      payload: {
+        userId: userdata['id'],
+        firstName: userdata['first_name'],
+        lastName: userdata['last_name'],
+        email: userdata['email'],
+        userLoggedIn: true,
+        userRoles: [],
+        userToken: '',
+        userTimezone: userdata['time_zone']
+      }
+    })
+  } else {
+    console.log(`login failed`);
+    console.log(userdata);
+  }
   event.preventDefault();
 }
 
@@ -55,4 +76,4 @@ const Login = () => {
   );
 }
 
-export default Login;
+export default withRouter(Login);

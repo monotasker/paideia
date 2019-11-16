@@ -1,5 +1,12 @@
-import React, { Component } from "react";
+import React, {
+  Component,
+  useReducer,
+  createContext
+} from "react";
 import UserContext from './UserContext';
+
+const UserStateContext = createContext();
+const UserDispatchContext = createContext();
 
 const speakerImages = [
   {label: "Ἀλεξανδρος",
@@ -88,87 +95,82 @@ const samplePaths = [
   }
 ]
 
-class UserProvider extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      userId: null,
-      firstName: null,
-      lastName: null,
-      userRoles: [],
-      userToken: null,
-      userTimezone: null,
-      userLoggedIn: false,
-      flags: [],
-      currentLocation: null,
-      currentLocationBG: null,
-      currentNpc: null,
-      currentNpcImage: null,
-      currentPath: null,
-      currentStep: null,
-      completedSteps: [],
-      completedPaths: [],
-      availablePaths: [],
-      setUser: this.setUser,
-      setPaths: this.setPaths,
-      setCurrentPath: this.setCurrentPath,
-      setCurrentLoc: this.setCurrentLoc,
-      setCurrentStep: this.setCurrentStep,
+let userDefaults = {
+  userId: null,
+  firstName: null,
+  lastName: null,
+  userRoles: [],
+  userToken: null,
+  userTimezone: null,
+  userLoggedIn: false,
+  flags: [],
+  currentLocation: null,
+  currentLocationBG: null,
+  currentNpc: null,
+  currentNpcImage: null,
+  currentPath: null,
+  currentStep: null,
+  completedSteps: [],
+  completedPaths: [],
+  availablePaths: [],
+}
+
+
+function userReducer(state, action) {
+  switch (action.type) {
+    case 'initializeUser': {
+      return({
+        ...state,
+        userId: '',
+        firstName: "Bob",
+        lastName: "Tomato",
+        userLoggedIn: true,
+        userRoles: [],
+        userToken: '',
+        userTimezone: '',
+        flags: [],
+        currentPath: null,
+      })
     }
-  }
-
-  setUser() {
-    this.setState({
-      userId: '',
-      firstName: "Bob",
-      lastName: "Tomato",
-      userLoggedIn: true,
-      userRoles: [],
-      userToken: '',
-      userTimezone: '',
-      flags: [],
-      currentPath: null,
-    })
-  }
-
-  setCurrentLoc(newLoc) {
-    this.setState({
-      currentLocation: newLoc,
-      currentLocationBG: locationBackgrounds[newLoc]
-    })
-  }
-
-  setCurrentNpc(npc) {
-    this.setState({
-      currentNpc: npc,
-      currentNpcImage: speakerImages[npc]
-    })
-  }
-
-  setPaths() {
-    this.setState({availablePaths: samplePaths})
-  }
-
-  setCurrentPath() {
-    let selectedPath = this.state.currentPath;
-    if ( !selectedPath ) {
-      this.setPaths();
-      selectedPath = this.availablePaths[0];
-      this.setState({currentPath: selectedPath});
+    case 'setCurrentLoc': {
+      return({
+        ...state,
+        currentLocation: action.payload,
+        currentLocationBG: locationBackgrounds[action.payload]
+      })
     }
-  }
-
-  setCurrentStep() {
-    this.setState({currentStep: this.currentPath.steps[0]})
-  }
-
-  render() {
-    return (
-      <UserContext.Provider value={ this.state }>
-        {this.props.children}
-      </UserContext.Provider>
-    );
+    case 'setCurrentNpc': {
+      return({
+        ...state,
+        currentNpc: action.payload,
+        currentNpcImage: speakerImages[action.payload]
+      })
+    }
+    case 'setPaths': {
+      return {...state, availablePaths: samplePaths}
+    }
+    case 'setCurrentPath': {
+      return {...state, currentPath: state.availablePaths[0]}
+    }
+    case 'setCurrentStep': {
+      return {...state, currentStep: state.currentPath.steps[0]}
+    }
+    default: {
+      throw new Error(`Unhandled action type: ${action.type}`)
+    }
   }
 }
 
-export default UserProvider;
+function UserProvider({children}) {
+  const [state, dispatch] = useReducer(userReducer, userDefaults);
+
+  return (
+    <UserStateContext.Provider value={ state }>
+      <UserDispatchContext.Provider value={ dispatch }>
+        {children}
+      </UserDispatchContext.Provider>
+    </UserStateContext.Provider>
+  );
+}
+
+export default { UserProvider };
