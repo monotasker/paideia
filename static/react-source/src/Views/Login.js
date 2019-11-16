@@ -8,7 +8,7 @@ import {
   Col
 } from "react-bootstrap";
 import { login } from '../Services/authService';
-import UserContext from '../UserContext/UserContext';
+import { UserContext } from '../UserContext/UserProvider';
 import { withRouter } from 'react-router';
 
 const getLogin = async (event) => {

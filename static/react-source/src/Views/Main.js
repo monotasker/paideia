@@ -8,12 +8,11 @@ import {
   Route,
   BrowserRouter
 } from "react-router-dom";
-import styled, { ThemeProvider } from "styled-components";
 import { Transition } from "react-transition-group";
 import { TimelineLite } from "gsap";
 
 // import './Main.css';
-// import './Main.scss';
+import './Main.scss';
 
 import TopNavbar from "../Components/TopNavbar"
 import Home from "./Home";
@@ -25,16 +24,6 @@ import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
-import {
-  GlobalStyle,
-  Theme
-} from "../variables.js";
-
-const Div = styled.div`
-  // .content > div {margin-left: 0;
-  //                 margin-right: 0;
-  // 12:25 PM}
-`;
 
 function FirstChild(props) {
   const childrenArray = React.Children.toArray(props.children);
@@ -98,7 +87,6 @@ class Main extends Component {
     return timeline;
   }
 
-
   render() {
     const myroutes = [
       {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
@@ -111,18 +99,16 @@ class Main extends Component {
       {path: "/login", exact: false, Component: Login}
     ]
     return (
-      <ThemeProvider theme={Theme}>
       <UserProvider>
       <BrowserRouter>
         <React.Fragment>
-        <GlobalStyle />
           <TopNavbar routes={myroutes} />
           <Row className="Main">
             <Col className="content">
               <Switch>
               {myroutes.map(({ path, exact, Component }) => (
                 <Route key={path} exact={exact} path={path}>
-                  {( match, location ) => (
+                  {( match ) => (
                     <Transition
                       key={path}
                       in={match != null}
@@ -144,7 +130,6 @@ class Main extends Component {
       </React.Fragment>
       </BrowserRouter>
       </UserProvider>
-      </ThemeProvider>
     );
   }
 }

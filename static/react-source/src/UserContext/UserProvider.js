@@ -1,12 +1,10 @@
 import React, {
-  Component,
   useReducer,
   createContext
 } from "react";
-import UserContext from './UserContext';
 
-const UserStateContext = createContext();
-const UserDispatchContext = createContext();
+const UserContext = createContext();
+// const UserDispatchContext = createContext();
 
 const speakerImages = [
   {label: "Ἀλεξανδρος",
@@ -165,12 +163,11 @@ function UserProvider({children}) {
   const [state, dispatch] = useReducer(userReducer, userDefaults);
 
   return (
-    <UserStateContext.Provider value={ state }>
-      <UserDispatchContext.Provider value={ dispatch }>
-        {children}
-      </UserDispatchContext.Provider>
-    </UserStateContext.Provider>
+    <UserContext.Provider value={ state, dispatch }>
+      {children}
+    </UserContext.Provider>
   );
 }
 
-export default { UserProvider };
+export default UserProvider;
+export { UserContext };

@@ -1,9 +1,8 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 // const crypto = require('crypto');
 
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 import Main from './Views/Main';
 import * as serviceWorker from './serviceWorker';
