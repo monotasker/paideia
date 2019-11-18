@@ -1,6 +1,8 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 
-const login = async (formdata) => {
-  let response = await fetch('/paideia/api/do_login', {
+const login = (formdata) => {
+  let response = fetch('/paideia/api/do_login', {
       method: "POST",
       cache: "no-cache",
       body: formdata

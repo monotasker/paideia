@@ -3,7 +3,7 @@ import React, {
   useState
 } from 'react';
 import {
-  Container,
+  Row,
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { withRouter } from "react-router";
@@ -40,9 +40,9 @@ function Info() {
   console.log(infoPage);
 
   return(
-    <div className="info-component">
+    <Row className="info-component justify-content-sm-center">
       { content[infoPage] }
-    </div>
+    </Row>
   )
 }
 

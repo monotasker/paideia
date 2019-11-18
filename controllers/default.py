@@ -518,15 +518,6 @@ def call():
     return service()
 
 
-def get_login():
-    print(request.args)
-    print(request.vars)
-    mylogin = auth.login_bare(request.vars['email'], request.vars['password'])
-    myuser = {k:v for k, v in mylogin.items() if k in 
-              ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
-    return json(myuser)
-
-
 """
 @auth.requires_signature()
 def data():

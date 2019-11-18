@@ -63,13 +63,13 @@ $successDark: $pallette4; // #d6e9c6;
 
 @import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans');
 
-@font-face {
-    font-family: 'Glyphicons Halflings';
-    src: url('../Fonts/glyphicons-halflings-regular.eot');
-    src: url('../Fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons-halflings-regular.woff') format('woff'), url('../Fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../Fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
-    font-weight: normal;
-    font-style: normal;
-}
+// @font-face {
+//     font-family: 'Glyphicons Halflings';
+//     src: url('../Fonts/glyphicons-halflings-regular.eot');
+//     src: url('../Fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons-halflings-regular.woff') format('woff'), url('../Fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../Fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+//     font-weight: normal;
+//     font-style: normal;
+// }
 
 @font-face {
     font-family: 'SBLGreekRegular';
@@ -85,6 +85,7 @@ $successDark: $pallette4; // #d6e9c6;
 $font-size-base:               1rem;
 $font-size-lg:                 $font-size-base * 1.25;
 $sans-fonts:                   "Open Sans", sans-serif;
+$title-fonts:                  "Amatic SC";
 
 .svg-inline--fa               {margin-right: 0.5rem;
 }
@@ -94,8 +95,10 @@ $sans-fonts:                   "Open Sans", sans-serif;
 
 //-- basic layout -------------------------------------------
 
-.content > div {position: relative;
-                left: -100vw;
+.content > div {//position: relative;
+                // left: -100vw;
+    h2                 {font-family: $title-fonts;
+    }
 }
 
 //-- navbar ---------------------------------------------------

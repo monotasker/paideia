@@ -1,6 +1,7 @@
-import React, { Component } from "react";
+import React from "react";
 import {
-   Container,
+  Col,
+  Row,
  } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,13 +10,13 @@ import {
 
 const ContentPage = (props) => {
   return(
-    <Row className='content-page-component'>
-        <a onClick={this.props.backFunc}>
-          <FontAwesomeIcon icon={faChevronLeft} size="lg" pull="left" />
-        </a>
-      <h2>{this.props.title}</h2>
-      {this.props.children}
-    </Row>
+    <Col className='content-page-component' sm='8'>
+      <a onClick={props.backFunc}>
+        <FontAwesomeIcon icon={faChevronLeft} size="lg" pull="left" />
+      </a>
+      <h2 className='content-page-title'>{props.title}</h2>
+      {props.children}
+    </Col>
 )}
 
 export default ContentPage;

@@ -1,7 +1,7 @@
 #! /usr/bin/python3.6
 # -*- coding: utf-8 -*-
+from gluon.serializers import json
 
-from gluon.tools import service
 if 0:
     from gluon import Auth, Response, Request, Current
     auth = Auth
@@ -9,10 +9,13 @@ if 0:
     response = current.response
     request = current.request
 
-auth.settings.allow_basic_login = True
+
+def do_login():
+    print(request.args)
+    print(request.vars)
+    mylogin = auth.login_bare(request.vars['email'], request.vars['password'])
+    myuser = {k:v for k, v in mylogin.items() if k in 
+              ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+    return json(myuser)
 
 
-@service.json
-def get_login():
-
-    return {"myword": "gotcha"}

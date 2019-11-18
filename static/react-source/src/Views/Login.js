@@ -11,36 +11,38 @@ import { login } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 import { withRouter } from 'react-router';
 
-const getLogin = async (event) => {
-  console.log('getting login');
-  let formdata = new FormData(event.target);
-  const { user } = useContext(UserContext);
+const Login = () => {
+  const { user, dispatch } = useContext(UserContext);
 
-  let userdata = await login(formdata);
-  console.log(myjson);
-  if ( userdata['id'] ) {
-    console.log(`got ${myjson['id']}`);
-    return dispatch({
-      type: 'initializeUser',
-      payload: {
-        userId: userdata['id'],
-        firstName: userdata['first_name'],
-        lastName: userdata['last_name'],
-        email: userdata['email'],
-        userLoggedIn: true,
-        userRoles: [],
-        userToken: '',
-        userTimezone: userdata['time_zone']
+  const getLogin = (event) => {
+    console.log('getting login');
+    event.preventDefault();
+    let formdata = new FormData(event.target);
+
+    login(formdata)
+    .then( userdata => {
+      if ( userdata['id'] ) {
+        console.log(`got ${userdata['id']}`);
+        return dispatch({
+          type: 'initializeUser',
+          payload: {
+            userId: userdata['id'],
+            firstName: userdata['first_name'],
+            lastName: userdata['last_name'],
+            email: userdata['email'],
+            userLoggedIn: true,
+            userRoles: [],
+            userToken: '',
+            userTimezone: userdata['time_zone']
+          }
+        })
+      } else {
+        console.log(`login failed`);
+        console.log(userdata);
       }
     })
-  } else {
-    console.log(`login failed`);
-    console.log(userdata);
   }
-  event.preventDefault();
-}
 
-const Login = () => {
   return(
     <Row className="login-component justify-content-sm-center">
       <Col xs sm={4}>
