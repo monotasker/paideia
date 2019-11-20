@@ -97,6 +97,7 @@ let userDefaults = {
   userId: null,
   firstName: null,
   lastName: null,
+  userEmail: null,
   userRoles: [],
   userToken: null,
   userTimezone: null,
@@ -119,9 +120,10 @@ function userReducer(state, action) {
     case 'initializeUser': {
       return({
         ...state,
-        userId: '',
-        firstName: "Bob",
-        lastName: "Tomato",
+        userId: action.payload.userId,
+        firstName: action.payload.firstName,
+        lastName: action.payload.lastName,
+        userEmail: action.payload.email,
         userLoggedIn: true,
         userRoles: [],
         userToken: '',
@@ -163,7 +165,7 @@ function UserProvider({children}) {
   const [state, dispatch] = useReducer(userReducer, userDefaults);
 
   return (
-    <UserContext.Provider value={ state, dispatch }>
+    <UserContext.Provider value={{ state, dispatch }}>
       {children}
     </UserContext.Provider>
   );

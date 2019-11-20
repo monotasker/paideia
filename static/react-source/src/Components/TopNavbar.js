@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useContext } from 'react';
 import { withRouter } from "react-router";
 import styled from "styled-components";
 import {
@@ -22,12 +22,12 @@ import {
   faCog,
   faBug
 } from '@fortawesome/free-solid-svg-icons';
+import { UserContext } from "../UserContext/UserProvider";
 
 const navData = [
   {title: "Home", path: "/", icon: faHome},
   {title: "Map", path: "/walk/map", icon: faMap},
-  {title: "Lessons", path: "/videos", icon: faVideo},
-  {title: "Profile", path: "/profile", icon: faUser}
+  {title: "Lessons", path: "/videos", icon: faVideo}
 ]
 
 const dropData = [
@@ -88,7 +88,32 @@ const drops = dropData.map( (item) =>
   </NavDropdown>
 );
 
+const login = (
+  <LinkContainer to="/login">
+    <Nav.Link href="/login">
+      <FontAwesomeIcon icon={faSignInAlt} size="sm" />
+      Log in
+    </Nav.Link>
+  </LinkContainer>
+)
+
 const TopNavbar = () => {
+    const { state, setUser } = useContext(UserContext);
+    console.log('state is');
+    console.log(state);
+
+    const welcome = (
+      <React.Fragment>
+      <span>Hi {state.firstName}</span>
+      <LinkContainer key={state.userId} to="/profile">
+        <Nav.Link>
+          <FontAwesomeIcon icon={faUser} size="sm" />
+          <span className="d-none d-lg-inline">Profile</span>
+        </Nav.Link>
+      </LinkContainer>
+      </React.Fragment>
+    )
+
     return(
       <Navbar bg="light" expand="sm" className="fixed">
           <LinkContainer to="/">
@@ -99,12 +124,8 @@ const TopNavbar = () => {
             <Nav className="mr-auto">
               {navs}
               {drops}
-              <LinkContainer to="/login">
-                <Nav.Link href="/login">
-                  <FontAwesomeIcon icon={faSignInAlt} size="sm" />
-                  Log in
-                </Nav.Link>
-              </LinkContainer>
+              {state.firstName}
+              {state.userId != null ? welcome : login}
             </Nav>
           </Navbar.Collapse>
       </Navbar>

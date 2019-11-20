@@ -16,13 +16,19 @@ const Login = () => {
 
   const getLogin = (event) => {
     console.log('getting login');
-    event.preventDefault();
     let formdata = new FormData(event.target);
+    event.preventDefault();
 
-    login(formdata)
+    fetch('/paideia/api/get_login', {
+        method: "POST",
+        cache: "no-cache",
+        mode: "same-origin",
+        body: formdata
+    })
+    .then( response => response.json() )
     .then( userdata => {
-      if ( userdata['id'] ) {
-        console.log(`got ${userdata['id']}`);
+      if ( userdata.id != null ) {
+        console.log(userdata);
         return dispatch({
           type: 'initializeUser',
           payload: {
@@ -40,6 +46,7 @@ const Login = () => {
         console.log(`login failed`);
         console.log(userdata);
       }
+      console.log(user);
     })
   }
 

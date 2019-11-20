@@ -4,10 +4,13 @@
 from copy import copy
 import datetime
 from memory_profiler import profile
+from pprint import pprint
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class
 from paideia_bugs import Bug, trigger_bug_undo
 from gluon.serializers import json
+from gluon.tools import Service
+service = Service()
 if 0:
     from web2py.applications.paideia.modules.paideia_stats import Stats, get_set_at_date, get_term_bounds
     from web2py.applications.paideia.modules.paideia_stats import get_current_class
@@ -496,9 +499,6 @@ def download():
     http://..../[app]/default/download/[filename]
     """
     return response.download(request, db)
-
-
-auth.settings.allow_basic_login = True
 
 
 @auth.requires_login()
