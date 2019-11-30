@@ -19,12 +19,7 @@ const Login = () => {
     let formdata = new FormData(event.target);
     event.preventDefault();
 
-    fetch('/paideia/api/get_login', {
-        method: "POST",
-        cache: "no-cache",
-        mode: "same-origin",
-        body: formdata
-    })
+    login(formdata)
     .then( response => response.json() )
     .then( userdata => {
       if ( userdata.id != null ) {
@@ -53,33 +48,45 @@ const Login = () => {
   return(
     <Row className="login-component justify-content-sm-center">
       <Col xs sm={4}>
-        <h2 className="text-center">How About Logging In?</h2>
-        <Form onSubmit={getLogin} role="form">
-          <Form.Group controlId="loginEmail">
-            <Form.Label>
-              Email Address
-            </Form.Label>
-            <Form.Control
-              type="email"
-              name="email"
-              placeholder="Enter your email address"
-              autoComplete="email"
-            />
-            {/* <Form.Text className="text-muted">Your email address acts as your username</Form.Text> */}
-          </Form.Group>
-          <Form.Group controlId="loginPassword">
-            <Form.Label>
-              Password
-            </Form.Label>
-            <Form.Control
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              placeholder="Password"
-            />
-          </Form.Group>
-          <Button variant="primary" type="submit">Log in</Button>
-        </Form>
+        { user.userLoggedIn == true &&
+          <React.Fragment>
+            <h2 className="text-center">Welcome Back!</h2>
+            <p>
+              You're now logged in, {user.firstName}.
+            </p>
+          </React.Fragment>
+        }
+        { user.userLoggedIn == false && (
+          <React.Fragment>
+          <h2 className="text-center">How About Logging In?</h2>
+          <Form onSubmit={getLogin} role="form">
+            <Form.Group controlId="loginEmail">
+              <Form.Label>
+                Email Address
+              </Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                placeholder="Enter your email address"
+                autoComplete="email"
+              />
+              {/* <Form.Text className="text-muted">Your email address acts as your username</Form.Text> */}
+            </Form.Group>
+            <Form.Group controlId="loginPassword">
+              <Form.Label>
+                Password
+              </Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                autoComplete="current-password"
+                placeholder="Password"
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit">Log in</Button>
+          </Form>
+          </React.Fragment>
+        )}
       </Col>
     </Row>
   );

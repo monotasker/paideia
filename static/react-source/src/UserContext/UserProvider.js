@@ -94,30 +94,35 @@ const samplePaths = [
 ]
 
 let userDefaults = {
-  userId: null,
-  firstName: null,
-  lastName: null,
-  userEmail: null,
-  userRoles: [],
-  userToken: null,
-  userTimezone: null,
-  userLoggedIn: false,
-  flags: [],
-  currentLocation: null,
-  currentLocationBG: null,
-  currentNpc: null,
-  currentNpcImage: null,
-  currentPath: null,
-  currentStep: null,
-  completedSteps: [],
-  completedPaths: [],
-  availablePaths: [],
+  userId: window.localStorage.getItem('userId') || null,
+  firstName: window.localStorage.getItem('firstName') || null,
+  lastName: window.localStorage.getItem('lastName') || null,
+  userEmail: window.localStorage.getItem('userEmail') || null,
+  userRoles: window.localStorage.getItem('userRoles') || [],
+  userToken: window.localStorage.getItem('userToken') || null,
+  userTimezone: window.localStorage.getItem('userTimezone') || null,
+  userLoggedIn: window.localStorage.getItem('userLoggedIn') || false,
+  flags: window.localStorage.getItem('flags') || [],
+  currentLocation: window.localStorage.getItem('currentLocation') || null,
+  currentLocationBG: window.localStorage.getItem('currentLocationBG') || null,
+  currentNpc: window.localStorage.getItem('currentNpc') || null,
+  currentNpcImage: window.localStorage.getItem('currentNpcImage') || null,
+  currentPath: window.localStorage.getItem('currentPath') || null,
+  currentStep: window.localStorage.getItem('currentStep') || null,
+  completedSteps: window.localStorage.getItem('completedSteps') || [],
+  completedPaths: window.localStorage.getItem('completedPaths') || [],
+  availablePaths: window.localStorage.getItem('availablePaths') || [],
 }
 
 
 function userReducer(state, action) {
   switch (action.type) {
     case 'initializeUser': {
+      window.localStorage.setItem('userId', action.payload.userId);
+      window.localStorage.setItem('firstName', action.payload.firstName);
+      window.localStorage.setItem('lastName', action.payload.lastName);
+      window.localStorage.setItem('userEmail', action.payload.email);
+      window.localStorage.setItem('userLoggedIn', true);
       return({
         ...state,
         userId: action.payload.userId,
@@ -125,6 +130,22 @@ function userReducer(state, action) {
         lastName: action.payload.lastName,
         userEmail: action.payload.email,
         userLoggedIn: true,
+        userRoles: [],
+        userToken: '',
+        userTimezone: '',
+        flags: [],
+        currentPath: null,
+      })
+    }
+    case 'deactivateUser': {
+      window.localStorage.clear();
+      return({
+        ...state,
+        userId: null,
+        firstName: null,
+        lastName: null,
+        userEmail: null,
+        userLoggedIn: false,
         userRoles: [],
         userToken: '',
         userTimezone: '',
@@ -162,10 +183,10 @@ function userReducer(state, action) {
 }
 
 function UserProvider({children}) {
-  const [state, dispatch] = useReducer(userReducer, userDefaults);
+  const [user, dispatch] = useReducer(userReducer, userDefaults);
 
   return (
-    <UserContext.Provider value={{ state, dispatch }}>
+    <UserContext.Provider value={{ user, dispatch }}>
       {children}
     </UserContext.Provider>
   );

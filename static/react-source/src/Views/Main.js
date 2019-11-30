@@ -90,7 +90,7 @@ class Main extends Component {
   render() {
     const myroutes = [
       {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
-      {path: "/walk/:walkPage", exact: false, Component: Walk},
+      // {path: "/walk/:walkPage", exact: false, Component: Walk},
       {path: "/videos", exact: false, Component: Videos},
       {path: "/profile", exact: false, Component: Profile},
       {path: "/info/:infoPage", exact: false, Component: Info},
@@ -106,6 +106,9 @@ class Main extends Component {
           <Row className="Main">
             <Col className="content">
               <Switch>
+                <PrivateRoute exact=false path="/walk/:walkPage" >
+                  <Walk />
+                </PrivateRoute>
               {myroutes.map(({ path, exact, Component }) => (
                 <Route key={path} exact={exact} path={path}>
                   {( match ) => (

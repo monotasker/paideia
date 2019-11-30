@@ -20,8 +20,10 @@ import {
   faQuestionCircle,
   faKeyboard,
   faCog,
-  faBug
+  faBug,
+  faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
+import { logout } from '../Services/authService';
 import { UserContext } from "../UserContext/UserProvider";
 
 const navData = [
@@ -97,18 +99,28 @@ const login = (
   </LinkContainer>
 )
 
+
 const TopNavbar = () => {
-    const { state, setUser } = useContext(UserContext);
-    console.log('state is');
-    console.log(state);
+    const { user, dispatch } = useContext(UserContext);
+
+    const doLogout = () => {
+      logout();
+      dispatch({type: 'deactivateUser', payload: null});
+    }
 
     const welcome = (
       <React.Fragment>
-      <span>Hi {state.firstName}</span>
-      <LinkContainer key={state.userId} to="/profile">
+      <span>Hi {user.firstName}</span>
+      <LinkContainer key={user.userId} to="/profile">
         <Nav.Link>
           <FontAwesomeIcon icon={faUser} size="sm" />
           <span className="d-none d-lg-inline">Profile</span>
+        </Nav.Link>
+      </LinkContainer>
+      <LinkContainer key={`logout-${user.userId}`} to="/">
+        <Nav.Link onClick={doLogout} >
+          <FontAwesomeIcon icon={faSignOutAlt} size="sm" />
+          <span className="d-none d-lg-inline">Log out</span>
         </Nav.Link>
       </LinkContainer>
       </React.Fragment>
@@ -124,8 +136,7 @@ const TopNavbar = () => {
             <Nav className="mr-auto">
               {navs}
               {drops}
-              {state.firstName}
-              {state.userId != null ? welcome : login}
+              {user.userLoggedIn != false ? welcome : login}
             </Nav>
           </Navbar.Collapse>
       </Navbar>
