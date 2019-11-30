@@ -14,7 +14,8 @@ import { TimelineLite } from "gsap";
 // import './Main.css';
 import './Main.scss';
 
-import TopNavbar from "../Components/TopNavbar"
+import PrivateRoute from "../Components/PrivateRoute";
+import TopNavbar from "../Components/TopNavbar";
 import Home from "./Home";
 import Login from "./Login";
 import Walk from "./Walk";
@@ -106,7 +107,7 @@ class Main extends Component {
           <Row className="Main">
             <Col className="content">
               <Switch>
-                <PrivateRoute exact=false path="/walk/:walkPage" >
+                <PrivateRoute exact={false} path="/walk/:walkPage" >
                   <Walk />
                 </PrivateRoute>
               {myroutes.map(({ path, exact, Component }) => (
