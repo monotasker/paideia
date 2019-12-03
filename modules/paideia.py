@@ -426,7 +426,7 @@ class Walk(object):
             print('Walk::reply: path is', p)
 
         s = p.get_step_for_reply()
-        if (not response_string) or re.match(response_string, r'\s+'):
+        if (not response_string) or re.match(r'\s+', response_string):
             # return self.ask()  # TODO: will this actually re-prompt the step?
             return None
         prompt = s.get_reply(user_response=response_string,
