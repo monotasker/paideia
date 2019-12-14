@@ -39,7 +39,7 @@ const openmessage = "Paideia is a fun and interactive place to learn New Testame
 
 const Home = () => {
   return (
-    <div className="home-component">
+    <div className="home-component content-view">
     {/* Masthead row --------------------------------------------------*/}
     <Row className="masthead-row">
       <Col className="masthead">

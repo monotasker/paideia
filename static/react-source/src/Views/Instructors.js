@@ -15,7 +15,7 @@ class Instructors extends Component {
 
   render() {
     return(
-      <div className="instructors-component">
+      <div className="instructors-component content-view">
         {this.state.currentPage}
       </div>
     )

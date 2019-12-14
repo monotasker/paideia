@@ -15,7 +15,7 @@ class Admin extends Component {
 
   render() {
     return(
-      <div className="admin-component">
+      <div className="content-view admin-component">
           {this.state.currentPage}
       </div>
     )

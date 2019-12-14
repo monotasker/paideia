@@ -10,7 +10,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'app.js',
-    publicPath: '/paideia/static/react-source/dist/'
+    // publicPath: '/paideia/static/react-source/dist/'
+    publicPath: '/'
   },
   mode: 'development',
   devtool: 'cheap-module-source-map',

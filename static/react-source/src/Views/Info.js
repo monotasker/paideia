@@ -40,7 +40,7 @@ function Info() {
   console.log(infoPage);
 
   return(
-    <Row className="info-component justify-content-sm-center">
+    <Row className="content-view info-component justify-content-sm-center">
       { content[infoPage] }
     </Row>
   )

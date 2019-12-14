@@ -97,7 +97,19 @@ $title-fonts:                  "Amatic SC";
 
 .content > div {//position: relative;
                 // left: -100vw;
-    h2                 {font-family: $title-fonts;
+    h2                             {font-family: $title-fonts;
+    }
+    &.content-view                 {opacity: 0;
+    }
+    &.content-view-enter           {opacity: 0;
+    }
+    &.content-view-enter-done      {opacity: 1;
+                                    transition: opacity 200ms;
+    }
+    &.content-view-exit            {opacity: 1;
+    }
+    &.content-view-exit-active     {opacity: 0;
+                                    transition: opacity 200ms;
     }
 }
 
@@ -298,7 +310,7 @@ div.content > .walk-container                 {
   object#town_map                             {width: 100%;
                                                margin:0 auto;
                                                cursor: move;
-                                               opacity: 0;
+                                            //    opacity: 0;
     svg                                       {cursor: move;
     }
   }

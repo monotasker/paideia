@@ -8,8 +8,7 @@ import {
   Route,
   BrowserRouter
 } from "react-router-dom";
-import { Transition } from "react-transition-group";
-import { TimelineLite } from "gsap";
+import { CSSTransition } from "react-transition-group";
 
 // import './Main.css';
 import './Main.scss';
@@ -26,11 +25,6 @@ import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
 
-function FirstChild(props) {
-  const childrenArray = React.Children.toArray(props.children);
-  return childrenArray[0] || null;
-}
-
 class Main extends Component {
   constructor(props) {
     super(props);
@@ -45,47 +39,6 @@ class Main extends Component {
       currentLoc: null,
       previousLoc: null,
     }
-    this.play = this.play.bind(this);
-  }
-
-  play(pathname, node, appears) {
-    console.log(node);
-    console.log('pathname');
-    console.log(pathname);
-    const delay = appears ? 0 : 0.5;
-    let timeline;
-
-    if (pathname === '/') {
-      timeline = this.getHomeTimeline(node, delay)
-    } else {
-      timeline = this.getDefaultTimeline(node, delay)
-    }
-
-    window.loadPromise.then(timeline.play());
-  }
-
-  getHomeTimeline(node, delay) {
-    const timeline = new TimelineLite({ paused: true });
-    // const texts = node.querySelectorAll('div.container');
-
-    timeline
-      .from(node, 0, { left: (window.innerWidth * -1) })
-      .to(node, 1, { left: 0 });
-      // .staggerFrom(texts, 0.375, { autoAlpha: 0, x: -25, ease: Power1.easeOut }, 0.125);
-
-    return timeline;
-  }
-
-  getDefaultTimeline(node, delay) {
-    const timeline = new TimelineLite({ paused: true });
-    // const texts = node.querySelectorAll('div.container');
-
-    timeline
-      .from(node, 0, { left: (window.innerWidth * -1) })
-      .to(node, 0.5, { left: 0 });
-      // .staggerFrom(texts, 0.375, { autoAlpha: 0, x: -25, ease: Power1.easeOut }, 0.125);
-
-    return timeline;
   }
 
   render() {
@@ -112,18 +65,17 @@ class Main extends Component {
                 </PrivateRoute>
               {myroutes.map(({ path, exact, Component }) => (
                 <Route key={path} exact={exact} path={path}>
-                  {( match ) => (
-                    <Transition
+                  {( { match } ) => (
+                    <CSSTransition
+                      classNames="content-view"
                       key={path}
                       in={match != null}
                       appear={true}
-                      onEnter={(node, appears) => this.play(match.location.pathname, node, appears)}
-                      timeout={{enter: 750, exit: 0}}
-                      mountOnEnter
+                      timeout={300}
                       unmountOnExit
                     >
                       <Component />
-                    </Transition>
+                    </CSSTransition>
                   )}
                 </Route>
               )

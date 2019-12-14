@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-// import { Container } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 // import { LinkContainer } from "react-router-bootstrap";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";

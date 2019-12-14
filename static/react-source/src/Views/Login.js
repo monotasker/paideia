@@ -46,7 +46,7 @@ const Login = () => {
   }
 
   return(
-    <Row className="login-component justify-content-sm-center">
+    <Row className="login-component content-view justify-content-sm-center">
       <Col xs sm={4}>
         { user.userLoggedIn == true &&
           <React.Fragment>

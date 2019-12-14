@@ -1,10 +1,14 @@
 import React, { Component } from "react";
+import {
+  Row,
+  Col,
+} from "react-bootstrap";
 
 class Videos extends Component {
   render() {
     return (
-      <div className="row">
-        <div className="col">
+      <Row className="videos-component content-view">
+        <Col className="">
         <h2>Videos</h2>
         <p>Mauris sem velit, vehicula eget sodales vitae,
         rhoncus eget sapien:</p>
@@ -15,8 +19,8 @@ class Videos extends Component {
           <li>Eget erat</li>
           <li>Id porttitor</li>
         </ul>
-        </div>
-      </div>
+        </Col>
+      </Row>
     );
   }
 }
