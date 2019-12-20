@@ -43,6 +43,7 @@ $accent3: $orange;
 $textColor: #333;
 $linkColor: $pallette2;
 $navbarLinkColor: $pallette2;
+$heading-color: darken($pallette1, 30%);
 
 // semantic colors (modded)
 // -------------------------
@@ -57,6 +58,18 @@ $error: $red;
 $success-bg: #dff0d8;
 $success: $pallette3;  // #d6e9c6;
 $successDark: $pallette4; // #d6e9c6;
+
+// semantic colors (grammatical)
+$verb: #BF9000;
+$nominative: #235888;
+$genitive: #70AD47;
+$accusative: #C00000;
+$vocative: #C55A11;
+$dative: #7030A0;
+$preposition: #009999;
+
+$table-background: lighten($nominative, 65%);
+
 
 //---------------------------------------------------
 // typography
@@ -182,6 +195,164 @@ $title-fonts:                  "Amatic SC";
   }
 }
 
+//-- tools --------------------------------------------------
+
+.tools-component           {position: fixed; 
+                            right: -5.5rem;
+                            top: 6rem;
+                            z-index: 30;
+                            box-shadow: 0 4px 2px rgba(0,0,0,0.3);
+                            border-radius: $border-radius 0 0 $border-radius;
+    &:hover                {right: 0;
+                            transition: all 300ms;
+    }
+    .btn                   {text-align: left;
+                            border-radius: $border-radius 0 0 $border-radius;
+                            padding-left: .25rem;
+    }
+}
+.panel-body                {position: absolute;
+                            width: 80%;
+                            top: -1rem;
+                            z-index: 20;
+                            background-color: $white;
+                            box-shadow: 0 4px 2px rgba(0,0,0,0.3);
+                            border-radius: $border-radius 0 0 $border-radius;
+                            padding: 2rem;
+
+    &.panel-body.enter         {right: -80%;
+    }
+    &.panel-body.enter-done    {right: 0;
+                                transition: all 500ms;
+    }
+    &.panel-body.exit          {opacity: 1;
+                                right: 0;
+    }
+    &.panel-body.exit-done     {opacity: 0;
+                                right: -80%;
+                                transition: all 500ms;
+    }
+
+    @media (max-width: map-get($grid-breakpoints, md))          
+                               {width: 100%;
+    }
+    @media (min-width: map-get($grid-breakpoints, lg))          
+                               {width: 60%;
+    }
+
+    h2                      {color: $heading-color;
+    }
+}
+
+//-- reference view --------------------------------------------
+
+.referenceview-component               {
+    .reference-view-pane               {padding-top: 1rem;
+
+        &.enter                        {opacity:0;
+        }
+        &.enter-done                   {opacity: 1;
+                                        transition: all 500ms;
+        }
+        &.exit                         {opacity: 1;
+        }
+        &.exit-done                    {opacity: 0;
+                                        transition: all 500ms;
+        }
+
+    }
+
+    .case-endings-table,
+    .square-of-stops-table,
+    .vowel-contractions-tableA,
+    .vowel-contractions-tableB             {
+        thead tr:first-child th        {color: $heading-color;
+                                        font-family: $sans-fonts;
+                                        font-size: 1rem;
+        }
+        thead tr th                    {text-align: center;
+                                        border-top: 0;
+                                        border-bottom: 0;
+        }
+        th                             {vertical-align: middle;
+                                        border-top: 0;
+                                        border-bottom: 0;
+        }
+        td                             {font-size: 1.5rem;
+                                        font-family: "SBL Greek";
+                                        text-align: center;
+                                        vertical-align: middle;
+                                        background-color: $table-background;
+                                        border-top: 2px solid white;
+                                        border-bottom: 2px solid white;
+            &.spacer                   {background-color: $white !important;
+            }
+        }
+    }
+
+    .case-endings-table                 {
+        tbody               {
+            tr td:nth-child(n+2)       {font-size: 1.5rem;
+                                        font-family: "SBL Greek";
+                                        text-align: center;
+            }
+            tr:nth-child(6n + 1)       {color: $nominative;
+                td:nth-child(n+2)      {
+                    background-color: lighten($nominative, 62%);
+                }
+            }
+            tr:nth-child(6n + 2)       {color: $genitive;
+                td:nth-child(n+2)      {
+                    background-color: lighten($genitive, 47%);
+                } 
+            }
+            tr:nth-child(6n + 3)       {color: $dative;
+                td:nth-child(n+2)      {
+                    background-color: lighten($dative, 55%);
+                }
+            }
+            tr:nth-child(6n + 4)       {color: $accusative;
+                td:nth-child(n+2)      {
+                    background-color: lighten($accusative, 60%);
+                }
+            }
+            tr:nth-child(6n + 5)       {color: $vocative;
+                td:nth-child(n+2)      {
+                    background-color: lighten($vocative, 55%);
+                }
+            }
+        }
+    }
+
+    .square-of-stops-table             {
+        thead th                       {
+            &:nth-child(n+2)           {width: 20%;
+                &:nth-child(5)         {width: 10%;
+                }
+            }
+        }
+    }
+
+    .vowel-contractions-tableA,
+    .vowel-contractions-tableB         {
+        thead th                       {
+            &:nth-child(n+2)           {width: 28%;
+            }
+        }
+        th                             {font-size: 1.5rem;
+                                        font-family: "SBL Greek";
+                                        text-align: center;
+                                        vertical-align: middle;
+                                        color: $accusative;
+            &:nth-child(1)            {color: $nominative;
+            }
+        }
+        td                              {font-size: 2rem;
+        }
+    }
+    
+}
+
 //-- masthead --------------------------------------------------
 
 div.masthead                {background-image: url($mapPng);
@@ -211,7 +382,7 @@ div.maria-bubble               {position:absolute;
                                 top:5rem;
                                 left:360px;
                                 box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
-                                border-radius:2rem;
+                                border-radius: $border-radius-lg;
                                 z-index: 10;
                                 display: none;
                                 overflow-y: hidden;
@@ -237,7 +408,7 @@ div.maria-bubble-mobile        {background-color: white;
     h1                         {font-family: 'Amatic SC', cursive;
                                 font-weight: regular;
                                 font-size: 3rem;
-                                color: darken($pallette1, 30%);
+                                color: $heading-color;
     }
     button                     {background-color: $pallette4;
                                 border: 1px solid $palletteBG;

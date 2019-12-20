@@ -15,6 +15,7 @@ import './Main.scss';
 
 import PrivateRoute from "../Components/PrivateRoute";
 import TopNavbar from "../Components/TopNavbar";
+import Tools from "../Components/Tools";
 import Home from "./Home";
 import Login from "./Login";
 import Walk from "./Walk";
@@ -81,6 +82,7 @@ class Main extends Component {
               )
               )}
               </Switch>
+              <Tools />
             </Col>
           </Row>
       </React.Fragment>
