@@ -11,6 +11,21 @@ if 0:
     response = current.response
     request = current.request
 
+
+def getPrompt():
+    """
+    """
+
+    return False
+
+
+def getResponse():
+    """
+    """
+
+    return False
+
+
 def get_login():
     """
     API method to log a user in with web2py's authentication system.

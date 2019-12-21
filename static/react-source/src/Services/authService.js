@@ -8,7 +8,6 @@ const login = async (formdata) => {
       mode: "same-origin",
       body: formdata
   })
-  console.log('got fetch back');
   return response
 }
 
