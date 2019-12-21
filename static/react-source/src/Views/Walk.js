@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useContext } from "react";
 import ReactDOM from "react-dom";
 import { Container } from "react-bootstrap";
 // import { LinkContainer } from "react-router-bootstrap";
@@ -62,69 +62,59 @@ const WalkRow = styled.div`
   }
 `;
 
-class Walk extends Component {
-  constructor(props) {
-    super(props);
+const Walk = (props) => {
     console.log(props);
-    this.activeRoutes = ["path5424", "path5418"];
-    this.state = {
-      currentPage: (props.location.search || "map"),
-      mapIn: true,
-      stepIn: false
+    let activeRoutes = ["path5424", "path5418"];
+
+    const [ currentPage, setCurrentPage ] = useState(props.location.search || "map");
+    const [mapIn, setMapIn] = useState(true);
+    const [stepIn, setStepIn] = useState(false);
+ 
+    const goToLocation = (newLoc) => {
+      setCurrentPage(newLoc);
+      setMapIn(newLoc == "map" ? true : false);
     }
-    this.goToLocation = this.goToLocation.bind(this);
-    this.showStep = this.showStep.bind(this);
-    this.showMap = this.showMap.bind(this);
-  }
 
-  goToLocation(newLoc) {
-    this.setState({currentPage: newLoc});
-    let newState =  newLoc == "map" ? true : false;
-    this.setState({mapIn: newState});
-  }
+    const showStep = () => {
+      console.log("fired showStep!");
+      setStepIn(true);
+    }
 
-  showStep() {
-    console.log("fired!");
-    this.setState({stepIn: true});
-  }
+    const showMap = () => {
+      console.log("fired showMap!");
+      setMapIn(true);
+    }
 
-  showMap() {
-    console.log("fired!");
-    this.setState({mapIn: true});
-  }
-
-  render() {
     return (
       <WalkRow className="walk-container" >
         <CSSTransition
-          in={ this.state.mapIn }
+          in={ mapIn }
           classNames="svgMapPane"
           timeout={2000}
           appear={true}
-          onExited={this.showStep}
+          onExited={showStep}
         >
           <SvgMap
-            navFunction={this.goToLocation}
+            navFunction={goToLocation}
             id="town_map"
           />
         </CSSTransition>
 
         <CSSTransition
-          in={ this.state.stepIn }
+          in={ stepIn }
           classNames="stepPane"
           timeout={300}
-          onExited={this.showMap}
+          onExited={showMap}
           mountOnEnter
         >
           <Step
-            myroute={this.state.currentPage}
-            navfunction={this.goToLocation}
+            myroute={currentPage}
+            navfunction={goToLocation}
           />
         </CSSTransition>
 
       </WalkRow>
-    );
-  }
+    )
 }
 
 
