@@ -469,49 +469,41 @@ div.modal-set.row              {color: #efefef;
 // walk interface---------------------------------------
 
 div.content > .walk-container                 {
-  div#exploring-mask                          {display: block;
-                                               position: absolute;
-                                               background-color: rgba(255,255,255,1.0);
-                                               width: 100%;
-                                               height: 100%;
-                                               text-align: center;
-      img                                     {position: absolute;
-      }
-  }
-  object#town_map                             {width: 100%;
-                                               margin:0 auto;
-                                               cursor: move;
-                                            //    opacity: 0;
-    svg                                       {cursor: move;
+  .svgMapPane                                 {width: 100%;
+    object#town_map                             {width: 100%;
+                                                margin:0 auto;
+                                                cursor: move;
+                                                //    opacity: 0;
+        svg                                       {cursor: move;
+        }
     }
-  }
-
-  .svgMapPane-enter,
-  .svgMapPane-appear                          {opacity: 0;
-  }
-  .svgMapPane-enter-done,
-  .svgMapPane-appear-done                     {opacity: 1;
-                                               transition: opacity 1000ms;
-  }
-  .svgMapPane-exit                            {opacity: 1;
-  }
-  .svgMapPane-exit-active                     {opacity: 0;
-                                               transition: opacity 500ms;
-  }
-  .svgMapPane-exit-done                       {opacity: 0;
-                                               display: none;
-  }
-  .stepPane-enter                             {opacity: 0;
-  }
-  .stepPane-enter-done                        {opacity: 1;
-                                               transition: opacity 300ms;
-  }
-  .stepPane-exit                              {opacity: 1;
-  }
-  .stepPane-exit-active                       {opacity: 0;
-                                               transition: opacity 300ms;
-  }
-  .stepPane-exit-done                         {opacity: 0;
-                                               position: absolute;
+    .svgMapPane-enter,
+    .svgMapPane-appear                          {opacity: 0;
+    }
+    .svgMapPane-enter-done,
+    .svgMapPane-appear-done                     {opacity: 1;
+                                                transition: opacity 1000ms;
+    }
+    .svgMapPane-exit                            {opacity: 1;
+    }
+    .svgMapPane-exit-active                     {opacity: 0;
+                                                transition: opacity 500ms;
+    }
+    .svgMapPane-exit-done                       {opacity: 0;
+                                                display: none;
+    }
+    .stepPane-enter                             {opacity: 0;
+    }
+    .stepPane-enter-done                        {opacity: 1;
+                                                transition: opacity 300ms;
+    }
+    .stepPane-exit                              {opacity: 1;
+    }
+    .stepPane-exit-active                       {opacity: 0;
+                                                transition: opacity 300ms;
+    }
+    .stepPane-exit-done                         {opacity: 0;
+                                                position: absolute;
+    }
   }
 }

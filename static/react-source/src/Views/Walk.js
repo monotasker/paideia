@@ -9,17 +9,16 @@ import { getPromptData, evaluateAnswer } from "../Services/stepFetchService";
 
 
 const Walk = (props) => {
-    console.log(props);
-
     const [ currentPage, setCurrentPage ] = useState(props.location.search || "map");
     const [mapIn, setMapIn] = useState(true);
     const [stepIn, setStepIn] = useState(false);
  
     const goToLocation = (newLoc) => {
+      console.log("in walk.js: newLoc is" + newLoc);
       setCurrentPage(newLoc);
       setMapIn(newLoc == "map" ? true : false);
       if ( newLoc != "map" ) {
-        let stepData = getPromptData(newLoc);        
+        let stepData = getPromptData({location: newLoc});        
         console.log(stepData);
       }
     }
@@ -44,7 +43,6 @@ const Walk = (props) => {
           classNames="svgMapPane"
           timeout={2000}
           appear={true}
-          onExited={showStep}
         >
           <SvgMap
             navFunction={goToLocation}

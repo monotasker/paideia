@@ -3,6 +3,7 @@
 from gluon.serializers import json
 # from gluon.tools import Service
 from pprint import pprint
+from paideia import Walk
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -12,14 +13,24 @@ if 0:
     request = current.request
 
 
-def getPrompt():
+def get_prompt():
     """
     """
+    pprint(request.vars)
+    if auth.is_logged_in():
+        myloc = request.vars.loc
+        new_user = request.vars.new_user
+        stepargs = {k: v for k, v in request.vars.items()
+                    if k not in ['loc', 'new_user']}
+        resp = Walk(new_user=new_user).start(myloc, **stepargs)
+        return json(resp)
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
 
-    return False
 
-
-def getResponse():
+def get_response():
     """
     """
 

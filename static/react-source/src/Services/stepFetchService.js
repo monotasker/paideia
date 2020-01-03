@@ -1,7 +1,7 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-const getPromptData = async ({location,
+const getPromptData = async ({location=null,
                               repeat=false,
                               response_string=null,
                               set_review=false,
@@ -9,14 +9,25 @@ const getPromptData = async ({location,
                               set_blocks=null,
                               new_user=false, 
                               pre_bug_step_id=null}) => {
-  let payload = {}
   let response = await fetch('/paideia/api/get_prompt', {
       method: "POST",
       cache: "no-cache",
       mode: "same-origin",
-      body: formdata
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        loc: location,
+        repeat: repeat,
+        response_string: response_string,
+        set_review: set_review,
+        path: path,
+        set_blocks: set_blocks,
+        new_user: new_user, 
+        pre_bug_step_id: pre_bug_step_id
+      })
   })
-  return response
+  return response.json();
 }
 
 const evaluateAnswer = async () => {
