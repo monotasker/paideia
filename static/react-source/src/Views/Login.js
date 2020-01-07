@@ -11,7 +11,7 @@ import { login } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 import { withRouter } from 'react-router';
 
-const Login = () => {
+const Login = (props) => {
   const { user, dispatch } = useContext(UserContext);
 
   const getLogin = (event) => {
@@ -49,12 +49,7 @@ const Login = () => {
     <Row className="login-component content-view justify-content-sm-center">
       <Col xs sm={4}>
         { user.userLoggedIn == true &&
-          <React.Fragment>
-            <h2 className="text-center">Welcome Back!</h2>
-            <p>
-              You're now logged in, {user.firstName}.
-            </p>
-          </React.Fragment>
+          history.back()
         }
         { user.userLoggedIn == false && (
           <React.Fragment>

@@ -6,34 +6,35 @@ import { withRouter } from "react-router";
 import SvgMap from "./SvgMap.js";
 import Step from "./Step.js";
 import { getPromptData, evaluateAnswer } from "../Services/stepFetchService";
+import { UserContext } from "../UserContext/UserProvider";
 
 
 const Walk = (props) => {
+    const { user, dispatch } = useContext(UserContext);
     const [ currentPage, setCurrentPage ] = useState(props.location.search || "map");
     const [mapIn, setMapIn] = useState(true);
     const [stepIn, setStepIn] = useState(false);
+    const [stepData, setStepData] = useState(false);
+    let history = props.history;
  
-    const goToLocation = (newLoc) => {
-      console.log("in walk.js: newLoc is" + newLoc);
+    const goToLocation = async (newLoc) => {
       setCurrentPage(newLoc);
       setMapIn(newLoc == "map" ? true : false);
+      setStepIn(newLoc == "map" ? false : true);
       if ( newLoc != "map" ) {
-        let stepData = getPromptData({location: newLoc});        
+        let stepData = await getPromptData({location: newLoc});        
+        console.log("status is " + stepData.status);
+        if ( stepData.status == 'okay' ) {
+          setStepData(stepData);
+          setStepIn(true);
+          console.log('stepIn is ' + stepIn);
+          setMapIn(false);
+        } else if ( stepData.status == 'unauthorized' ) {
+          dispatch({type: 'deactivateUser', payload: null});
+          history.push("/login");
+        }
         console.log(stepData);
       }
-    }
-
-    const evaluateStep = () => {
-    }
-
-    const showStep = () => {
-      console.log("fired showStep!");
-      setStepIn(true);
-    }
-
-    const showMap = () => {
-      console.log("fired showMap!");
-      setMapIn(true);
     }
 
     return (
@@ -41,8 +42,13 @@ const Walk = (props) => {
         <CSSTransition
           in={ mapIn }
           classNames="svgMapPane"
-          timeout={2000}
+          timeout={{
+            appear: 2000,
+            enter: 0,
+            exit: 0
+          }}
           appear={true}
+          unmountOnExit={false}
         >
           <SvgMap
             navFunction={goToLocation}
@@ -53,13 +59,13 @@ const Walk = (props) => {
         <CSSTransition
           in={ stepIn }
           classNames="stepPane"
-          timeout={300}
-          onExited={showMap}
-          mountOnEnter
+          timeout={0}
+          appear={true}
         >
           <Step
             myroute={currentPage}
             navfunction={goToLocation}
+            stepdata={stepData}
           />
         </CSSTransition>
 
