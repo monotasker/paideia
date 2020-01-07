@@ -487,7 +487,7 @@ div.content > .walk-container                 {
     &.svgMapPane-exit                            {opacity: 1;
     }
     &.svgMapPane-exit-active                       {opacity: 0;
-                                                transition: opacity 300ms;
+                                                transition: opacity 1000ms;
     }
     &.svgMapPane-exit-done                      {opacity: 0;
                                                  position: absolute;
@@ -502,7 +502,7 @@ div.content > .walk-container                 {
     }
     &.stepPane-enter-active,
     &.stepPane-appear-active                        {opacity: 1;
-                                                transition: opacity 300ms;
+                                                transition: opacity 1000ms;
                                                    top: 0;
     }
     &.stepPane-enter-done,
@@ -514,7 +514,7 @@ div.content > .walk-container                 {
     }
     &.stepPane-exit-active                       {opacity: 0;
                                                    top: 0;
-                                                 transition: opacity 300ms;
+                                                 transition: opacity 1000ms;
     }
     &.stepPane-exit-done                         {opacity: 0;
                                                   position: absolute;

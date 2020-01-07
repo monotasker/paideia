@@ -32,7 +32,7 @@ function svg_show_guide(evt){
 function svg_hide_guide(evt){
     let $guide = evt.target.closest('svg').querySelector('#hotspot_guide');
     Velocity($guide, {opacity: '0'}, 500, function(){
-        $guide.display = 'none';
+        $guide.style.display = 'none';
     });
 }
 
