@@ -6,7 +6,9 @@
       content="default-src 'self' http://localhost:8000/paideia/ https://fonts.gstatic.com/;
       img-src 'self' 'unsafe-inline' 'unsafe-eval' data:;
       script-src 'self' 'unsafe-inline' 'unsafe-eval';
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/;"
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/;
+      media-src 'self' http://techslides.com/demos/samples/;
+      font-src 'self' 'unsafe-inline' https://fonts.gstatic.com/ https://fonts.googleapis.com/;"
     />
     <meta
       charset="utf-8"
@@ -45,6 +47,6 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root" class="container-fluid"></div>
+    <div id="root" ></div>
   <script type="text/javascript" src="/paideia/static/react-source/dist/app.js"></script></body>
 </html>

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Row,
   Col,
@@ -26,23 +26,20 @@ import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
 
-class Main extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      activePath: {
-        activeStep: {},
-        completedSteps: [],
-        remainingSteps: []
-      },
-      completedPaths: [],
-      chosenPaths: [],
-      currentLoc: null,
-      previousLoc: null,
-    }
-  }
+const Main = (props) => {
 
-  render() {
+    const [ myheight, setMyheight ] = useState(null);
+
+    const setHeight = () => {
+      const headroom = document.querySelector('.navbar').offsetHeight;
+      let divheight = window.innerHeight - headroom;
+      setMyheight(divheight);
+    }
+
+    useEffect(() => {
+      setHeight();
+    });
+
     const myroutes = [
       {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
       // {path: "/walk/:walkPage", exact: false, Component: Walk},
@@ -53,13 +50,16 @@ class Main extends Component {
       {path: "/instructors/:instrPage", exact: false, Component: Instructors},
       {path: "/login", exact: false, Component: Login}
     ]
+
     return (
       <UserProvider>
       <BrowserRouter>
         <React.Fragment>
           <TopNavbar routes={myroutes} />
           <Row className="Main">
-            <Col className="content">
+            <Col className="content" 
+              style={{height: myheight}}
+            >
               <Switch>
                 <PrivateRoute exact={false} path="/walk/:walkPage" >
                   <Walk />
@@ -89,7 +89,6 @@ class Main extends Component {
       </BrowserRouter>
       </UserProvider>
     );
-  }
 }
 
 export default Main;

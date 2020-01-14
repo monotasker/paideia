@@ -27,15 +27,8 @@ const getPromptData = async ({location=null,
         pre_bug_step_id: pre_bug_step_id
       })
   })
-  let result = null;
-  if ( response.status === 200 ) {
-    result = response.json();
-    result['status'] = 'okay';
-  } else if ( response.status === 401 ) {
-    result = {'status': 'unauthorized'};
-  }
-  console.log('status: ' + result.status);
-  return result;
+  
+  return response;
 }
 
 const evaluateAnswer = async () => {

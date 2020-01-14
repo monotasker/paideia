@@ -918,11 +918,9 @@ class Npc(object):
 
     def get_image(self, db=None):
         """
-        Return a web2py IMG helper object with the image for the current
-        npc character.
+        Return a URL string for the current npc character image.
         """
-        img = IMG(_src=URL('paideia', 'static', 'images/{}'.format(self.image))
-                  )
+        img = URL('paideia', 'static', 'images/{}'.format(self.image))
         return img
 
     def get_locations(self):

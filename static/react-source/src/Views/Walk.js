@@ -19,21 +19,24 @@ const Walk = (props) => {
  
     const goToLocation = async (newLoc) => {
       setCurrentPage(newLoc);
-      setMapIn(newLoc == "map" ? true : false);
-      setStepIn(newLoc == "map" ? false : true);
       if ( newLoc != "map" ) {
-        let stepData = await getPromptData({location: newLoc});        
-        console.log("status is " + stepData.status);
-        if ( stepData.status == 'okay' ) {
-          setStepData(stepData);
-          setStepIn(true);
-          console.log('stepIn is ' + stepIn);
-          setMapIn(false);
-        } else if ( stepData.status == 'unauthorized' ) {
-          dispatch({type: 'deactivateUser', payload: null});
-          history.push("/login");
-        }
-        console.log(stepData);
+        let stepfetch = getPromptData({location: newLoc})
+          .then((stepfetch) => {
+            if ( stepfetch.status === 200 ) {
+              stepfetch.json().then((mydata) => {
+                setStepData(mydata);
+                setStepIn(true);
+                setMapIn(false);
+              })
+            } else if ( stepfetch.status === 401 ) {
+              dispatch({type: 'deactivateUser', payload: null});
+              history.push("/login");
+            }
+          }
+          );        
+      } else {
+        setStepIn(false);
+        setMapIn(true);
       }
     }
 
@@ -61,6 +64,7 @@ const Walk = (props) => {
           classNames="stepPane"
           timeout={0}
           appear={true}
+          mountOnEnter={true}
         >
           <Step
             myroute={currentPage}
