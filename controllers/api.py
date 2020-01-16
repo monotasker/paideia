@@ -15,13 +15,46 @@ if 0:
 
 def get_prompt():
     """
+    Return the data to begin a step interaction.
+
+    Private api method to handle calls from the react front-end.
+
+    Returns:
+        JSON object with the following keys:
+        
+        sid: int
+        prompt_text: string
+        audio: dict
+        widget_img: string
+        instructions: ???
+        slidedecks: dict
+        bg_image: string
+        loc: string
+        response_buttons: []
+        response_form: {form_type: "text", values: null}
+        bugreporter: ???
+        pre_bug_step_id: int
+        npc_image: string
+        completed_count: int
+        category: int
+        pid: int
+        new_content: bool
+        paideia_debug: ???
     """
     pprint(request.vars)
     if auth.is_logged_in():
         myloc = request.vars.loc
         new_user = request.vars.new_user
-        stepargs = {k: v for k, v in request.vars.items()
-                    if k not in ['loc', 'new_user']}
+        stepargs = {'path': None,
+                    'pre_bug_step_id': None,
+                    'repeat': False,
+                    'response_string': None,
+                    'set_blocks': None,
+                    'set_review': False}
+        for k, v in request.vars.items():
+            if k in stepargs.keys() \
+                    and k not in ['loc', 'new_user', 'response_string']:
+                stepargs[k] = v
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
         return json(resp)
     else:
@@ -30,16 +63,37 @@ def get_prompt():
         return json({'status': 'unauthorized'})
 
 
-def get_response():
+def evaluate_answer():
     """
+    Private api method to handle calls from the react front-end.
     """
-
-    return False
+    pprint(request.vars)
+    if auth.is_logged_in():
+        myloc = request.vars.loc
+        new_user = False
+        stepargs = {'response_string': request.vars.response_string,
+                    'path': None,
+                    'pre_bug_step_id': None,
+                    'repeat': False,
+                    'set_blocks': None,
+                    'set_review': False}
+        for k, v in request.vars.items():
+            if k in stepargs.keys() \
+                    and k not in ['loc', 'new_user', 'response_string']:
+                stepargs[k] = v
+        resp = Walk(new_user=new_user).start(myloc, **stepargs)
+        return json(resp)
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
 
 
 def get_login():
     """
     API method to log a user in with web2py's authentication system.
+
+    Private api method to handle calls from the react front-end.
     
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
@@ -61,6 +115,8 @@ def do_logout():
     """
     API method to log the current user out.
     
+    Private api method to handle calls from the react front-end.
+
     Returns:
         JSON object with the same user fields returned at login, but with null
         values for each one.

@@ -5,8 +5,10 @@ import {
     Button,
     Form
 } from "react-bootstrap";
+import { withRouter } from "react-router";
 
 import AudioPlayer from "../Components/AudioPlayer";
+import { evaluateAnswer } from "../Services/stepFetchService";
 
 const Step = (props) => {
   console.log(props);
@@ -20,12 +22,25 @@ const Step = (props) => {
     }
   });
 
-  const submitAction = () => {
-    console.log('fired!');
+  const submitAction = (event) => {
+    let myval = event.target.querySelector("#responder_field").value;
+    evaluateAnswer({location: props.stepdata.loc,
+                    response_string: myval})
+      .then((stepfetch) => {
+        if ( stepfetch.status === 200 ) {
+          stepfetch.json().then((mydata) => {
+            console.log(mydata);
+          })
+        } else if ( stepfetch.status === 401 ) {
+          dispatch({type: 'deactivateUser', payload: null});
+          history.push("/login");
+        }
+      });
+    event.preventDefault();
   }
 
   const widgets = {
-    'text': () => <Form.Control type="text" name="responder_field" />,
+    'text': () => <Form.Control type="text" name="responder_field" id="responder_field" />,
     'radio': () => {props.stepdata.response_form.values != null && (
       <React.Fragment>
         {props.stepdata.response_form.values.map( val => (
@@ -76,4 +91,4 @@ const Step = (props) => {
   )
 }
 
-export default Step;
+export default withRouter(Step);

@@ -31,12 +31,23 @@ const getPromptData = async ({location=null,
   return response;
 }
 
-const evaluateAnswer = async () => {
-  let response = await fetch('/paideia/api/get_response', {
+const evaluateAnswer = async ({location=null,
+                               repeat=false,
+                               response_string=null,
+                               pre_bug_step_id=null}) => {
+  let response = await fetch('/paideia/api/evaluate_answer', {
       method: "POST",
       cache: "no-cache",
       mode: "same-origin",
-      body: formdata
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        loc: location,
+        repeat: repeat,
+        response_string: response_string,
+        pre_bug_step_id: pre_bug_step_id
+      })
   })
   return response
 }
