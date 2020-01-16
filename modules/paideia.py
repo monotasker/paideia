@@ -1616,13 +1616,16 @@ class StepText(Step):
         """
         # TODO: needs test
         # JOB ... added step id for bug tracing ... oct 18, 2014
+        """
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_NOT_EMPTY()),
                                Field('pre_bug_step_id', 'string',
                                      readable=False, writable=False),
                                hidden=dict(pre_bug_step_id=self.get_id()),
                                _autocomplete='off')
-        return form
+        """
+        return {'form_type': 'text',
+                'values': None}
 
     def get_reply(self, user_response=None, loc=None, npc=None):
         """
@@ -1697,15 +1700,18 @@ class StepMultiple(StepText):
 
     def _get_response_form(self):
         """Return an html form for responding to the current prompt."""
+        vals = self.data['step_options']
+        """
         request = current.request
         session = current.session
-        vals = self.data['step_options']
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_IN_SET(v for v in vals),
                                      widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
-        return form
+        """
+        return {'form_type': 'radio',
+                'values': vals}
 
 
 class StepEvaluator(object):

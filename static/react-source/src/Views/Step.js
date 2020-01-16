@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 import {
     Row,
     Col,
-    Button
+    Button,
+    Form
 } from "react-bootstrap";
 
 import AudioPlayer from "../Components/AudioPlayer";
@@ -18,6 +19,26 @@ const Step = (props) => {
       });
     }
   });
+
+  const submitAction = () => {
+    console.log('fired!');
+  }
+
+  const widgets = {
+    'text': () => <Form.Control type="text" name="responder_field" />,
+    'radio': () => {props.stepdata.response_form.values != null && (
+      <React.Fragment>
+        {props.stepdata.response_form.values.map( val => (
+          <Form.Check 
+            type="radio"
+            id={`radio-${val}`}
+            label={val}
+            value={val}
+          />
+        ))}
+      </React.Fragment>
+    )}
+  }
 
   return (
     <Row id="step_row" className="stepPane" 
@@ -36,6 +57,13 @@ const Step = (props) => {
           </p>
         </Row>
         <Row className="responder">
+          { props.stepdata.response_form != null && (
+            <Form onSubmit={submitAction}>
+              {widgets[props.stepdata.response_form.form_type]()}
+              <Button variant="success" type="submit">Submit Reply</Button>
+            </Form>
+          )
+          }
           <Button
             className="back_to_map"
             onClick={() => props.navfunction("map")}
