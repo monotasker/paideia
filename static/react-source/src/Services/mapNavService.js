@@ -52,7 +52,6 @@ function set_svg_interactions(select_string, navFunction) {
         loc.addEventListener('mouseleave', svg_show_other);
         loc.addEventListener('click', (evt) => {
           navFunction(evt.currentTarget.id);
-          console.log(evt.currentTarget.id);
           evt.preventDefault();
         });
         loc.addEventListener('touchstart', (evt) => {

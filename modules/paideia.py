@@ -1649,11 +1649,11 @@ class StepText(Step):
         reply_text = '{}\nYou said\n- {}'.format(result['reply'],
                                                  user_response)
         if len(readable['readable_short']) > 1:
-            reply_text += '\nCorrect responses would include'
+            reply_text += '\nCorrect responses would include\n'
             for r in readable['readable_short']:
                 reply_text += '\n- {}'.format(r)
         elif abs(result['score'] - 1) > 0.001:
-            reply_text += '\nThe correct response ' \
+            reply_text += '\n\nThe correct response ' \
                           'is\n- {}'.format(readable['readable_short'][0])
 
         reply = {'sid': self.get_id(),
@@ -1767,41 +1767,41 @@ class StepEvaluator(object):
 
             if re.match(regex1, clean_user_response):
                 score = 1
-                reply = "Right. Κάλον."
+                reply = "Right. Κάλον.\n"
             elif re.match(regex1, clean_user_response + '.'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
-                        "a period on the end of a full clause."
+                        "a period on the end of a full clause.\n"
             elif re.match(regex1, clean_user_response + '?'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
-                        "a question mark on the end of a question."
+                        "a question mark on the end of a question.\n"
             elif re.match(regex1, clean_user_response + ';'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
-                        "a question mark on the end of a question."
+                        "a question mark on the end of a question.\n"
             elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
                     re.match(regex1, clean_user_response[:-1]):
                 score = 0.9
                 reply = "Ού κάκον. You're very close. Just remember not to " \
                         "put a final punctuation mark on your answer if " \
-                        "it's not a complete clause"
+                        "it's not a complete clause.\n"
             elif 'response2' in list(responses.keys()) and \
                     re.match(regex2, clean_user_response):
                 score = float(responses['outcome2']) if 'outcome2' in responses.keys() else 0.5
-                reply = "Οὐ κάκον. You're close."
+                reply = "Οὐ κάκον. You're close.\n"
                 #  TODO: Vary the replies
 
             elif 'response3' in list(responses.keys()) and \
                     re.match(regex3, clean_user_response):
                 score = float(responses['outcome3']) if 'outcome3' in responses.keys() else 0.3
-                reply = "Οὐ κάκον. You're close."
+                reply = "Οὐ κάκον. You're close.\n"
                 #  TODO: Vary the replies
             else:
                 score = 0
-                replies = ["That's not it. Try again!", 
-                           "Hm. Give it another try!",
-                           "Good effort, but that's not right. Try again!"]
+                replies = ["That's not it. Try again!\n", 
+                           "Hm. Give it another try!\n",
+                           "Good effort, but that's not right. Try again!\n"]
                 r_index = randrange(0, len(replies))
                 reply = replies[r_index]
                 #  TODO: Vary the replies

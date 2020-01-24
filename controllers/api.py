@@ -1,7 +1,7 @@
 #! /usr/bin/python3.6
 # -*- coding: utf-8 -*-
+from copy import copy
 from gluon.serializers import json
-# from gluon.tools import Service
 from pprint import pprint
 from paideia import Walk
 
@@ -82,6 +82,8 @@ def evaluate_answer():
                     and k not in ['loc', 'new_user', 'response_string']:
                 stepargs[k] = v
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
+        resp['eval_text'] = copy(resp['prompt_text'])
+        resp['prompt_text'] == None
         return json(resp)
     else:
         response = current.response

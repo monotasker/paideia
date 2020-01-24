@@ -129,13 +129,15 @@ const TopNavbar = () => {
     return(
       <Navbar bg="light" expand="sm" className="fixed">
           <LinkContainer to="/">
-            <Navbar.Brand>Paideia</Navbar.Brand>
+            <Navbar.Brand>Greektown</Navbar.Brand>
           </LinkContainer>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="mr-auto">
+            <Nav className="mr-auto main-nav">
               {navs}
               {drops}
+            </Nav>
+            <Nav className="welcome-nav">
               {user.userLoggedIn != false ? welcome : login}
             </Nav>
           </Navbar.Collapse>

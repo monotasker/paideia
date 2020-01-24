@@ -101,8 +101,12 @@ $sans-fonts:                   "Open Sans", sans-serif;
 $greek-fonts:                  "SBLGreekRegular", Palatino, "Arial Unicode";
 $title-fonts:                  "Amatic SC";
 
-.svg-inline--fa               {margin-right: 0.5rem;
+.svg-inline--fa               {margin-right: 0.25rem;
+                               margin-left: 0.25rem;
 }
+
+$hard-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+$soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 // navbar ---------------------------------------------
 
@@ -139,9 +143,12 @@ $title-fonts:                  "Amatic SC";
 }
 //-- navbar ---------------------------------------------------
 
-.navbar                 {background-color: #fff;
-                            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+.navbar                 {background-color: #fff !important;
+                            box-shadow: $hard-shadow;
                             line-height: 1;
+                            padding-top: 0;
+                            padding-bottom: 0;
+                            padding-right: 0;
   a.navbar-brand           {text-transform: uppercase;
                             letter-spacing: 2px;
                             color: $danger;
@@ -159,10 +166,15 @@ $title-fonts:                  "Amatic SC";
   }
   .navbar-toggle span      {background-color: #aaa;
   }
-  .navbar-nav              {
-    >a                     {
+  .navbar-nav              {height: 4rem;
+                            line-height: 3rem;
+    >span                  {line-height: 4rem;
+                            padding-right: 1em;
+    }
+    >a.nav-link                     {
         &:hover,
         &:active,
+        &:focus,
         &.open             {color: $white;
                             background-color: lighten($accent2, 20%);
       }
@@ -184,6 +196,10 @@ $title-fonts:                  "Amatic SC";
                   }
               }
           }
+      }
+      &.main-nav            {
+      }
+      &.welcome-nav         {color: darken($pallette1, 50%);
       }
   }
   .badge-wrapper         {height: 100%;
@@ -397,7 +413,7 @@ div.masthead                {background-image: url($mapPng);
 div.maria-bubble               {position:absolute;
                                 top:5rem;
                                 left:360px;
-                                box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
+                                box-shadow: $soft-shadow;
                                 border-radius: $border-radius-lg;
                                 z-index: 10;
                                 display: none;
@@ -554,11 +570,36 @@ div.content > .walk-container                 {overflow: hidden;
         img                                     {left: -20%;
         }
     }
-    .prompt-text                                {background-color: $white;
-                                                 border-radius: $border-radius-lg;
+    .prompt-text,
+    .eval-text                                  {border-radius: $border-radius-lg;
                                                  padding: 1rem;
                                                  font-family: $greek-fonts;
                                                  font-size: $font-size-lg;
+                                                 box-shadow: $soft-shadow;
+
+    }
+    .eval-text                                  {background-color: $pallette1;
+                                                 position: absolute;
+                                                 top: 1.5rem;
+                                                 left: 2rem;
+        &:after {                   border-right: 25px solid $pallette1;
+                                    border-top: 25px solid transparent;
+                                    left: -25px;
+                                    top: 40%;
+                                    content: '';
+                                    position: absolute;
+        }
+        &:before {
+            border-right: 23px solid rgba(0,0,0,0.5);
+            border-top: 23px solid transparent;
+            left: -23px;
+            top: 42%;
+            content: '';
+            position: absolute;
+        }
+
+    }
+    .prompt-text                                {background-color: $white;
 
         .audio-play-control                     {background-color: transparent;
                                                 color: #aaa;
@@ -587,7 +628,12 @@ div.content > .walk-container                 {overflow: hidden;
         }
     }
     .responder                                  {
-        input                                   {font-family: $greek-fonts;
+        .responder-text                         {background-color: $accent2;
+                                                 padding: 2em;
+                                                 border-radius: $border-radius-lg;
+            input                               {font-family: $greek-fonts;
+                                                 font-size: $font-size-lg;
+            }
         }
     }
   }
