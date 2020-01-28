@@ -1649,7 +1649,7 @@ class StepText(Step):
         reply_text = '{}\nYou said\n- {}'.format(result['reply'],
                                                  user_response)
         if len(readable['readable_short']) > 1:
-            reply_text += '\nCorrect responses would include\n'
+            reply_text += '\n\nCorrect responses would include'
             for r in readable['readable_short']:
                 reply_text += '\n- {}'.format(r)
         elif abs(result['score'] - 1) > 0.001:
