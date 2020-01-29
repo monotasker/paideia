@@ -74,7 +74,7 @@ $table-background: lighten($nominative, 65%);
 //---------------------------------------------------
 // typography
 
-@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans');
+@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium');
 
 // @font-face {
 //     font-family: 'Glyphicons Halflings';
@@ -98,7 +98,7 @@ $table-background: lighten($nominative, 65%);
 $font-size-base:               1rem;
 $font-size-lg:                 $font-size-base * 1.25;
 $sans-fonts:                   "Open Sans", sans-serif;
-$greek-fonts:                  "SBLGreekRegular", Palatino, "Arial Unicode";
+$greek-fonts:                  Gentium, "SBLGreekRegular", Palatino, "Arial Unicode";
 $title-fonts:                  "Amatic SC";
 
 .svg-inline--fa               {margin-right: 0.25rem;
@@ -578,12 +578,13 @@ div.content > .walk-container                 {overflow: hidden;
         }
     }
     .prompt-text,
-    .eval-text                                  {border-radius: $border-radius-lg;
+    .eval-text                                  {border-radius: $border-radius-lg * 3;
                                                  padding: 1rem;
                                                  font-family: $greek-fonts;
                                                  font-size: $font-size-lg;
                                                  box-shadow: $soft-shadow;
                                                  position: relative;
+                                                 min-width: 80%;
 
     }
     .eval-text                                  {background-color: $pallette1;
@@ -637,21 +638,21 @@ div.content > .walk-container                 {overflow: hidden;
 
             }
 
-            &:after {                   border-right: 25px solid $white;
-                                        border-top: 25px solid transparent;
-                                        left: -42px;
-                                        top: 40%;
-                                        content: '';
-                                        position: absolute;
-            }
-            &:before {
-                border-right: 23px solid rgba(0,0,0,0.5);
-                border-top: 23px solid transparent;
-                left: -40px;
-                top: 60%;
-                content: '';
-                position: absolute;
-            }
+        }
+        &:after {                   border-right: 25px solid $white;
+                                    border-top: 25px solid transparent;
+                                    left: -25px;
+                                    top: 40%;
+                                    content: '';
+                                    position: absolute;
+        }
+        &:before {
+            border-right: 23px solid rgba(0,0,0,0.5);
+            border-top: 23px solid transparent;
+            left: -23px;
+            top: 43%;
+            content: '';
+            position: absolute;
         }
 
     }
@@ -659,9 +660,12 @@ div.content > .walk-container                 {overflow: hidden;
         .responder-text                         {background-color: $accent2;
                                                  margin-top: 2rem;
                                                  padding: 2rem;
-                                                 border-radius: $border-radius-lg;
+                                                 border-radius: $border-radius-lg * 3;
+                                                 box-shadow: $soft-shadow;
             input                               {font-family: $greek-fonts;
                                                  font-size: $font-size-lg;
+            }
+            .instruction-icon                   {color: $neutralLight;
             }
         }
     }

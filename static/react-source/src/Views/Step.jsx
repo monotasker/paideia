@@ -3,7 +3,9 @@ import {
     Row,
     Col,
     Button,
-    Form
+    Form,
+    OverlayTrigger,
+    Tooltip
 } from "react-bootstrap";
 import { withRouter } from "react-router";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,6 +16,7 @@ import AudioPlayer from "../Components/AudioPlayer";
 import { evaluateAnswer } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import useEventListener from "../Hooks/UseEventListener";
+
 
 const Step = (props) => {
   console.log(props);
@@ -101,12 +104,50 @@ const Step = (props) => {
                        </Button>)
   }
 
-  const instructions = {
-    "Please answer in Greek.": () => ( <span key="0" className='instructionIcon'>Γ</span> ),
-    "Please answer with a complete Greek clause.": () => ( <FontAwesomeIcon key="1" icon="arrows-alt-h" /> ),
+  const inst_set = {
+    "Please answer in Greek.": ["font", "Γ"],
+    "Please answer in English.": ["icon", "font"],
+    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"], 
   }
   const instructions_extra = [
     "Remember to vary the word order in your Greek clauses"]
+
+  const make_instructions = () => {
+    const icons = props.stepdata.instructions.map( inst => {
+      if ( Object.keys(inst_set).includes(inst) ) {
+        return(
+          <OverlayTrigger key={inst} placement="top"
+            overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
+          >
+              { inst_set[inst][0] === "font" ? (
+                <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a> 
+                ) : (
+                <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
+                )
+              }
+          </OverlayTrigger>
+        )} 
+    });
+    const extra_strs = props.stepdata.instructions.filter( inst => {
+      return !Object.keys(inst_set).includes(inst); 
+    });
+    console.log(extra_strs);
+    if ( extra_strs.length > 0 ) {
+      const extra = extra_strs.map( inst => <li key={inst} >{inst}</li> );
+      const extra_icon = (
+        <OverlayTrigger key="extra-instruction-trigger" placement="top"
+          overlay={<Tooltip id="tooltip-extra"><ul>{extra}</ul></Tooltip>}
+        >
+          <a className='instruction-icon'>
+            <FontAwesomeIcon key="1" icon="info-circle" />
+          </a>
+        </OverlayTrigger>
+      );
+      icons.push(extra_icon);
+    }
+    console.log(icons);
+    return icons;    
+  }
 
   return (
     <Row id="step_row" className="stepPane" 
@@ -148,9 +189,7 @@ const Step = (props) => {
             <div className="responder-text">
           { !!props.stepdata.response_form && !responded && (
             <Form onSubmit={submitAction}>
-              { !!props.stepdata.instructions && props.stepdata.instructions.map( inst => {
-                return Object.keys(instructions).includes(inst) ? instructions[inst]() : " "
-              })}
+              { !!props.stepdata.instructions && make_instructions()}
               {widgets[props.stepdata.response_form.form_type]()}
               <Button variant="success" type="submit">
                 { evaluatingStep ? (

@@ -13,23 +13,24 @@ import { CSSTransition } from "react-transition-group";
 import { library } from '@fortawesome/fontawesome-svg-core';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSpinner,
-  faMap,
-  faRedoAlt,
-  faWalking,
-  faArrowsAlt,
-  faHome,
-  faVideo,
-  faSignInAlt,
-  faUser,
-  faInfoCircle,
-  faWrench,
-  faChalkboardTeacher,
-  faQuestionCircle,
-  faKeyboard,
-  faCog,
+  faArrowsAltH,
   faBug,
-  faSignOutAlt
+  faChalkboardTeacher,
+  faCog,
+  faFont,
+  faHome,
+  faInfoCircle,
+  faKeyboard,
+  faQuestionCircle,
+  faRedoAlt,
+  faMap,
+  faSignInAlt,
+  faSignOutAlt,
+  faSpinner,
+  faUser,
+  faVideo,
+  faWalking,
+  faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 
 // import './Main.css';
@@ -49,23 +50,24 @@ import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
 
 library.add(
-  faSpinner,
-  faMap,
-  faRedoAlt,
-  faWalking,
   faArrowsAltH,
-  faHome,
-  faVideo,
-  faSignInAlt,
-  faUser,
-  faInfoCircle,
-  faWrench,
-  faChalkboardTeacher,
-  faQuestionCircle,
-  faKeyboard,
-  faCog,
   faBug,
-  faSignOutAlt
+  faChalkboardTeacher,
+  faCog,
+  faFont,
+  faHome,
+  faInfoCircle,
+  faKeyboard,
+  faQuestionCircle,
+  faRedoAlt,
+  faMap,
+  faSignInAlt,
+  faSignOutAlt,
+  faSpinner,
+  faUser,
+  faVideo,
+  faWalking,
+  faWrench,
 );
 
 const Main = (props) => {
