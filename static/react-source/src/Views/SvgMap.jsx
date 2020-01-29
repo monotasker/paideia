@@ -1,5 +1,4 @@
-import React, { Component } from "react";
-import styled from "styled-components";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import { Row } from "react-bootstrap";
 
 import { make_map_pan } from "../Services/mapNavService";
@@ -13,22 +12,20 @@ const SvgMap = (props) => {
     let headroom = document.querySelector('.navbar').offsetHeight;
     let divheight = window.innerHeight - headroom;
     setObjectStyles({height: divheight, width: "100%"});
+    make_map_pan("town_map", props.navFunction);
   }
 
-  useEffect(
-    setHeight();
-    make_map_pan("town_map", this.props.navFunction);
-  );
+  useEffect(() => { setHeight(); }, [window.innerHeight]);
   useEventListener('resize', setHeight);
 
   return(
     <Row className="svgMapPane">
-      <MapObject id={this.props.id}
+      <object id={props.id}
         data={mapImageSvg}
         type='image/svg+xml'
-        style={this.state.objectStyles}
+        style={objectStyles}
       >
-      </MapObject>
+      </object>
     </Row>
   )
 }

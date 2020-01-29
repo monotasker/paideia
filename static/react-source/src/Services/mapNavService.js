@@ -1,4 +1,5 @@
-'use strict';
+/* jshint esversion: 6 */
+/* jshint browser: true */
 
 import Velocity from "velocity-animate";
 import svgPanZoom from "svg-pan-zoom";
@@ -101,10 +102,10 @@ function make_map_pan(select_string, navFunction) {
                         });
             mymap.contain();
             mymap.pan({x: 0, y: 0});
-        }
+        };
         mapInit();
         set_svg_interactions(select_string, navFunction);
-    }
+    };
 }
 
 export { make_map_pan };

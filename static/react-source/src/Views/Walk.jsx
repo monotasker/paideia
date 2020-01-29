@@ -1,10 +1,13 @@
+// jshint esversion: 8
+// jshint browser: true
+
 import React, { useState, useContext } from "react";
 import { Row } from "react-bootstrap";
 import { CSSTransition } from "react-transition-group";
 import { withRouter } from "react-router";
 
-import SvgMap from "./SvgMap.js";
-import Step from "./Step.js";
+import SvgMap from "./SvgMap";
+import Step from "./Step";
 import { getPromptData, evaluateAnswer } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 
@@ -27,7 +30,7 @@ const Walk = (props) => {
                 setStepData(mydata);
                 setStepIn(true);
                 setMapIn(false);
-              })
+              });
             } else if ( stepfetch.status === 401 ) {
               dispatch({type: 'deactivateUser', payload: null});
               history.push("/login");
@@ -38,7 +41,7 @@ const Walk = (props) => {
         setStepIn(false);
         setMapIn(true);
       }
-    }
+    };
 
     return (
       <Row className="walk-container" >
