@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import {
   Row,
   Col,
@@ -9,6 +10,27 @@ import {
   BrowserRouter
 } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
+import { library } from '@fortawesome/fontawesome-svg-core';
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faSpinner,
+  faMap,
+  faRedoAlt,
+  faWalking,
+  faArrowsAlt,
+  faHome,
+  faVideo,
+  faSignInAlt,
+  faUser,
+  faInfoCircle,
+  faWrench,
+  faChalkboardTeacher,
+  faQuestionCircle,
+  faKeyboard,
+  faCog,
+  faBug,
+  faSignOutAlt
+} from '@fortawesome/free-solid-svg-icons';
 
 // import './Main.css';
 import './Main.scss';
@@ -25,6 +47,26 @@ import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
+
+library.add(
+  faSpinner,
+  faMap,
+  faRedoAlt,
+  faWalking,
+  faArrowsAltH,
+  faHome,
+  faVideo,
+  faSignInAlt,
+  faUser,
+  faInfoCircle,
+  faWrench,
+  faChalkboardTeacher,
+  faQuestionCircle,
+  faKeyboard,
+  faCog,
+  faBug,
+  faSignOutAlt
+);
 
 const Main = (props) => {
 

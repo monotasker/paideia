@@ -1,8 +1,5 @@
-// jshint esversion: 8
-// jshint browser: true
-
 import React, { useState, useContext } from "react";
-import { Row } from "react-bootstrap";
+import { Row, Spinner } from "react-bootstrap";
 import { CSSTransition } from "react-transition-group";
 import { withRouter } from "react-router";
 
@@ -75,7 +72,7 @@ const Walk = (props) => {
             stepdata={stepData}
           />
         </CSSTransition>
-
+        <Spinner animation="grow" variant="secondary" className="align-self-center map-spinner" />
       </Row>
     )
 }

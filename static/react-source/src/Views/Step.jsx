@@ -7,37 +7,34 @@ import {
 } from "react-bootstrap";
 import { withRouter } from "react-router";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faSpinner,
-  faMap,
-  faRedoAlt,
-  faWalking,
-  faArrowsAlt
-} from '@fortawesome/free-solid-svg-icons';
 import marked from "marked";
 import DOMPurify from 'dompurify';
 
 import AudioPlayer from "../Components/AudioPlayer";
 import { evaluateAnswer } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
+import useEventListener from "../Hooks/UseEventListener";
 
 const Step = (props) => {
   console.log(props);
   const { user, dispatch } = useContext(UserContext);
   const [ evalText, setEvalText ] = useState(null);
+  const [ promptZIndex, setPromptZIndex ] = useState(null);
   const [ respButtons, setRespButtons ] = useState(props.stepdata.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
 
   useEffect(() => {
-    let $input = document.querySelector('.responder input');
-    $input && $input.addEventListener("cut copy paste", (event) => {
-        event.preventDefault();
-    });
     let $eval = document.querySelector('.eval-text');
     let $p = document.querySelector('.prompt-text');
     $eval && ($eval.style.marginTop = `${-1 * ($p.offsetHeight - 24)}px`);
   });
+  useEventListener("cut copy paste",
+    (event) => {event.preventDefault()},
+    document.querySelector('.responder input')
+  );
+  useEventListener("click mouseover", setPromptZIndex,
+    document.querySelector('.prompt-text'));
 
   const submitAction = (event) => {
     event.preventDefault();
@@ -90,23 +87,23 @@ const Step = (props) => {
     'map': () => (<Button className="back_to_map"
                     key="back_to_map"
                     onClick={() => props.navfunction("map")}>
-                    <FontAwesomeIcon icon="faMap" /> Back to map
+                    <FontAwesomeIcon icon="map" /> Back to map
                   </Button>),
     'retry': () => (<Button className="retry"
                       key="retry"
                       onClick={() => props.navfunction("map")}>
-                      <FontAwesomeIcon icon="faRedoAlt" /> Retry
+                      <FontAwesomeIcon icon="redo-alt" /> Retry
                     </Button>),
     'continue': () => (<Button className="continue"
                         key="continue"
                         onClick={() => props.navfunction(props.myroute) && setResponded(false)}>
-                        <FontAwesomeIcon icon="faWalking" /> Continue here
+                        <FontAwesomeIcon icon="walking" /> Continue here
                        </Button>)
   }
 
   const instructions = {
     "Please answer in Greek.": () => ( <span key="0" className='instructionIcon'>Γ</span> ),
-    "Please answer with a complete Greek clause.": () => ( <FontAwesomeIcon key="1" icon="faArrowsAlt" /> ),
+    "Please answer with a complete Greek clause.": () => ( <FontAwesomeIcon key="1" icon="arrows-alt-h" /> ),
   }
   const instructions_extra = [
     "Remember to vary the word order in your Greek clauses"]
@@ -122,7 +119,7 @@ const Step = (props) => {
       </Col>
       <Col sm={8} xs={12}>
         <Row className="npc prompt">
-          <div className="prompt-text">
+          <div className="prompt-text" style={{zIndex: promptZIndex}}>
             <p dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(marked(props.stepdata.prompt_text))
             }} />
@@ -157,7 +154,7 @@ const Step = (props) => {
               {widgets[props.stepdata.response_form.form_type]()}
               <Button variant="success" type="submit">
                 { evaluatingStep ? (
-                    <FontAwesomeIcon icon="faSpinner" pulse /> 
+                    <FontAwesomeIcon icon="spinner" pulse /> 
                   ) : ( "Submit Reply" )
                 }
               </Button>

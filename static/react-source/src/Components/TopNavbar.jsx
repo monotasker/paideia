@@ -8,53 +8,38 @@ import {
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faHome,
-  faMap,
-  faVideo,
-  faSignInAlt,
-  faUser,
-  faInfoCircle,
-  faWrench,
-  faChalkboardTeacher,
-  faQuestionCircle,
-  faKeyboard,
-  faCog,
-  faBug,
-  faSignOutAlt
-} from '@fortawesome/free-solid-svg-icons';
 import { logout } from '../Services/authService';
 import { UserContext } from "../UserContext/UserProvider";
 
 const navData = [
-  {title: "Home", path: "/", icon: faHome},
-  {title: "Map", path: "/walk/map", icon: faMap},
-  {title: "Lessons", path: "/videos", icon: faVideo}
+  {title: "Home", path: "/", icon: 'home'},
+  {title: "Map", path: "/walk/map", icon: 'map'},
+  {title: "Lessons", path: "/videos", icon: 'video'}
 ]
 
 const dropData = [
   {label: "Info",
-   icon: faInfoCircle,
+   icon: 'info-circle',
    links: [{title: "FAQs",
-            path: "/info/faq", icon: faQuestionCircle},
+            path: "/info/faq", icon: 'question-circle'},
            {title: "Typing Greek",
-            path: "/info/typing-greek", icon: faKeyboard},
+            path: "/info/typing-greek", icon: 'keyboard'},
            {title: "How It Works",
-            path: "/info/how-it-works", icon: faCog},
+            path: "/info/how-it-works", icon: 'cog'},
            {title: "Known Bugs",
-            path: "/info/known-bugs", icon: faBug},
+            path: "/info/known-bugs", icon: 'bug'},
           ],
    },
   {label: "Admin",
-   icon: faWrench,
+   icon: 'wrench',
    links: [{title: "Home",
-            path: "/", icon: faHome}
+            path: "/", icon: 'home'}
           ]
    },
   {label: "Instructors",
-   icon: faChalkboardTeacher,
+   icon: 'chalkboard-teacher',
    links: [{title: "Home",
-            path: "/", icon: faHome}
+            path: "/", icon: 'home'}
            ]
    }
 ]
@@ -93,7 +78,7 @@ const drops = dropData.map( (item) =>
 const login = (
   <LinkContainer to="/login">
     <Nav.Link href="/login">
-      <FontAwesomeIcon icon={faSignInAlt} size="sm" />
+      <FontAwesomeIcon icon='sign-in-alt' size="sm" />
       Log in
     </Nav.Link>
   </LinkContainer>
@@ -113,13 +98,13 @@ const TopNavbar = () => {
       <span>Hi {user.firstName}</span>
       <LinkContainer key={user.userId} to="/profile">
         <Nav.Link>
-          <FontAwesomeIcon icon={faUser} size="sm" />
+          <FontAwesomeIcon icon='user' size="sm" />
           <span className="d-none d-lg-inline">Profile</span>
         </Nav.Link>
       </LinkContainer>
       <LinkContainer key={`logout-${user.userId}`} to="/">
         <Nav.Link onClick={doLogout} >
-          <FontAwesomeIcon icon={faSignOutAlt} size="sm" />
+          <FontAwesomeIcon icon='sign-out-alt' size="sm" />
           <span className="d-none d-lg-inline">Log out</span>
         </Nav.Link>
       </LinkContainer>

@@ -197,8 +197,6 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
               }
           }
       }
-      &.main-nav            {
-      }
       &.welcome-nav         {color: darken($pallette1, 50%);
       }
   }
@@ -501,7 +499,15 @@ div.modal-set.row              {color: #efefef;
 // walk interface---------------------------------------
 
 div.content > .walk-container                 {overflow: hidden;
+  .map-spinner                                {position: absolute;
+                                               top: 50%;
+                                               left: 50%;
+                                               margin-top: -1rem;
+                                               margin-left: -0.5rem;
+                                               z-index: 1;
+  }
   .svgMapPane                                 {width: 100%;
+                                                z-index: 2;
     object#town_map                             {width: 100%;
                                                 margin:0 auto;
                                                 cursor: move;
@@ -538,6 +544,7 @@ div.content > .walk-container                 {overflow: hidden;
                                                  padding-right: 3rem;
                                                  margin: 0;
                                                  margin-right: 0;
+                                                 z-index: 2;
     @media (max-width: map-get($grid-breakpoints, sm))          
                                                 {padding: 0;
                                                  padding-right: 0;
@@ -581,6 +588,7 @@ div.content > .walk-container                 {overflow: hidden;
     }
     .eval-text                                  {background-color: $pallette1;
                                                  left: 2rem;
+                                                 z-index: 6;
         &:after {                   border-right: 25px solid $pallette1;
                                     border-top: 25px solid transparent;
                                     left: -25px;
