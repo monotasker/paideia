@@ -178,7 +178,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
         &.open             {color: $white;
                             background-color: lighten($accent2, 20%);
       }
-      .dropdown-menu       {top: -2px; 
+      .dropdown-menu       {top: -2px;
                             background-color: lighten($accent2, 20%);
                             border: 1px solid lighten($accent2, 10%);
         li                 {
@@ -222,7 +222,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 //-- tools --------------------------------------------------
 
-.tools-component           {position: fixed; 
+.tools-component           {position: fixed;
                             right: -5.5rem;
                             top: 6rem;
                             z-index: 30;
@@ -263,10 +263,10 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                                 transition: all 500ms;
     }
 
-    @media (max-width: map-get($grid-breakpoints, md))          
+    @media (max-width: map-get($grid-breakpoints, md))
                                {width: 100%;
     }
-    @media (min-width: map-get($grid-breakpoints, lg))          
+    @media (min-width: map-get($grid-breakpoints, lg))
                                {width: 60%;
     }
 
@@ -334,7 +334,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
             tr:nth-child(6n + 2)       {color: $genitive;
                 td:nth-child(n+2)      {
                     background-color: lighten($genitive, 47%);
-                } 
+                }
             }
             tr:nth-child(6n + 3)       {color: $dative;
                 td:nth-child(n+2)      {
@@ -380,7 +380,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
         td                              {font-size: 2rem;
         }
     }
-    
+
 }
 
 //-- masthead --------------------------------------------------
@@ -393,12 +393,12 @@ div.masthead                {background-image: url($mapPng);
                              border: 0px solid transparent;
                              overflow: hidden;
                              height: 28rem;
-    @media (max-width: map-get($grid-breakpoints, md))          
+    @media (max-width: map-get($grid-breakpoints, md))
                            {height: 10rem;
     }
     img.welcome-maria      {position: absolute;
                             left:0;
-        @media (max-width: map-get($grid-breakpoints, md))      
+        @media (max-width: map-get($grid-breakpoints, md))
                            {height:36rem;
         }
     }
@@ -435,6 +435,7 @@ div.maria-bubble               {position:absolute;
 div.maria-bubble,
 div.maria-bubble-mobile        {background-color: white;
                                 padding:2rem;
+                                margin-right: 2rem;
     h1                         {font-family: 'Amatic SC', cursive;
                                 font-weight: regular;
                                 font-size: 3rem;
@@ -533,7 +534,7 @@ div.content > .walk-container                 {overflow: hidden;
     }
   }
   .stepPane                                     {position: absolute;
-                                                 top: -3000px; 
+                                                 top: -3000px;
                                                  background-attachment: fixed;
                                                  background-position-x: 0%;
                                                  background-position-y: 50%;
@@ -545,7 +546,7 @@ div.content > .walk-container                 {overflow: hidden;
                                                  margin: 0;
                                                  margin-right: 0;
                                                  z-index: 2;
-    @media (max-width: map-get($grid-breakpoints, sm))          
+    @media (max-width: map-get($grid-breakpoints, sm))
                                                 {padding: 0;
                                                  padding-right: 0;
     }
@@ -561,6 +562,7 @@ div.content > .walk-container                 {overflow: hidden;
     &.stepPane-enter-done,
     &.stepPane-appear-done                        {opacity: 1;
                                                    top: 0;
+                                                transition: opacity 1000ms ease-in;
     }
     &.stepPane-exit                              {opacity: 1;
                                                    top: 0;
@@ -580,15 +582,47 @@ div.content > .walk-container                 {overflow: hidden;
     .prompt-text,
     .eval-text                                  {border-radius: $border-radius-lg * 3;
                                                  padding: 1rem;
+                                                 padding-top: 1rem;
                                                  font-family: $greek-fonts;
                                                  font-size: $font-size-lg;
                                                  box-shadow: $soft-shadow;
                                                  position: relative;
                                                  min-width: 80%;
+                                                 transform: scale(0);
+                                                 opacity: 0;
+        &.eval-text-enter,
+        &.prompt-text-enter,
+        &.eval-text-appear,
+        &.prompt-text-appear                         {transform: scale(0);
+                                                      transform-origin: center left;
+                                                      opacity: 1;
+        }
 
+        &.eval-text-appear-done,
+        &.eval-text-enter-done                      {transform: scale(1)
+                                                     transition: transform 200ms ease-in;
+                                                     transform-origin: center left;
+                                                     opacity: 1;
+        }
+        &.prompt-text-appear-done,
+        &.prompt-text-enter-done                    {transform: scale(1);
+                                                     transition: transform 200ms ease-in 500ms;
+                                                     transform-origin: center left;
+                                                     opacity: 1;
+        }
+        &.eval-text-exit,
+        &.prompt-text-exit                          {transform: scale(1) translate(0px, 0px);
+                                                     opacity: 1;
+        }
+        &.eval-text-exit-active,
+        &.prompt-text-exit-active                   {transform: scale(0) translate(-200%, -100%);
+                                                     transition: transform 200ms ease-out;
+                                                     transform-origin: center left;
+                                                     opacity: 0;
+        }
     }
     .eval-text                                  {background-color: $pallette1;
-                                                 left: 2rem;
+                                                 left: 1rem;
                                                  z-index: 6;
         &:after {                   border-right: 25px solid $pallette1;
                                     border-top: 25px solid transparent;
@@ -613,9 +647,9 @@ div.content > .walk-container                 {overflow: hidden;
         .audio-play-control                     {background-color: transparent;
                                                 color: #aaa;
                                                 position: relative;
-                                                display: inline-block;
                                                 padding: 0;
                                                 border-color: transparent;
+                                                float: right;
             > div                               {height: 2em;
                                                 width: 2em;
             }
@@ -657,15 +691,16 @@ div.content > .walk-container                 {overflow: hidden;
 
     }
     .responder                                  {
-        .responder-text                         {background-color: $accent2;
+        .responder-text                         {background-color: lighten($accent2, 50%);
                                                  margin-top: 2rem;
                                                  padding: 2rem;
                                                  border-radius: $border-radius-lg * 3;
                                                  box-shadow: $soft-shadow;
-            input                               {font-family: $greek-fonts;
+            textarea                            {font-family: $greek-fonts;
                                                  font-size: $font-size-lg;
+                                                 border: 1px solid lighten($accent2, 25%);
             }
-            .instruction-icon                   {color: $neutralLight;
+            .instruction-icon                   {color: $accent2;
             }
         }
     }

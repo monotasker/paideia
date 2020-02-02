@@ -5,8 +5,9 @@ import { withRouter } from "react-router";
 
 import SvgMap from "./SvgMap";
 import Step from "./Step";
-import { getPromptData, evaluateAnswer } from "../Services/stepFetchService";
+import { getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
+import { returnStatusCheck } from "../Services/authService";
 
 
 const Walk = (props) => {
@@ -15,25 +16,23 @@ const Walk = (props) => {
     const [mapIn, setMapIn] = useState(true);
     const [stepIn, setStepIn] = useState(false);
     const [stepData, setStepData] = useState(false);
-    let history = props.history;
- 
+
     const goToLocation = async (newLoc) => {
       setCurrentPage(newLoc);
       if ( newLoc != "map" ) {
-        let stepfetch = getPromptData({location: newLoc})
-          .then((stepfetch) => {
-            if ( stepfetch.status === 200 ) {
-              stepfetch.json().then((mydata) => {
+        getPromptData({location: newLoc})
+        .then(stepfetch => {
+          returnStatusCheck(stepfetch, props.history,
+            (myfetch) => {
+              myfetch.json().then((mydata) => {
                 setStepData(mydata);
                 setStepIn(true);
                 setMapIn(false);
               });
-            } else if ( stepfetch.status === 401 ) {
-              dispatch({type: 'deactivateUser', payload: null});
-              history.push("/login");
-            }
-          }
-          );        
+            },
+            dispatch
+          )
+        });
       } else {
         setStepIn(false);
         setMapIn(true);

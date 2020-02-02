@@ -20,8 +20,17 @@ const logout = async (userid) => {
   return response
 }
 
-const check_login = async () => {
+const checkLogin = async () => {
 
 }
 
-export { login, logout, check_login }
+function returnStatusCheck(mydata, history, action, reducer) {
+  if ( mydata.status === 200 ) {
+      action(mydata);
+  } else if ( mydata.status === 401 ) {
+      reducer({type: 'deactivateUser', payload: null});
+      history.push("/login");
+  }
+}
+
+export { login, logout, checkLogin, returnStatusCheck }

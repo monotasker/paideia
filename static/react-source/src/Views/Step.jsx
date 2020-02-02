@@ -8,9 +8,11 @@ import {
     Tooltip
 } from "react-bootstrap";
 import { withRouter } from "react-router";
+import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import marked from "marked";
 import DOMPurify from 'dompurify';
+import TextareaAutosize from 'react-textarea-autosize';
 
 import AudioPlayer from "../Components/AudioPlayer";
 import { evaluateAnswer } from "../Services/stepFetchService";
@@ -22,10 +24,13 @@ const Step = (props) => {
   console.log(props);
   const { user, dispatch } = useContext(UserContext);
   const [ evalText, setEvalText ] = useState(null);
+  const [ promptText, setPromptText] = useState(props.stepdata.prompt_text);
   const [ promptZIndex, setPromptZIndex ] = useState(null);
   const [ respButtons, setRespButtons ] = useState(props.stepdata.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
+  console.log(!!evalText);
+  console.log(evalText !== null);
 
   useEffect(() => {
     let $eval = document.querySelector('.eval-text');
@@ -34,7 +39,7 @@ const Step = (props) => {
   });
   useEventListener("cut copy paste",
     (event) => {event.preventDefault()},
-    document.querySelector('.responder input')
+    document.querySelector('.responder textarea')
   );
   useEventListener("click mouseover", setPromptZIndex,
     document.querySelector('.prompt-text'));
@@ -69,11 +74,39 @@ const Step = (props) => {
     event.preventDefault();
   }
 
+  const mapAction = () => {
+    setResponded(false);
+    setEvalText(null);
+    setPromptText(null);
+    setRespButtons(null);
+    props.navfunction("map");
+  }
+
+  const retryAction = () => {
+    setResponded(false);
+    setPromptText(null);
+    setEvalText(null);
+    setRespButtons(null);
+    props.navfunction(props.myroute);
+    setPromptText(props.stepdata.promptText);
+    setRespButtons(props.stepdata.response_buttons);
+  }
+
+  const continueAction = () => {
+    setResponded(false);
+    setPromptText(null);
+    setEvalText(null);
+    props.navfunction(props.myroute);
+    setPromptText(props.stepdata.promptText);
+    setRespButtons(props.stepdata.response_buttons);
+  }
+
   const widgets = {
-    'text': () => <Form.Control type="text" name="responder_field" id="responder_field" />,
+    'text': () => <Form.Control type="text" name="responder_field"
+      id="responder_field" as={TextareaAutosize} />,
     'radio': () => {if (props.stepdata.response_form.values != null) {
         return props.stepdata.response_form.values.map( val => (
-          <Form.Check 
+          <Form.Check
             type="radio"
             name={`responder_radio`}
             id={`radio-${val}`}
@@ -82,24 +115,24 @@ const Step = (props) => {
             value={val}
           />
         ))
-      } 
+      }
     }
   }
 
   const response_btns = {
     'map': () => (<Button className="back_to_map"
                     key="back_to_map"
-                    onClick={() => props.navfunction("map")}>
+                    onClick={mapAction}>
                     <FontAwesomeIcon icon="map" /> Back to map
                   </Button>),
-    'retry': () => (<Button className="retry"
+    'retry': () => (<Button className="retry" variant="warning"
                       key="retry"
-                      onClick={() => props.navfunction("map")}>
+                      onClick={retryAction}>
                       <FontAwesomeIcon icon="redo-alt" /> Retry
                     </Button>),
-    'continue': () => (<Button className="continue"
+    'continue': () => (<Button className="continue" variant="success"
                         key="continue"
-                        onClick={() => props.navfunction(props.myroute) && setResponded(false)}>
+                        onClick={continueAction}>
                         <FontAwesomeIcon icon="walking" /> Continue here
                        </Button>)
   }
@@ -107,7 +140,7 @@ const Step = (props) => {
   const inst_set = {
     "Please answer in Greek.": ["font", "Γ"],
     "Please answer in English.": ["icon", "font"],
-    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"], 
+    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"],
   }
   const instructions_extra = [
     "Remember to vary the word order in your Greek clauses"]
@@ -120,18 +153,17 @@ const Step = (props) => {
             overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
           >
               { inst_set[inst][0] === "font" ? (
-                <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a> 
+                <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
                 ) : (
                 <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
                 )
               }
           </OverlayTrigger>
-        )} 
+        )}
     });
     const extra_strs = props.stepdata.instructions.filter( inst => {
-      return !Object.keys(inst_set).includes(inst); 
+      return !Object.keys(inst_set).includes(inst);
     });
-    console.log(extra_strs);
     if ( extra_strs.length > 0 ) {
       const extra = extra_strs.map( inst => <li key={inst} >{inst}</li> );
       const extra_icon = (
@@ -145,44 +177,55 @@ const Step = (props) => {
       );
       icons.push(extra_icon);
     }
-    console.log(icons);
-    return icons;    
+    return icons;
   }
 
   return (
-    <Row id="step_row" className="stepPane" 
+    <Row id="step_row" className="stepPane"
       style={{backgroundImage: `url("${props.stepdata.bg_image}")`}}
     >
       <Col className="speaker" sm={4} xs={12}>
-        <img src={props.stepdata.npc_image} 
+        <img src={props.stepdata.npc_image}
           alt="The current speaker addressing the student"
         />
       </Col>
       <Col sm={8} xs={12}>
         <Row className="npc prompt">
-          <div className="prompt-text" style={{zIndex: promptZIndex}}>
-            <p dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(marked(props.stepdata.prompt_text))
-            }} />
-            { !!props.stepdata.widget_img && (
-              <img
-                className="prompt-image"
-                src={`/paideia/static/images/${props.stepdata.widget_img.file}`}
-                alt={props.stepdata.widget_img.description}
+          <CSSTransition
+            in={ !!promptText }
+            classNames="prompt-text"
+            timeout={0}
+            appear={true}
+          >
+            <div className="prompt-text" style={{zIndex: promptZIndex}}>
+              <p dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(marked(props.stepdata.prompt_text))
+              }} />
+              { !!props.stepdata.widget_img && (
+                <img
+                  className="prompt-image"
+                  src={`/paideia/static/images/${props.stepdata.widget_img.file}`}
+                  alt={props.stepdata.widget_img.description}
+                />
+              )}
+              <AudioPlayer
+                mp3Source="http://techslides.com/demos/samples/sample.mp3"
+                oggSource="http://techslides.com/demos/samples/sample.ogg"
               />
-            )}
-            <AudioPlayer
-              mp3Source="http://techslides.com/demos/samples/sample.mp3" 
-              oggSource="http://techslides.com/demos/samples/sample.ogg"
-            />
-          </div>
-          { !!evalText && (
+            </div>
+          </CSSTransition>
+          <CSSTransition
+              in={ !!evalText }
+              classNames="eval-text"
+              timeout={0}
+              appear={true}
+            >
             <div className="eval-text">
               <p dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(marked(evalText))
-              }} />
+                  __html: !!evalText ? DOMPurify.sanitize(marked(evalText)) : "" }}
+              />
             </div>
-          )}
+          </CSSTransition>
         </Row>
         <Row className="responder">
           <Col >
@@ -193,13 +236,13 @@ const Step = (props) => {
               {widgets[props.stepdata.response_form.form_type]()}
               <Button variant="success" type="submit">
                 { evaluatingStep ? (
-                    <FontAwesomeIcon icon="spinner" pulse /> 
+                    <FontAwesomeIcon icon="spinner" pulse />
                   ) : ( "Submit Reply" )
                 }
               </Button>
             </Form>
           )}
-          { respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
+          { !!respButtons && respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
             </div>
           </Col>
         </Row>
