@@ -599,7 +599,7 @@ div.content > .walk-container                 {overflow: hidden;
         }
 
         &.eval-text-appear-done,
-        &.eval-text-enter-done                      {transform: scale(1)
+        &.eval-text-enter-done                      {transform: scale(1);
                                                      transition: transform 200ms ease-in;
                                                      transform-origin: center left;
                                                      opacity: 1;

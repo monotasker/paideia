@@ -15,22 +15,22 @@ import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import AudioPlayer from "../Components/AudioPlayer";
-import { evaluateAnswer } from "../Services/stepFetchService";
+import { evaluateAnswer, getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import useEventListener from "../Hooks/UseEventListener";
+import { returnStatusCheck } from "../Services/authService";
 
 
 const Step = (props) => {
   console.log(props);
   const { user, dispatch } = useContext(UserContext);
+  const [ stepData, setStepData ] = useState(props.stepdata);
   const [ evalText, setEvalText ] = useState(null);
-  const [ promptText, setPromptText] = useState(props.stepdata.prompt_text);
+  const [ promptText, setPromptText] = useState(stepData.prompt_text);
   const [ promptZIndex, setPromptZIndex ] = useState(null);
-  const [ respButtons, setRespButtons ] = useState(props.stepdata.response_buttons);
+  const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
-  console.log(!!evalText);
-  console.log(evalText !== null);
 
   useEffect(() => {
     let $eval = document.querySelector('.eval-text');
@@ -88,24 +88,37 @@ const Step = (props) => {
     setEvalText(null);
     setRespButtons(null);
     props.navfunction(props.myroute);
-    setPromptText(props.stepdata.promptText);
-    setRespButtons(props.stepdata.response_buttons);
+    setPromptText(stepData.prompt_text);
+    setRespButtons(stepData.response_buttons);
   }
 
   const continueAction = () => {
     setResponded(false);
     setPromptText(null);
     setEvalText(null);
-    props.navfunction(props.myroute);
-    setPromptText(props.stepdata.promptText);
-    setRespButtons(props.stepdata.response_buttons);
+    getPromptData({location: props.myroute})
+    .then(stepfetch => {
+      returnStatusCheck(stepfetch, props.history,
+        (myfetch) => {
+          myfetch.json().then((mydata) => {
+            setStepData(mydata);
+            setPromptText(mydata.prompt_text);
+            setRespButtons(mydata.response_buttons);
+            console.log(props);
+          });
+        },
+        dispatch
+      )
+    });
   }
+
+
 
   const widgets = {
     'text': () => <Form.Control type="text" name="responder_field"
       id="responder_field" as={TextareaAutosize} />,
-    'radio': () => {if (props.stepdata.response_form.values != null) {
-        return props.stepdata.response_form.values.map( val => (
+    'radio': () => {if (stepData.response_form.values != null) {
+        return stepData.response_form.values.map( val => (
           <Form.Check
             type="radio"
             name={`responder_radio`}
@@ -146,7 +159,7 @@ const Step = (props) => {
     "Remember to vary the word order in your Greek clauses"]
 
   const make_instructions = () => {
-    const icons = props.stepdata.instructions.map( inst => {
+    const icons = stepData.instructions.map( inst => {
       if ( Object.keys(inst_set).includes(inst) ) {
         return(
           <OverlayTrigger key={inst} placement="top"
@@ -161,7 +174,7 @@ const Step = (props) => {
           </OverlayTrigger>
         )}
     });
-    const extra_strs = props.stepdata.instructions.filter( inst => {
+    const extra_strs = stepData.instructions.filter( inst => {
       return !Object.keys(inst_set).includes(inst);
     });
     if ( extra_strs.length > 0 ) {
@@ -182,10 +195,10 @@ const Step = (props) => {
 
   return (
     <Row id="step_row" className="stepPane"
-      style={{backgroundImage: `url("${props.stepdata.bg_image}")`}}
+      style={{backgroundImage: `url("${stepData.bg_image}")`}}
     >
       <Col className="speaker" sm={4} xs={12}>
-        <img src={props.stepdata.npc_image}
+        <img src={stepData.npc_image}
           alt="The current speaker addressing the student"
         />
       </Col>
@@ -199,13 +212,13 @@ const Step = (props) => {
           >
             <div className="prompt-text" style={{zIndex: promptZIndex}}>
               <p dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(marked(props.stepdata.prompt_text))
+                __html: !!promptText ? DOMPurify.sanitize(marked(promptText)) : ""
               }} />
-              { !!props.stepdata.widget_img && (
+              { !!stepData.widget_img && (
                 <img
                   className="prompt-image"
-                  src={`/paideia/static/images/${props.stepdata.widget_img.file}`}
-                  alt={props.stepdata.widget_img.description}
+                  src={`/paideia/static/images/${stepData.widget_img.file}`}
+                  alt={stepData.widget_img.description}
                 />
               )}
               <AudioPlayer
@@ -230,10 +243,10 @@ const Step = (props) => {
         <Row className="responder">
           <Col >
             <div className="responder-text">
-          { !!props.stepdata.response_form && !responded && (
+          { !!stepData.response_form && !responded && (
             <Form onSubmit={submitAction}>
-              { !!props.stepdata.instructions && make_instructions()}
-              {widgets[props.stepdata.response_form.form_type]()}
+              { !!stepData.instructions && make_instructions()}
+              {widgets[stepData.response_form.form_type]()}
               <Button variant="success" type="submit">
                 { evaluatingStep ? (
                     <FontAwesomeIcon icon="spinner" pulse />

@@ -64,6 +64,7 @@ const Walk = (props) => {
           timeout={0}
           appear={true}
           mountOnEnter={true}
+          unmountOnExit={true}
         >
           <Step
             myroute={currentPage}
