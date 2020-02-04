@@ -35,6 +35,7 @@ function userReducer(state, action) {
       window.localStorage.setItem('firstName', action.payload.firstName);
       window.localStorage.setItem('lastName', action.payload.lastName);
       window.localStorage.setItem('userEmail', action.payload.email);
+      window.localStorage.setItem('userRoles', action.payload.userRoles);
       window.localStorage.setItem('userLoggedIn', true);
       return({
         ...state,
@@ -43,7 +44,7 @@ function userReducer(state, action) {
         lastName: action.payload.lastName,
         userEmail: action.payload.email,
         userLoggedIn: true,
-        userRoles: [],
+        userRoles: action.payload.roles,
         userToken: '',
         userTimezone: '',
         flags: [],

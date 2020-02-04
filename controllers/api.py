@@ -21,7 +21,7 @@ def get_prompt():
 
     Returns:
         JSON object with the following keys:
-        
+
         sid: int
         prompt_text: string
         audio: dict
@@ -96,7 +96,7 @@ def get_login():
     API method to log a user in with web2py's authentication system.
 
     Private api method to handle calls from the react front-end.
-    
+
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
@@ -104,8 +104,13 @@ def get_login():
         mylogin = auth.login_bare(request.vars['email'],
                                   request.vars['password'])
         try:
-            myuser = {k:v for k, v in mylogin.items() if k in 
+            myuser = {k:v for k, v in mylogin.items() if k in
                     ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+            memberships = db((db.auth_membership.user_id == myuser['id']) &
+                             (db.auth_membership.group_id == db.auth_group.id)
+                             ).select(db.auth_group.role).as_list()
+            myuser['roles'] = [m['role'] for m in memberships]
+
         except AttributeError:  # if login response was False and has no items
             myuser = {'id': None}
         return json(myuser)
@@ -116,7 +121,7 @@ def get_login():
 def do_logout():
     """
     API method to log the current user out.
-    
+
     Private api method to handle calls from the react front-end.
 
     Returns:

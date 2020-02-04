@@ -32,7 +32,7 @@ const Login = (props) => {
             lastName: userdata['last_name'],
             email: userdata['email'],
             userLoggedIn: true,
-            userRoles: [],
+            userRoles: userdata['roles'],
             userToken: '',
             userTimezone: userdata['time_zone']
           }

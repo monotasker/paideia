@@ -31,6 +31,7 @@ const Step = (props) => {
   const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
+  console.log(user);
 
   useEffect(() => {
     let $eval = document.querySelector('.eval-text');
@@ -256,6 +257,12 @@ const Step = (props) => {
             </Form>
           )}
           { !!respButtons && respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
+          { user.userRoles.includes('administrators') && (
+            <React.Fragment>
+              <span className="step-id">step {stepData['sid']},</span>&nbsp;
+              <span className="path-id">path {stepData['pid']}</span>
+            </React.Fragment>
+          )}
             </div>
           </Col>
         </Row>
