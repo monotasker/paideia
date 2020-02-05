@@ -3,35 +3,28 @@ import {
     ButtonGroup,
     Button
 } from "react-bootstrap";
-import { 
-    TransitionGroup,
-    CSSTransition 
-} from "react-transition-group";
-import { LinkContainer } from "react-router-bootstrap";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faBolt,
-    faComment,
-    faSortAlphaDown,
-    faHistory,
-    faPencilAlt,
-} from '@fortawesome/free-solid-svg-icons';
+    TransitionGroup,
+    CSSTransition
+} from "react-transition-group";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ReferenceView from "../Views/ReferenceView";
 import VocabView from "../Views/VocabView";
+import QueriesView from "../Views/QueriesView";
 
 const Tools = () => {
 
     const [openPanel, setOpenPanel] = useState(0);
 
     const panels = [
-        // {label: 'Queries',
-        //  icon: faComment,
-        //  component: QueriesPanel},
+        {label: 'Queries',
+         icon: "comment",
+         component: <QueriesView />},
         {label: 'Reference',
-         icon: faBolt,
+         icon: "bolt",
          component: <ReferenceView />},
         {label: 'Vocab',
-         icon: faSortAlphaDown,
+         icon: "sort-alpha-down",
          component: <VocabView />},
         // {label: 'Review',
         //  icon: faHistory,
@@ -44,7 +37,7 @@ const Tools = () => {
     return(
         <React.Fragment>
             <ButtonGroup vertical className="tools-component">
-                {panels.map( ({ label, icon, component }) => 
+                {panels.map( ({ label, icon, component }) =>
                     <Button key={label}
                         value={label}
                         onClick={() => openPanel === label ? setOpenPanel('none') : setOpenPanel(label)}>
@@ -54,7 +47,7 @@ const Tools = () => {
                 )}
             </ButtonGroup>
             <TransitionGroup className="tool-panels">
-                {panels.map( ({ label, icon, component }) => 
+                {panels.map( ({ label, icon, component }) =>
                     openPanel === label &&
                     <CSSTransition
                         key={label}

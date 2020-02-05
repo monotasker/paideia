@@ -143,3 +143,48 @@ def check_login():
 
     """
     return json({'status': auth.logged_in()})
+
+def get_step_queries():
+    """
+    API method to return queries for the selected step.
+    """
+    stepid = request.vars['sid']
+    queries = db(db.bugs.step == stepid).select().as_list()
+
+    myuser = request.vars['user_id']
+    user_queries = [q for q in queries if q['name'] == myuser]
+
+    myclass = db((db.class_membership.name == myuser) &
+                 (db.class_membership.class_section == db.classes.id)
+                 ).select(db.classes.id, orderby=~db.class.start_date
+                          ).first()
+    if myclass:
+        members = list(set([m.name for m in
+                            db(db.class_membership.class_section ==
+                                myclass.id).iterselect()]
+                            ))
+
+
+        filtervals = {'unanswered': [5],
+                      'answered': (7, 6, 4, 3, 2),
+                      'confirmed': [1],
+                      'fixed': [2],
+                      'all': None}
+        queries = db(db.bugs.user_name.belongs(members)).select().as_list()
+        status_rows = db(db.bug_status.id > 0).select()
+        for q in queries:
+            # provide readable student name
+            q['user_id'] = copy(q['user_name'])
+            mystudent = db.auth_user(q['user_name'])
+            q['user_name'] = '{}, {}'.format(mystudent['last_name'],
+                                             mystudent['first_name']
+                                             )
+            # order vals with the record's current status at the top
+            vals = [num for num in range(1, len(status_rows) + 1)
+                    if num != q['bug_status']]
+            if isinstance(q['bug_status'], int):
+                vals.insert(0, q['bug_status'])
+            statuses = ((r['id'], r['status_label']) for v in vals
+                        for r in status_rows
+                        if r['id'] == v)
+            q['bug_status'] = statuses

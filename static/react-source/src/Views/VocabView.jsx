@@ -1,4 +1,4 @@
-import React, { } from "react";
+import React from "react";
 import {
     Row,
     Col
@@ -10,7 +10,7 @@ const VocabView = () => {
            <Col>
                 <h2>Vocab</h2>
            </Col>
-       </Row> 
+       </Row>
     )
 }
 
