@@ -155,6 +155,7 @@ const Step = (props) => {
     "Please answer in Greek.": ["font", "Γ"],
     "Please answer in English.": ["icon", "font"],
     "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"],
+    "Choose one of the options listed.": ["icon", "check-circle"]
   }
   const instructions_extra = [
     "Remember to vary the word order in your Greek clauses"]
