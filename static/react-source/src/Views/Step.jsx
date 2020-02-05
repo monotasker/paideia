@@ -33,7 +33,8 @@ const Step = (props) => {
   const [ responded, setResponded ] = useState(false);
 
   useEffect(() => {
-    dispatch('setCurrentStep', {step: stepData.sid, path: stepData.pid})
+    dispatch(type: 'setCurrentStep',
+             payload: {step: stepData.sid, path: stepData.pid})
   }, [stepData.sid, stepData.pid]);
   useEffect(() => {
     let $eval = document.querySelector('.eval-text');
