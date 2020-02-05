@@ -44,7 +44,7 @@ function userReducer(state, action) {
         lastName: action.payload.lastName,
         userEmail: action.payload.email,
         userLoggedIn: true,
-        userRoles: action.payload.roles,
+        userRoles: action.payload.userRoles,
         userToken: '',
         userTimezone: '',
         flags: [],
