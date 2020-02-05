@@ -31,7 +31,6 @@ const Step = (props) => {
   const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
-  console.log(user);
 
   useEffect(() => {
     let $eval = document.querySelector('.eval-text');
@@ -261,9 +260,17 @@ const Step = (props) => {
           { user.userRoles.includes('administrators') && (
             <React.Fragment>
               <span className="step-id">step {stepData['sid']},</span>&nbsp;
-              <span className="path-id">path {stepData['pid']}</span>
+              <span className="path-id">path {stepData['pid']}</span>&nbsp;
+              <span className="selection-level">level {stepData.category}</span>&nbsp;
             </React.Fragment>
           )}
+          <span className="current-count">
+            {!responded ? "This will make " : "You have finished "}
+            {`${stepData.completed_count} paths today`}
+          </span>
+          <span className="new-indicator">
+            {stepData.new_content ? "new" : "review"}
+          </span>
             </div>
           </Col>
         </Row>

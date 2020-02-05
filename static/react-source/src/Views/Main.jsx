@@ -16,6 +16,7 @@ import {
   faArrowsAltH,
   faBug,
   faChalkboardTeacher,
+  faCheckCircle,
   faCog,
   faFont,
   faHome,
@@ -53,6 +54,7 @@ library.add(
   faArrowsAltH,
   faBug,
   faChalkboardTeacher,
+  faCheckCircle,
   faCog,
   faFont,
   faHome,
@@ -101,7 +103,7 @@ const Main = (props) => {
         <React.Fragment>
           <TopNavbar routes={myroutes} />
           <Row className="Main">
-            <Col className="content" 
+            <Col className="content"
               style={{height: myheight}}
             >
               <Switch>
