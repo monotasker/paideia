@@ -33,6 +33,9 @@ const Step = (props) => {
   const [ responded, setResponded ] = useState(false);
 
   useEffect(() => {
+    dispatch('setCurrentStep', {step: stepData.sid, path: stepData.pid})
+  }, [stepData.sid, stepData.pid]);
+  useEffect(() => {
     let $eval = document.querySelector('.eval-text');
     let $p = document.querySelector('.prompt-text');
     $eval && ($eval.style.marginTop = `${-1 * ($p.offsetHeight - 24)}px`);

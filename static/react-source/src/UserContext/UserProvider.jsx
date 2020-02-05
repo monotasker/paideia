@@ -88,7 +88,10 @@ function userReducer(state, action) {
       return {...state, currentPath: state.availablePaths[0]}
     }
     case 'setCurrentStep': {
-      return {...state, currentStep: state.currentPath.steps[0]}
+      return {...state,
+        currentStep: action.payload.step,
+        currentPath: action.payload.path
+      }
     }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`)
