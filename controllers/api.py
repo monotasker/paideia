@@ -149,42 +149,67 @@ def get_step_queries():
     API method to return queries for the selected step.
     """
     stepid = request.vars['sid']
-    queries = db(db.bugs.step == stepid).select().as_list()
+    queries = db((db.bugs.step == stepid) &
+                 (db.bugs.user_name == db.auth_user.id)
+                 ).iterselect(db.bugs.id,
+                              db.bugs.step,
+                              db.bugs.in_path,
+                              db.bugs.step_options,
+                              db.bugs.user_response,
+                              db.bugs.score,
+                              db.bugs.adjusted_score,
+                              db.bugs.log_id,
+                              db.auth_user.first_name,
+                              db.auth_user.last_name
+                              ).as_list()
+                              #  TODO: db.bugs.public,
+                              #  TODO: db.bugs.popularity,
+                              #  TODO: db.bugs.pinned,
+                              #  TODO: db.bugs.helpfulness,
+                              #  TODO: db.bug_posts.user_id,
+                              #  TODO: db.bug_posts.user_role,
+                              #  TODO: db.bug_posts.post_body
+                              #  TODO: db.bug_posts.response_to
+                              #  TODO: db.bug_posts.posted_date
+                              #  TODO: db.bug_posts.updated_date
+                              #  TODO: db.bug_posts.public
+                              #  TODO: db.bug_posts.popularity
+                              #  TODO: db.bug_posts.helpfulness
+                              #  TODO: db.bug_posts.pinned
 
     myuser = request.vars['user_id']
-    user_queries = [q for q in queries if q['name'] == myuser]
+    user_queries = [q for q in queries if q['user_name'] == myuser]
 
-    myclass = db((db.class_membership.name == myuser) &
-                 (db.class_membership.class_section == db.classes.id)
-                 ).select(db.classes.id, orderby=~db.class.start_date
-                          ).first()
-    if myclass:
+    myclasses = db((db.class_membership.name == myuser) &
+                   (db.class_membership.class_section == db.classes.id)
+                   ).iterselect(db.classes.id,
+                                db.classes.institution,
+                                db.classes.academic_year,
+                                db.classes.course_section, orderby=~db.classes.start_date
+                                )
+
+    myclasses_queries = {}
+    external_queries = copy(queries)
+    for myclass in myclasses:
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
-                                myclass.id).iterselect()]
+                               myclass.classes.id).iterselect()]
                             ))
+        member_queries = list(filter(lambda x: x['user_name'] in members,
+                                     queries))
+        external_queries = list(filter(lambda x: x['user_name'] not in members,
+                                       external_queries))
+        mylabel = "{}, {}, {}".format(myclass.classes.institution,
+                                      myclass.classes.academic_year,
+                                      myclass.classes.course_section)
+        if member_queries:
+            myclasses_queries[mylabel] = {
+                'institution': myclass.classes.institution,
+                'year': myclass.classes.academic_year,
+                'section': myclass.classes.course_section,
+                'queries': member_queries}
 
-
-        filtervals = {'unanswered': [5],
-                      'answered': (7, 6, 4, 3, 2),
-                      'confirmed': [1],
-                      'fixed': [2],
-                      'all': None}
-        queries = db(db.bugs.user_name.belongs(members)).select().as_list()
-        status_rows = db(db.bug_status.id > 0).select()
-        for q in queries:
-            # provide readable student name
-            q['user_id'] = copy(q['user_name'])
-            mystudent = db.auth_user(q['user_name'])
-            q['user_name'] = '{}, {}'.format(mystudent['last_name'],
-                                             mystudent['first_name']
-                                             )
-            # order vals with the record's current status at the top
-            vals = [num for num in range(1, len(status_rows) + 1)
-                    if num != q['bug_status']]
-            if isinstance(q['bug_status'], int):
-                vals.insert(0, q['bug_status'])
-            statuses = ((r['id'], r['status_label']) for v in vals
-                        for r in status_rows
-                        if r['id'] == v)
-            q['bug_status'] = statuses
+    return json({'user_queries': user_queries,
+                 'class_queries': myclasses_queries,
+                 'other_queries': external_queries
+                 })
