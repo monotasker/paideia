@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { 
+import {
     TransitionGroup,
-    CSSTransition 
+    CSSTransition
 } from "react-transition-group";
 import {
     Row,
@@ -27,40 +27,40 @@ const CaseEndings = () => (
                 </tr>
                 <tr>
                     <th className="spacer"></th>
-                    <th>masc</th> 
-                    <th>fem</th> 
-                    <th>neut</th> 
-                    <th className="spacer"></th> 
-                    <th>masc/fem</th> 
+                    <th>masc</th>
+                    <th>fem</th>
+                    <th>neut</th>
+                    <th className="spacer"></th>
+                    <th>masc/fem</th>
                     <th>neut</th>
                 </tr>
             </thead>
             <tbody>
             <tr>
-                <th>nom sing</th> 
-                <td>ς/-</td> 
-                <td>-</td> 
-                <td>ν</td> 
-                <td className="spacer"></td> 
-                <td>ς</td> 
+                <th>nom sing</th>
+                <td>ς/-</td>
+                <td>-</td>
+                <td>ν</td>
+                <td className="spacer"></td>
+                <td>ς</td>
                 <td>-</td>
             </tr>
             <tr>
-                <th>gen sing</th> 
-                <td>υ</td> 
-                <td>ς</td> 
-                <td>υ</td> 
-                <td className="spacer"></td> 
-                <td>ος</td> 
+                <th>gen sing</th>
+                <td>υ</td>
+                <td>ς</td>
+                <td>υ</td>
+                <td className="spacer"></td>
+                <td>ος</td>
                 <td>ος</td>
             </tr>
             <tr>
-                <th>dat sing</th> 
-                <td>ι</td> 
-                <td>ι</td> 
-                <td>ι</td> 
-                <td className="spacer"></td> 
-                <td>ι</td> 
+                <th>dat sing</th>
+                <td>ι</td>
+                <td>ι</td>
+                <td>ι</td>
+                <td className="spacer"></td>
+                <td>ι</td>
                 <td>ι</td>
             </tr>
             <tr>
@@ -133,7 +133,7 @@ const CaseEndings = () => (
         </Table>
         <p>The full set of case endings is introduced for the first time in lesson 8.1, "The Dative Case"</p>
     </React.Fragment>
-    
+
 )
 
 const SquareOfStops = () => (
@@ -304,12 +304,12 @@ const ReferenceView = () => {
                     </Form.Row>
                 </Form>
                 <TransitionGroup className="reference-view-panes">
-                    {sections[sectionChosen].map( view => 
+                    {sections[sectionChosen].map( view =>
                         viewChosen === view.label &&
                         <CSSTransition
                             key={view.label}
                             timeout={0}
-                            classnames="reference-view-pane"
+                            classNames="reference-view-pane"
                         >
                             <div className="reference-view-pane">
                                 {view.component}
@@ -318,7 +318,7 @@ const ReferenceView = () => {
                     )}
                 </TransitionGroup>
            </Col>
-       </Row> 
+       </Row>
     )
 }
 

@@ -21,7 +21,7 @@ $white:                 #fff;
 $green:                 #5BA917;
 $neutralLight:          #f2eed5;
 $putty:                 #d8d3b3;
-$green:                 #96BC44;
+$greenLight:                 #96BC44;
 $greenDark:             #809240;
 // $red:                   #9d261d;
 $blueDark:              #1c7f99; // #006699;
@@ -48,13 +48,13 @@ $heading-color: darken($pallette1, 30%);
 // semantic colors (modded)
 // -------------------------
 $danger-bg: #fcf2f2;
-$danger: #bd362f; // #a84f4c; // default #dFb5b4;
+$danger: #dc3545;  // #bd362f; // #a84f4c; // default #dFb5b4;
 $info-bg: #f0f7fd; //#d0e3f0;
 $info: #5bc0de;
 $info-dark: #2f96b4; // #5387B2;
 $warning-bg: #fefbed;
 $warning: $orange; // #f1e7bc;
-$error: $red;
+$error: $danger;
 $success-bg: #dff0d8;
 $success: $pallette3;  // #d6e9c6;
 $successDark: $pallette4; // #d6e9c6;
@@ -68,7 +68,7 @@ $vocative: #C55A11;
 $dative: #7030A0;
 $preposition: #009999;
 
-$table-background: lighten($nominative, 65%);
+$table-background: lighten($nominative, 60%);
 
 
 //---------------------------------------------------
@@ -108,7 +108,36 @@ $title-fonts:                  "Amatic SC";
 $hard-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
 $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
-// navbar ---------------------------------------------
+// mixins --------------------------------------------------
+
+@mixin react-transition-fade($class, $duration: 200) {
+    &.#{$class}-enter,
+    &.#{$class}-appear          {opacity: 0;
+    }
+    &.#{$class}-enter-active,
+    &.#{$class}-appear-active  {opacity: 1;
+                                transition: opacity #{$duration}ms;
+    }
+    &.#{$class}-enter-done,
+    &.#{$class}-appear-done     {opacity: 1;
+
+    }
+    &.#{$class}-exit            {opacity: 1;
+    }
+    &.#{$class}-exit-active     {opacity: 0;
+                                 transition: opacity #{$duration}ms;
+    }
+    &.#{$class}-exit-done       {opacity: 0;
+    }
+}
+
+
+// typography ---------------------------------------------
+
+h3                                      {font-family: $sans-fonts;
+                                         font-weight: normal;
+                                         font-size: $font-size-lg;
+}
 
 
 //-- basic layout -------------------------------------------
@@ -125,19 +154,9 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
         > div {//position: relative;
                         // left: -100vw;
             h2                             {font-family: $title-fonts;
+                                            color: $heading-color;
             }
-            &.content-view                 {opacity: 0;
-            }
-            &.content-view-enter           {opacity: 0;
-            }
-            &.content-view-enter-done      {opacity: 1;
-                                            transition: opacity 200ms;
-            }
-            &.content-view-exit            {opacity: 1;
-            }
-            &.content-view-exit-active     {opacity: 0;
-                                            transition: opacity 200ms;
-            }
+            @include react-transition-fade("content-view");
         }
     }
 }
@@ -236,8 +255,10 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                             padding-left: .25rem;
     }
 }
+
 .panel-body                {position: absolute;
                             width: 80%;
+                            height: 100%;
                             right: 0;
                             top: -1rem;
                             z-index: 20;
@@ -245,19 +266,21 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
                             border-radius: $border-radius 0 0 $border-radius;
                             padding: 2rem;
+                            padding-right: 0;
 
-    &.panel-body.enter         {//right: -80%;
+    &.panel-body-enter         {//right: -80%;
                                 transform: translate3d(180%, 0, 0);
     }
-    &.panel-body.enter-done    {//right: 0;
+    &.panel-body-enter-done    {//right: 0;
                                 transform: translate3d(0, 0, 0);
                                 transition: all 500ms;
     }
-    &.panel-body.exit          {//opacity: 1;
+    &.panel-body-exit          {//opacity: 1;
                                 //right: 0;
                                 transform: translate3d(0, 0, 0);
     }
-    &.panel-body.exit-done     {//opacity: 0;
+    &.panel-body-exit-done,
+    &.panel-body-exit-active   {//opacity: 0;
                                 //right: -80%;
                                 transform: translate3d(180%, 0, 0);
                                 transition: all 500ms;
@@ -270,26 +293,110 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                                {width: 60%;
     }
 
-    h2                      {color: $heading-color;
+}
+
+//-- queries view ---------------------------------------------
+
+.queriesview-component                 {display: flex;
+                                        flex-direction: column;
+                                        height: 100%;
+    > div                              {flex: 1;
+                                        overflow-y: auto;
+    }
+    .queries-view-changer          {border-radius: 0.25rem 0.25rem 0 0;
+                                    background-color: lighten($pallette1, 10%);
+                                    border-color: $pallette1;
+        &.in                       {background-color: $pallette1;
+                                    border-color: darken($pallette1, 5%);
+            &:hover                {background-color: darken($pallette1, 20%);
+            }
+        }
+        &:hover                    {background-color: darken($pallette1, 20%);
+        }
+        .badge                     {margin-left: 0.5rem;
+        }
+    }
+    .queries-view-pane                  {opacity: 0;
+        @include react-transition-fade('queries-view-pane');
+        td                           {border-top: 0;
+        }
+        .query-display-op            {width: 30%;
+                                      float: left;
+            .query-display-op-name       {color: darken($pallette1, 50%);
+            }
+            .query-display-op-date       {font-size: $font-size-base * 0.75;
+            }
+            .query-display-op-status     {font-size: $font-size-base * 0.75;
+            }
+        }
+        .query-display-op-question   {background-color: lighten($accent2, 60%);
+                                        color: $accent2;
+                                        margin-left: 36%;
+                                        border-radius: 1rem;
+                                        padding: 1rem;
+                                        padding-bottom: 1.5rem;
+                                        position: relative;
+            &:after                    {border-right: 25px solid lighten($accent2, 60%);
+                                        border-bottom: 25px solid transparent;
+                                        left: -25px;
+                                        top: 40%;
+                                        content: '';
+                                        position: absolute;
+            }
+        }
+        .query-display-response     {padding: 1rem;
+                                     padding-left: 30%;
+                                        font-size: $font-size-lg;
+                                        font-family: $greek-fonts;
+                                        background-color: lighten($pallette2, 20%);
+
+        }
+        .query-display-admin            {float: right;
+                                         width: 30%;
+            .query-display-admin-name       {color: darken($pallette1, 50%);
+            }
+            .query-display-admin-date       {font-size: $font-size-base * 0.75;
+            }
+            .query-display-admin-status     {font-size: $font-size-base * 0.75;
+            }
+        }
+        .query-display-admin-comment     {background-color: lighten($pallette3, 40%);
+                                          color: darken($pallette3, 20%);
+                                        margin-right: 36%;
+                                        border-radius: 1rem;
+                                        padding: 1rem;
+                                        margin-top: -1.5rem;
+
+            &:after                    {border-left: 25px solid lighten($pallette3, 40%);
+                                        border-top: 25px solid transparent;
+                                        right: 34%;
+                                        top: 40%;
+                                        content: '';
+                                        position: absolute;
+            }
+        }
+        .query-display-class-header     {color: $danger;
+        }
     }
 }
 
 //-- reference view --------------------------------------------
 
-.referenceview-component               {
+.referenceview-component               {height: 100%;
+    > .col                             {display: flex;
+                                        flex-direction: column;
+                                        height: 100%;
+                                        padding: 0;
+        h2,
+        form                           {padding-right: 2rem;
+        }
+        .reference-view-panes          {overflow-y: auto;
+                                        flex: 1;
+        }
+    }
     .reference-view-pane               {padding-top: 1rem;
-
-        &.enter                        {opacity:0;
-        }
-        &.enter-done                   {opacity: 1;
-                                        transition: all 500ms;
-        }
-        &.exit                         {opacity: 1;
-        }
-        &.exit-done                    {opacity: 0;
-                                        transition: all 500ms;
-        }
-
+                                        padding-right: 2rem;
+        @include react-transition-fade('reference-view-pane');
     }
 
     .case-endings-table,
@@ -383,6 +490,17 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 }
 
+
+// content-view pages -----------------------------------
+
+div.content > .content-view                   {padding-top: 1rem;
+}
+
+// --home -----------------------------------------------------
+
+div.content > .content-view.home-component    {padding-top: 0;
+}
+
 //-- masthead --------------------------------------------------
 
 div.masthead                {background-image: url($mapPng);
@@ -441,7 +559,7 @@ div.maria-bubble-mobile        {background-color: white;
                                 font-size: 3rem;
                                 color: $heading-color;
     }
-    button                     {background-color: $pallette4;
+    button                     {background-color: $green;
                                 border: 1px solid $palletteBG;
                                 margin-top: 0.5rem;
     }

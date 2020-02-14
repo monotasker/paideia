@@ -60,20 +60,18 @@ const Step = (props) => {
     }
     evaluateAnswer({location: props.stepdata.loc,
                     response_string: myval})
-      .then((stepfetch) => {
-        if ( stepfetch.status === 200 ) {
-          stepfetch.json().then((mydata) => {
-            console.log(mydata);
-            ;
-            setEvaluatingStep(false);
-            setResponded(true);
-            setEvalText(mydata.eval_text);
-            setRespButtons(mydata.response_buttons);
-          })
-        } else if ( stepfetch.status === 401 ) {
-          dispatch({type: 'deactivateUser', payload: null});
-          history.push("/login");
-        }
+      .then(stepfetch => {
+        returnStatusCheck(stepfetch, props.history,
+          (myfetch) => {
+            myfetch.json().then((mydata) => {
+              console.log(mydata);
+              setEvaluatingStep(false);
+              setResponded(true);
+              setEvalText(mydata.eval_text);
+              setRespButtons(mydata.response_buttons);
+            });
+          },
+          dispatch)
       });
     event.preventDefault();
   }
@@ -111,8 +109,7 @@ const Step = (props) => {
             console.log(props);
           });
         },
-        dispatch
-      )
+        dispatch)
     });
   }
 

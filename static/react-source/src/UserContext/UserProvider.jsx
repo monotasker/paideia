@@ -22,9 +22,9 @@ let userDefaults = {
   currentNpcImage: window.localStorage.getItem('currentNpcImage') || null,
   currentPath: window.localStorage.getItem('currentPath') || null,
   currentStep: window.localStorage.getItem('currentStep') || null,
-  completedSteps: window.localStorage.getItem('completedSteps') || [],
-  completedPaths: window.localStorage.getItem('completedPaths') || [],
-  availablePaths: window.localStorage.getItem('availablePaths') || [],
+  currentAnswer: window.localStorage.getItem('currentAnswer') || null,
+  currentScore: window.localStorage.getItem('currentScore') || null,
+  currentLogID: window.localStorage.getItem('currentLogID') || null
 }
 
 

@@ -148,7 +148,8 @@ def get_step_queries():
     """
     API method to return queries for the selected step.
     """
-    stepid = request.vars['sid']
+    print(request.vars)
+    stepid = request.vars['step_id']
     queries = db((db.bugs.step == stepid) &
                  (db.bugs.user_name == db.auth_user.id)
                  ).iterselect(db.bugs.id,
@@ -159,6 +160,13 @@ def get_step_queries():
                               db.bugs.score,
                               db.bugs.adjusted_score,
                               db.bugs.log_id,
+                              db.bugs.user_comment,
+                              db.bugs.date_submitted,
+                              db.bugs.bug_status,
+                              db.bugs.admin_comment,
+                              db.bugs.hidden,
+                              db.bugs.deleted,
+                              db.auth_user.id,
                               db.auth_user.first_name,
                               db.auth_user.last_name
                               ).as_list()
@@ -176,9 +184,10 @@ def get_step_queries():
                               #  TODO: db.bug_posts.popularity
                               #  TODO: db.bug_posts.helpfulness
                               #  TODO: db.bug_posts.pinned
+    print(queries[0] if queries else "none")
 
     myuser = request.vars['user_id']
-    user_queries = [q for q in queries if q['user_name'] == myuser]
+    user_queries = [q for q in queries if q['auth_user']['id'] == myuser]
 
     myclasses = db((db.class_membership.name == myuser) &
                    (db.class_membership.class_section == db.classes.id)
@@ -188,26 +197,28 @@ def get_step_queries():
                                 db.classes.course_section, orderby=~db.classes.start_date
                                 )
 
-    myclasses_queries = {}
+    myclasses_queries = []
     external_queries = copy(queries)
     for myclass in myclasses:
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
-                               myclass.classes.id).iterselect()]
+                               myclass.id).iterselect()]
                             ))
-        member_queries = list(filter(lambda x: x['user_name'] in members,
+
+        member_queries = list(filter(lambda x: x['auth_user']['id'] in members,
                                      queries))
-        external_queries = list(filter(lambda x: x['user_name'] not in members,
-                                       external_queries))
-        mylabel = "{}, {}, {}".format(myclass.classes.institution,
-                                      myclass.classes.academic_year,
-                                      myclass.classes.course_section)
+        external_queries = list(filter(lambda x: x['auth_user']['id']
+                                       not in members, external_queries))
+        mylabel = "{}, {}, {}".format(myclass.institution,
+                                      myclass.academic_year,
+                                      myclass.course_section)
+
         if member_queries:
-            myclasses_queries[mylabel] = {
-                'institution': myclass.classes.institution,
-                'year': myclass.classes.academic_year,
-                'section': myclass.classes.course_section,
-                'queries': member_queries}
+            myclasses_queries.append({'institution': myclass.institution,
+                                      'year': myclass.academic_year,
+                                      'section': myclass.course_section,
+                                      'queries': member_queries}
+                                    )
 
     return json({'user_queries': user_queries,
                  'class_queries': myclasses_queries,

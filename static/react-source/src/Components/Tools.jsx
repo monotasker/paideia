@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ButtonGroup,
     Button
 } from "react-bootstrap";
 import {
     TransitionGroup,
+    SwitchTransition,
     CSSTransition
 } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,7 +15,17 @@ import QueriesView from "../Views/QueriesView";
 
 const Tools = () => {
 
-    const [openPanel, setOpenPanel] = useState(0);
+    const [openPanel, setOpenPanel] = useState(null);
+
+    useEffect(() => {
+      const handleClick = (event) => {
+          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer') === null ) {
+            setOpenPanel(null);
+          }
+      }
+      window.addEventListener("click", handleClick);
+      return () => window.removeEventListener("click", handleClick);
+    });
 
     const panels = [
         {label: 'Queries',
@@ -40,26 +51,31 @@ const Tools = () => {
                 {panels.map( ({ label, icon, component }) =>
                     <Button key={label}
                         value={label}
-                        onClick={() => openPanel === label ? setOpenPanel('none') : setOpenPanel(label)}>
-                        <FontAwesomeIcon icon={icon} fixedWidth size="lg" />
+                        onClick={() => openPanel === label ? setOpenPanel(null) : setOpenPanel(label)}>
+                        <FontAwesomeIcon
+                          icon={icon}
+                          fixedWidth size="lg"
+                        />
                         {label}
                     </Button>
                 )}
             </ButtonGroup>
-            <TransitionGroup className="tool-panels">
-                {panels.map( ({ label, icon, component }) =>
-                    openPanel === label &&
+            <div className="tool-panels">
+                {panels.map(({ label, icon, component }) =>
                     <CSSTransition
                         key={label}
+                        in={label === openPanel}
                         timeout={0}
-                        classnames="panel-body"
+                        classNames="panel-body"
+                        mountOnEnter={true}
+                        appear={true}
                     >
                         <div className="panel-body">
                             {component}
                         </div>
                     </CSSTransition>
                 )}
-            </TransitionGroup>
+            </div>
         </React.Fragment>
     )
 
