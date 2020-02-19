@@ -4,6 +4,7 @@ from copy import copy
 from gluon.serializers import json
 from pprint import pprint
 from paideia import Walk
+from paideia_bugs import Bug
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -11,6 +12,7 @@ if 0:
     current = Current
     response = current.response
     request = current.request
+    db = current.db
 
 
 def get_prompt():
@@ -184,8 +186,6 @@ def get_step_queries():
                               #  TODO: db.bug_posts.popularity
                               #  TODO: db.bug_posts.helpfulness
                               #  TODO: db.bug_posts.pinned
-    print(queries[0] if queries else "none")
-
     myuser = request.vars['user_id']
     user_queries = [q for q in queries if q['auth_user']['id'] == myuser]
 
@@ -224,3 +224,52 @@ def get_step_queries():
                  'class_queries': myclasses_queries,
                  'other_queries': external_queries
                  })
+
+
+def log_new_query():
+    """
+    API method to log a new user query.
+
+    Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
+    """
+    vbs = True
+    uid = request.vars['user_id']
+
+    if vbs: print('creating::submit_bug: vars are', request.vars)
+    b = Bug(step_id=request.vars['step_id'],
+            path_id=request.vars['path_id'],
+            loc_id=db(db.locations.loc_alias == request.vars['loc_name']
+                      ).select().first().id
+            )
+    if vbs: print('creating::submit_bug: created bug object successfully')
+    logged = b.log_new(request.vars['answer'],
+                       request.vars['log_id'],
+                       request.vars['score'],
+                       request.vars['user_comment'])
+    if vbs: print('creating::submit_bug: logged bug - response is', logged)
+
+    myqueries = db((db.bugs.step == request.vars['step_id']) &
+                   (db.bugs.user_name == db.auth_user.id) &
+                   (db.bugs.user_name == uid)
+                 ).iterselect(db.bugs.id,
+                              db.bugs.step,
+                              db.bugs.in_path,
+                              db.bugs.step_options,
+                              db.bugs.user_response,
+                              db.bugs.score,
+                              db.bugs.adjusted_score,
+                              db.bugs.log_id,
+                              db.bugs.user_comment,
+                              db.bugs.date_submitted,
+                              db.bugs.bug_status,
+                              db.bugs.admin_comment,
+                              db.bugs.hidden,
+                              db.bugs.deleted,
+                              db.auth_user.id,
+                              db.auth_user.first_name,
+                              db.auth_user.last_name
+                              ).as_list()
+    #  confirm that the newly logged query is in the updated list
+    # assert [q for q in myqueries if q['bugs']['id'] == logged]
+
+    return json(myqueries)

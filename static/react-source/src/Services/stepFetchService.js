@@ -71,12 +71,12 @@ const getStepQueries = async ({step_id=null, user_id=null}) => {
 const submitNewQuery = async ({step_id=null,
                                path_id=null,
                                user_id=null,
-                               loc_id=null,
+                               loc_name=null,
                                answer="",
                                log_id=null,
                                score=null,
                                user_comment=null}) => {
-  let response = await fetch('/paideia/api/get_step_queries', {
+  let response = await fetch('/paideia/api/log_new_query', {
       method: "POST",
       cache: "no-cache",
       mode: "same-origin",
@@ -87,7 +87,7 @@ const submitNewQuery = async ({step_id=null,
         step_id: step_id,
         path_id: path_id,
         user_id: user_id,
-        loc_id: loc_id,
+        loc_name: loc_name,
         answer: answer,
         log_id: log_id,
         score: score,

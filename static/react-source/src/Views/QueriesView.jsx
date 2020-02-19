@@ -3,11 +3,15 @@ import {
     Row,
     Col,
     Table,
+    Form,
     Button,
     Spinner,
     Badge
 } from "react-bootstrap";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
+import marked from "marked";
+import DOMPurify from 'dompurify';
+import TextareaAutosize from 'react-textarea-autosize';
 
 import { UserContext } from "../UserContext/UserProvider";
 import { getStepQueries } from "../Services/stepFetchService";
@@ -39,19 +43,24 @@ const QueriesView = () => {
 
     useEffect(() => fetchAction(), [user.currentStep]);
 
-    const newQueryAction = () => (
-      submitNewQuery({step_id=null,
-                      path_id=null,
-                      user_id=null,
-                      loc_id=null,
-                      answer="",
-                      log_id=null,
-                      score=null,
-                      user_comment=null})
+    const newQueryAction = () => {
+      event.preventDefault();
+      let $myform = event.target;
+      submitNewQuery({step_id: user.currentStep,
+                      path_id: user.currentPath,
+                      user_id: user.userId,
+                      loc_name: user.currentLocation,
+                      answer: user.currentAnswer,
+                      log_id: user.currentLogID,
+                      score: user.currentScore,
+                      user_comment: $myform.querySelector('#newQueryFormTextarea').value})
       .then(myresponse => {
-
-      })
-    );
+        myresponse.json().then((mydata) => {
+          console.log(mydata);
+          setUserQueries(mydata);
+        })
+      });
+    }
 
     const LoadingContent = () => (
       <Spinner animation="grow" variant="secondary"
@@ -62,10 +71,10 @@ const QueriesView = () => {
       <tr key={props.q.bugs.id}>
         <td key={`${props.q.bugs.id}_cell`}>
           <p className="query-display-op">
-            <FontAwesomeIcon icon="user-circle" size="3x" /><br />
             <span className="query-display-op-name">
               {`${props.q.auth_user.first_name} ${props.q.auth_user.last_name}`}
-            </span><br />
+            </span> answered...<br />
+            <FontAwesomeIcon icon="user-circle" size="3x" /><br />
             <span className="query-display-op-date">
               {props.q.bugs.date_submitted}
             </span><br />
@@ -73,12 +82,15 @@ const QueriesView = () => {
               {props.q.bugs.bug_status}
             </span>
           </p>
-          <p className="query-display-response">
-            {props.q.bugs.user_response}
-          </p>
-          <p className="query-display-op-question">
-            {props.q.bugs.user_comment}
-          </p>
+          <p className="query-display-response"
+            dangerouslySetInnerHTML={{
+              __html: props.q.bugs.user_response ? DOMPurify.sanitize(marked(props.q.bugs.user_response)) : ""
+            }} />
+
+          <p className="query-display-op-question"
+            dangerouslySetInnerHTML={{
+              __html: props.q.bugs.user_comment ? DOMPurify.sanitize(marked(props.q.bugs.user_comment)) : ""
+            }} />
 
           <p className="query-display-admin">
             <FontAwesomeIcon icon="user-circle" size="3x" /><br />
@@ -89,9 +101,10 @@ const QueriesView = () => {
               {"mydate"}
             </span>
           </p>
-          <p className="query-display-admin-comment">
-            {props.q.bugs.admin_comment}
-          </p>
+          <p className="query-display-admin-comment"
+            dangerouslySetInnerHTML={{
+              __html: props.q.bugs.admin_comment ? DOMPurify.sanitize(marked(props.q.bugs.admin_comment)) : ""
+            }} />
         </td>
       </tr>
     );
@@ -100,8 +113,6 @@ const QueriesView = () => {
       props.queries != [] && !!props.queries[0] && !!props.queries[0].bugs) ?
       (
         <Table><tbody>
-          {console.log("query")}
-          {console.log(props.queries[0])}
           {props.queries.map(q => <DisplayRow q={q} key={q.bugs.id} />)}
         </tbody></Table>
       ) : (
@@ -131,6 +142,24 @@ const QueriesView = () => {
       {scope: 'public',
        list: otherQueries}
     ];
+
+    const NewForm = (props) => (
+      <Form onSubmit={newQueryAction}>
+        <Form.Group controlId="newQueryFormAnswer">
+          <Form.Label>You said</Form.Label>
+          <Form.Control as="textarea" disabled={true} value={props.answer}></Form.Control>
+        </Form.Group>
+        <Form.Group controlId="newQueryFormScore">
+          <Form.Label>Awarded</Form.Label>
+          <Form.Control disabled={true} value={props.score}></Form.Control>
+        </Form.Group>
+        <Form.Group controlId="newQueryFormTextarea">
+          <Form.Label>Your question or comment</Form.Label>
+          <Form.Control as="textarea" rows="3"></Form.Control>
+        </Form.Group>
+        <Button variant="primary" type="submit">Submit query</Button>
+      </Form>
+    );
 
     const DisplayContent = () => (
       <React.Fragment>
@@ -169,6 +198,7 @@ const QueriesView = () => {
             unmountOnExit={true}
           >
             <div className="queries-view-pane">
+              {scope === 'user' ? <NewForm answer={user.currentAnswer} score={user.currentScore} /> : ''}
               <DisplayTable queries={list} />
             </div>
           </CSSTransition>

@@ -27,24 +27,42 @@ const Step = (props) => {
   const [ stepData, setStepData ] = useState(props.stepdata);
   const [ evalText, setEvalText ] = useState(null);
   const [ promptText, setPromptText] = useState(stepData.prompt_text);
+  const [ score, setScore ] = useState(null);
+  const [ answer, setAnswer ] = useState(null);
+  const [ logID, setLogID ] = useState(null);
   const [ promptZIndex, setPromptZIndex ] = useState(null);
   const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
 
   useEffect(() => {
+    dispatch({type: 'setCurrentLoc', payload: props.myroute});
+  }, []);
+
+  useEffect(() => {
     dispatch({type: 'setCurrentStep',
-              payload: {step: stepData.sid, path: stepData.pid}})
+              payload: {step: stepData.sid, path: stepData.pid}});
   }, [stepData.sid, stepData.pid]);
+
+  useEffect(() => {
+    dispatch({type: 'setEvalResults',
+              payload: {answer: answer,
+                        score: score,
+                        logId: logID}
+            });
+  }, [evalText]);
+
   useEffect(() => {
     let $eval = document.querySelector('.eval-text');
     let $p = document.querySelector('.prompt-text');
     $eval && ($eval.style.marginTop = `${-1 * ($p.offsetHeight - 24)}px`);
   });
+
   useEventListener("cut copy paste",
     (event) => {event.preventDefault()},
     document.querySelector('.responder textarea')
   );
+
   useEventListener("click mouseover", setPromptZIndex,
     document.querySelector('.prompt-text'));
 
@@ -67,8 +85,11 @@ const Step = (props) => {
               console.log(mydata);
               setEvaluatingStep(false);
               setResponded(true);
-              setEvalText(mydata.eval_text);
+              setScore(mydata.score);
+              setLogID(mydata.bugreporter.log_id);
+              setAnswer(mydata.user_response);
               setRespButtons(mydata.response_buttons);
+              setEvalText(mydata.eval_text);
             });
           },
           dispatch)

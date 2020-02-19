@@ -64,33 +64,56 @@ function userReducer(state, action) {
         userToken: '',
         userTimezone: '',
         flags: [],
+        currentStep: null,
         currentPath: null,
+        currentLocation: null,
+      })
+    }
+    case 'setEvalResults': {
+      console.log(action.payload);
+      window.localStorage.setItem('currentAnswer', action.payload.answer);
+      window.localStorage.setItem('currentScore', action.payload.score);
+      window.localStorage.setItem('currentLogID', action.payload.logId);
+      return({
+        ...state,
+        currentAnswer: action.payload.answer,
+        currentScore: action.payload.score,
+        currentLogID: action.payload.logId
       })
     }
     case 'setCurrentLoc': {
+      window.localStorage.setItem('currentLocation', action.payload);
       return({
         ...state,
-        currentLocation: action.payload,
-        currentLocationBG: locationBackgrounds[action.payload]
+        currentLocation: action.payload
+      })
+    }
+    case 'leaveCurrentLoc': {
+      window.localStorage.setItem('currentLocation', null);
+      return({
+        ...state,
+        currentLocation: null
       })
     }
     case 'setCurrentNpc': {
+      window.localStorage.setItem('currentNpc', action.payload);
       return({
         ...state,
-        currentNpc: action.payload,
-        currentNpcImage: speakerImages[action.payload]
+        currentNpc: action.payload
       })
     }
-    case 'setPaths': {
-      return {...state, availablePaths: samplePaths}
-    }
-    case 'setCurrentPath': {
-      return {...state, currentPath: state.availablePaths[0]}
-    }
     case 'setCurrentStep': {
+      window.localStorage.setItem('currentStep', action.payload.step);
+      window.localStorage.setItem('currentPath', action.payload.path);
+      window.localStorage.setItem('currentAnswer', null);
+      window.localStorage.setItem('currentScore', null);
+      window.localStorage.setItem('currentLogID', null);
       return {...state,
         currentStep: action.payload.step,
-        currentPath: action.payload.path
+        currentPath: action.payload.path,
+        currentAnswer: null,
+        currentScore: null,
+        currentLogID: null
       }
     }
     default: {

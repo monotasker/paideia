@@ -317,25 +317,40 @@ h3                                      {font-family: $sans-fonts;
         }
     }
     .queries-view-pane                  {opacity: 0;
+                                         border-top: 1px solid $pallette2;
         @include react-transition-fade('queries-view-pane');
         td                           {border-top: 0;
+                                      padding: 0;
         }
         .query-display-op            {width: 30%;
                                       float: left;
-            .query-display-op-name       {color: darken($pallette1, 50%);
+                                      padding-top: 0.5rem;
+                                      padding-left: 1rem;
+            .query-display-op-name       {color: darken($pallette1, 60%);
+            }
+            svg                          {margin-top: 0.25rem;
             }
             .query-display-op-date       {font-size: $font-size-base * 0.75;
             }
             .query-display-op-status     {font-size: $font-size-base * 0.75;
             }
         }
+        .query-display-response     {padding: 1rem;
+                                     padding-left: 30%;
+                                     padding-bottom: 0.5rem;
+                                        font-size: $font-size-lg;
+                                        font-family: $greek-fonts;
+                                        background-color: lighten($pallette2, 20%);
+                                        border-top: 4px solid $pallette2;
+        }
         .query-display-op-question   {background-color: lighten($accent2, 60%);
-                                        color: $accent2;
-                                        margin-left: 36%;
-                                        border-radius: 1rem;
+                                        color: darken($accent2, 5%);
+                                        margin-left: 30%;
+                                        border-radius: 0.75rem;
                                         padding: 1rem;
-                                        padding-bottom: 1.5rem;
+                                        padding-bottom: .5rem;
                                         position: relative;
+                                        margin-top: -2rem;
             &:after                    {border-right: 25px solid lighten($accent2, 60%);
                                         border-bottom: 25px solid transparent;
                                         left: -25px;
@@ -344,15 +359,9 @@ h3                                      {font-family: $sans-fonts;
                                         position: absolute;
             }
         }
-        .query-display-response     {padding: 1rem;
-                                     padding-left: 30%;
-                                        font-size: $font-size-lg;
-                                        font-family: $greek-fonts;
-                                        background-color: lighten($pallette2, 20%);
-
-        }
         .query-display-admin            {float: right;
                                          width: 30%;
+                                         padding-bottom: 0;
             .query-display-admin-name       {color: darken($pallette1, 50%);
             }
             .query-display-admin-date       {font-size: $font-size-base * 0.75;
@@ -362,14 +371,16 @@ h3                                      {font-family: $sans-fonts;
         }
         .query-display-admin-comment     {background-color: lighten($pallette3, 40%);
                                           color: darken($pallette3, 20%);
+                                        position: relative;
                                         margin-right: 36%;
+                                        margin-left: 1rem;
                                         border-radius: 1rem;
                                         padding: 1rem;
                                         margin-top: -1.5rem;
 
             &:after                    {border-left: 25px solid lighten($pallette3, 40%);
-                                        border-top: 25px solid transparent;
-                                        right: 34%;
+                                        border-bottom: 25px solid transparent;
+                                        right: -25px;
                                         top: 40%;
                                         content: '';
                                         position: absolute;
