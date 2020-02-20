@@ -5,6 +5,7 @@ from gluon.serializers import json
 from pprint import pprint
 from paideia import Walk
 from paideia_bugs import Bug
+from paideia_utils import GreekNormalizer
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -43,7 +44,7 @@ def get_prompt():
         new_content: bool
         paideia_debug: ???
     """
-    pprint(request.vars)
+    auth = current.auth
     if auth.is_logged_in():
         myloc = request.vars.loc
         new_user = request.vars.new_user
@@ -69,7 +70,7 @@ def evaluate_answer():
     """
     Private api method to handle calls from the react front-end.
     """
-    pprint(request.vars)
+    auth = current.auth
     if auth.is_logged_in():
         myloc = request.vars.loc
         new_user = False
@@ -102,6 +103,7 @@ def get_login():
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
+    auth = current.auth
     try:
         mylogin = auth.login_bare(request.vars['email'],
                                   request.vars['password'])
@@ -130,6 +132,7 @@ def do_logout():
         JSON object with the same user fields returned at login, but with null
         values for each one.
     """
+    auth = current.auth
     try:
         mylogout = auth.logout_bare()
         myuser = {k:None for k in ['email', 'first_name', 'last_name',
@@ -144,7 +147,9 @@ def check_login():
     API method to return the current server login status.
 
     """
-    return json({'status': auth.logged_in()})
+    auth = current.auth
+    return json({'status': auth.is_logged_in()})
+
 
 def get_step_queries():
     """
@@ -232,44 +237,95 @@ def log_new_query():
 
     Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
     """
-    vbs = True
+    vbs = False
     uid = request.vars['user_id']
+    auth = current.auth
 
-    if vbs: print('creating::submit_bug: vars are', request.vars)
-    b = Bug(step_id=request.vars['step_id'],
-            path_id=request.vars['path_id'],
-            loc_id=db(db.locations.loc_alias == request.vars['loc_name']
-                      ).select().first().id
-            )
-    if vbs: print('creating::submit_bug: created bug object successfully')
-    logged = b.log_new(request.vars['answer'],
-                       request.vars['log_id'],
-                       request.vars['score'],
-                       request.vars['user_comment'])
-    if vbs: print('creating::submit_bug: logged bug - response is', logged)
+    if auth.is_logged_in():
+        if vbs: print('creating::submit_bug: vars are', request.vars)
+        b = Bug(step_id=request.vars['step_id'],
+                path_id=request.vars['path_id'],
+                loc_id=db(db.locations.loc_alias == request.vars['loc_name']
+                        ).select().first().id
+                )
+        if vbs: print('creating::submit_bug: created bug object successfully')
+        logged = b.log_new(request.vars['answer'],
+                        request.vars['log_id'],
+                        request.vars['score'],
+                        request.vars['user_comment'])
+        if vbs: print('creating::submit_bug: logged bug - response is', logged)
 
-    myqueries = db((db.bugs.step == request.vars['step_id']) &
-                   (db.bugs.user_name == db.auth_user.id) &
-                   (db.bugs.user_name == uid)
-                 ).iterselect(db.bugs.id,
-                              db.bugs.step,
-                              db.bugs.in_path,
-                              db.bugs.step_options,
-                              db.bugs.user_response,
-                              db.bugs.score,
-                              db.bugs.adjusted_score,
-                              db.bugs.log_id,
-                              db.bugs.user_comment,
-                              db.bugs.date_submitted,
-                              db.bugs.bug_status,
-                              db.bugs.admin_comment,
-                              db.bugs.hidden,
-                              db.bugs.deleted,
-                              db.auth_user.id,
-                              db.auth_user.first_name,
-                              db.auth_user.last_name
-                              ).as_list()
-    #  confirm that the newly logged query is in the updated list
-    # assert [q for q in myqueries if q['bugs']['id'] == logged]
+        myqueries = db((db.bugs.step == request.vars['step_id']) &
+                    (db.bugs.user_name == db.auth_user.id) &
+                    (db.bugs.user_name == uid)
+                    ).iterselect(db.bugs.id,
+                                db.bugs.step,
+                                db.bugs.in_path,
+                                db.bugs.step_options,
+                                db.bugs.user_response,
+                                db.bugs.score,
+                                db.bugs.adjusted_score,
+                                db.bugs.log_id,
+                                db.bugs.user_comment,
+                                db.bugs.date_submitted,
+                                db.bugs.bug_status,
+                                db.bugs.admin_comment,
+                                db.bugs.hidden,
+                                db.bugs.deleted,
+                                db.auth_user.id,
+                                db.auth_user.first_name,
+                                db.auth_user.last_name
+                                ).as_list()
+        #  confirm that the newly logged query is in the updated list
+        # assert [q for q in myqueries if q['bugs']['id'] == logged]
 
-    return json(myqueries)
+        return json(myqueries)
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
+
+
+def get_vocabulary():
+    """
+    Api method to return the full vocabulary list.
+
+    Expects an optional request variable "vocab_scope_selector"
+
+    Returns a dictionary with the following keys:
+
+    total_count :: int :: total_count
+    mylemmas :: list :: each item represents a vocabulary entry, with joined
+                        db data from "lemmas" and "tags" tables
+    mylevel :: int :: the maximum badge set currently reached by user if
+                      logged in
+    """
+    auth = current.auth
+
+    mynorm = GreekNormalizer()
+    mylemmas = []
+    for l in db(db.lemmas.first_tag == db.tags.id
+                ).iterselect(orderby=db.tags.tag_position):
+
+        myrow = {'id': l['lemmas']['id'],
+                 'accented_lemma': l['lemmas']['lemma'],
+                 'normalized_lemma': mynorm.normalize(l['lemmas']['lemma']),
+                 'part_of_speech': l['lemmas']['part_of_speech'],
+                 'glosses': l['lemmas']['glosses'],
+                 'times_in_nt': l['lemmas']['times_in_nt'],
+                 'set_introduced': l['tags']['tag_position'],
+                 'videos': l['tags']['slides'],
+                 'thematic_pattern': l['lemmas']['thematic_pattern'],
+                 'real_stem': l['lemmas']['real_stem'],
+                 'genitive_singular': l['lemmas']['genitive_singular'],
+                 'future': l['lemmas']['future'],
+                 'aorist_active': l['lemmas']['aorist_active'],
+                 'perfect_active': l['lemmas']['perfect_active'],
+                 'aorist_passive': l['lemmas']['aorist_passive'],
+                 'perfect_passive': l['lemmas']['perfect_passive'],
+                 'other_irregular': l['lemmas']['other_irregular'],
+                 }
+        mylemmas.append(myrow)
+
+    return json({'total_count': len(mylemmas),
+                 'mylemmas': mylemmas})

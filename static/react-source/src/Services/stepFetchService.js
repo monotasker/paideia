@@ -27,8 +27,10 @@ const getPromptData = async ({location=null,
         pre_bug_step_id: pre_bug_step_id
       })
   })
-
-  return response;
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
 }
 
 const evaluateAnswer = async ({location=null,
@@ -49,7 +51,10 @@ const evaluateAnswer = async ({location=null,
         pre_bug_step_id: pre_bug_step_id
       })
   })
-  return response
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
 }
 
 const getStepQueries = async ({step_id=null, user_id=null}) => {
@@ -65,7 +70,7 @@ const getStepQueries = async ({step_id=null, user_id=null}) => {
         user_id: user_id
       })
   })
-  return response
+  return await response.json();
 }
 
 const submitNewQuery = async ({step_id=null,
@@ -94,7 +99,29 @@ const submitNewQuery = async ({step_id=null,
         user_comment: user_comment
       })
   })
-  return response
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
 }
 
-export { getPromptData, evaluateAnswer, getStepQueries, submitNewQuery }
+const fetchVocabulary = async ({vocab_scope_selector=0}) => {
+  let response = await fetch('/paideia/api/get_vocabulary', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        vocab_scope_selector: vocab_scope_selector,
+      })
+  })
+  return await response.json();
+}
+
+export { getPromptData,
+         evaluateAnswer,
+         getStepQueries,
+         submitNewQuery,
+         fetchVocabulary }

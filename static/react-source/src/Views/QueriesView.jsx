@@ -31,13 +31,10 @@ const QueriesView = () => {
         getStepQueries({step_id: user.currentStep,
                         user_id: user.userId})
         .then(queryfetch => {
-          queryfetch.json().then((mydata) => {
-            console.log(mydata);
-            setQueries(mydata);
-            setUserQueries(mydata.user_queries);
-            setClassQueries(mydata.class_queries);
-            setOtherQueries(mydata.other_queries.slice(0, 20));
-          })
+            setQueries(queryfetch);
+            setUserQueries(queryfetch.user_queries);
+            setClassQueries(queryfetch.class_queries);
+            setOtherQueries(queryfetch.other_queries.slice(0, 20));
         });
     }
 
@@ -55,10 +52,7 @@ const QueriesView = () => {
                       score: user.currentScore,
                       user_comment: $myform.querySelector('#newQueryFormTextarea').value})
       .then(myresponse => {
-        myresponse.json().then((mydata) => {
-          console.log(mydata);
-          setUserQueries(mydata);
-        })
+          setUserQueries(myresponse);
       });
     }
 

@@ -25,11 +25,14 @@ const checkLogin = async () => {
 }
 
 function returnStatusCheck(mydata, history, action, reducer) {
-  if ( mydata.status === 200 ) {
-      action(mydata);
-  } else if ( mydata.status === 401 ) {
-      reducer({type: 'deactivateUser', payload: null});
-      history.push("/login");
+  if ( mydata.status_code === 200 ) {
+    action(mydata);
+  } else if ( mydata.status_code === 401 ) {
+    reducer({type: 'deactivateUser', payload: null});
+    history.push("/login");
+  } else {
+    console.log('Problem in returnStatusCheck:');
+    console.log(mydata);
   }
 }
 

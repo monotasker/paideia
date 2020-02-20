@@ -23,12 +23,10 @@ const Walk = (props) => {
         getPromptData({location: newLoc})
         .then(stepfetch => {
           returnStatusCheck(stepfetch, props.history,
-            (myfetch) => {
-              myfetch.json().then((mydata) => {
+            (mydata) => {
                 setStepData(mydata);
                 setStepIn(true);
                 setMapIn(false);
-              });
             },
             dispatch
           )

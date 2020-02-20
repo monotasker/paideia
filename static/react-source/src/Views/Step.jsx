@@ -80,8 +80,7 @@ const Step = (props) => {
                     response_string: myval})
       .then(stepfetch => {
         returnStatusCheck(stepfetch, props.history,
-          (myfetch) => {
-            myfetch.json().then((mydata) => {
+          (mydata) => {
               console.log(mydata);
               setEvaluatingStep(false);
               setResponded(true);
@@ -90,11 +89,9 @@ const Step = (props) => {
               setAnswer(mydata.user_response);
               setRespButtons(mydata.response_buttons);
               setEvalText(mydata.eval_text);
-            });
           },
           dispatch)
       });
-    event.preventDefault();
   }
 
   const mapAction = () => {
@@ -122,13 +119,10 @@ const Step = (props) => {
     getPromptData({location: props.myroute})
     .then(stepfetch => {
       returnStatusCheck(stepfetch, props.history,
-        (myfetch) => {
-          myfetch.json().then((mydata) => {
+        (mydata) => {
             setStepData(mydata);
             setPromptText(mydata.prompt_text);
             setRespButtons(mydata.response_buttons);
-            console.log(props);
-          });
         },
         dispatch)
     });
