@@ -19,7 +19,7 @@ const Tools = () => {
 
     useEffect(() => {
       const handleClick = (event) => {
-          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer') === null ) {
+          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer, .vocabview-sorter-link') === null ) {
             setOpenPanel(null);
           }
       }

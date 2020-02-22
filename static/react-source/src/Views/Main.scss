@@ -315,6 +315,10 @@ h3                                      {font-family: $sans-fonts;
                                         background-color: lighten($pallette2, 5%);
                                         color: darken($pallette1, 65%);
                 }
+                a                      {color: darken($pallette1, 60%);
+                }
+                svg.inactive           {opacity: 30%;
+                }
             }
             td                         {border-top-color: lighten($pallette2, 5%);
 

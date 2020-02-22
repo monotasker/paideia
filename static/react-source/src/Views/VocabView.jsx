@@ -3,7 +3,8 @@ import {
     Row,
     Col,
     Table,
-    Form
+    Form,
+    Button
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -12,11 +13,12 @@ import { fetchVocabulary } from "../Services/stepFetchService";
 const VocabView = () => {
 
   const compareVocab = (a, b) => {
-    const term1 = typeof a[mySortCol] === 'string' ? a[mySortCol].toUpperCase() : a * -1;
-    const term2 = typeof b[mySortCol] === 'string' ? b[mySortCol].toUpperCase() : b * -1;
+    const term1 = typeof a[mySortCol] === 'string' ? a[mySortCol].toUpperCase() : (a[mySortCol] || 0);
+    const term2 = typeof b[mySortCol] === 'string' ? b[mySortCol].toUpperCase() : (b[mySortCol] || 0);
     const result = term1 > term2 ? 1 : -1;
     return myOrder === "asc" ? result : result * -1;
   }
+
   const [ mySortCol, setMySortCol ] = useState("normalized_lemma");
   const [ myOrder, setMyOrder ] = useState("asc");
   const [ vocab, setVocab ] = useState([]);
@@ -26,10 +28,6 @@ const VocabView = () => {
   const filteredVocab = sortedVocab.filter(w => searchString != "" ? w['normalized_lemma'].includes(searchString) : true );
   const [ chosenSets, setChosenSets ] = useState([]);
   const restrictedVocab = filteredVocab.filter(w => chosenSets.length != 0 ? chosenSets.includes(w['set_introduced']) : true );
-  console.log(chosenSets);
-  console.log(chosenSets.length != 0);
-  console.log(restrictedVocab);
-
 
   useEffect(() => {
     fetchVocabulary({vocab_scope_selector: 0})
@@ -52,6 +50,13 @@ const VocabView = () => {
     return "";
   }
 
+  const resetAction = () => {
+    setSearchString("");
+    setChosenSets([]);
+    document.getElementById('vocab-search-control').value = "";
+    document.getElementById('vocab-set-control').value = "all sets";
+  }
+
   const WordRow = (props) => {
     return (
       <tr>
@@ -64,6 +69,52 @@ const VocabView = () => {
         <td>{props.w.times_in_nt}</td>
       </tr>
     )
+  }
+
+  const headings = [
+    {label: "Dictionary form",
+     field: "normalized_lemma"},
+    {label: "Part of speech",
+     field: "part_of_speech"},
+    {label: "Glosses",
+     field: null},
+    {label: "Key forms",
+     field: null},
+    {label: "Badge set",
+     field: "set_introduced"},
+    {label: "Video",
+     field: null},
+    {label: "In NT",
+     field: "times_in_nt"}
+  ]
+
+  const LinkHeading = (props) => {
+    let myIcon = "";
+    let myActiveState = "";
+    if (props.field == mySortCol && myOrder == "asc") {
+      myIcon = "sort-down";
+      myActiveState = "active";
+    } else if (props.field == mySortCol && myOrder == "desc") {
+      myIcon = "sort-up";
+      myActiveState = "active";
+    } else {
+      myIcon = "sort";
+      myActiveState = "inactive";
+    }
+    return (
+      <th key={props.label}>
+        <a href="#" onClick={e => sortVocab(e, props.field)}
+          className="vocabview-sorter-link"
+        >
+          {props.label}
+          <FontAwesomeIcon icon={myIcon} className={myActiveState} />
+        </a>
+      </th>
+    );
+  }
+
+  const NonLinkHeading = (props) => {
+    return <th key={props.label}>{props.label}</th>;
   }
 
   return(
@@ -87,25 +138,30 @@ const VocabView = () => {
                     <Form.Control as="select"
                       onChange={e => setChosenSets([parseInt(e.target.value.slice(4))])}
                     >
+                      <option key="0">all sets</option>
                       {Array.from('x'.repeat(20), (_, i) => 1 + i).map( n =>
                           <option key={n}>{`set ${n}`}</option>
                       )}
                     </Form.Control>
                   </Form.Group>
                 </Col>
+                <Col>
+                  <Button onClick={() => resetAction()}
+                  >
+                    <FontAwesomeIcon icon="redo-alt" />
+                    Clear
+                  </Button>
+                </Col>
               </Form.Row>
             </Form>
+            Showing {restrictedVocab.length} out of the total {vocab.length} words used in all interactions.
             <div className="vocabtable-container">
               <Table>
                 <thead>
                   <tr>
-                    <th><a href="#" onClick={e => sortVocab(e, "normalized_lemma")}>Dictionary form</a></th>
-                    <th><a href="#" onClick={e => sortVocab(e, "part_of_speech")}>Part of speech</a></th>
-                    <th>Glosses</th>
-                    <th>Key forms</th>
-                    <th><a href="#" onClick={e => sortVocab(e, "set_introduced")}>Badge set</a></th>
-                    <th>Video</th>
-                    <th><a href="#" onClick={e => sortVocab(e, "times_in_nt")}>Time in NT</a></th>
+                    {headings.map(({label, field}) => (
+                      field ? <LinkHeading key={label} label={label} field={field} /> : <NonLinkHeading key={label} label={label} />
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
