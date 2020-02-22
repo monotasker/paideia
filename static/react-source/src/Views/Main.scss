@@ -295,6 +295,41 @@ h3                                      {font-family: $sans-fonts;
 
 }
 
+//-- vocab view -----------------------------------------------
+.vocabview-component                   {height: 100%;
+    > .col                             {display: flex;
+                                        flex-direction: column;
+                                        height: 100%;
+                                        padding: 0;
+        .vocabtable-container          {flex: 1;
+                                        overflow-y: auto;
+            th                         {position: sticky;
+                                        top: 0;
+                                        background-color: lighten($pallette2, 10%);
+                                        border-top-color: $pallette2;
+                                        border-bottom-color: $pallette2;
+                                        color: darken($pallette1, 60%);
+                                        font-weight: normal;
+                &:first-child          {left: 0;
+                                        z-index: 10;
+                                        background-color: lighten($pallette2, 5%);
+                                        color: darken($pallette1, 65%);
+                }
+            }
+            td                         {border-top-color: lighten($pallette2, 5%);
+
+            }
+            td:first-child             {position: sticky;
+                                        left: 0;
+                                        background-color: lighten($pallette2, 20%);
+                                        color: darken($pallette2, 40%);
+                                        font-family: $greek-fonts;
+                                        font-size: 1.25rem;
+            }
+        }
+    }
+}
+
 //-- queries view ---------------------------------------------
 
 .queriesview-component                 {display: flex;
