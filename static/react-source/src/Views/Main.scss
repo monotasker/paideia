@@ -305,30 +305,69 @@ h3                                      {font-family: $sans-fonts;
                                         overflow-y: auto;
             th                         {position: sticky;
                                         top: 0;
-                                        background-color: lighten($pallette2, 10%);
-                                        border-top-color: $pallette2;
-                                        border-bottom-color: $pallette2;
+                                        background-color: lighten($pallette2, 20%);
+                                        border-top-color: lighten($pallette2, 15%);
+                                        border-bottom-color: lighten($pallette2, 15%);
                                         color: darken($pallette1, 60%);
                                         font-weight: normal;
                 &:first-child          {left: 0;
                                         z-index: 10;
-                                        background-color: lighten($pallette2, 5%);
+                                        background-color: lighten($pallette2, 10%);
                                         color: darken($pallette1, 65%);
+                }
+                &:nth-child(2)         {background-color: lighten($pallette2, 15%);
+                                        padding-right: 0;
                 }
                 a                      {color: darken($pallette1, 60%);
                 }
-                svg.inactive           {opacity: 30%;
+                svg                    {position: absolute;
+                                        left: 0;
+                                        margin-left: 0;
+                                        margin-top: -0.45rem;
+                                        top: 50%;
+                    &.inactive         {opacity: 30%;
+                    }
                 }
             }
-            td                         {border-top-color: lighten($pallette2, 5%);
-
-            }
-            td:first-child             {position: sticky;
+            td                         {border-top-color: lighten($pallette2, 10%);
+                                        vertical-align: middle;
+                &.noun,
+                &.pronoun,
+                &.proper_noun          {background-color: lighten($nominative, 60%);
+                                        color: $nominative;
+                                        border-top-color: lighten($nominative, 55%);
+                }
+                &.adjective            {background-color: lighten($nominative, 62%);
+                                        color: lighten($nominative, 10%);
+                                        border-top-color: lighten($nominative, 57%);
+                }
+                &.verb                 {background-color: lighten($verb, 50%);
+                                        color: darken($verb, 10%);
+                                        border-top-color: lighten($verb, 40%);
+                }
+                &.preposition          {background-color: lighten($preposition, 65%);
+                                        color: darken($preposition, 10%);
+                                        border-top-color: lighten($preposition, 55%);
+                }
+                &.adverb               {background-color: lighten($dative, 55%);
+                                        color: darken($dative, 10%);
+                                        border-top-color: lighten($dative, 50%);
+                }
+                &.conjunction          {background-color: lighten($textColor, 70%);
+                                        color: $textColor;
+                                        border-top-color: lighten($textColor, 65%);
+                }
+                &.particle             {background-color: lighten($textColor, 73%);
+                                        color: darken($textColor, 10%);
+                                        border-top-color: lighten($textColor, 63%);
+                }
+                &:first-child             {position: sticky;
                                         left: 0;
-                                        background-color: lighten($pallette2, 20%);
-                                        color: darken($pallette2, 40%);
                                         font-family: $greek-fonts;
-                                        font-size: 1.25rem;
+                                        font-size: 1.5rem;
+                }
+                &:nth-child(2)          {padding-right: 0;
+                }
             }
         }
     }

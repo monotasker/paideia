@@ -4,7 +4,10 @@ import {
     Col,
     Table,
     Form,
-    Button
+    Button,
+    OverlayTrigger,
+    Tooltip,
+    Badge
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import greekUtils from 'greek-utils/lib/index'
@@ -33,6 +36,7 @@ const VocabView = () => {
   useEffect(() => {
     fetchVocabulary({vocab_scope_selector: 0})
     .then(mydata => {
+      console.log(mydata);
       setVocab(assembleVocab(mydata.mylemmas));
       setTotalCount(mydata.total_count);
     });
@@ -58,31 +62,44 @@ const VocabView = () => {
 
   const makeForms = (w) => {
     const forms = [];
-    if ( w['real_stem'] ) { forms.push({form: `real stem: ${w['real_stem']}`,
-                                        tip: null}) }
-    if ( w['genitive'] ) { forms.push({form: `gen: ${w['genitive']}`,
-                                        tip: null}) }
-    const principal_parts = [w['future'], w['aorist_active'],
-                             w['perfect_active'], w['aorist_passive'],
-                             w['perfect_passive']];
-    if (  ) {
-      forms.push({form: `gen: ${w['genitive']}`,
-                                        tip: null}) }
-
-other_irregular
-
-    return (
-      <OverlayTrigger key={inst} placement="top"
-        overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
-      >
-          { inst_set[inst][0] === "font" ? (
-            <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
-            ) : (
-            <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
-            )
+    if ( !["", null, "none", undefined].includes(w['real_stem']) ) {
+      forms.push(<span className='vocab keyforms realstem'>{`real stem: ${w['real_stem']}`}</span>)
+    }
+    if ( !["", null, "none", undefined].includes(w['genitive_singular']) ) {
+      forms.push(<span className='vocab keyforms genitive'>{`gen: ${w['genitive_singular']};`}</span>)
+    }
+    const principal_parts = [{tense: "future active", form: w['future']},
+                             {tense: "aorist active", form: w['aorist_active']},
+                             {tense: "perfect active", form: w['perfect_active']},
+                             {tense: "aorist passive", form: w['aorist_passive']},
+                             {tense: "perfect passive", form: w['perfect_passive']}
+                            ];
+    if ( principal_parts.some(i => !["", null, "none", undefined].includes(i.form)) ) {
+      const myPL = "principal parts: ";
+      const myPP = principal_parts.map(p =>
+        <OverlayTrigger key={`${w.id}_${p.tense}`} placement="top"
+          overlay={
+            <Tooltip id={`tooltip-${w.id}_${p.tense}`}>
+              {!["", null, "none", undefined].includes(p.form) ?
+                `${p.tense} indicative (1p sing.) form of ${w.accented_lemma}` : `${w.accented_lemma} does not appear in the ${p.tense} indicative`}
+            </Tooltip>
           }
-      </OverlayTrigger>
-    )
+        >
+          <a className={`vocab keyforms verb ${p.tense}`}>
+           {!["", null, "none", undefined].includes(p.form) ? <span className={`${p.tense}`}>{p.form} </span> : "--"}
+          </a>
+        </OverlayTrigger>
+        );
+      forms.push(<p>{[myPL, ...myPP]}</p>);
+    }
+    if ( !["", null, "none", undefined].includes(w['other_irregular']) ) {
+      forms.push(<p className="vocab keyforms other">
+                  {`other irregular forms: ${w['other_irregular']}`}
+                 </p>);
+    }
+    console.log(forms);
+
+    return forms;
   }
 
   const resetAction = () => {
@@ -95,27 +112,38 @@ other_irregular
   const WordRow = (props) => {
     return (
       <tr>
-        <td>{props.w.accented_lemma}</td>
-        <td>{props.w.part_of_speech}</td>
-        <td>{props.w.glosses.join(', ')}</td>
+        <td className={props.w.part_of_speech}>{props.w.accented_lemma}</td>
+        <td className={props.w.part_of_speech}><Badge pill>{parts_of_speech[props.w.part_of_speech]}</Badge></td>
+        <td>{props.w.glosses.map((g, i) => <p key={i}>{g}</p>)}</td>
         <td>{props.w.key_forms}</td>
         <td>{props.w.set_introduced}</td>
-        <td>{props.w.videos}</td>
+        <td>{props.w.videos.map((v, i) => <a key={i} href={v[2]}>{v[1]}</a>)}</td>
         <td>{props.w.times_in_nt}</td>
       </tr>
     )
   }
 
+  const parts_of_speech = {
+    noun: 'N',
+    proper_noun: 'PN',
+    verb: 'V',
+    adjective: 'Adj',
+    adverb: 'Adv',
+    preposition: 'Prep',
+    conjunction: 'C',
+    particle: 'Pt'
+  }
+
   const headings = [
     {label: "Dictionary form",
      field: "normalized_lemma"},
-    {label: "Part of speech",
+    {label: "PoS",
      field: "part_of_speech"},
     {label: "Glosses",
      field: null},
     {label: "Key forms",
      field: null},
-    {label: "Badge set",
+    {label: "Set",
      field: "set_introduced"},
     {label: "Video",
      field: null},
