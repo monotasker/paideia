@@ -7,6 +7,7 @@ import {
     Button
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import greekUtils from 'greek-utils/lib/index'
 
 import { fetchVocabulary } from "../Services/stepFetchService";
 
@@ -32,8 +33,7 @@ const VocabView = () => {
   useEffect(() => {
     fetchVocabulary({vocab_scope_selector: 0})
     .then(mydata => {
-      console.log(mydata);
-      setVocab(mydata.mylemmas);
+      setVocab(assembleVocab(mydata.mylemmas));
       setTotalCount(mydata.total_count);
     });
   }, []);
@@ -46,8 +46,43 @@ const VocabView = () => {
     event.preventDefault();
   }
 
-  const makeForms = (word) => {
-    return "";
+  const assembleVocab = (vocab) => {
+    const newVocab = vocab.map((i) => {
+      return {...i,
+              normalized_lemma: greekUtils.sanitizeDiacritics(i['normalized_lemma']),
+              key_forms: makeForms(i)
+      }
+    });
+    return newVocab
+  }
+
+  const makeForms = (w) => {
+    const forms = [];
+    if ( w['real_stem'] ) { forms.push({form: `real stem: ${w['real_stem']}`,
+                                        tip: null}) }
+    if ( w['genitive'] ) { forms.push({form: `gen: ${w['genitive']}`,
+                                        tip: null}) }
+    const principal_parts = [w['future'], w['aorist_active'],
+                             w['perfect_active'], w['aorist_passive'],
+                             w['perfect_passive']];
+    if (  ) {
+      forms.push({form: `gen: ${w['genitive']}`,
+                                        tip: null}) }
+
+other_irregular
+
+    return (
+      <OverlayTrigger key={inst} placement="top"
+        overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
+      >
+          { inst_set[inst][0] === "font" ? (
+            <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
+            ) : (
+            <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
+            )
+          }
+      </OverlayTrigger>
+    )
   }
 
   const resetAction = () => {
@@ -63,7 +98,7 @@ const VocabView = () => {
         <td>{props.w.accented_lemma}</td>
         <td>{props.w.part_of_speech}</td>
         <td>{props.w.glosses.join(', ')}</td>
-        <td>{makeForms(props.w)}</td>
+        <td>{props.w.key_forms}</td>
         <td>{props.w.set_introduced}</td>
         <td>{props.w.videos}</td>
         <td>{props.w.times_in_nt}</td>
