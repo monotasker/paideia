@@ -135,6 +135,8 @@ const VocabView = () => {
   }
 
   const WordRow = (props) => {
+    console.log('word row rendering');
+
     return (
       <tr>
         <td className={props.w.part_of_speech}>{props.w.accented_lemma}</td>
