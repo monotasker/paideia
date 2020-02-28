@@ -256,8 +256,8 @@ h3                                      {font-family: $sans-fonts;
     }
 }
 
-.panel-body                {position: absolute;
-                            width: 80%;
+.panel-body                {position: fixed;
+                            width: 80vw;
                             height: 100%;
                             right: 0;
                             top: -1rem;
@@ -269,7 +269,7 @@ h3                                      {font-family: $sans-fonts;
                             padding-right: 0;
 
     &.panel-body-enter         {//right: -80%;
-                                transform: translate3d(180%, 0, 0);
+                                transform: translate3d(180vw, 0, 0);
     }
     &.panel-body-enter-done    {//right: 0;
                                 transform: translate3d(0, 0, 0);
@@ -282,15 +282,15 @@ h3                                      {font-family: $sans-fonts;
     &.panel-body-exit-done,
     &.panel-body-exit-active   {//opacity: 0;
                                 //right: -80%;
-                                transform: translate3d(180%, 0, 0);
+                                transform: translate3d(180vw, 0, 0);
                                 transition: all 500ms;
     }
 
     @media (max-width: map-get($grid-breakpoints, md))
-                               {width: 100%;
+                               {width: 100vw;
     }
     @media (min-width: map-get($grid-breakpoints, lg))
-                               {width: 60%;
+                               {width: 60vw;
     }
 
 }
@@ -447,7 +447,7 @@ h3                                      {font-family: $sans-fonts;
             .query-display-admin-status     {font-size: $font-size-base * 0.75;
             }
         }
-        .query-display-admin-comment     {background-color: lighten($pallette3, 40%);
+        .query-display-admin-comment     {background-color: lighten($pallette3, 45%);
                                           color: darken($pallette3, 20%);
                                         position: relative;
                                         margin-right: 36%;

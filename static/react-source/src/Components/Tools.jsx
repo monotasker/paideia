@@ -65,7 +65,7 @@ const Tools = () => {
                     <CSSTransition
                         key={label}
                         in={label === openPanel}
-                        timeout={0}
+                        timeout={200}
                         classNames="panel-body"
                         mountOnEnter={true}
                         appear={true}

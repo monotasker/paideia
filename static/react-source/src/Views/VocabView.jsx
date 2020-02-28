@@ -7,7 +7,8 @@ import {
     Button,
     OverlayTrigger,
     Tooltip,
-    Badge
+    Badge,
+    Spinner
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import greekUtils from 'greek-utils/lib/index'
@@ -23,6 +24,7 @@ const VocabView = () => {
     return myOrder === "asc" ? result : result * -1;
   }
 
+  const [ updating, setUpdating ] = useState(false);
   const [ mySortCol, setMySortCol ] = useState("normalized_lemma");
   const [ myOrder, setMyOrder ] = useState("asc");
   const [ vocab, setVocab ] = useState([]);
@@ -34,11 +36,26 @@ const VocabView = () => {
   const restrictedVocab = filteredVocab.filter(w => chosenSets.length != 0 ? chosenSets.includes(w['set_introduced']) : true );
 
   useEffect(() => {
+    setUpdating(true);
+    const storedData = window.localStorage.getItem('vocab');
+    if ( storedData ) {
+      try {
+        const myvocab = JSON.parse(storedData || "[]");
+        console.log(myvocab);
+        setVocab(assembleVocab(myvocab));
+        setTotalCount(storedData.length);
+      } catch(SyntaxError) {
+        window.localStorage.removeItem('vocab');
+      }
+    }
+
     fetchVocabulary({vocab_scope_selector: 0})
     .then(mydata => {
       console.log(mydata);
       setVocab(assembleVocab(mydata.mylemmas));
       setTotalCount(mydata.total_count);
+      window.localStorage.setItem('vocab', JSON.stringify(mydata.mylemmas));
+      setUpdating(false);
     });
   }, []);
 
@@ -63,41 +80,49 @@ const VocabView = () => {
   const makeForms = (w) => {
     const forms = [];
     if ( !["", null, "none", undefined].includes(w['real_stem']) ) {
-      forms.push(<span className='vocab keyforms realstem'>{`real stem: ${w['real_stem']}`}</span>)
+      forms.push(<span key="realstem" className='vocab keyforms realstem'>
+                  {`real stem: ${w['real_stem']}`}
+                 </span>);
     }
     if ( !["", null, "none", undefined].includes(w['genitive_singular']) ) {
-      forms.push(<span className='vocab keyforms genitive'>{`gen: ${w['genitive_singular']};`}</span>)
+      forms.push(<span key="gen" className='vocab keyforms genitive'>
+                  {`gen: ${w['genitive_singular']};`}
+                 </span>);
     }
-    const principal_parts = [{tense: "future active", form: w['future']},
-                             {tense: "aorist active", form: w['aorist_active']},
-                             {tense: "perfect active", form: w['perfect_active']},
-                             {tense: "aorist passive", form: w['aorist_passive']},
-                             {tense: "perfect passive", form: w['perfect_passive']}
-                            ];
-    if ( principal_parts.some(i => !["", null, "none", undefined].includes(i.form)) ) {
-      const myPL = "principal parts: ";
-      const myPP = principal_parts.map(p =>
-        <OverlayTrigger key={`${w.id}_${p.tense}`} placement="top"
-          overlay={
-            <Tooltip id={`tooltip-${w.id}_${p.tense}`}>
-              {!["", null, "none", undefined].includes(p.form) ?
-                `${p.tense} indicative (1p sing.) form of ${w.accented_lemma}` : `${w.accented_lemma} does not appear in the ${p.tense} indicative`}
-            </Tooltip>
-          }
-        >
-          <a className={`vocab keyforms verb ${p.tense}`}>
-           {!["", null, "none", undefined].includes(p.form) ? <span className={`${p.tense}`}>{p.form} </span> : "--"}
-          </a>
-        </OverlayTrigger>
-        );
-      forms.push(<p>{[myPL, ...myPP]}</p>);
-    }
+    // const principal_parts = [{tense: "future active", form: w['future']},
+    //                          {tense: "aorist active", form: w['aorist_active']},
+    //                          {tense: "perfect active", form: w['perfect_active']},
+    //                          {tense: "aorist passive", form: w['aorist_passive']},
+    //                          {tense: "perfect passive", form: w['perfect_passive']}
+    //                         ];
+    // if ( principal_parts.some(i => !["", null, "none", undefined].includes(i.form)) ) {
+
+    //   const myPP = principal_parts.map(p =>
+    //     <li key={`${w.id}_${p.tense}`}>
+    //     <OverlayTrigger placement="top"
+    //       overlay={
+    //         <Tooltip id={`tooltip-${w.id}_${p.tense}`}>
+    //           {!["", null, "none", undefined].includes(p.form) ?
+    //             `${p.tense} indicative (1p sing.) form of ${w.accented_lemma}` : `${w.accented_lemma} does not appear in the ${p.tense} indicative`}
+    //         </Tooltip>
+    //       }
+    //     >
+    //       <a className={`vocab keyforms verb ${p.tense}`}>
+    //        {!["", null, "none", undefined].includes(p.form) ? <span className={`${p.tense}`}>{p.form} </span> : "--"}
+    //       </a>
+    //     </OverlayTrigger>
+    //     </li>
+    //     );
+    //   forms.push(<div key="pps" className="vocab keyforms pps">
+    //               principal parts:<ul>{myPP}</ul>
+    //              </div>);
+    // }
     if ( !["", null, "none", undefined].includes(w['other_irregular']) ) {
-      forms.push(<p className="vocab keyforms other">
+      forms.push(<div key="other" className="vocab keyforms other">
                   {`other irregular forms: ${w['other_irregular']}`}
-                 </p>);
+                 </div>);
     }
-    console.log(forms);
+    // console.log(forms);
 
     return forms;
   }
@@ -114,10 +139,10 @@ const VocabView = () => {
       <tr>
         <td className={props.w.part_of_speech}>{props.w.accented_lemma}</td>
         <td className={props.w.part_of_speech}><Badge pill>{parts_of_speech[props.w.part_of_speech]}</Badge></td>
-        <td>{props.w.glosses.map((g, i) => <p key={i}>{g}</p>)}</td>
+        <td><ul>{props.w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul></td>
         <td>{props.w.key_forms}</td>
         <td>{props.w.set_introduced}</td>
-        <td>{props.w.videos.map((v, i) => <a key={i} href={v[2]}>{v[1]}</a>)}</td>
+        <td><ul>{props.w.videos.map((v, i) => <li key={i}><a href={v[2]}>{v[1]}</a></li>)}</ul></td>
         <td>{props.w.times_in_nt}</td>
       </tr>
     )
@@ -218,6 +243,10 @@ const VocabView = () => {
               </Form.Row>
             </Form>
             Showing {restrictedVocab.length} out of the total {vocab.length} words used in all interactions.
+            <span className="vocabview updating">{updating ?
+              (<span><Spinner animation="grow" />{"Checking for updates"}</span>) :
+              (<span className="done">Up to date</span>)}
+            </span>
             <div className="vocabtable-container">
               <Table>
                 <thead>
