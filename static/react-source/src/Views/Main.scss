@@ -268,10 +268,12 @@ h3                                      {font-family: $sans-fonts;
                             padding: 2rem;
                             padding-right: 0;
 
-    &.panel-body-enter         {//right: -80%;
+    &.panel-body-enter,
+    &.panel-body-appear        {//right: -80%;
                                 transform: translate3d(180vw, 0, 0);
     }
-    &.panel-body-enter-done    {//right: 0;
+    &.panel-body-enter-done,
+    &.panel-body-appear-done   {//right: 0;
                                 transform: translate3d(0, 0, 0);
                                 transition: all 500ms;
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useContext } from "react";
 import {
     Row,
     Col,
@@ -14,8 +14,98 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import greekUtils from 'greek-utils/lib/index'
 
 import { fetchVocabulary } from "../Services/stepFetchService";
+import { UserContext } from "../UserContext/UserProvider";
 
-const VocabView = () => {
+
+const LinkHeading = ({ field, label, mySortCol, myOrder, sortHandler }) => {
+  let myIcon = "";
+  let myActiveState = "";
+  if (field == mySortCol && myOrder == "asc") {
+    myIcon = "sort-down";
+    myActiveState = "active";
+  } else if (field == mySortCol && myOrder == "desc") {
+    myIcon = "sort-up";
+    myActiveState = "active";
+  } else {
+    myIcon = "sort";
+    myActiveState = "inactive";
+  }
+  return (
+    <th key={label}>
+      <a href="#" onClick={e => sortHandler(e, field)}
+        className="vocabview-sorter-link"
+      >
+        {label}
+        <FontAwesomeIcon icon={myIcon} className={myActiveState} />
+      </a>
+    </th>
+  );
+}
+
+
+const wordsAreEqual = (prevProps, nextProps) => {
+  console.log('checking word equality');
+  console.log(prevProps);
+  // return prevProps.w.accented_lemma == nextProps.w.accented_lemma;
+}
+
+
+const WordRow = React.memo(({ w }) => {
+  const parts_of_speech = {
+    noun: 'N',
+    proper_noun: 'PN',
+    verb: 'V',
+    adjective: 'Adj',
+    adverb: 'Adv',
+    preposition: 'Prep',
+    conjunction: 'C',
+    particle: 'Pt'
+  }
+  console.log('word row rendering');
+  return (
+    <tr>
+      <td className={w.part_of_speech}>{w.accented_lemma}</td>
+      <td className={w.part_of_speech}><Badge pill>{parts_of_speech[w.part_of_speech]}</Badge></td>
+      <td><ul>{w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul></td>
+      <td>{w.key_forms}</td>
+      <td>{w.set_introduced}</td>
+      <td><ul>{w.videos.map((v, i) => <li key={i}><a href={v[2]}>{v[1]}</a></li>)}</ul></td>
+      <td>{w.times_in_nt}</td>
+    </tr>
+  )
+}, wordsAreEqual);
+
+
+const vocabIsEqual = (prevProps, nextProps) => {
+  console.log('checking vocab equality');
+  const oldWordIDs = JSON.stringify(prevProps.vocab.map(w => w.id));
+  const newWordIDs = JSON.stringify(nextProps.vocab.map(w => w.id));
+  return oldWordIDs === newWordIDs;
+}
+
+
+const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler }) => {
+  return(
+    <Table>
+      <thead>
+        <tr>
+          {headings.map(({label, field}) => (
+            field ?
+            <LinkHeading key={label} label={label} field={field}
+              mySortCol={sortCol} myOrder={order} sortHandler={sortHandler}
+            /> :
+            <th key={label}>{label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {vocab.map(w => <WordRow w={w} key={`wordrow_${w.id}`} />)}
+      </tbody>
+    </Table>
+  )
+}, vocabIsEqual);
+
+const VocabView = (props) => {
 
   const compareVocab = (a, b) => {
     const term1 = typeof a[mySortCol] === 'string' ? a[mySortCol].toUpperCase() : (a[mySortCol] || 0);
@@ -24,50 +114,70 @@ const VocabView = () => {
     return myOrder === "asc" ? result : result * -1;
   }
 
+  const doVocabSort = (words, myCol) => {
+    return myCol != "" ? [...words].sort(compareVocab) : words
+  }
+  const doStringMatch = (string1, string2) => {
+    return string2 != "" ? string1.includes(string2) : true
+  }
+
+  const { user, dispatch } = useContext(UserContext);
   const [ updating, setUpdating ] = useState(false);
+  const [ processing, setProcessing] = useState(true);
   const [ mySortCol, setMySortCol ] = useState("normalized_lemma");
   const [ myOrder, setMyOrder ] = useState("asc");
   const [ vocab, setVocab ] = useState([]);
-  const sortedVocab = mySortCol != "" ? [...vocab].sort(compareVocab) : vocab;
-  const [ totalCount, setTotalCount ] = useState(0);
+  const sortedVocab = useMemo(() => doVocabSort(vocab, mySortCol), [vocab, mySortCol, myOrder]);
   const [ searchString, setSearchString ] = useState("");
-  const filteredVocab = sortedVocab.filter(w => searchString != "" ? w['normalized_lemma'].includes(searchString) : true );
-  const [ chosenSets, setChosenSets ] = useState([]);
-  const restrictedVocab = filteredVocab.filter(w => chosenSets.length != 0 ? chosenSets.includes(w['set_introduced']) : true );
+  const filteredVocab = useMemo(() => sortedVocab.filter(w => doStringMatch(w['normalized_lemma'], greekUtils.sanitizeDiacritics(searchString))),
+    [sortedVocab, searchString]
+  );
+  const [ chosenSets, setChosenSets ] = useState(
+    Array.from('x'.repeat(user.currentBadgeSet), (_, i) => 1 + i)
+  );
+  const restrictedVocab = filteredVocab.filter(
+    w => chosenSets.length != 0 ? chosenSets.includes(w['set_introduced']) : true
+  );
 
   useEffect(() => {
+    console.log('fetching from server');
     setUpdating(true);
-    const storedData = window.localStorage.getItem('vocab');
-    if ( storedData ) {
-      try {
-        const myvocab = JSON.parse(storedData || "[]");
-        console.log(myvocab);
-        setVocab(assembleVocab(myvocab));
-        setTotalCount(storedData.length);
-      } catch(SyntaxError) {
-        window.localStorage.removeItem('vocab');
-      }
-    }
-
     fetchVocabulary({vocab_scope_selector: 0})
     .then(mydata => {
       console.log(mydata);
       setVocab(assembleVocab(mydata.mylemmas));
-      setTotalCount(mydata.total_count);
       window.localStorage.setItem('vocab', JSON.stringify(mydata.mylemmas));
       setUpdating(false);
     });
   }, []);
 
+  useEffect(() => {
+    window.setTimeout(1);
+    // const storedData = window.localStorage.getItem('vocab');
+    // if ( storedData ) {
+    //   try {
+    //     const myvocab = JSON.parse(storedData || "[]");
+    //     console.log(myvocab);
+    //     setVocab(assembleVocab(myvocab));
+    //   } catch(SyntaxError) {
+    //     window.localStorage.removeItem('vocab');
+    //   }
+    // }
+    setProcessing(false);
+  }, []);
+
   const sortVocab = (event, mystring) => {
+    console.log('fired with', mystring);
+    event.preventDefault();
     if ( mySortCol === mystring ) {
       setMyOrder(myOrder === "asc" ? "desc" : "asc");
     }
     setMySortCol(mystring);
-    event.preventDefault();
   }
 
   const assembleVocab = (vocab) => {
+    console.log('assembling vocab');
+
     const newVocab = vocab.map((i) => {
       return {...i,
               normalized_lemma: greekUtils.sanitizeDiacritics(i['normalized_lemma']),
@@ -78,6 +188,7 @@ const VocabView = () => {
   }
 
   const makeForms = (w) => {
+    console.log('making forms');
     const forms = [];
     if ( !["", null, "none", undefined].includes(w['real_stem']) ) {
       forms.push(<span key="realstem" className='vocab keyforms realstem'>
@@ -89,34 +200,34 @@ const VocabView = () => {
                   {`gen: ${w['genitive_singular']};`}
                  </span>);
     }
-    // const principal_parts = [{tense: "future active", form: w['future']},
-    //                          {tense: "aorist active", form: w['aorist_active']},
-    //                          {tense: "perfect active", form: w['perfect_active']},
-    //                          {tense: "aorist passive", form: w['aorist_passive']},
-    //                          {tense: "perfect passive", form: w['perfect_passive']}
-    //                         ];
-    // if ( principal_parts.some(i => !["", null, "none", undefined].includes(i.form)) ) {
+    const principal_parts = [{tense: "future active", form: w['future']},
+                             {tense: "aorist active", form: w['aorist_active']},
+                             {tense: "perfect active", form: w['perfect_active']},
+                             {tense: "aorist passive", form: w['aorist_passive']},
+                             {tense: "perfect passive", form: w['perfect_passive']}
+                            ];
+    if ( principal_parts.some(i => !["", null, "none", undefined].includes(i.form)) ) {
 
-    //   const myPP = principal_parts.map(p =>
-    //     <li key={`${w.id}_${p.tense}`}>
-    //     <OverlayTrigger placement="top"
-    //       overlay={
-    //         <Tooltip id={`tooltip-${w.id}_${p.tense}`}>
-    //           {!["", null, "none", undefined].includes(p.form) ?
-    //             `${p.tense} indicative (1p sing.) form of ${w.accented_lemma}` : `${w.accented_lemma} does not appear in the ${p.tense} indicative`}
-    //         </Tooltip>
-    //       }
-    //     >
-    //       <a className={`vocab keyforms verb ${p.tense}`}>
-    //        {!["", null, "none", undefined].includes(p.form) ? <span className={`${p.tense}`}>{p.form} </span> : "--"}
-    //       </a>
-    //     </OverlayTrigger>
-    //     </li>
-    //     );
-    //   forms.push(<div key="pps" className="vocab keyforms pps">
-    //               principal parts:<ul>{myPP}</ul>
-    //              </div>);
-    // }
+      const myPP = principal_parts.map(p =>
+        <li key={`${w.id}_${p.tense}`}>
+        <OverlayTrigger placement="top"
+          overlay={
+            <Tooltip id={`tooltip-${w.id}_${p.tense}`}>
+              {!["", null, "none", undefined].includes(p.form) ?
+                `${p.tense} indicative (1p sing.) form of ${w.accented_lemma}` : `${w.accented_lemma} does not appear in the ${p.tense} indicative`}
+            </Tooltip>
+          }
+        >
+          <a className={`vocab keyforms verb ${p.tense}`}>
+           {!["", null, "none", undefined].includes(p.form) ? <span className={`${p.tense}`}>{p.form} </span> : "--"}
+          </a>
+        </OverlayTrigger>
+        </li>
+        );
+      forms.push(<div key="pps" className="vocab keyforms pps">
+                  principal parts:<ul>{myPP}</ul>
+                 </div>);
+    }
     if ( !["", null, "none", undefined].includes(w['other_irregular']) ) {
       forms.push(<div key="other" className="vocab keyforms other">
                   {`other irregular forms: ${w['other_irregular']}`}
@@ -134,31 +245,16 @@ const VocabView = () => {
     document.getElementById('vocab-set-control').value = "all sets";
   }
 
-  const WordRow = (props) => {
-    console.log('word row rendering');
-
-    return (
-      <tr>
-        <td className={props.w.part_of_speech}>{props.w.accented_lemma}</td>
-        <td className={props.w.part_of_speech}><Badge pill>{parts_of_speech[props.w.part_of_speech]}</Badge></td>
-        <td><ul>{props.w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul></td>
-        <td>{props.w.key_forms}</td>
-        <td>{props.w.set_introduced}</td>
-        <td><ul>{props.w.videos.map((v, i) => <li key={i}><a href={v[2]}>{v[1]}</a></li>)}</ul></td>
-        <td>{props.w.times_in_nt}</td>
-      </tr>
-    )
-  }
-
-  const parts_of_speech = {
-    noun: 'N',
-    proper_noun: 'PN',
-    verb: 'V',
-    adjective: 'Adj',
-    adverb: 'Adv',
-    preposition: 'Prep',
-    conjunction: 'C',
-    particle: 'Pt'
+  const restrictSetsAction = (myString) => {
+    if ( myString == "all sets" ) {
+      setChosenSets([]);
+    } else if ( myString.slice(0, 9) == "sets 1 to") {
+      setChosenSets(
+        Array.from('x'.repeat(user.currentBadgeSet), (_, i) => 1 + i)
+      );
+    } else {
+      setChosenSets([parseInt(myString.slice(4))]);
+    }
   }
 
   const headings = [
@@ -177,35 +273,6 @@ const VocabView = () => {
     {label: "In NT",
      field: "times_in_nt"}
   ]
-
-  const LinkHeading = (props) => {
-    let myIcon = "";
-    let myActiveState = "";
-    if (props.field == mySortCol && myOrder == "asc") {
-      myIcon = "sort-down";
-      myActiveState = "active";
-    } else if (props.field == mySortCol && myOrder == "desc") {
-      myIcon = "sort-up";
-      myActiveState = "active";
-    } else {
-      myIcon = "sort";
-      myActiveState = "inactive";
-    }
-    return (
-      <th key={props.label}>
-        <a href="#" onClick={e => sortVocab(e, props.field)}
-          className="vocabview-sorter-link"
-        >
-          {props.label}
-          <FontAwesomeIcon icon={myIcon} className={myActiveState} />
-        </a>
-      </th>
-    );
-  }
-
-  const NonLinkHeading = (props) => {
-    return <th key={props.label}>{props.label}</th>;
-  }
 
   return(
      <Row key="VocabView" className="vocabview-component panel-view">
@@ -226,11 +293,12 @@ const VocabView = () => {
                   <Form.Group controlId="vocab-set-control">
                     <Form.Label><FontAwesomeIcon icon="filter" />Badge set</Form.Label>
                     <Form.Control as="select"
-                      onChange={e => setChosenSets([parseInt(e.target.value.slice(4))])}
+                      onChange={e => restrictSetsAction(e.target.value)}
                     >
-                      <option key="0">all sets</option>
+                      <option key="0">{`sets 1 to ${user.currentBadgeSet}`}</option>
+                      <option key="1">all sets</option>
                       {Array.from('x'.repeat(20), (_, i) => 1 + i).map( n =>
-                          <option key={n}>{`set ${n}`}</option>
+                          <option key={n + 1}>{`set ${n}`}</option>
                       )}
                     </Form.Control>
                   </Form.Group>
@@ -249,19 +317,12 @@ const VocabView = () => {
               (<span><Spinner animation="grow" />{"Checking for updates"}</span>) :
               (<span className="done">Up to date</span>)}
             </span>
-            <div className="vocabtable-container">
-              <Table>
-                <thead>
-                  <tr>
-                    {headings.map(({label, field}) => (
-                      field ? <LinkHeading key={label} label={label} field={field} /> : <NonLinkHeading key={label} label={label} />
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {restrictedVocab && restrictedVocab.map(word => <WordRow w={word} key={word.id} />)}
-                </tbody>
-              </Table>
+            <div className="vocabtable-container">{processing ? "" :
+                <VocabTable headings={headings} vocab={restrictedVocab}
+                  sortCol={mySortCol} order={myOrder} sortHandler={sortVocab}
+                />
+            }
+                <Spinner animation="grow" />
             </div>
          </Col>
      </Row>

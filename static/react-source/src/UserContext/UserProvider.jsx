@@ -16,6 +16,7 @@ let userDefaults = {
   userTimezone: window.localStorage.getItem('userTimezone') || null,
   userLoggedIn: window.localStorage.getItem('userLoggedIn') || false,
   flags: window.localStorage.getItem('flags') || [],
+  hideReadQueries: window.localStorage.getItem('hideReadQueries') || null,
   currentLocation: window.localStorage.getItem('currentLocation') || null,
   currentLocationBG: window.localStorage.getItem('currentLocationBG') || null,
   currentNpc: window.localStorage.getItem('currentNpc') || null,
@@ -24,7 +25,8 @@ let userDefaults = {
   currentStep: window.localStorage.getItem('currentStep') || null,
   currentAnswer: window.localStorage.getItem('currentAnswer') || null,
   currentScore: window.localStorage.getItem('currentScore') || null,
-  currentLogID: window.localStorage.getItem('currentLogID') || null
+  currentLogID: window.localStorage.getItem('currentLogID') || null,
+  currentBadgeSet: window.localStorage.getItem('currentLogID') || null
 }
 
 
@@ -36,6 +38,8 @@ function userReducer(state, action) {
       window.localStorage.setItem('lastName', action.payload.lastName);
       window.localStorage.setItem('userEmail', action.payload.email);
       window.localStorage.setItem('userRoles', action.payload.userRoles);
+      window.localStorage.getItem('hideReadQueries', action.payload.hideReadQueries);
+      window.localStorage.getItem('currentBadgeSet', action.payload.currentBadgeSet);
       window.localStorage.setItem('userLoggedIn', true);
       return({
         ...state,
@@ -49,6 +53,8 @@ function userReducer(state, action) {
         userTimezone: '',
         flags: [],
         currentPath: null,
+        hideReadQueries: action.payload.hideReadQueries,
+        currentBadgeSet: action.payload.currentBadgeSet
       })
     }
     case 'deactivateUser': {
@@ -67,6 +73,8 @@ function userReducer(state, action) {
         currentStep: null,
         currentPath: null,
         currentLocation: null,
+        hideReadQueries: null,
+        currentBadgeSet: null
       })
     }
     case 'setEvalResults': {

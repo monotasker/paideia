@@ -115,6 +115,10 @@ def get_login():
                              ).select(db.auth_group.role).as_list()
             myuser['roles'] = [m['role'] for m in memberships]
 
+            myuser['current_badge_set'] = db(
+                db.tag_progress.name == myuser['id']
+                ).select().first().latest_new
+
         except AttributeError:  # if login response was False and has no items
             myuser = {'id': None}
         return json(myuser)
