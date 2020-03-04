@@ -97,6 +97,7 @@ $table-background: lighten($nominative, 60%);
 
 $font-size-base:               1rem;
 $font-size-lg:                 $font-size-base * 1.25;
+$font-size-sm:                 $font-size-base * .8;
 $sans-fonts:                   "Open Sans", sans-serif;
 $greek-fonts:                  Gentium, "SBLGreekRegular", Palatino, "Arial Unicode";
 $title-fonts:                  "Amatic SC";
@@ -243,7 +244,7 @@ h3                                      {font-family: $sans-fonts;
 
 .tools-component           {position: fixed;
                             right: -5.5rem;
-                            top: 6rem;
+                            top: 5rem;
                             z-index: 30;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
                             border-radius: $border-radius 0 0 $border-radius;
@@ -371,6 +372,12 @@ h3                                      {font-family: $sans-fonts;
                 &:nth-child(2)          {padding-right: 0;
                 }
             }
+        }
+        .updating,
+        .displaycount                   {display: inline-block;
+                                         font-size: $font-size-sm;
+                                         margin-bottom: -1.5rem;
+                                         width: fit-content;
         }
     }
 }

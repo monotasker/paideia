@@ -43,14 +43,7 @@ const LinkHeading = ({ field, label, mySortCol, myOrder, sortHandler }) => {
 }
 
 
-const wordsAreEqual = (prevProps, nextProps) => {
-  console.log('checking word equality');
-  console.log(prevProps);
-  // return prevProps.w.accented_lemma == nextProps.w.accented_lemma;
-}
-
-
-const WordRow = React.memo(({ w }) => {
+const WordRow = ({ w }) => {
   const parts_of_speech = {
     noun: 'N',
     proper_noun: 'PN',
@@ -73,7 +66,7 @@ const WordRow = React.memo(({ w }) => {
       <td>{w.times_in_nt}</td>
     </tr>
   )
-}, wordsAreEqual);
+}
 
 
 const vocabIsEqual = (prevProps, nextProps) => {
@@ -117,8 +110,35 @@ const VocabView = (props) => {
   const doVocabSort = (words, myCol) => {
     return myCol != "" ? [...words].sort(compareVocab) : words
   }
-  const doStringMatch = (string1, string2) => {
-    return string2 != "" ? string1.includes(string2) : true
+
+  const doVocabFilter = (vocabIn, strGk, strEng) => {
+    console.log(vocabIn.length);
+
+    let gkSetFinal = vocabIn;
+    if ( strGk != "" ) {
+      const strGkSan = greekUtils.sanitizeDiacritics(strGk);
+      const gkSetMatched = vocabIn.filter(w => w.normalized_lemma == strGkSan);
+      console.log(gkSetMatched.length);
+      const gkSetFuzzy = vocabIn.filter(
+        w => w.normalized_lemma != strGkSan && w.normalized_lemma.includes(strGkSan)
+      );
+      gkSetFinal = gkSetMatched.concat(gkSetFuzzy);
+      console.log(gkSetFinal.length);
+    }
+
+    let engSetFinal = gkSetFinal;
+    if ( strEng != "" ) {
+      const engSetMatched = gkSetFinal.filter(
+        w => w.glosses.some(g => g == strEng)
+      );
+      console.log(engSetMatched.length);
+      const engSetFuzzy = gkSetFinal.filter(
+        w => w.glosses.some(g => g != strEng && g.includes(strEng))
+      );
+      engSetFinal = engSetMatched.concat(engSetFuzzy);
+    }
+
+    return engSetFinal
   }
 
   const { user, dispatch } = useContext(UserContext);
@@ -127,10 +147,14 @@ const VocabView = (props) => {
   const [ mySortCol, setMySortCol ] = useState("normalized_lemma");
   const [ myOrder, setMyOrder ] = useState("asc");
   const [ vocab, setVocab ] = useState([]);
-  const sortedVocab = useMemo(() => doVocabSort(vocab, mySortCol), [vocab, mySortCol, myOrder]);
+  const sortedVocab = useMemo(
+    () => doVocabSort(vocab, mySortCol), [vocab, mySortCol, myOrder]
+  );
   const [ searchString, setSearchString ] = useState("");
-  const filteredVocab = useMemo(() => sortedVocab.filter(w => doStringMatch(w['normalized_lemma'], greekUtils.sanitizeDiacritics(searchString))),
-    [sortedVocab, searchString]
+  const [ searchStringEng, setSearchStringEng ] = useState("");
+  const filteredVocab = useMemo(
+    () => doVocabFilter(sortedVocab, searchString, searchStringEng),
+    [sortedVocab, searchString, searchStringEng]
   );
   const [ chosenSets, setChosenSets ] = useState(
     Array.from('x'.repeat(user.currentBadgeSet), (_, i) => 1 + i)
@@ -240,13 +264,15 @@ const VocabView = (props) => {
 
   const resetAction = () => {
     setSearchString("");
+    setSearchStringEng("");
     setChosenSets([]);
     document.getElementById('vocab-search-control').value = "";
-    document.getElementById('vocab-set-control').value = "all sets";
+    document.getElementById('vocab-search-control-english').value = "";
+    document.getElementById('vocab-set-control').value = "all badge sets";
   }
 
   const restrictSetsAction = (myString) => {
-    if ( myString == "all sets" ) {
+    if ( myString == "all badge sets" ) {
       setChosenSets([]);
     } else if ( myString.slice(0, 9) == "sets 1 to") {
       setChosenSets(
@@ -285,18 +311,29 @@ const VocabView = (props) => {
                     controlId="vocab-search-control"
                     onChange={e => setSearchString(e.target.value)}
                   >
-                    <Form.Label><FontAwesomeIcon icon="search" />Search</Form.Label>
-                    <Form.Control></Form.Control>
+                    {/* <Form.Label><FontAwesomeIcon icon="search" />Search</Form.Label> */}
+                    <Form.Control placeholder="Search Greek words"
+                    ></Form.Control>
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group
+                    controlId="vocab-search-control-english"
+                    onChange={e => setSearchStringEng(e.target.value)}
+                  >
+                    {/* <Form.Label><FontAwesomeIcon icon="search" />Search</Form.Label> */}
+                    <Form.Control placeholder="Search English glosses"
+                    ></Form.Control>
                   </Form.Group>
                 </Col>
                 <Col>
                   <Form.Group controlId="vocab-set-control">
-                    <Form.Label><FontAwesomeIcon icon="filter" />Badge set</Form.Label>
+                    {/* <Form.Label><FontAwesomeIcon icon="filter" />Badge set</Form.Label> */}
                     <Form.Control as="select"
                       onChange={e => restrictSetsAction(e.target.value)}
                     >
                       <option key="0">{`sets 1 to ${user.currentBadgeSet}`}</option>
-                      <option key="1">all sets</option>
+                      <option key="1">all badge sets</option>
                       {Array.from('x'.repeat(20), (_, i) => 1 + i).map( n =>
                           <option key={n + 1}>{`set ${n}`}</option>
                       )}
@@ -312,11 +349,6 @@ const VocabView = (props) => {
                 </Col>
               </Form.Row>
             </Form>
-            Showing {restrictedVocab.length} out of the total {vocab.length} words used in all interactions.
-            <span className="vocabview updating">{updating ?
-              (<span><Spinner animation="grow" />{"Checking for updates"}</span>) :
-              (<span className="done">Up to date</span>)}
-            </span>
             <div className="vocabtable-container">{processing ? "" :
                 <VocabTable headings={headings} vocab={restrictedVocab}
                   sortCol={mySortCol} order={myOrder} sortHandler={sortVocab}
@@ -324,6 +356,13 @@ const VocabView = (props) => {
             }
                 <Spinner animation="grow" />
             </div>
+            <span className="vocabview updating">{updating ?
+              (<span><Spinner animation="grow" />{"Checking for updates"}</span>) :
+              (<span className="done">Up to date</span>)}
+            </span>
+            <span className="vocabview displaycount">
+              Showing {restrictedVocab.length} out of the total {vocab.length} words.
+            </span>
          </Col>
      </Row>
   )
