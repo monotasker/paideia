@@ -335,3 +335,21 @@ def get_vocabulary():
 
     return json({'total_count': len(mylemmas),
                  'mylemmas': mylemmas})
+
+
+def get_lessons():
+    """
+    Api method to fetch information on the video lessons and associated pdfs.
+
+    Doesn't expect any parameters or arguments, and always returns the same
+    data unless the database information has changed.
+
+    """
+    lessons = db(db.lessons.active == True
+                 ).select(orderby=db.lessons.lesson_position
+                          ).as_list()
+    for l in lessons:
+        mybadges = db(db.badges.tag.belongs(l['lesson_tags'])).select()
+        l['badges'] = mybadges.as_list()
+
+    return json(lessons)
