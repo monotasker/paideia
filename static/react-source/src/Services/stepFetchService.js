@@ -120,8 +120,22 @@ const fetchVocabulary = async ({vocab_scope_selector=0}) => {
   return await response.json();
 }
 
+const fetchLessons = async () => {
+  let response = await fetch('/paideia/api/get_lessons', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+  })
+  return await response.json();
+}
+
 export { getPromptData,
          evaluateAnswer,
          getStepQueries,
          submitNewQuery,
-         fetchVocabulary }
+         fetchVocabulary,
+         fetchLessons }
