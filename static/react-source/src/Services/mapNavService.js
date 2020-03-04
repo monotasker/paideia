@@ -52,11 +52,11 @@ function set_svg_interactions(select_string, navFunction) {
         loc.addEventListener('touchstart', svg_mask_other);
         loc.addEventListener('mouseleave', svg_show_other);
         loc.addEventListener('click', (evt) => {
-          navFunction(evt.currentTarget.id);
+          navFunction({newLoc: evt.currentTarget.id});
           evt.preventDefault();
         });
         loc.addEventListener('touchstart', (evt) => {
-          navFunction(evt.currentTarget.id);
+          navFunction({newLoc: evt.currentTarget.id});
           evt.preventDefault();
         });
     });

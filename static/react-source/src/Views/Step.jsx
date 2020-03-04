@@ -99,7 +99,7 @@ const Step = (props) => {
     setEvalText(null);
     setPromptText(null);
     setRespButtons(null);
-    props.navfunction("map");
+    props.navfunction({newLoc: "map"});
   }
 
   const retryAction = () => {
@@ -107,9 +107,16 @@ const Step = (props) => {
     setPromptText(null);
     setEvalText(null);
     setRespButtons(null);
-    props.navfunction(props.myroute);
-    setPromptText(stepData.prompt_text);
-    setRespButtons(stepData.response_buttons);
+    getPromptData({location: props.myroute, repeat: true})
+    .then(stepfetch => {
+      returnStatusCheck(stepfetch, props.history,
+        (mydata) => {
+            setStepData(mydata);
+            setPromptText(mydata.prompt_text);
+            setRespButtons(mydata.response_buttons);
+        },
+        dispatch)
+    });
   }
 
   const continueAction = () => {

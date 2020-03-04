@@ -17,10 +17,10 @@ const Walk = (props) => {
     const [stepIn, setStepIn] = useState(false);
     const [stepData, setStepData] = useState(false);
 
-    const goToLocation = async (newLoc) => {
+    const goToLocation = async ({newLoc=null, retrying=false}) => {
       setCurrentPage(newLoc);
       if ( newLoc != "map" ) {
-        getPromptData({location: newLoc})
+        getPromptData({location: newLoc, repeat: retrying})
         .then(stepfetch => {
           returnStatusCheck(stepfetch, props.history,
             (mydata) => {
