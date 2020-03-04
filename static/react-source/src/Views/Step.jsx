@@ -97,14 +97,14 @@ const Step = (props) => {
   const mapAction = () => {
     setResponded(false);
     setEvalText(null);
-    setPromptText(null);
+    setPromptText("");
     setRespButtons(null);
     props.navfunction({newLoc: "map"});
   }
 
   const retryAction = () => {
     setResponded(false);
-    setPromptText(null);
+    setPromptText("");
     setEvalText(null);
     setRespButtons(null);
     getPromptData({location: props.myroute, repeat: true})
@@ -279,21 +279,23 @@ const Step = (props) => {
               </Button>
             </Form>
           )}
-          { !!respButtons && respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
-          { user.userRoles.includes('administrators') && (
-            <React.Fragment>
-              <span className="step-id">step {stepData['sid']},</span>&nbsp;
-              <span className="path-id">path {stepData['pid']}</span>&nbsp;
-              <span className="selection-level">level {stepData.category}</span>&nbsp;
-            </React.Fragment>
-          )}
-          <span className="current-count">
-            {!responded ? "This will make " : "You have finished "}
-            {`${stepData.completed_count} paths today`}
-          </span>
-          <span className="new-indicator">
-            {stepData.new_content ? "new" : "review"}
-          </span>
+            { !!respButtons && respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
+            { user.userRoles.includes('administrators') && (
+              <div className="admin-info">
+                <span className="step-id">step {stepData['sid']},</span>&nbsp;
+                <span className="path-id">path {stepData['pid']}</span>&nbsp;
+                <span className="selection-level">level {stepData.category}</span>&nbsp;
+              </div>
+            )}
+              <div className="user-info">
+                <span className="current-count">
+                  {!responded ? "This will make " : "You have finished "}
+                  {`${stepData.completed_count} paths today`}
+                </span>
+              </div>
+              <span className="new-indicator">
+                {stepData.new_content ? <FontAwesomeIcon icon="leaf" /> : <FontAwesomeIcon icon="history" />}
+              </span>
             </div>
           </Col>
         </Row>
