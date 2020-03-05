@@ -4,42 +4,88 @@ import {
   Col,
   Accordion,
   Card,
-  Button
+  Button,
+  ListGroup
 } from "react-bootstrap";
 
 import { UserContext } from "../UserContext/UserProvider";
 import { fetchLessons } from "../Services/stepFetchService";
 
-const LessonList = () => {
+const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
+  const setnums = lessons.map(
+    item => parseInt(item.lesson_position.toString().slice(0, -1))
+  );
+  const sets = [...new Set(setnums.filter(i => !!i))];
+
+  const setTitles = {
+    1: ["Alphabet, Nouns, and Nominative Case", "First Words"],
+    2: ["Alphabet (again), Article, Clauses", "Words for Household and Town, Pronouns"],
+    3: ["Vocative Case, Greetings, Word Order", "Exclamations and Conjunctions, Possessives, Demonstratives"],
+    4: ["'What' and 'Who' Questions", "Words for Food and Meals"],
+    5: ["Genitive Case, 3rd Declension Stems", "Words for Places and People"],
+    6: ["Plural Nominals, Adjectives", "Words for Evaluating, Possessive Adjectives"],
+    7: ["Verbs, Present Tense, Accusative Case, Contract Verbs", "Words for Trade and Market, Numbers"],
+    8: ["Dative Case, 'Where' Questions, MI Verbs", "Words for Temple and Synagogue"],
+    9: ["Passive and Middle Voices", "Words for Movement, Prayer and Worship"],
+    10: ["Aorist Tense", "Words for Time, Knowing, the Life Cycle"],
+    11: ["Future Tense, Ὁτι Clauses, Reporting Speech", "Verbs of Being, Words for Speech and Thought"],
+    12: ["Prepositions, Infinitive Clauses, 'How' and 'Why' Questions", "Words for Gifts, Warfare"],
+    13: ["Aorist Participles, Genitive Absolute", "Words for Work and Building, Politics"],
+    14: ["Present Participles", "Words for Reading and Writing, Cooking and Hosting"],
+    15: ["Imperfect Tense, Prepositions (again), Comparisons", "Words for Health, the Cosmos"],
+    16: ["Aorist Passive, Future Passive", "Words for Clothing and Deliveries, Education, Justice"],
+    17: ["Adverbs, Relative Clauses", "Words for the Body, Athletics"],
+    18: ["Subjunctive Mood, Conditional Clauses", "Words for Emotions, Prepositional Prefix Words"],
+    19: ["Perfect Tense", "Prominent Names, Words for Religion, Marketplace, Geography"],
+    20: ["Optative Mood", "Words for Motion (again), Power, Knowledge and Perception"]
+  }
 
   return  (
     <Accordion defaultActiveKey="0">
-      <Card>
-        <Card.Header>
-          <Accordion.Toggle as={Button} variant="link" eventKey="0">
-            Click me!
-          </Accordion.Toggle>
-        </Card.Header>
-        <Accordion.Collapse eventKey="0">
-          <Card.Body>Hello! I'm the body</Card.Body>
-        </Accordion.Collapse>
-      </Card>
-      <Card>
-        <Card.Header>
-          <Accordion.Toggle as={Button} variant="link" eventKey="1">
-            Click me!
-          </Accordion.Toggle>
-        </Card.Header>
-        <Accordion.Collapse eventKey="1">
-          <Card.Body>Hello! I'm another body</Card.Body>
-        </Accordion.Collapse>
-      </Card>
+      { !!sets && sets.map(myset =>
+        <Card key={`badgeset_header_${myset}`}>
+          <Card.Header>
+            <Accordion.Toggle as={Button} variant="link" eventKey={myset}>
+              <span className="lessonLink-set">{`Badge set ${myset}`}</span><br />
+              <span className="lessonLink-grammar">{setTitles[myset][0]}</span><br />
+              <span className="lessonLink-vocab">{setTitles[myset][1]}</span>
+            </Accordion.Toggle>
+          </Card.Header>
+          <Accordion.Collapse eventKey={myset}>
+            <Card.Body>
+              <ListGroup>
+                {lessons.filter(l => l.lesson_position.toString().slice(0, -1) == myset.toString()).map(i =>
+                    <ListGroup.Item key={i.title}
+                      active={i.id == activeLesson ? true : false}
+                      action
+                      onClick={e => showVideoHandler(e, i.id)}
+                    >
+                      {i.title}
+
+                    </ListGroup.Item>
+                )}
+              </ListGroup>
+            </Card.Body>
+          </Accordion.Collapse>
+        </Card>
+      )}
     </Accordion>
   )
 }
 
-const VideoDisplay = () => {
-  return (<div>Video</div>)
+const VideoDisplay = ({ activeLesson }) => {
+  console.log(activeLesson);
+  if ( !!activeLesson ) {
+    return (<div>{activeLesson.video_url}</div>)
+  } else {
+    return (
+      <div>Choose a Lesson
+Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
+
+Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.
+</div>
+    )
+  }
 }
 
 const Videos = (props) => {
@@ -54,7 +100,12 @@ const Videos = (props) => {
     .then(mydata => {
       setLessons(mydata);
     });
-  });
+  }, []);
+
+  const setOpenVideo = (event, id) => {
+    setActiveLesson(id);
+    console.log(id);
+  }
 
   return (
     <Row className="videos-component content-view">
@@ -62,12 +113,18 @@ const Videos = (props) => {
       <h2>Video Lessons</h2>
 
         <Row className="lessons-display-container">
-          <Col>
-            <LessonList defaultSet={user.currentBadgeSet} />
+          <Col xs='12' sm='4'>
+            <LessonList defaultSet={user.currentBadgeSet}
+              lessons={lessons}
+              showVideoHandler={setOpenVideo}
+              activeLesson={activeLesson}
+            />
           </Col>
 
-          <Col>
-            <VideoDisplay activeLesson={activeLesson} />
+          <Col xs='12' sm='8'>
+            <VideoDisplay
+              activeLesson={!!activeLesson ? lessons.filter(l => l.id == activeLesson)[0] : null}
+            />
           </Col>
 
         </Row>
