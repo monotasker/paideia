@@ -10,6 +10,7 @@ import {
 
 import { UserContext } from "../UserContext/UserProvider";
 import { fetchLessons } from "../Services/stepFetchService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
   const setnums = lessons.map(
@@ -47,8 +48,8 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
           <Card.Header>
             <Accordion.Toggle as={Button} variant="link" eventKey={myset}>
               <span className="lessonLink-set">{`Badge set ${myset}`}</span><br />
-              <span className="lessonLink-grammar">{setTitles[myset][0]}</span><br />
-              <span className="lessonLink-vocab">{setTitles[myset][1]}</span>
+              <span className="lessonLink-grammar"><FontAwesomeIcon icon="lightbulb" />{setTitles[myset][0]}</span><br />
+              <span className="lessonLink-vocab"><FontAwesomeIcon icon="sort-alpha-down" />{setTitles[myset][1]}</span>
             </Accordion.Toggle>
           </Card.Header>
           <Accordion.Collapse eventKey={myset}>
@@ -76,7 +77,15 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
 const VideoDisplay = ({ activeLesson }) => {
   console.log(activeLesson);
   if ( !!activeLesson ) {
-    return (<div>{activeLesson.video_url}</div>)
+    return (
+    <div className="youtube-container">
+      <iframe
+        src={activeLesson.video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")}
+        frameBorder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+      >
+      </iframe>
+    </div>)
   } else {
     return (
       <div>Choose a Lesson
@@ -112,8 +121,10 @@ const Videos = (props) => {
       <Col className="">
       <h2>Video Lessons</h2>
 
-        <Row className="lessons-display-container">
-          <Col xs='12' sm='4'>
+        <Row className="lessons-display-container horizontal">
+          <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
+            className="lessonlist"
+          >
             <LessonList defaultSet={user.currentBadgeSet}
               lessons={lessons}
               showVideoHandler={setOpenVideo}
@@ -121,14 +132,15 @@ const Videos = (props) => {
             />
           </Col>
 
-          <Col xs='12' sm='8'>
+          <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
+            className="video-display"
+          >
             <VideoDisplay
               activeLesson={!!activeLesson ? lessons.filter(l => l.id == activeLesson)[0] : null}
             />
           </Col>
 
         </Row>
-
 
       </Col>
     </Row>
