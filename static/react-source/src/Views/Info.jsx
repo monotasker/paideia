@@ -1,18 +1,14 @@
-import React, {
-  Component,
-  useState
-} from 'react';
+import React from 'react';
 import {
   Row,
 } from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
-import { withRouter } from "react-router";
+// import { LinkContainer } from "react-router-bootstrap";
 import {
   Switch,
   Route,
-  BrowserRouter,
   useParams,
-  useHistory
+  useHistory,
+  useRouteMatch
 } from "react-router-dom";
 
 import TypingGreekContent from "../Content/TypingGreek";
@@ -20,30 +16,49 @@ import HowItWorksContent from "../Content/HowItWorks";
 import FaqContent from "../Content/Faq";
 import KnownBugsContent from "../Content/KnownBugs";
 
-function goBack() {
-  history.goBack();
-}
-
-function Info() {
+const Info = () => {
   let { infoPage } = useParams();
+  const { path, url } = useRouteMatch();
 
   let history = useHistory();
-  console.log(history);
 
-  const content = {
-    "faq": <FaqContent backFunc={history.goBack} />,
-    "how-it-works": <HowItWorksContent backFunc={history.goBack} />,
-    "typing-greek": <TypingGreekContent backFunc={history.goBack} />,
-    "known-bugs": <KnownBugsContent backFunc={history.goBack} />
-  }
+  const content = [
+    { slug: "faq",
+      component: <FaqContent backFunc={history.goBack} />
+    },
+    { slug: "how-it-works",
+      component: <HowItWorksContent backFunc={history.goBack} />
+    },
+    { slug: "typing-greek",
+      component: <TypingGreekContent backFunc={history.goBack} />
+    },
+    { slug: "known-bugs",
+      component: <KnownBugsContent backFunc={history.goBack} />
+    }
+  ];
 
-  console.log(infoPage);
-
-  return(
+  return (
     <Row className="content-view info-component justify-content-sm-center">
-      { content[infoPage] }
+      <Switch>
+        {content.map(({ slug, component }) => (
+          <Route key={slug} exact={true} path={`${url}/${slug}`}>
+            {( { match } ) => (
+              <CSSTransition
+                classNames="content-view"
+                key={slug}
+                in={match != null}
+                appear={true}
+                timeout={300}
+                unmountOnExit
+              >
+                { component }
+              </CSSTransition>
+            )}
+          </Route>
+        ))}
+      </Switch>
     </Row>
-  )
+  );
 }
 
-export default withRouter(Info);
+export default Info;

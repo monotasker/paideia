@@ -121,6 +121,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
     }
     &.#{$class}-enter-done,
     &.#{$class}-appear-done     {opacity: 1;
+                                transition: opacity #{$duration}ms;
 
     }
     &.#{$class}-exit            {opacity: 1;
@@ -129,6 +130,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                                  transition: opacity #{$duration}ms;
     }
     &.#{$class}-exit-done       {opacity: 0;
+                                 transition: opacity #{$duration}ms;
     }
 }
 
@@ -159,7 +161,7 @@ h3                                      {font-family: $sans-fonts;
             h2                          {font-family: $title-fonts;
                                          color: $heading-color;
             }
-            @include react-transition-fade("content-view");
+            @include react-transition-fade("content-view", 400);
         }
     }
 }
@@ -309,78 +311,119 @@ h3                                      {font-family: $sans-fonts;
                                         padding: 0;
         .vocabtable-container          {flex: 1;
                                         overflow-y: auto;
-            th                         {position: sticky;
-                                        top: 0;
-                                        background-color: lighten($pallette2, 20%);
-                                        border-top-color: lighten($pallette2, 15%);
-                                        border-bottom-color: lighten($pallette2, 15%);
-                                        color: darken($pallette1, 60%);
-                                        font-weight: normal;
-                &:first-child          {left: 0;
-                                        z-index: 10;
-                                        background-color: lighten($pallette2, 10%);
-                                        color: darken($pallette1, 65%);
+                                        overflow-x: hidden;
+                                        position: relative;
+            .vocabtable-loading-spinner     {position: absolute;
+                                             top: 50%;
+                                             margin-top: -0.5rem;
+                                             left: 50%;
+                                             margin-left: -0.5rem;
+            }
+            table                          {position: absolute;
+                th                         {position: sticky;
+                                            top: 0;
+                                            background-color: lighten($pallette2, 20%);
+                                            border-top-color: lighten($pallette2, 15%);
+                                            border-bottom-color: lighten($pallette2, 15%);
+                                            color: darken($pallette1, 60%);
+                                            font-weight: normal;
+                    &:first-child          {left: 0;
+                                            z-index: 10;
+                                            background-color: lighten($pallette2, 10%);
+                                            color: darken($pallette1, 65%);
+                    }
+                    &:nth-child(2)         {background-color: lighten($pallette2, 15%);
+                                            padding-right: 0;
+                    }
+                    a                      {color: darken($pallette1, 60%);
+                    }
+                    svg                    {position: absolute;
+                                            left: 0;
+                                            margin-left: 0;
+                                            margin-top: -0.45rem;
+                                            top: 50%;
+                        &.inactive         {opacity: 30%;
+                        }
+                    }
                 }
-                &:nth-child(2)         {background-color: lighten($pallette2, 15%);
-                                        padding-right: 0;
-                }
-                a                      {color: darken($pallette1, 60%);
-                }
-                svg                    {position: absolute;
-                                        left: 0;
-                                        margin-left: 0;
-                                        margin-top: -0.45rem;
-                                        top: 50%;
-                    &.inactive         {opacity: 30%;
+                td                         {border-top-color: lighten($pallette2, 10%);
+                                            background-color: #fff;
+                                            vertical-align: middle;
+                    &.noun,
+                    &.pronoun,
+                    &.proper_noun          {background-color: lighten($nominative, 60%);
+                                            color: $nominative;
+                                            border-top-color: lighten($nominative, 55%);
+                    }
+                    &.adjective            {background-color: lighten($nominative, 62%);
+                                            color: lighten($nominative, 10%);
+                                            border-top-color: lighten($nominative, 57%);
+                    }
+                    &.verb                 {background-color: lighten($verb, 50%);
+                                            color: darken($verb, 10%);
+                                            border-top-color: lighten($verb, 40%);
+                    }
+                    &.preposition          {background-color: lighten($preposition, 65%);
+                                            color: darken($preposition, 10%);
+                                            border-top-color: lighten($preposition, 55%);
+                    }
+                    &.adverb               {background-color: lighten($dative, 55%);
+                                            color: darken($dative, 10%);
+                                            border-top-color: lighten($dative, 50%);
+                    }
+                    &.conjunction          {background-color: lighten($textColor, 70%);
+                                            color: $textColor;
+                                            border-top-color: lighten($textColor, 65%);
+                    }
+                    &.particle             {background-color: lighten($textColor, 73%);
+                                            color: darken($textColor, 10%);
+                                            border-top-color: lighten($textColor, 63%);
+                    }
+                    &:first-child             {position: sticky;
+                                            left: 0;
+                                            font-family: $greek-fonts;
+                                            font-size: 1.5rem;
+                    }
+                    &:nth-child(2)          {padding-right: 0;
                     }
                 }
             }
-            td                         {border-top-color: lighten($pallette2, 10%);
-                                        vertical-align: middle;
-                &.noun,
-                &.pronoun,
-                &.proper_noun          {background-color: lighten($nominative, 60%);
-                                        color: $nominative;
-                                        border-top-color: lighten($nominative, 55%);
-                }
-                &.adjective            {background-color: lighten($nominative, 62%);
-                                        color: lighten($nominative, 10%);
-                                        border-top-color: lighten($nominative, 57%);
-                }
-                &.verb                 {background-color: lighten($verb, 50%);
-                                        color: darken($verb, 10%);
-                                        border-top-color: lighten($verb, 40%);
-                }
-                &.preposition          {background-color: lighten($preposition, 65%);
-                                        color: darken($preposition, 10%);
-                                        border-top-color: lighten($preposition, 55%);
-                }
-                &.adverb               {background-color: lighten($dative, 55%);
-                                        color: darken($dative, 10%);
-                                        border-top-color: lighten($dative, 50%);
-                }
-                &.conjunction          {background-color: lighten($textColor, 70%);
-                                        color: $textColor;
-                                        border-top-color: lighten($textColor, 65%);
-                }
-                &.particle             {background-color: lighten($textColor, 73%);
-                                        color: darken($textColor, 10%);
-                                        border-top-color: lighten($textColor, 63%);
-                }
-                &:first-child             {position: sticky;
-                                        left: 0;
-                                        font-family: $greek-fonts;
-                                        font-size: 1.5rem;
-                }
-                &:nth-child(2)          {padding-right: 0;
+        }
+        .vocabview-footer               {display: flex;
+                                         flex-direction: row;
+            .updating,
+            .displaycount                   {font-size: $font-size-sm;
+                                             margin-bottom: -1.5rem;
+                                             padding-top: 0.25rem;
+            }
+            .updating                       {flex-grow: 1;
+                .spinner-grow               {font-size: 0.5rem;
                 }
             }
+            .displaycount                   {padding-right: 1rem;
+            }
         }
-        .updating,
-        .displaycount                   {display: inline-block;
-                                         font-size: $font-size-sm;
-                                         margin-bottom: -1.5rem;
-                                         width: fit-content;
+    }
+}
+
+
+//-- settings view ---------------------------------------------
+
+.settingsview-component                 {display: flex;
+                                         flex-direction: column;
+                                         height: 100%;
+    > div                               {flex: 1;
+                                         overflow-y: auto;
+                                         padding-left: 0;
+                                         padding-right: 3rem;
+
+        .alert                          {display: flex;
+                                         flex-direction: row;
+                                         align-items: center;
+                                         padding-left: 0.75rem;
+                                         padding-right: 1rem;
+            svg                         {margin-right: 0.75rem;
+            }
         }
     }
 }
@@ -595,6 +638,9 @@ h3                                      {font-family: $sans-fonts;
 // content-view pages -----------------------------------
 
 .content-view                   {padding-top: 1rem;
+    .content-page-component     {
+        @include react-transition-fade("content-page-component", 400);
+    }
 }
 
 // --home -----------------------------------------------------

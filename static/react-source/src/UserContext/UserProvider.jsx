@@ -17,6 +17,7 @@ let userDefaults = {
   userLoggedIn: window.localStorage.getItem('userLoggedIn') || false,
   flags: window.localStorage.getItem('flags') || [],
   hideReadQueries: window.localStorage.getItem('hideReadQueries') || null,
+  reviewSet: window.localStorage.getItem('reviewSet') || null,
   currentLocation: window.localStorage.getItem('currentLocation') || null,
   currentLocationBG: window.localStorage.getItem('currentLocationBG') || null,
   currentNpc: window.localStorage.getItem('currentNpc') || null,
@@ -122,6 +123,12 @@ function userReducer(state, action) {
         currentAnswer: null,
         currentScore: null,
         currentLogID: null
+      }
+    }
+    case 'setReviewSet': {
+      window.localStorage.setItem('reviewStep', action.payload);
+      return {...state,
+        reviewSet: action.payload
       }
     }
     default: {

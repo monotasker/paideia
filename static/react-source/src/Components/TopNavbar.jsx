@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { withRouter } from "react-router";
-import styled from "styled-components";
+import { useHistory } from "react-router-dom";
 import {
   Navbar,
   Nav,
@@ -86,6 +86,8 @@ const login = (
 
 
 const TopNavbar = () => {
+
+    let history = useHistory();
     const { user, dispatch } = useContext(UserContext);
 
     const doLogout = () => {
@@ -130,4 +132,4 @@ const TopNavbar = () => {
     )
 }
 
-export default withRouter(TopNavbar);
+export default TopNavbar;

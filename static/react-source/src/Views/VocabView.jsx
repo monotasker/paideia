@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useContext } from "react";
+import React, { useEffect, useState, useMemo, useContext, useRef, useLayoutEffect } from "react";
 import {
     Row,
     Col,
@@ -92,7 +92,7 @@ const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler })
         </tr>
       </thead>
       <tbody>
-        {vocab.map(w => <WordRow w={w} key={`wordrow_${w.id}`} />)}
+        {vocab.map((w, i) => <WordRow w={w} key={`wordrow_${i}`} />)}
       </tbody>
     </Table>
   )
@@ -161,6 +161,72 @@ const VocabView = (props) => {
   );
   const restrictedVocab = filteredVocab.filter(
     w => chosenSets.length != 0 ? chosenSets.includes(w['set_introduced']) : true
+  );
+  const [ displayRange, setDisplayRange ] = useState([0, 20]); // for lazy rendering on scroll
+  let lastTableRow = null;  // for lazy rendering on scroll
+  let firstTableRow = null;  // for lazy rendering on scroll
+  const scrollContainer = useRef(null); // for lazy rendering on scroll
+
+  // set up lazy rendering of vocab list when scrolling
+  let scrollDownObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach(entry => {
+          console.log(entry.intersectionRatio);
+          console.log(entry.isIntersecting);
+
+          if ( entry.intersectionRatio > 0 && !!entry.isIntersecting && !entry.target.classList.contains("triggered")) {
+            setDisplayRange([displayRange[0] + 10, displayRange[1] + 10]);
+            observer.disconnect();
+          }
+        },
+        {root: scrollContainer.current,
+          threshold: 0.2
+        }
+      );
+    }
+  );
+
+  let scrollUpObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach(entry => {
+          console.log(entry.intersectionRatio);
+          console.log(entry.isIntersecting);
+
+          if ( entry.intersectionRatio > 0 && !!entry.isIntersecting ) {
+            // setDisplayRange([displayRange[0] + 10, displayRange[1] + 10]);
+            observer.disconnect();
+          }
+        },
+        {root: scrollContainer.current,
+          threshold: 0.2
+        }
+      );
+    }
+  );
+
+  useLayoutEffect(() => {
+    firstTableRow = document.querySelector(".vocabtable-container tbody > tr:first-child");
+    lastTableRow = document.querySelector(".vocabtable-container tbody > tr:last-child");
+    scrollContainer.current = document.querySelector(".vocabtable-container");
+    console.log('last table row');
+    console.log(lastTableRow);
+    console.log('scroll container');
+    console.log(scrollContainer.current);
+
+    if (!!lastTableRow && restrictedVocab.length > 19) {
+      scrollDownObserver.observe(lastTableRow);
+    }
+    if (!!firstTableRow && restrictedVocab.length > 19) {
+
+    }
+
+    return (() => {
+      if ( !!lastTableRow ) {
+        scrollDownObserver.unobserve(lastTableRow)
+      }
+    });
+  },
+  [restrictedVocab, displayRange]
   );
 
   useEffect(() => {
@@ -269,6 +335,7 @@ const VocabView = (props) => {
     document.getElementById('vocab-search-control').value = "";
     document.getElementById('vocab-search-control-english').value = "";
     document.getElementById('vocab-set-control').value = "all badge sets";
+    setDisplayRange([0, 20]);
   }
 
   const restrictSetsAction = (myString) => {
@@ -281,6 +348,7 @@ const VocabView = (props) => {
     } else {
       setChosenSets([parseInt(myString.slice(4))]);
     }
+    setDisplayRange([0, 20]);
   }
 
   const headings = [
@@ -349,20 +417,26 @@ const VocabView = (props) => {
                 </Col>
               </Form.Row>
             </Form>
-            <div className="vocabtable-container">{processing ? "" :
-                <VocabTable headings={headings} vocab={restrictedVocab}
+            <div className="vocabtable-container" ref={scrollContainer}>
+              <Spinner className="vocabtable-loading-spinner"
+                animation="grow"
+              />
+              {!!processing ? "" :
+                <VocabTable headings={headings}
+                  vocab={restrictedVocab.slice(...displayRange)}
                   sortCol={mySortCol} order={myOrder} sortHandler={sortVocab}
                 />
-            }
-                <Spinner animation="grow" />
+              }
             </div>
-            <span className="vocabview updating">{updating ?
-              (<span><Spinner animation="grow" />{"Checking for updates"}</span>) :
-              (<span className="done">Up to date</span>)}
-            </span>
-            <span className="vocabview displaycount">
-              Showing {restrictedVocab.length} out of the total {vocab.length} words.
-            </span>
+            <div className="vocabview-footer">
+              <div className="vocabview updating">{updating ?
+                (<span><Spinner animation="grow" size="sm" />{"Checking for updates"}</span>) :
+                (<span className="done">Up to date</span>)}
+              </div>
+              <div className="vocabview displaycount">
+                Showing {restrictedVocab.length} out of the total {vocab.length} words.
+              </div>
+            </div>
          </Col>
      </Row>
   )

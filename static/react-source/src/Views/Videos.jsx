@@ -1,16 +1,18 @@
 import React, { useState, useContext, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
   Row,
   Col,
   Accordion,
   Card,
   Button,
-  ListGroup
+  ListGroup,
+  Spinner
 } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { UserContext } from "../UserContext/UserProvider";
 import { fetchLessons } from "../Services/stepFetchService";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
   const setnums = lessons.map(
@@ -41,10 +43,23 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
     20: ["Optative Mood", "Words for Motion (again), Power, Knowledge and Perception"]
   }
 
+  useEffect(() => {
+    console.log(defaultSet);
+    console.log(sets);
+    console.log(sets.includes(defaultSet));
+    console.log(defaultSet != 0 && sets.length != 0);
+
+
+    if ( defaultSet != 0 && sets.length != 0) {
+      const $myCard = document.getElementById(`badgeset_header_${defaultSet}`);
+      $myCard.scrollIntoView();
+    }
+  }, [lessons]);
+
   return  (
-    <Accordion defaultActiveKey="0">
+    <Accordion defaultActiveKey={!!defaultSet ? defaultSet : 0}>
       { !!sets && sets.map(myset =>
-        <Card key={`badgeset_header_${myset}`}>
+        <Card key={`badgeset_header_${myset}`} id={`badgeset_header_${myset}`}>
           <Card.Header>
             <Accordion.Toggle as={Button} variant="link" eventKey={myset}>
               <span className="lessonLink-set">{`Badge set ${myset}`}</span><br />
@@ -78,7 +93,7 @@ const VideoDisplay = ({ activeLesson }) => {
   console.log(activeLesson);
   if ( !!activeLesson ) {
     return (
-    <div className="youtube-container">
+    <div className="youtube-container invisible">
       <iframe
         src={activeLesson.video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")}
         frameBorder="0"
@@ -88,7 +103,7 @@ const VideoDisplay = ({ activeLesson }) => {
     </div>)
   } else {
     return (
-      <div>Choose a Lesson
+      <div className="youtube-container visible">Choose a Lesson
 Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
 
 Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.
@@ -99,21 +114,40 @@ Beside each lesson title you will also find an icon to download a PDF file with 
 
 const Videos = (props) => {
 
+  const { lessonParam } = useParams();
+  console.log(lessonParam);
+
   const { user, dispatch } = useContext(UserContext);
   const [lessons, setLessons ] = useState([]);
-  const [activeLesson, setActiveLesson] = useState(0);
+  console.log(lessons);
+
+
+  const [activeLesson, setActiveLesson] = useState(
+    (!!lessonParam && lessons.length != 0) ? lessons.filter(l => l.lesson_position == lessonParam)[0].id
+    : 0
+  );
+  const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : 0);
   const [loading, setLoading] = useState(false);
 
   useEffect( () => {
     fetchLessons()
     .then(mydata => {
       setLessons(mydata);
+      setActiveLesson(!!lessonParam ?
+        mydata.filter(l => l.lesson_position == parseInt(lessonParam))[0].id
+        : 0
+      );
     });
   }, []);
 
   const setOpenVideo = (event, id) => {
     setActiveLesson(id);
-    console.log(id);
+  }
+
+  const showLoadedVideo = () => {
+    const $vid = document.getElementsByClassName("youtube-container");
+    $vid.classList.add("visible");
+    $vid.classList.remove("invisible");
   }
 
   return (
@@ -125,18 +159,22 @@ const Videos = (props) => {
           <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
             className="lessonlist"
           >
-            <LessonList defaultSet={user.currentBadgeSet}
+            { ( !!lessons && lessons != [] ) && <LessonList defaultSet={user.currentBadgeSet}
+              defaultSet={!!defaultSet ? defaultSet : 0}
               lessons={lessons}
               showVideoHandler={setOpenVideo}
               activeLesson={activeLesson}
             />
+            }
           </Col>
 
           <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
             className="video-display"
           >
+            <Spinner animation="grow" variant="secondary" />
             <VideoDisplay
               activeLesson={!!activeLesson ? lessons.filter(l => l.id == activeLesson)[0] : null}
+              makeVisibleCallback={showLoadedVideo}
             />
           </Col>
 

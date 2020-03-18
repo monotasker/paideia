@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ReferenceView from "../Views/ReferenceView";
 import VocabView from "../Views/VocabView";
 import QueriesView from "../Views/QueriesView";
+import SettingsView from "../Views/SettingsView";
 
 const Tools = () => {
 
@@ -37,9 +38,9 @@ const Tools = () => {
         {label: 'Vocab',
          icon: "sort-alpha-down",
          component: <VocabView />},
-        // {label: 'Review',
-        //  icon: faHistory,
-        //  component: ReviewPanel},
+        {label: 'Settings',
+         icon: "sliders-h",
+         component: <SettingsView />},
         // {label: 'Notes',
         //  icon: faPencilAlt,
         //  component: NotesPanel},

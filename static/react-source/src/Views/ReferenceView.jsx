@@ -10,6 +10,8 @@ import {
     Form,
     P
 } from "react-bootstrap";
+import { LinkContainer } from "react-router-bootstrap";
+import { useHistory } from "react-router-dom";
 
 const CaseEndings = () => (
     <React.Fragment>
@@ -183,77 +185,83 @@ const SquareOfStops = () => (
     </React.Fragment>
 )
 
-const VowelContractions = () => (
-    <React.Fragment>
-        <Table className="vowel-contractions-tableA" size="sm">
-            <thead>
-                <tr>
-                    <th colSpan="4">Short Vowel Combinations</th>
-                </tr>
-                <tr>
-                    <th className="spacer"></th>
-                    <th>α</th>
-                    <th>ε</th>
-                    <th>ο</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th>α</th>
-                    <td>α</td>
-                    <td>α</td>
-                    <td>ω</td>
-                </tr>
-                <tr>
-                    <th>ε</th>
-                    <td>η</td>
-                    <td>ει</td>
-                    <td>ου</td>
-                </tr>
-                <tr>
-                    <th>ο</th>
-                    <td>ω</td>
-                    <td>ου</td>
-                    <td>ου</td>
-                </tr>
-            </tbody>
-        </Table>
-        <Table className="vowel-contractions-tableB" size="sm">
-            <thead>
-                <tr>
-                    <th colSpan="4">With Long Vowels/Diphthongs</th>
-                </tr>
-                <tr>
-                    <th className="spacer"></th>
-                    <th>ω</th>
-                    <th>ου</th>
-                    <th>ει</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th>α</th>
-                    <td>ω</td>
-                    <td>ω</td>
-                    <td>ᾳ</td>
-                </tr>
-                <tr>
-                    <th>ε</th>
-                    <td>ω</td>
-                    <td>ου</td>
-                    <td>ει</td>
-                </tr>
-                <tr>
-                    <th>ο</th>
-                    <td>ω</td>
-                    <td>ου</td>
-                    <td>οι</td>
-                </tr>
-            </tbody>
-        </Table>
-        <p>Discussed in lesson 5.2, "The Real Stems of 3rd Declension Nouns" and in lesson 7.3, "Contract Verbs"</p>
-    </React.Fragment>
-)
+const VowelContractions = () => {
+    const history = useHistory();
+
+    return (
+        <React.Fragment>
+            <Table className="vowel-contractions-tableA" size="sm">
+                <thead>
+                    <tr>
+                        <th colSpan="4">Short Vowel Combinations</th>
+                    </tr>
+                    <tr>
+                        <th className="spacer"></th>
+                        <th>α</th>
+                        <th>ε</th>
+                        <th>ο</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>α</th>
+                        <td>α</td>
+                        <td>α</td>
+                        <td>ω</td>
+                    </tr>
+                    <tr>
+                        <th>ε</th>
+                        <td>η</td>
+                        <td>ει</td>
+                        <td>ου</td>
+                    </tr>
+                    <tr>
+                        <th>ο</th>
+                        <td>ω</td>
+                        <td>ου</td>
+                        <td>ου</td>
+                    </tr>
+                </tbody>
+            </Table>
+            <Table className="vowel-contractions-tableB" size="sm">
+                <thead>
+                    <tr>
+                        <th colSpan="4">With Long Vowels/Diphthongs</th>
+                    </tr>
+                    <tr>
+                        <th className="spacer"></th>
+                        <th>ω</th>
+                        <th>ου</th>
+                        <th>ει</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>α</th>
+                        <td>ω</td>
+                        <td>ω</td>
+                        <td>ᾳ</td>
+                    </tr>
+                    <tr>
+                        <th>ε</th>
+                        <td>ω</td>
+                        <td>ου</td>
+                        <td>ει</td>
+                    </tr>
+                    <tr>
+                        <th>ο</th>
+                        <td>ω</td>
+                        <td>ου</td>
+                        <td>οι</td>
+                    </tr>
+                </tbody>
+            </Table>
+            <p>
+                Discussed in lesson 5.2, "The Real Stems of 3rd Declension Nouns" and in <LinkContainer to="/videos/73"><a>lesson 7.3, "Contract Verbs"</a></LinkContainer>
+            </p>
+        </React.Fragment>
+    )
+}
 
 const ReferenceView = () => {
 
