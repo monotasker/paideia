@@ -12,6 +12,7 @@ import { UserContext } from "../UserContext/UserProvider";
 const SettingsView = () => {
 
   const { user, dispatch } = useContext(UserContext);
+  console.log(user);
   console.log(user.reviewSet);
   console.log(user.currentBadgeSet);
 

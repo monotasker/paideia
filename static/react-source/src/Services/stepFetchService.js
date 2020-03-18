@@ -139,3 +139,18 @@ export { getPromptData,
          submitNewQuery,
          fetchVocabulary,
          fetchLessons }
+
+const setServerReviewMode = async (mylevel) => {
+  let response = await fetch('/paideia/api/set_review_mode', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        review_set: mylevel
+      })
+  })
+  return await response.json();
+}

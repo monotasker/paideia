@@ -36,7 +36,8 @@ const Login = (props) => {
             userToken: '',
             userTimezone: userdata['time_zone'],
             hideReadQueries: userdata['hide_read_queries'],
-            currentBadgeSet: userdata['current_badge_set']
+            currentBadgeSet: userdata['current_badge_set'],
+            reviewSet: userdata['review_set']
           }
         })
       } else {

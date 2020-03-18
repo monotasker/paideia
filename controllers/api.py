@@ -45,19 +45,22 @@ def get_prompt():
         paideia_debug: ???
     """
     auth = current.auth
+    session = current.session
     if auth.is_logged_in():
         myloc = request.vars.loc
         new_user = request.vars.new_user
         stepargs = {'path': None,
-                    'pre_bug_step_id': None,
-                    'repeat': False,
                     'response_string': None,
-                    'set_blocks': None,
-                    'set_review': False}
+                    'set_blocks': None
+                    }
         for k, v in request.vars.items():
             if k in stepargs.keys() \
                     and k not in ['loc', 'new_user', 'response_string']:
                 stepargs[k] = v
+        if session.set_review and session.set_review > 0:
+            stepargs['set_review'] = session.set_review
+        else:
+            stepargs['set_review'] = False
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
         return json(resp)
     else:
@@ -71,19 +74,21 @@ def evaluate_answer():
     Private api method to handle calls from the react front-end.
     """
     auth = current.auth
+    session = current.session
     if auth.is_logged_in():
         myloc = request.vars.loc
         new_user = False
-        stepargs = {'response_string': request.vars.response_string,
-                    'path': None,
-                    'pre_bug_step_id': None,
-                    'repeat': False,
-                    'set_blocks': None,
-                    'set_review': False}
+        stepargs = {'path': None,
+                    'set_blocks': None
+                    }
         for k, v in request.vars.items():
             if k in stepargs.keys() \
-                    and k not in ['loc', 'new_user', 'response_string']:
+                    and k not in ['loc', 'new_user']:
                 stepargs[k] = v
+        if session.set_review and session.set_review > 0:
+            stepargs['set_review'] = session.set_review
+        else:
+            stepargs['set_review'] = False
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
         resp['eval_text'] = copy(resp['prompt_text'])
         resp['prompt_text'] == None
@@ -104,6 +109,7 @@ def get_login():
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
     auth = current.auth
+    session = current.session
     try:
         mylogin = auth.login_bare(request.vars['email'],
                                   request.vars['password'])
@@ -118,6 +124,8 @@ def get_login():
             myuser['current_badge_set'] = db(
                 db.tag_progress.name == myuser['id']
                 ).select().first().latest_new
+            myuser['review_set'] = session.set_review \
+                if 'set_review' in session.keys() else None
 
         except AttributeError:  # if login response was False and has no items
             myuser = {'id': None}
@@ -353,3 +361,18 @@ def get_lessons():
         l['badges'] = mybadges.as_list()
 
     return json(lessons)
+
+
+def set_review_mode():
+    """
+    Api method to set the user's review mode.
+
+    Expects one argument: "review_set"
+    """
+    try:
+        myset = int(request.vars['review_set'])
+    except (ValueError, TypeError):  # if passed a non-numeric value
+        myset = None
+    session.set_review = myset
+
+    return json({'review_set': session.set_review})

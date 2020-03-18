@@ -39,9 +39,10 @@ function userReducer(state, action) {
       window.localStorage.setItem('lastName', action.payload.lastName);
       window.localStorage.setItem('userEmail', action.payload.email);
       window.localStorage.setItem('userRoles', action.payload.userRoles);
-      window.localStorage.getItem('hideReadQueries', action.payload.hideReadQueries);
-      window.localStorage.getItem('currentBadgeSet', action.payload.currentBadgeSet);
-      window.localStorage.setItem('userLoggedIn', true);
+      window.localStorage.setItem('hideReadQueries', action.payload.hideReadQueries);
+      window.localStorage.setItem('currentBadgeSet', action.payload.currentBadgeSet);
+      window.localStorage.setItem('userTimezone', action.payload.userTimezone);
+      window.localStorage.setItem('reviewSet', action.payload.reviewSet);
       return({
         ...state,
         userId: action.payload.userId,
@@ -51,11 +52,12 @@ function userReducer(state, action) {
         userLoggedIn: true,
         userRoles: action.payload.userRoles,
         userToken: '',
-        userTimezone: '',
+        userTimezone: action.payload.userTimezone,
         flags: [],
         currentPath: null,
         hideReadQueries: action.payload.hideReadQueries,
-        currentBadgeSet: action.payload.currentBadgeSet
+        currentBadgeSet: action.payload.currentBadgeSet,
+        reviewSet: action.payload.reviewSet
       })
     }
     case 'deactivateUser': {
@@ -75,7 +77,8 @@ function userReducer(state, action) {
         currentPath: null,
         currentLocation: null,
         hideReadQueries: null,
-        currentBadgeSet: null
+        currentBadgeSet: null,
+        reviewSet: null
       })
     }
     case 'setEvalResults': {
@@ -126,7 +129,7 @@ function userReducer(state, action) {
       }
     }
     case 'setReviewSet': {
-      window.localStorage.setItem('reviewStep', action.payload);
+      window.localStorage.setItem('reviewSet', action.payload);
       return {...state,
         reviewSet: action.payload
       }
