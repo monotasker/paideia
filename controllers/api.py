@@ -79,6 +79,7 @@ def evaluate_answer():
         myloc = request.vars.loc
         new_user = False
         stepargs = {'path': None,
+                    'response_string': request.vars.response_string,
                     'set_blocks': None
                     }
         for k, v in request.vars.items():

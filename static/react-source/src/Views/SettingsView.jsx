@@ -3,14 +3,17 @@ import {
   Row,
   Col,
   Form,
-  Alert
+  Alert,
+  Spinner
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { UserContext } from "../UserContext/UserProvider";
+import { setServerReviewMode } from "../Services/stepFetchService";
 
 const SettingsView = () => {
 
+  const [settingReview, setSettingReview] = useState(false);
   const { user, dispatch } = useContext(UserContext);
   console.log(user);
   console.log(user.reviewSet);
@@ -18,8 +21,14 @@ const SettingsView = () => {
 
 
   const reviewAction = setNum => {
-    console.log(setNum);
-    dispatch({type: 'setReviewSet', payload: parseInt(setNum.slice(10))});
+    setSettingReview(true);
+    const myNum = setNum.slice(0, 10) == "review set" ? parseInt(setNum.slice(10)) : 0
+    console.log(myNum);
+    setServerReviewMode(myNum)
+    .then(mydata => {
+      dispatch({type: 'setReviewSet', payload: mydata.review_set});
+      setSettingReview(false);
+    });
   }
 
   return (
@@ -33,10 +42,12 @@ const SettingsView = () => {
                 <Form.Label>
                   <FontAwesomeIcon icon="history" />Review a badge set
                 </Form.Label>
+                { !!settingReview ? <Spinner animation="grow" size="sm" /> :
                 <Form.Control as="select"
                   onChange={e => reviewAction(e.target.value)}
                 >
-                  {!!user.reviewSet && <option key={user.reviewSet}>
+                  {!!user.reviewSet && user.reviewSet != "null" &&
+                   <option key={user.reviewSet}>
                     {`review set ${user.reviewSet}`}
                    </option>
                   }
@@ -45,6 +56,7 @@ const SettingsView = () => {
                       n == user.reviewSet ? "" : <option key={n + 1}>{`review set ${n}`}</option>
                   )}
                 </Form.Control>
+                }
                 <Form.Text>
                     <p>
                       If you select a badge set from this list you will only be given paths selected (randomly) from that set. When you want to return to the normal selection of paths, select 'Stop reviewing.'

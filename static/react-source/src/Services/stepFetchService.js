@@ -133,12 +133,6 @@ const fetchLessons = async () => {
   return await response.json();
 }
 
-export { getPromptData,
-         evaluateAnswer,
-         getStepQueries,
-         submitNewQuery,
-         fetchVocabulary,
-         fetchLessons }
 
 const setServerReviewMode = async (mylevel) => {
   let response = await fetch('/paideia/api/set_review_mode', {
@@ -154,3 +148,13 @@ const setServerReviewMode = async (mylevel) => {
   })
   return await response.json();
 }
+
+
+export { getPromptData,
+         evaluateAnswer,
+         getStepQueries,
+         submitNewQuery,
+         fetchVocabulary,
+         fetchLessons,
+         setServerReviewMode
+         }

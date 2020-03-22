@@ -77,7 +77,8 @@ const Step = (props) => {
       myval = $myform.querySelectorAll("input[name=responder_radio]:checked")[0].value;
     }
     evaluateAnswer({location: props.stepdata.loc,
-                    response_string: myval})
+                    response_string: myval,
+                    pre_bug_step_id: stepData.sid})
       .then(stepfetch => {
         returnStatusCheck(stepfetch, props.history,
           (mydata) => {
