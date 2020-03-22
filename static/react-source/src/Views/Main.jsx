@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import {
   Row,
@@ -65,7 +65,8 @@ import Videos from "./Videos";
 import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
-import UserProvider from "../UserContext/UserProvider";
+import UserProvider, { UserContext } from "../UserContext/UserProvider";
+import { checkLogin, updateUserInfo } from '../Services/authService';
 
 library.add(
   faArrowsAltH,
@@ -106,69 +107,106 @@ library.add(
   faWrench,
 );
 
-const Main = (props) => {
 
-    const [ myheight, setMyheight ] = useState(null);
+const myroutes = [
+  {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
+  {path: "/walk/:walkPage", exact: false, Component: Walk},
+  {path: "/videos/:lessonParam?", exact: false, Component: Videos},
+  {path: "/profile", exact: false, Component: Profile},
+  {path: "/info/:infoPage", exact: false, Component: Info},
+  {path: "/admin/:adminPage", exact: false, Component: Admin},
+  {path: "/instructors/:instrPage", exact: false, Component: Instructors},
+  {path: "/login", exact: false, Component: Login}
+]
 
-    const setHeight = () => {
-      const headroom = document.querySelector('.navbar').offsetHeight;
-      let divheight = window.innerHeight - headroom;
-      setMyheight(divheight);
-    }
 
-    useEffect(() => {
-      setHeight();
+const MainPage = () => {
+  const [ myheight, setMyheight ] = useState(null);
+  const { user, dispatch } = useContext(UserContext);
+  console.log(user);
+
+  const setHeight = () => {
+    const headroom = document.querySelector('.navbar').offsetHeight;
+    let divheight = window.innerHeight - headroom;
+    setMyheight(divheight);
+  }
+
+  useEffect(() => {
+    setHeight();
+  });
+
+  useEffect(() => {
+    console.log(user);
+    checkLogin()
+    .then(mydata => {
+      console.log(mydata)
+      console.log("local login?");
+      console.log(user.userLoggedIn);
+      console.log("remote login?");
+      console.log(mydata.logged_in);
+      if ( !!user.userLoggedIn && !!mydata.logged_in ) {
+        console.log('logged in both');
+
+        if ( user.userId != mydata.user ) {
+          throw new Error("local user doesn't match server login")
+        }
+      } else if ( !user.userLoggedIn && !!mydata.logged_in ) {
+        console.log('logged in server only');
+        updateUserInfo(dispatch);
+      } else if ( !!user.userLoggedIn && !mydata.logged_in ) {
+        console.log('logged in local only');
+        dispatch({type: 'deactivateUser'});
+      }
     });
+    console.log(user);
+  }, []);
 
-    const myroutes = [
-      {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
-      {path: "/walk/:walkPage", exact: false, Component: Walk},
-      {path: "/videos/:lessonParam?", exact: false, Component: Videos},
-      {path: "/profile", exact: false, Component: Profile},
-      {path: "/info/:infoPage", exact: false, Component: Info},
-      {path: "/admin/:adminPage", exact: false, Component: Admin},
-      {path: "/instructors/:instrPage", exact: false, Component: Instructors},
-      {path: "/login", exact: false, Component: Login}
-    ]
-
-    return (
-      <UserProvider>
-      <BrowserRouter>
-        <React.Fragment>
-          <TopNavbar routes={myroutes} />
-          <Row className="Main">
-            <Col className="content"
-              style={{height: myheight}}
+  return (
+    <Col className="content"
+      style={{height: myheight}}
+    >
+      <Switch>
+        <PrivateRoute exact={false} path="/walk/:walkPage" >
+          <Walk />
+        </PrivateRoute>
+      {myroutes.map(({ path, exact, Component }) => (
+        <Route key={path} exact={exact} path={path}>
+          {( { match } ) => (
+            <CSSTransition
+              classNames="content-view"
+              key={path}
+              in={match != null}
+              appear={true}
+              timeout={300}
+              unmountOnExit
             >
-              <Switch>
-                <PrivateRoute exact={false} path="/walk/:walkPage" >
-                  <Walk />
-                </PrivateRoute>
-              {myroutes.map(({ path, exact, Component }) => (
-                <Route key={path} exact={exact} path={path}>
-                  {( { match } ) => (
-                    <CSSTransition
-                      classNames="content-view"
-                      key={path}
-                      in={match != null}
-                      appear={true}
-                      timeout={300}
-                      unmountOnExit
-                    >
-                      <Component />
-                    </CSSTransition>
-                  )}
-                </Route>
-              )
-              )}
-              </Switch>
-              <Tools />
-            </Col>
-          </Row>
-      </React.Fragment>
-      </BrowserRouter>
-      </UserProvider>
-    );
+              <Component />
+            </CSSTransition>
+          )}
+        </Route>
+      )
+      )}
+      </Switch>
+      <Tools />
+    </Col>
+  )
+}
+
+
+const Main = () => {
+
+  return (
+    <UserProvider>
+    <BrowserRouter>
+      <React.Fragment>
+        <TopNavbar routes={myroutes} />
+        <Row className="Main">
+          <MainPage />
+        </Row>
+    </React.Fragment>
+    </BrowserRouter>
+    </UserProvider>
+  );
 }
 
 export default Main;

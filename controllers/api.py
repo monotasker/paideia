@@ -135,6 +135,35 @@ def get_login():
         return json({'error': e})
 
 
+def get_userdata():
+    """
+    API method to get the user data for the currently logged in user.
+    """
+    auth = current.auth
+    session = current.session
+    try:
+        myuser = db.auth_user(auth.user_id).as_dict()
+        try:
+            myuser = {k:v for k, v in myuser.items() if k in
+                    ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+            memberships = db((db.auth_membership.user_id == myuser['id']) &
+                             (db.auth_membership.group_id == db.auth_group.id)
+                             ).select(db.auth_group.role).as_list()
+            myuser['roles'] = [m['role'] for m in memberships]
+
+            myuser['current_badge_set'] = db(
+                db.tag_progress.name == myuser['id']
+                ).select().first().latest_new
+            myuser['review_set'] = session.set_review \
+                if 'set_review' in session.keys() else None
+
+        except AttributeError:
+            myuser = {'id': None}
+        return json(myuser)
+    except Exception as e:
+        return json({'error': e})
+
+
 def do_logout():
     """
     API method to log the current user out.
@@ -161,7 +190,12 @@ def check_login():
 
     """
     auth = current.auth
-    return json({'status': auth.is_logged_in()})
+    session = current.session
+    my_login = {'logged_in': False, 'user': 0}
+    if auth.is_logged_in():
+        my_login['logged_in'] = True
+        my_login['user'] = auth.user_id
+    return json(my_login)
 
 
 def get_step_queries():

@@ -8,7 +8,7 @@ const login = async (formdata) => {
       mode: "same-origin",
       body: formdata
   })
-  return response
+  return await response.json()
 }
 
 const logout = async (userid) => {
@@ -17,11 +17,28 @@ const logout = async (userid) => {
       cache: "no-cache",
       body: {'userid': userid}
   })
-  return response
+  return await response.json()
 }
 
 const checkLogin = async () => {
+  let response = await fetch('/paideia/api/check_login', {
+      method: "GET",
+      cache: "no-cache"
+  })
+  return await response.json()
+}
 
+const updateUserInfo = async (dispatch) => {
+  let response = await fetch('/paideia/api/get_userdata', {
+      method: "GET",
+      cache: "no-cache"
+  })
+  const jsonData = await response.json();
+  const myinfo = formatLoginData(jsonData);
+  console.log('updating local info');
+  console.log(myinfo);
+  dispatch({type: 'initializeUser', payload: myinfo});
+  return myinfo
 }
 
 function returnStatusCheck(mydata, history, action, reducer) {
@@ -36,4 +53,27 @@ function returnStatusCheck(mydata, history, action, reducer) {
   }
 }
 
-export { login, logout, checkLogin, returnStatusCheck }
+const formatLoginData = (data) => {
+  return {
+    userId: data['id'],
+    firstName: data['first_name'],
+    lastName: data['last_name'],
+    email: data['email'],
+    userLoggedIn: true,
+    userRoles: data['roles'],
+    userToken: '',
+    userTimezone: data['time_zone'],
+    hideReadQueries: data['hide_read_queries'],
+    currentBadgeSet: data['current_badge_set'],
+    reviewSet: data['review_set']
+  }
+}
+
+export {
+  login,
+  logout,
+  checkLogin,
+  updateUserInfo,
+  returnStatusCheck,
+  formatLoginData
+}

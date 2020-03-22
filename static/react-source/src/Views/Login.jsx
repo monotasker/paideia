@@ -7,9 +7,10 @@ import {
   Row,
   Col
 } from "react-bootstrap";
-import { login } from '../Services/authService';
-import { UserContext } from '../UserContext/UserProvider';
 import { withRouter } from 'react-router';
+
+import { login, formatLoginData } from '../Services/authService';
+import { UserContext } from '../UserContext/UserProvider';
 
 const Login = (props) => {
   const { user, dispatch } = useContext(UserContext);
@@ -20,31 +21,15 @@ const Login = (props) => {
     event.preventDefault();
 
     login(formdata)
-    .then( response => response.json() )
     .then( userdata => {
       if ( userdata.id != null ) {
-        console.log(userdata);
-        return dispatch({
+        dispatch({
           type: 'initializeUser',
-          payload: {
-            userId: userdata['id'],
-            firstName: userdata['first_name'],
-            lastName: userdata['last_name'],
-            email: userdata['email'],
-            userLoggedIn: true,
-            userRoles: userdata['roles'],
-            userToken: '',
-            userTimezone: userdata['time_zone'],
-            hideReadQueries: userdata['hide_read_queries'],
-            currentBadgeSet: userdata['current_badge_set'],
-            reviewSet: userdata['review_set']
-          }
+          payload: formatLoginData(userdata)
         })
       } else {
         console.log(`login failed`);
-        console.log(userdata);
       }
-      console.log(user);
     })
   }
 
