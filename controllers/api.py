@@ -51,7 +51,8 @@ def get_prompt():
         new_user = request.vars.new_user
         stepargs = {'path': None,
                     'response_string': None,
-                    'set_blocks': None
+                    'set_blocks': None,
+                    'repeat': False
                     }
         for k, v in request.vars.items():
             if k in stepargs.keys() \
