@@ -174,13 +174,17 @@ def do_logout():
         JSON object with the same user fields returned at login, but with null
         values for each one.
     """
+    print("about to log out")
     auth = current.auth
     try:
+        print("about to log out")
         mylogout = auth.logout_bare()
+        print ("did logout")
         myuser = {k:None for k in ['email', 'first_name', 'last_name',
                                    'hide_read_queries', 'id', 'time_zone']}
         return json(myuser)
     except Exception as e:
+        print(e)
         return json({'error': e})
 
 

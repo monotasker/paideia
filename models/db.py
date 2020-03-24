@@ -81,7 +81,7 @@ postgre['host'] = keydata['postgre_host']
 postgre['db_name'] = keydata['postgre_dbname']
 
 
-# set the postgres dbase to the test dbase 
+# set the postgres dbase to the test dbase
 if _i_am_running_under_test():
     postgre['db_name'] = keydata['postgre_testdbname']
 # print(('--- using dbase: ', postgre['db_name'], ' ---'))

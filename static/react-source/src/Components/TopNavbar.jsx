@@ -91,8 +91,14 @@ const TopNavbar = () => {
     const { user, dispatch } = useContext(UserContext);
 
     const doLogout = () => {
-      logout();
-      dispatch({type: 'deactivateUser', payload: null});
+      logout()
+      .then(response => {
+        if (!response.id) {
+          dispatch({type: 'deactivateUser', payload: user.userId});
+        } else {
+          console.log("failed to log out from server!");
+        }
+      });
     }
 
     const welcome = (

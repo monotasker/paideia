@@ -5,29 +5,30 @@ import React, {
 
 const UserContext = createContext();
 // const UserDispatchContext = createContext();
+const ls = window.localStorage
 
 let userDefaults = {
-  userId: window.localStorage.getItem('userId') || null,
-  firstName: window.localStorage.getItem('firstName') || null,
-  lastName: window.localStorage.getItem('lastName') || null,
-  userEmail: window.localStorage.getItem('userEmail') || null,
-  userRoles: window.localStorage.getItem('userRoles') || [],
-  userToken: window.localStorage.getItem('userToken') || null,
-  userTimezone: window.localStorage.getItem('userTimezone') || null,
-  userLoggedIn: window.localStorage.getItem('userLoggedIn') || false,
-  flags: window.localStorage.getItem('flags') || [],
-  hideReadQueries: window.localStorage.getItem('hideReadQueries') || null,
-  reviewSet: window.localStorage.getItem('reviewSet') || null,
-  currentLocation: window.localStorage.getItem('currentLocation') || null,
-  currentLocationBG: window.localStorage.getItem('currentLocationBG') || null,
-  currentNpc: window.localStorage.getItem('currentNpc') || null,
-  currentNpcImage: window.localStorage.getItem('currentNpcImage') || null,
-  currentPath: window.localStorage.getItem('currentPath') || null,
-  currentStep: window.localStorage.getItem('currentStep') || null,
-  currentAnswer: window.localStorage.getItem('currentAnswer') || null,
-  currentScore: window.localStorage.getItem('currentScore') || null,
-  currentLogID: window.localStorage.getItem('currentLogID') || null,
-  currentBadgeSet: window.localStorage.getItem('currentLogID') || null
+  userId: parseInt(ls.getItem('userId')) || null,
+  firstName: ls.getItem('firstName') || null,
+  lastName: ls.getItem('lastName') || null,
+  userEmail: ls.getItem('userEmail') || null,
+  userRoles: !!ls.getItem('userRoles') && ls.getItem('userRoles').split(',') || [],
+  userToken: ls.getItem('userToken') || null,
+  userTimezone: ls.getItem('userTimezone') || null,
+  userLoggedIn: ( ls.getItem('userLoggedIn') === "true" ) || false,
+  flags: ls.getItem('flags') || [],
+  hideReadQueries: ( ls.getItem('hideReadQueries') === "true" ) || null,
+  reviewSet: ls.getItem('reviewSet') || null,
+  currentLocation: ls.getItem('currentLocation') || null,
+  currentLocationBG: ls.getItem('currentLocationBG') || null,
+  currentNpc: ls.getItem('currentNpc') || null,
+  currentNpcImage: ls.getItem('currentNpcImage') || null,
+  currentPath: ls.getItem('currentPath') || null,
+  currentStep: ls.getItem('currentStep') || null,
+  currentAnswer: ls.getItem('currentAnswer') || null,
+  currentScore: ls.getItem('currentScore') || null,
+  currentLogID: ls.getItem('currentLogID') || null,
+  currentBadgeSet: ls.getItem('currentLogID') || null
 }
 
 
@@ -38,10 +39,14 @@ function userReducer(state, action) {
       window.localStorage.setItem('firstName', action.payload.firstName);
       window.localStorage.setItem('lastName', action.payload.lastName);
       window.localStorage.setItem('userEmail', action.payload.email);
+      window.localStorage.setItem('userLoggedIn', true);
       window.localStorage.setItem('userRoles', action.payload.userRoles);
+      // window.localStorage.setItem('userToken', action.payload.userToken);
+      window.localStorage.setItem('userTimezone', action.payload.userTimezone);
+      // window.localStorage.setItem('flags', action.payload.flags);
+      window.localStorage.setItem('currentPath', null);
       window.localStorage.setItem('hideReadQueries', action.payload.hideReadQueries);
       window.localStorage.setItem('currentBadgeSet', action.payload.currentBadgeSet);
-      window.localStorage.setItem('userTimezone', action.payload.userTimezone);
       window.localStorage.setItem('reviewSet', action.payload.reviewSet);
       return({
         ...state,

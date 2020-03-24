@@ -153,7 +153,7 @@ const MainPage = () => {
       } else if ( !user.userLoggedIn && !!mydata.logged_in ) {
         console.log('logged in server only');
         updateUserInfo(dispatch);
-      } else if ( !!user.userLoggedIn && !mydata.logged_in ) {
+      } else if ( (!!user.userID || !!user.userLoggedIn) && !mydata.logged_in ) {
         console.log('logged in local only');
         dispatch({type: 'deactivateUser'});
       }

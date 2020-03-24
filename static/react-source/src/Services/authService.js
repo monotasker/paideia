@@ -11,11 +11,11 @@ const login = async (formdata) => {
   return await response.json()
 }
 
-const logout = async (userid) => {
+const logout = async () => {
   let response = await fetch('/paideia/api/do_logout', {
-      method: "POST",
+      method: "GET",
       cache: "no-cache",
-      body: {'userid': userid}
+      mode: "same-origin"
   })
   return await response.json()
 }
@@ -23,7 +23,8 @@ const logout = async (userid) => {
 const checkLogin = async () => {
   let response = await fetch('/paideia/api/check_login', {
       method: "GET",
-      cache: "no-cache"
+      cache: "no-cache",
+      mode: "same-origin",
   })
   return await response.json()
 }
@@ -31,7 +32,8 @@ const checkLogin = async () => {
 const updateUserInfo = async (dispatch) => {
   let response = await fetch('/paideia/api/get_userdata', {
       method: "GET",
-      cache: "no-cache"
+      cache: "no-cache",
+      mode: "same-origin",
   })
   const jsonData = await response.json();
   const myinfo = formatLoginData(jsonData);
