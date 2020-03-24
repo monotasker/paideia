@@ -28,26 +28,26 @@ let userDefaults = {
   currentAnswer: ls.getItem('currentAnswer') || null,
   currentScore: ls.getItem('currentScore') || null,
   currentLogID: ls.getItem('currentLogID') || null,
-  currentBadgeSet: ls.getItem('currentLogID') || null
+  currentBadgeSet: ls.getItem('currentBadgeSet') || null
 }
 
 
 function userReducer(state, action) {
   switch (action.type) {
     case 'initializeUser': {
-      window.localStorage.setItem('userId', action.payload.userId);
-      window.localStorage.setItem('firstName', action.payload.firstName);
-      window.localStorage.setItem('lastName', action.payload.lastName);
-      window.localStorage.setItem('userEmail', action.payload.email);
-      window.localStorage.setItem('userLoggedIn', true);
-      window.localStorage.setItem('userRoles', action.payload.userRoles);
-      // window.localStorage.setItem('userToken', action.payload.userToken);
-      window.localStorage.setItem('userTimezone', action.payload.userTimezone);
-      // window.localStorage.setItem('flags', action.payload.flags);
-      window.localStorage.setItem('currentPath', null);
-      window.localStorage.setItem('hideReadQueries', action.payload.hideReadQueries);
-      window.localStorage.setItem('currentBadgeSet', action.payload.currentBadgeSet);
-      window.localStorage.setItem('reviewSet', action.payload.reviewSet);
+      ls.setItem('userId', action.payload.userId);
+      ls.setItem('firstName', action.payload.firstName);
+      ls.setItem('lastName', action.payload.lastName);
+      ls.setItem('userEmail', action.payload.email);
+      ls.setItem('userLoggedIn', true);
+      ls.setItem('userRoles', action.payload.userRoles);
+      // ls.setItem('userToken', action.payload.userToken);
+      ls.setItem('userTimezone', action.payload.userTimezone);
+      // ls.setItem('flags', action.payload.flags);
+      ls.setItem('currentPath', null);
+      ls.setItem('hideReadQueries', action.payload.hideReadQueries);
+      ls.setItem('currentBadgeSet', action.payload.currentBadgeSet);
+      ls.setItem('reviewSet', action.payload.reviewSet);
       return({
         ...state,
         userId: action.payload.userId,
@@ -66,7 +66,7 @@ function userReducer(state, action) {
       })
     }
     case 'deactivateUser': {
-      window.localStorage.clear();
+      ls.clear();
       return({
         ...state,
         userId: null,
@@ -88,9 +88,9 @@ function userReducer(state, action) {
     }
     case 'setEvalResults': {
       console.log(action.payload);
-      window.localStorage.setItem('currentAnswer', action.payload.answer);
-      window.localStorage.setItem('currentScore', action.payload.score);
-      window.localStorage.setItem('currentLogID', action.payload.logId);
+      ls.setItem('currentAnswer', action.payload.answer);
+      ls.setItem('currentScore', action.payload.score);
+      ls.setItem('currentLogID', action.payload.logId);
       return({
         ...state,
         currentAnswer: action.payload.answer,
@@ -99,32 +99,32 @@ function userReducer(state, action) {
       })
     }
     case 'setCurrentLoc': {
-      window.localStorage.setItem('currentLocation', action.payload);
+      ls.setItem('currentLocation', action.payload);
       return({
         ...state,
         currentLocation: action.payload
       })
     }
     case 'leaveCurrentLoc': {
-      window.localStorage.setItem('currentLocation', null);
+      ls.setItem('currentLocation', null);
       return({
         ...state,
         currentLocation: null
       })
     }
     case 'setCurrentNpc': {
-      window.localStorage.setItem('currentNpc', action.payload);
+      ls.setItem('currentNpc', action.payload);
       return({
         ...state,
         currentNpc: action.payload
       })
     }
     case 'setCurrentStep': {
-      window.localStorage.setItem('currentStep', action.payload.step);
-      window.localStorage.setItem('currentPath', action.payload.path);
-      window.localStorage.setItem('currentAnswer', null);
-      window.localStorage.setItem('currentScore', null);
-      window.localStorage.setItem('currentLogID', null);
+      ls.setItem('currentStep', action.payload.step);
+      ls.setItem('currentPath', action.payload.path);
+      ls.setItem('currentAnswer', null);
+      ls.setItem('currentScore', null);
+      ls.setItem('currentLogID', null);
       return {...state,
         currentStep: action.payload.step,
         currentPath: action.payload.path,
@@ -134,7 +134,7 @@ function userReducer(state, action) {
       }
     }
     case 'setReviewSet': {
-      window.localStorage.setItem('reviewSet', action.payload);
+      ls.setItem('reviewSet', action.payload);
       return {...state,
         reviewSet: action.payload
       }
