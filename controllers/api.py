@@ -1,11 +1,15 @@
 #! /usr/bin/python3.6
 # -*- coding: utf-8 -*-
 from copy import copy
+import datetime
+from traceback import format_exc
 from gluon.serializers import json
 from pprint import pprint
 from paideia import Walk
-from paideia_bugs import Bug
 from paideia_utils import GreekNormalizer
+from paideia_stats import Stats, get_set_at_date, get_term_bounds
+from paideia_stats import get_current_class, get_chart1_data, my_custom_json
+from paideia_bugs import Bug, trigger_bug_undo
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -416,3 +420,169 @@ def set_review_mode():
     session.set_review = myset
 
     return json({'review_set': session.set_review})
+
+
+def get_profile_info():
+    """
+    Api method to fetch a user's performance record.
+
+    One optional request parameter "user" expects an integer identifying the
+    user whose information is requested. If this parameter is not provided, the
+    request defaults to the logged in user.
+
+    Returns a json object with the following keys:
+            the_name (str):             User's name from auth.user as lastname,
+                                            firstname
+            user_id(int):               The requested user's id.
+            tz(str??):                  User's time zone from auth.user
+                                            (extended in db.py)
+            email(str):                 User's email
+            starting_set(int):          badge set at which the user began
+                                            his/her current course section
+            end_date(str??):            ending date for user's current course
+                                            section
+            cal(html helper obj):       html calendar with user path stats
+                                            (from Stats.monthcal)
+            max_set(int):               Furthest badge set reached to date by
+                                            user (from Stats.max)
+            badge_levels(dict):         Dictionary with badge levels (int) as
+                                            keys and a list of badge names (or
+                                            tag: int) as each value.
+            badge_table_data(list):     A list of dictionaries with info on
+                                            user badge progress (from
+                                            Stats.active_tags)
+            badge_set_milestones(list): List of 'upgrades' of the highest badge
+                                            set and their dates
+            answer_counts(list):        List of counts of right and wrong
+                                            answers for each active day
+            chart1_data(dict):          dictionary of data to build stats chart
+                                            in view (from get_chart1_data)
+            reviewing_set():            session.set_review,
+            badge_set_dict():           badge_set_dict
+    """
+    debug = False
+    db = current.db
+    auth = current.auth
+    session = current.session
+
+    mystudents = db((db.classes.instructor == auth.user_id) &
+                    (db.classes.id == db.class_membership.class_section)
+                    ).select(db.class_membership.name).as_list()
+    try:
+        assert auth.is_logged_in();
+        now = datetime.datetime.utcnow()
+        # Allow passing explicit user but default to current user
+        if 'userId' in request.vars.keys():
+            sid = request.vars['userId']
+            # only allow viewing if admin or student's instructor
+            if (auth.user_id == sid
+                or auth.has_membership('administrators')
+                or (auth.has_membership('instructors') and
+                    _is_my_student(auth.user_id, sid))):
+                user = db.auth_user[sid]
+            else:
+                raise PermissionError("Current user not authorized to view the "
+                                      "requested student's record")
+        else:
+            user = db.auth_user[auth.user_id]
+
+        stats = Stats(user.id)
+
+        # get user's current course
+        myc = get_current_class(user.id, datetime.datetime.utcnow())
+
+        # tab1
+
+        name = stats.get_name()
+        tz = user.time_zone
+        email = user.email
+        max_set = stats.get_max()
+        badge_levels = stats.get_badge_levels()
+        badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
+
+        start_date, fmt_start, end_date, fmt_end = None, None, None, None
+        if myc:
+            start_date, fmt_start, end_date, fmt_end, \
+                prevend, fmt_prevend = get_term_bounds(
+                    myc.class_membership.as_dict(),
+                    myc.classes.start_date,
+                    myc.classes.end_date)
+            try:
+                starting_set = int(myc.class_membership.starting_set)
+            except (ValueError, TypeError):
+                starting_set = None
+            if not starting_set:
+                starting_set = get_set_at_date(user.id, start_date)
+            goal = myc.classes.a_target
+
+            if myc.class_membership.custom_a_cap:  # allow personal targets
+                target_set = myc.class_membership.custom_a_cap
+            else:  # default to class target/cap
+                cap = myc.classes.a_cap
+                target_set = starting_set + goal
+                if cap and target_set > cap:
+                    target_set = cap
+        else:
+            starting_set = None
+            goal = None
+            target_set = None
+
+        # tab2
+        mycal = stats.monthcal()
+        # badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
+        # sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
+        # steps_most_wrong = stats.steps_most_wrong(badge_table_data)
+
+        # tab5
+        mydata = get_chart1_data(user_id=user.id)
+        chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
+        badge_set_milestones = mydata['badge_set_milestones']
+        answer_counts = mydata['answer_counts']
+        badge_set_dict = {}
+        set_list_rows = db().select(db.tags.tag_position, distinct=True)
+        set_list = sorted([row.tag_position for row in set_list_rows
+                        if row.tag_position < 90])
+        all_tags = db((db.tags.id > 0) &
+                    (db.badges.tag == db.tags.id)
+                    ).select()
+        for myset in set_list:
+            set_tags = all_tags.find(lambda r: r.tags.tag_position == myset)
+            set_tags_info = [{'tag': r.tags.id,
+                              'badge_title': r.badges.badge_name}
+                             for r in set_tags]
+            badge_set_dict[myset] = set_tags_info
+    except Exception:
+        print(format_exc(5))
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
+
+    return json({'the_name': name,
+            'user_id': user.id,
+            'tz': tz,
+            'email': email,
+            'starting_set': starting_set,
+            'target_set': target_set,
+            'end_date': fmt_end,
+            'cal': mycal,
+            'max_set': max_set,
+            'badge_levels': badge_levels,
+            'badge_table_data': badge_table_data,
+            'badge_set_milestones': badge_set_milestones,
+            'answer_counts': answer_counts,
+            'chart1_data': chart1_data,
+            'reviewing_set': session.set_review,
+            'badge_set_dict': badge_set_dict
+            },
+            default=my_custom_json)
+
+
+def _is_my_student(user, student):
+    """
+    Return a boolean indicating if student is in a class taught by user
+    """
+    mystudents = db((db.classes.instructor == user) &
+                    (db.classes.id == db.class_membership.class_section)
+                    ).select(db.class_membership.name).as_list()
+    mystudent_ids = list(set(s['name'] for s in mystudents))
+    return True if student in mystudent_ids else False

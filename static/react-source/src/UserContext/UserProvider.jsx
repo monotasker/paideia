@@ -139,6 +139,12 @@ function userReducer(state, action) {
         reviewSet: action.payload
       }
     }
+    case 'updateProfileInfo': {
+      ls.setItem('currentBadgeSet', action.payload.currentBadgeSet);
+      return {...state,
+        currentBadgeSet: action.payload.currentBadgeSeta
+      }
+    }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`)
     }

@@ -123,7 +123,6 @@ const myroutes = [
 const MainPage = () => {
   const [ myheight, setMyheight ] = useState(null);
   const { user, dispatch } = useContext(UserContext);
-  console.log(user);
 
   const setHeight = () => {
     const headroom = document.querySelector('.navbar').offsetHeight;
@@ -136,14 +135,8 @@ const MainPage = () => {
   });
 
   useEffect(() => {
-    console.log(user);
     checkLogin()
     .then(mydata => {
-      console.log(mydata)
-      console.log("local login?");
-      console.log(user.userLoggedIn);
-      console.log("remote login?");
-      console.log(mydata.logged_in);
       if ( !!user.userLoggedIn && !!mydata.logged_in ) {
         console.log('logged in both');
 

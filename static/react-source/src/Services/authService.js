@@ -43,6 +43,34 @@ const updateUserInfo = async (dispatch) => {
   return myinfo
 }
 
+const getProfileInfo = async ({forSelf=false,
+                               userId=null,
+                               dispatch=null}) => {
+  let response = await fetch('/paideia/api/get_profile_info', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user: userId,
+      })
+  })
+
+  let mystatus = response.status;
+  const jsonData = await response.json();
+
+  const mydata = {
+    currentBadgeSet: jsonData.max_set,
+    status_code: mystatus
+  }
+  if ( !!forSelf ) {
+    dispatch({type: 'updateProfileInfo', payload: mydata})
+  }
+  return mydata
+}
+
 function returnStatusCheck(mydata, history, action, reducer) {
   if ( mydata.status_code === 200 ) {
     action(mydata);
@@ -76,6 +104,7 @@ export {
   logout,
   checkLogin,
   updateUserInfo,
+  getProfileInfo,
   returnStatusCheck,
   formatLoginData
 }

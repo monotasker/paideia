@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import decimal
 from collections import defaultdict
 from dateutil.parser import parse
 import traceback
@@ -9,6 +10,9 @@ from operator import itemgetter
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
+from gluon._compat import to_native, integer_types
+from gluon.languages import lazyT
+from gluon.html import XmlComponent
 from plugin_utils import make_json, load_json
 from pprint import pprint
 # from paideia import Categorizer
@@ -113,7 +117,7 @@ class Stats(object):
                                    ).select().first().as_dict()
         except AttributeError:
             self.tag_progress = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
-                                 'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []} 
+                                 'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         # print 'Stats.__init__:: tag_progress:', self.tag_progress
 
         # TODO: find and notify re. duplicate tag_records rows
@@ -398,7 +402,7 @@ class Stats(object):
         '''
         db = current.db
         debug = 0
-        
+
 
         mystats = db((db.weekly_user_stats.name==self.user_id) &
                      (db.weekly_user_stats.tag==tag_id) &
@@ -561,7 +565,7 @@ class Stats(object):
             # log fields used below are dt_attempted, score
             if debug: print('E')
             if debug: print(t['tag'])
-            tagstats = self._get_logs_for_tag(t['tag'], recent_start) 
+            tagstats = self._get_logs_for_tag(t['tag'], recent_start)
             pprint(tagstats)
 
             try:
@@ -608,7 +612,7 @@ class Stats(object):
                 except TypeError:  # record is timezone-aware, shouldn't be yet
                     t['tl' + i] = t['tl' + i].replace(tzinfo=None)
                     tag_records[idx]['delta_' + i] = now - t['tl' + i]
-            if tag_records[idx]['tlr'] > tag_records[idx]['tlw']: 
+            if tag_records[idx]['tlr'] > tag_records[idx]['tlw']:
                 tag_records[idx]['delta_rw'] = (
                     tag_records[idx]['tlr'] - tag_records[idx]['tlw'])
             else:
@@ -655,7 +659,7 @@ class Stats(object):
             tag_records = self._add_promotion_data(tag_records)
             # tr = self._add_log_data(tr)
             if debug: print('L')
-            return tag_records  
+            return tag_records
         except Exception:
             traceback.print_exc(5)
             return None
@@ -800,7 +804,7 @@ class Stats(object):
         boundaries need to be adjusted based on the user's timezone offset. In
         other words, all datetimes remain in UTC time but week/day boundaries will be offset from 0,0 to fit the user's local day.
 
-        Although the weeks follow iso calendar week numbers, they begin on the 
+        Although the weeks follow iso calendar week numbers, they begin on the
         Sunday. The "week_end" datetime is also actually minute 0 of the following week.
 
         :param int tag:     Id of the tag for which records are being stored.
@@ -830,12 +834,12 @@ class Stats(object):
                         }
             valid = 0
             for n in range(1, 8):
-                rlogs = [r['attempt_log']['id'] for r in weeklogs if 
+                rlogs = [r['attempt_log']['id'] for r in weeklogs if
                          r['attempt_log']['dt_attempted'] > most_recent_row and
                          r['attempt_log']['dt_attempted'] >= days[n-1] and
                          r['attempt_log']['dt_attempted'] < days[n] and
                          (abs((r['attempt_log']['score'] or 0) - 1.0) < 0.01)]
-                wlogs = [r['attempt_log']['id'] for r in weeklogs if 
+                wlogs = [r['attempt_log']['id'] for r in weeklogs if
                          r['attempt_log']['dt_attempted'] > most_recent_row and
                          r['attempt_log']['dt_attempted'] >= days[n-1] and
                          r['attempt_log']['dt_attempted'] < days[n] and
@@ -857,7 +861,7 @@ class Stats(object):
                 adjustedstart = naivestart - datetime.timedelta(days=1)
                 start = adjustedstart - offset
                 days = [start + datetime.timedelta(days=n) for n in range(0, 8)
-                        ] 
+                        ]
 
                 # search logs based on tz-adjusted datetimes
                 mylogs = db((db.attempt_log.name == self.user_id) &
@@ -868,12 +872,12 @@ class Stats(object):
                             ).select().as_list()
                 if mylogs:
                     weekdict = inner_build_dict(mylogs)
-                    if weekdict: 
+                    if weekdict:
                         if days[7] < now:  # week is finished, write to db
                             myrow = db.weekly_user_stats.insert(**weekdict)
                             db.commit()
                             print('inserting row', myrow)
-                        # only return if 
+                        # only return if
                         if year >= recent_year and week >= recent_week:
                             return_list.append(weekdict)
                     else:
@@ -881,12 +885,12 @@ class Stats(object):
         # print ('finished')
 
         return return_list
-        
+
 
     def _get_logs_for_range(self, startdate=None, stopdate=None, tag=None):
         '''
         Assemble and return aggregate log data on the user's step attempts.
-        
+
         :param datetime startdate:  The beginning of the range for which attempt
                                     log data is being requested.
         :param datetime startdate:  The end of the range for which attempt
@@ -895,7 +899,7 @@ class Stats(object):
                                     logs are restricted to attempts involving
                                     steps with the provided tag.
 
-        Before returning the aggregate data, this method ensures that any fresh attempts not processed and stored in the "weekly_user_stats" table are 
+        Before returning the aggregate data, this method ensures that any fresh attempts not processed and stored in the "weekly_user_stats" table are
         stored.
 
         Return value is a dictionary of weeks with log-data for each day.
@@ -946,7 +950,7 @@ class Stats(object):
         #         usdict[year] = {}
         #         for m in myrows:
         #             start = m['week_start']
-        #             weekdates = [start + datetime.timedelta(days=n) + offset 
+        #             weekdates = [start + datetime.timedelta(days=n) + offset
         #                          for n in range(0, 7)]
         #             try:
         #                 for n in range(1,8):
@@ -1621,7 +1625,7 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     """
     Computes student's letter grade based on his/her progress in badge sets.
     """
-    debug = True
+    debug = False
     mymem = get_current_class(uid, datetime.datetime.utcnow(),
                               myclass=classrow['id'])
     if debug: print('stats::compute_letter_grade: uid = ', uid)
@@ -1766,3 +1770,78 @@ def make_unregistered_list(users):
     userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
 
     return userlist
+
+
+def get_chart1_data(user_id=None, set=None, tag=None):
+    '''
+    Fetch raw data to present in first user profile chart.
+
+    This function is isolated so that it can be called directly from ajax
+    controls on the chart itself, as well as programmatically from info().
+
+    Returns:
+        dict:
+
+    '''
+    # def milliseconds(dt):
+    #     return (dt-datetime.datetime(1970,1,1)).total_seconds() * 1000
+    user_id = user_id if user_id else auth.user_id
+    stats = Stats(user_id)
+    badge_set_milestones = stats.get_badge_set_milestones()
+    answer_counts = stats.get_answer_counts(set=set, tag=tag)
+
+    chart1_data = {'badge_set_reached': [{'date': dict['my_date'],
+                                          'set': dict['badge_set']} for dict
+                                         in badge_set_milestones],
+                   'answer_counts': [{'date': dict['my_date'],
+                                      'total': dict['right'] + dict['wrong'],
+                                      'ys': [{'class': 'right',
+                                              'y0': 0,
+                                              'y1': dict['right']},
+                                             {'class': 'wrong',
+                                              'y0': dict['right'],
+                                              'y1': dict['right'] +
+                                              dict['wrong']}
+                                             ],
+                                      'ids': dict['ids']
+                                      } for dict in answer_counts],
+                   # above includes y values for stacked bar graph
+                   # and 'ids' for modal presentation of daily attempts
+                   }
+
+    return {'chart1_data': chart1_data,
+            'badge_set_milestones': badge_set_milestones,
+            'answer_counts': answer_counts}
+
+
+def my_custom_json(o):
+    """
+    A fork of gluon.serializers.custom_json that handles timedeltas
+
+    """
+    if hasattr(o, 'custom_json') and callable(o.custom_json):
+        return o.custom_json()
+    if isinstance(o, (datetime.date,
+                      datetime.datetime,
+                      datetime.time)):
+        return o.isoformat()[:19].replace('T', ' ')
+    elif isinstance(o, datetime.timedelta):
+        return o.total_seconds()
+    elif isinstance(o, integer_types):
+        return int(o)
+    elif isinstance(o, decimal.Decimal):
+        return float(o)
+    elif isinstance(o, (bytes, bytearray)):
+        return str(o)
+    elif isinstance(o, lazyT):
+        return str(o)
+    elif isinstance(o, XmlComponent):
+        return to_native(o.xml())
+    elif isinstance(o, set):
+        return list(o)
+    elif hasattr(o, 'as_list') and callable(o.as_list):
+        return o.as_list()
+    elif hasattr(o, 'as_dict') and callable(o.as_dict):
+        return o.as_dict()
+    else:
+        raise TypeError(repr(o) + " is not JSON serializable")
