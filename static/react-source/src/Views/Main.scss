@@ -43,7 +43,7 @@ $accent3: $orange;
 $textColor: #333;
 $linkColor: $pallette2;
 $navbarLinkColor: $pallette2;
-$heading-color: darken($pallette1, 30%);
+$heading-color: darken($pallette1, 40%);
 
 // semantic colors (modded)
 // -------------------------
@@ -134,6 +134,34 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
     }
 }
 
+@mixin triangle-bottom($color, $width: 8) {
+    &:after                       {content: '';
+                                   position: absolute;
+                                   top: 100%;
+                                   left: 50%;
+                                   margin-left: #{$width*-1}px;
+                                   width: 0; height: 0;
+                                   border-top: $width*1px solid $color;
+                                   border-right: $width*1px solid transparent;
+                                   border-left: $width*1px solid transparent;
+    }
+}
+@mixin triangle-bottom-shadow($width: 8){
+    &:before                      {border-top: $width*1px solid rgba(0,0,0,0.2);
+                                   border-right: $width*1px solid transparent;
+                                   border-left: $width*1px solid transparent;
+                                   left: 50%;
+                                   margin-left: #{$width*-1}px;
+                                   top: 107%;
+                                   content: '';
+                                   position: absolute;
+    }
+}
+
+@mixin neumorphism-shadow() {
+    box-shadow: rgba(0, 0, 0, 0.2) 2px 2px 8px,
+        rgba(255, 255, 255, 0.5) -2px -2px 8px;
+}
 
 // typography ---------------------------------------------
 
@@ -759,6 +787,141 @@ h3                                      {font-family: $sans-fonts;
         }
     }
 }
+
+
+// profile interface------------------------------------
+
+.profile-component               {background-color: $cream;
+    h3                           {font-family: $title-fonts;
+                                  color: $heading-color;
+    }
+    .profile-info                {
+        .profile-name            {font-size: $font-size-lg;
+        }
+        .profile-email           {color: $accent2;
+        }
+        .profile-timezone        {color: $accent3;
+        }
+    }
+    .profile-progress            {
+        .profile-progress-scale-container {width: 100%;
+                                           border-radius: 0.25rem;
+                                           position: relative;
+                                           @include neumorphism-shadow();
+            .profile-progress-scale,
+            .profile-progress-bar         {width: 100%;
+                                           height: 3rem;
+                                           display: flex;
+                                           flex-direction: row;
+                                           border-radius: 0.25rem;
+                .profile-progress-unit    {border-right: 1px solid $pallette1;
+                                           flex-basis: 5%;
+                                           flex-grow: 1;
+                                           height: 3rem;
+                                           text-align: center;
+                                           line-height: 3rem;
+                    .current-set          {position: absolute;
+                                           top: -4rem;
+                                           display: flex;
+                                           flex-direction: row;
+                                           background: $accent2;
+                                           color: $white;
+                                           padding: 0.25rem .75rem;
+                                           border-radius: 0.25rem;
+                                           box-shadow: $hard-shadow;
+                                           transform: translate(-50%, 0);
+                                           margin-left: 2.5%;
+                                           @include triangle-bottom($accent2);
+                                           @include triangle-bottom-shadow();
+                        .current-set-number     {font-size: 2rem;
+                        }
+                        .current-set-intro      {font-size: 0.75rem;
+                                                 max-width: 4rem;
+                                                 line-height: 1rem;
+                                                 text-align: left;
+                        }
+                    }
+                }
+            }
+            .profile-progress-scale       {position: absolute;
+                                           background-color: $white;
+                                           color: darken($pallette2, 20%);
+            }
+            .profile-progress-bar         {background: linear-gradient($greenLight, $green);
+                                           transition: all 500ms ease-out;
+                &.badge-set-20                 {clip-path: inset(0 0 0 0);}
+                &.badge-set-19                 {clip-path: inset(0 5% 0 0);}
+                &.badge-set-18                 {clip-path: inset(0 10% 0 0);}
+                &.badge-set-17                 {clip-path: inset(0 15% 0 0);}
+                &.badge-set-16                 {clip-path: inset(0 20% 0 0);}
+                &.badge-set-15                 {clip-path: inset(0 25% 0 0);}
+                &.badge-set-14                 {clip-path: inset(0 30% 0 0);}
+                &.badge-set-13                 {clip-path: inset(0 35% 0 0);}
+                &.badge-set-12                 {clip-path: inset(0 40% 0 0);}
+                &.badge-set-11                 {clip-path: inset(0 55% 0 0);}
+                &.badge-set-10                 {clip-path: inset(0 50% 0 0);}
+                &.badge-set-9                  {clip-path: inset(0 55% 0 0);}
+                &.badge-set-8                  {clip-path: inset(0 60% 0 0);}
+                &.badge-set-7                  {clip-path: inset(0 65% 0 0);}
+                &.badge-set-6                  {clip-path: inset(0 70% 0 0);}
+                &.badge-set-5                  {clip-path: inset(0 75% 0 0);}
+                &.badge-set-4                  {clip-path: inset(0 80% 0 0);}
+                &.badge-set-3                  {clip-path: inset(0 85% 0 0);}
+                &.badge-set-2                  {clip-path: inset(0 90% 0 0);}
+                &.badge-set-1                  {clip-path: inset(0 95% 0 0);}
+                .profile-progress-unit    {color: $white;
+                }
+            }
+        }
+    }
+    .profile-stages               {
+        .nav-tabs                           {border-bottom: 1px solid $pallette2;
+            .nav-link                           {color: $heading-color;
+                &.active                        {@include neumorphism-shadow();
+                                                position: relative;
+                                                border-color: $pallette2 $pallette2 $white $pallette2;
+                    &:after                     {position: absolute;
+                                                width: 100%;
+                                                content: "";
+                                                box-shadow: 8px 6px 8px 0 $white;
+                                                z-index: 9;
+                                                height: 0.5rem;
+                                                background-color: $white;
+                                                left: 0;
+                                                top: 2.3rem;
+                    }
+                }
+            }
+        }
+        #profile-stages-tabs-tab-level1     {
+            .badge                          {background-color: $pallette3;
+                                             color: $white;
+            }
+        }
+        #profile-stages-tabs-tab-level2     {
+            .badge                          {background-color: $accent2;
+                                            color: $white;
+            }
+        }
+        #profile-stages-tabs-tab-level3     {
+            .badge                          {background-color: $accent3;
+                                             color: $white;
+            }
+        }
+        #profile-stages-tabs-tab-level4     {
+            .badge                          {background-color: $pallette4;
+                                             color: $white;
+            }
+        }
+        .tab-pane                           {background-color: $white;
+                                             border: 1px solid $pallette2;
+                                             border-top: 0;
+                                             padding: 0.5rem;
+                                             @include neumorphism-shadow();
+        }
+    }
+}
+
 
 // lessons interface------------------------------------
 

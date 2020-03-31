@@ -60,9 +60,11 @@ const getProfileInfo = async ({forSelf=false,
 
   let mystatus = response.status;
   const jsonData = await response.json();
+  console.log(jsonData);
 
   const mydata = {
     currentBadgeSet: jsonData.max_set,
+    badgeLevels: jsonData.badge_levels,
     status_code: mystatus
   }
   if ( !!forSelf ) {

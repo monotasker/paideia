@@ -28,7 +28,8 @@ let userDefaults = {
   currentAnswer: ls.getItem('currentAnswer') || null,
   currentScore: ls.getItem('currentScore') || null,
   currentLogID: ls.getItem('currentLogID') || null,
-  currentBadgeSet: ls.getItem('currentBadgeSet') || null
+  currentBadgeSet: ls.getItem('currentBadgeSet') || null,
+  badgeLevels: JSON.parse(ls.getItem('badgeLevels')) || null
 }
 
 
@@ -141,8 +142,10 @@ function userReducer(state, action) {
     }
     case 'updateProfileInfo': {
       ls.setItem('currentBadgeSet', action.payload.currentBadgeSet);
+      ls.setItem('badgeLevels', JSON.stringify(action.payload.badgeLevels));
       return {...state,
-        currentBadgeSet: action.payload.currentBadgeSeta
+        currentBadgeSet: action.payload.currentBadgeSet,
+        badgeLevels: action.payload.badgeLevels
       }
     }
     default: {
