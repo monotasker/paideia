@@ -732,7 +732,11 @@ class Stats(object):
                     mybadge = db.badges(db.badges.tag == tag)
                     badge_name = mybadge.badge_name if mybadge \
                         else 'tag id: {}'.format(tag)
-                    badgelist.append((badge_name, tag))
+                    mylessons = [(l.lesson_position, l.title) for l in
+                                 db(db.lessons.lesson_tags.contains(tag)
+                                    ).select()
+                                 ]
+                    badgelist.append((badge_name, tag, mybadge['description'], mylessons))
             badge_levels[level] = badgelist
 
         rl_ids = {k: v for k, v in list(bls.items()) if k[:3] == 'rev'}
@@ -985,100 +989,35 @@ class Stats(object):
 
     def monthcal(self, year=None, month=None):
         '''
-        Assemble and return an html calendar displaying the number of
-        attempts per day in the month 'month' for the user represented
-        by self.user_id.
+        Assemble and return attempt data for one month as a list of weeks.
 
-        The calendar is returned as a web2py DIV helper.
+        The returned data is a list of lists, each of which represents one calendar week (starting on Sunday). Within each week list, each day is represented by a 2-member tuple. The first member of the tuple is the datetime.date object for that day. The second member is a list of attempt log ids attempted by the current user on that date (adjusted for their time zone).
 
-        The calendar html structure is:
-
-        <table border="0" cellpadding="0" cellspacing="0" class="month">\n
-        <tr>
-            <th class="month" colspan="7">December 2013</th>
-        </tr>\n
-        <tr>
-            <th class="sun">Sun</th>
-            <th class="mon">Mon</th>
-            <th>class="tue">Tue</th>
-            <th>class="wed">Wed</th>
-            <th>class="thu">Thu</th>
-            <th>class="fri">Fri</th>
-            <th>class="sat">Sat</th>
-        </tr>\n
-        <tr>
-            <td class="sun">1</td>
-            <td class="mon">2</td>
-            <td class="tue">3</td>
-            <td class="wed">4</td>
-            <td class="thu">5</td>
-            <td class="fri">6</td>
-            <td class="sat">7</td>
-        </tr>\n
-        ...
-        <tr>
-            <td class="sun">29</td>
-            <td class="mon">30</td>
-            <td class="tue">31</td>
-            <td class="noday">\xc2\xa0</td>
-            <td class="noday">\xc2\xa0</td>
-            <td class="noday">\xc2\xa0</td>
-            <td class="noday">\xc2\xa0</td>
-        </tr>\n
-        </table>\n
         '''
         # TODO: get settings for this user's days/week requirements
         month = datetime.date.today().month if not month else int(month)
         year = datetime.date.today().year if not year else int(year)
-        monthend = calendar.monthrange(year, month)[1]
+        monthlists = calendar.Calendar(firstweekday=6
+                                       ).monthdatescalendar(year, month)
+        first = monthlists[0][0]
+        last = monthlists[-1][-1]
         monthname = calendar.month_name[month]
-        rangelogs = self._get_logs_for_range(datetime.datetime(year, month, 1,
-                                                               0, 0),
-                                             datetime.datetime(year, month,
-                                                               monthend, 23,
-                                                               59))
-        newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
-        mycal = TAG(newmcal)
-        try:
-            try:
-                daycounts = {k: len(v)
-                             for week in list(rangelogs[year].values())
-                             for k, v in list(week[0].items())}
-            except (TypeError, AttributeError):
-                daycounts = {k: len(v)
-                             for week in list(rangelogs[year].values())
-                             for k, v in list(week[0].items())}
-            # Create html calendar and add daily count numbers
-            for week in mycal.elements('tr'):
-                weekcount = 0
-                for day in week.elements('td[class!="noday"]'):
-                    try:
-                        mycount = [v for k, v in list(daycounts.items())
-                                   if k.day == int(day[0])][0]
-                        countspan = SPAN(mycount, _class='daycount')
-                        if mycount >= self.targetcount:
-                            countspan['_class'] = 'daycount full'
-                            weekcount += 1
-                        day.append(countspan)
-                    except (ValueError, IndexError):
-                        pass
-                    day[0] = SPAN(day[0], _class='cal_num')
-                if weekcount >= 5:
-                    week[-1].append(SPAN(_class='icon-ok success'))
-        except KeyError:  # if no logs for this month
-            pass
+        rangelogs = self._get_logs_for_range(
+            datetime.datetime(first.year, first.month, first.day, 0, 0),
+            datetime.datetime(last.year, last.month, last.day, 23, 59)
+            )
+        flatrangelogs = {myday: mylist for year, yval in rangelogs.items()
+                         for weeknum, wval in yval.items()
+                         for myday, mylist in wval[0].items()}
 
-        dropdown = self._monthpicker(calendar, year, month, monthname)
-        mycal.elements('th.month')[0][0] = dropdown
-        for link in self._navlinks(year, month):
-            mycal.elements('th.month')[0].insert(0, link)
-        wrap = DIV(_class='paideia_monthcal', _id='paideia_monthcal')
-        wrap.append(SPAN('Questions answered each day in',
-                         _class='monthcal_intro_line'))
-        wrap.append(mycal)
-        # TODO: Add weekly summary counts to the end of each table
+        for i, week in enumerate(monthlists):
+            for daynum, day in enumerate(week):
+                if day in flatrangelogs.keys():
+                    monthlists[i][daynum] = (day, flatrangelogs[day])
+                else:
+                    monthlists[i][daynum] = (day, [])
 
-        return wrap
+        return monthlists
 
     def _navlinks(self, year, month):
         """

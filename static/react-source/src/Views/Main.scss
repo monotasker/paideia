@@ -43,7 +43,7 @@ $accent3: $orange;
 $textColor: #333;
 $linkColor: $pallette2;
 $navbarLinkColor: $pallette2;
-$heading-color: darken($pallette1, 40%);
+$heading-color: #ab8531;  // darken($pallette1, 40%);
 
 // semantic colors (modded)
 // -------------------------
@@ -159,8 +159,8 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 }
 
 @mixin neumorphism-shadow() {
-    box-shadow: rgba(0, 0, 0, 0.2) 2px 2px 8px,
-        rgba(255, 255, 255, 0.5) -2px -2px 8px;
+    box-shadow: rgba(0, 0, 0, 0.1) 2px 2px 8px,
+        rgba(255, 255, 255, 1) -2px -2px 8px 2px;
 }
 
 // typography ---------------------------------------------
@@ -168,6 +168,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 h3                                      {font-family: $sans-fonts;
                                          font-weight: normal;
                                          font-size: $font-size-lg;
+                                         color: $heading-color;
 }
 
 
@@ -216,6 +217,9 @@ h3                                      {font-family: $sans-fonts;
   small                    {display: none;
   }
   a                        {color: #aaa;
+      &.dropdown-toggle    {
+          &:after          {display: none;}
+      }
   }
   .navbar-toggle span      {background-color: #aaa;
   }
@@ -792,21 +796,42 @@ h3                                      {font-family: $sans-fonts;
 // profile interface------------------------------------
 
 .profile-component               {background-color: $cream;
+                                  align-content: start;
     h3                           {font-family: $title-fonts;
                                   color: $heading-color;
+                                  font-size: 2rem;
+                                  margin-top: 1rem;
     }
-    .profile-info                {
-        .profile-name            {font-size: $font-size-lg;
+    .update-msg,
+    .updated-msg                 {position: relative;
+                                  top: -1rem;
+                                  font-size: $font-size-sm;
+                                  color: $pallette3;
+    }
+    .update-msg                  {color: $warning;
+        svg                      {color: $warning;
+        }
+    }
+    .profile-info                {flex-grow: 0;
+        >svg                    {float: left;
+                                  font-size: 7rem;
+                                  color: #e2d2af;
+                                  margin-top: .75rem;
+        }
+        .profile-name            {font-size: 3rem;
+                                  font-family: $title-fonts;
         }
         .profile-email           {color: $accent2;
         }
-        .profile-timezone        {color: $accent3;
+        .profile-timezone        {color: $heading-color;
+                                  display: block;
         }
     }
-    .profile-progress            {
+    .profile-progress            {margin-top: 1rem;
         .profile-progress-scale-container {width: 100%;
                                            border-radius: 0.25rem;
                                            position: relative;
+                                           border: 1px solid $pallette1;
                                            @include neumorphism-shadow();
             .profile-progress-scale,
             .profile-progress-bar         {width: 100%;
@@ -874,22 +899,27 @@ h3                                      {font-family: $sans-fonts;
             }
         }
     }
-    .profile-stages               {
-        .nav-tabs                           {border-bottom: 1px solid $pallette2;
+    .profile-stages                         {margin-top: 1rem;
+        .nav-tabs                           {border-bottom: 1px solid $pallette1;
             .nav-link                           {color: $heading-color;
                 &.active                        {@include neumorphism-shadow();
                                                 position: relative;
-                                                border-color: $pallette2 $pallette2 $white $pallette2;
+                                                border-color: $pallette1 $pallette1 $white $pallette1;
                     &:after                     {position: absolute;
                                                 width: 100%;
                                                 content: "";
-                                                box-shadow: 8px 6px 8px 0 $white;
+                                                box-shadow: 8px 3px 0 0 $white;
                                                 z-index: 9;
                                                 height: 0.5rem;
                                                 background-color: $white;
                                                 left: 0;
-                                                top: 2.3rem;
+                                                top: 2.4rem;
                     }
+                }
+                .badge                          {color: $white;
+                                                 line-height: 1rem;
+                                                 width: 1.5rem;
+                                                 border-radius: 1.5rem;
                 }
             }
         }
@@ -913,11 +943,19 @@ h3                                      {font-family: $sans-fonts;
                                              color: $white;
             }
         }
-        .tab-pane                           {background-color: $white;
-                                             border: 1px solid $pallette2;
-                                             border-top: 0;
+        .tab-content                        {background-color: $white;
+                                             border: 1px solid $pallette1;
                                              padding: 0.5rem;
                                              @include neumorphism-shadow();
+            .badge                          {padding: 0.5rem;
+                                             font-weight: normal;
+                                             margin-right: 0.5rem;
+                                             margin-bottom: 0.5rem;
+            }
+            #profile-stages-tabs-tabpanel-level1 .badge {
+
+
+            }
         }
     }
 }

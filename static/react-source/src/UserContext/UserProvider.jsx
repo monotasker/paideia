@@ -29,7 +29,8 @@ let userDefaults = {
   currentScore: ls.getItem('currentScore') || null,
   currentLogID: ls.getItem('currentLogID') || null,
   currentBadgeSet: ls.getItem('currentBadgeSet') || null,
-  badgeLevels: JSON.parse(ls.getItem('badgeLevels')) || null
+  badgeLevels: JSON.parse(ls.getItem('badgeLevels')) || null,
+  calendar: JSON.parse(ls.getItem('calendar')) || null
 }
 
 
@@ -143,9 +144,17 @@ function userReducer(state, action) {
     case 'updateProfileInfo': {
       ls.setItem('currentBadgeSet', action.payload.currentBadgeSet);
       ls.setItem('badgeLevels', JSON.stringify(action.payload.badgeLevels));
+      ls.setItem('calendar', JSON.stringify(action.payload.calendar));
       return {...state,
         currentBadgeSet: action.payload.currentBadgeSet,
-        badgeLevels: action.payload.badgeLevels
+        badgeLevels: action.payload.badgeLevels,
+        calendar: action.payload.calendar
+      }
+    }
+    case 'updateCalendarInfo': {
+      ls.setItem('calendar', action.payload.calendar);
+      return {...state,
+        calendar: action.payload.calendar
       }
     }
     default: {
