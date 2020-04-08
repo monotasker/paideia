@@ -827,6 +827,39 @@ h3                                      {font-family: $sans-fonts;
                                   display: block;
         }
     }
+    .profile-calendar            {
+      .calendar                  {border-radius: 0.25rem;
+                                  border: 1px solid $pallette1;
+                                  background-color: $white;
+        .month-indicator         {text-align: center;
+        }
+        .day-of-week,
+        .date-grid               {display: grid;
+                                  grid-template-columns: repeat(7, 1fr);
+        }
+        .day-of-week             {text-align: center;
+        }
+        .date-grid div               {border: 1px solid $pallette1;
+                                      border-right: 0;
+                                      border-bottom: 0;
+                                      min-height: 2rem;
+                                      text-align: center;
+                                      position: relative;
+            .datenum             {color: $pallette2;
+                                  font-size: $font-size-sm;
+                                  position: absolute;
+                                  left: 0.25rem;
+            }
+            .countnum            {font-size: $font-size-lg;
+            }
+            &.current             {
+                .datenum         {color: $heading-color;
+                }
+            }
+        }
+        @include neumorphism-shadow();
+      }
+    }
     .profile-progress            {margin-top: 1rem;
         .profile-progress-scale-container {width: 100%;
                                            border-radius: 0.25rem;

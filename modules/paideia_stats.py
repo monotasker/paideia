@@ -994,14 +994,13 @@ class Stats(object):
         The returned data is a list of lists, each of which represents one calendar week (starting on Sunday). Within each week list, each day is represented by a 2-member tuple. The first member of the tuple is the datetime.date object for that day. The second member is a list of attempt log ids attempted by the current user on that date (adjusted for their time zone).
 
         '''
-        # TODO: get settings for this user's days/week requirements
         month = datetime.date.today().month if not month else int(month)
         year = datetime.date.today().year if not year else int(year)
         monthlists = calendar.Calendar(firstweekday=6
                                        ).monthdatescalendar(year, month)
         first = monthlists[0][0]
         last = monthlists[-1][-1]
-        monthname = calendar.month_name[month]
+        # monthname = calendar.month_name[month]
         rangelogs = self._get_logs_for_range(
             datetime.datetime(first.year, first.month, first.day, 0, 0),
             datetime.datetime(last.year, last.month, last.day, 23, 59)
@@ -1018,7 +1017,7 @@ class Stats(object):
                     monthlists[i][daynum] = (day, [])
 
         return {"year": year,
-                "monthname": monthname,
+                "month": month,
                 "data": monthlists}
 
     def get_badge_set_milestones(self):

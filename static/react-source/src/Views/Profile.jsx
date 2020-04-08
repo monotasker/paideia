@@ -62,6 +62,7 @@ const BadgeTerm = ({title, description, lessons}) => {
 }
 
 const Profile = (props) => {
+  const myDate = new Date();
   const { user, dispatch } = useContext(UserContext);
   const [ updating, setUpdating ] = useState(true);
   const viewingSelf = !(!!props.userId && props.userId != user.userId);
@@ -81,6 +82,8 @@ const Profile = (props) => {
     !!viewingSelf ? user.badgeLevels : null);
   const [ calendarData, setCalendarData ] = useState(
     !!viewingSelf ? user.calendar : null);
+  const [ calYear, setCalYear ] = useState(myDate.getFullYear());
+  const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
 
   useEffect(() => {
     window.setTimeout(2000);
@@ -130,7 +133,9 @@ const Profile = (props) => {
       <Col className="profile-calendar" xs={12} lg={4}>
         <h3>My Activity</h3>
         <UpdateNotice status={updating} />
-        <Calendar year={} month={} user={} monthData={} />
+        <Calendar year={calYear} month={calMonth}
+          user={userId} monthData={calendarData.data}
+        />
       </Col>
 
       <Col className="profile-progress" xs={12} lg={8}>
