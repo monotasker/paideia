@@ -1017,68 +1017,9 @@ class Stats(object):
                 else:
                     monthlists[i][daynum] = (day, [])
 
-        return monthlists
-
-    def _navlinks(self, year, month):
-        """
-        Return two html anchor elements for navigating to the previous and next
-        months.
-        """
-        prev_month = (month - 1) if month > 1 else 12
-        prev_year = year if prev_month < 12 else year - 1
-        next_month = (month + 1) if month < 12 else 1
-        next_year = year if next_month > 1 else year + 1
-        links = {'next': (next_month, next_year, 2,
-                          SPAN(_class='fa fa-chevron-right fa-fw')),
-                 'previous': (prev_month, prev_year, 0,
-                              SPAN(_class='fa fa-chevron-left fa-fw'))}
-        linktags = []
-        for k, v in list(links.items()):
-            mylink = A(v[3], _href=URL('reporting', 'calendar.load',
-                                       args=[self.user_id, v[1], v[0]]),
-                       _class='monthcal_nav_link {}'.format(k),
-                       _disable_with=I(_class='fa fa-spinner fa-spin fa-fw'
-                                       ).xml(),
-                       cid='tab_calendar')
-            linktags.append(mylink)
-        return linktags
-
-    def _monthpicker(self, calendar, year, month, monthname):
-        """
-        Return an html dropdown menu of months since 2011.
-        """
-        nowdate = datetime.date.today()
-        nowmonth = nowdate.month
-        nowyear = nowdate.year
-        years = list(range(nowyear, 2011, -1))
-        picker_args = {'_class': 'dropdown-menu',
-                       '_role': 'menu',
-                       '_aria-labelledby': 'month-label'}
-        picker = UL(**picker_args)
-        for y in years:
-            for m in range(12, 1, -1):
-                if not (m > nowmonth and y == nowyear):
-                    picker.append(LI(A('{} {}'.format(calendar.month_name[m],
-                                                      y),
-                                       _href=URL('reporting', 'calendar.load',
-                                                 args=[self.user_id, y, m]),
-                                       _class='monthpicker',
-                                       _tabindex='-1')))
-            picker.append(LI(_class='divider'))
-
-        label_args = {'_id': 'month-label',
-                      '_role': 'button',
-                      '_class': 'dropdown-toggle',
-                      '_data-toggle': 'dropdown',
-                      '_data-target': '#',
-                      '_href': '#'}
-        dropdown = SPAN(A('{} {} '.format(monthname, year),
-                          B(_class='caret'),
-                          **label_args),
-                        picker,
-                        _class='dropdown')
-
-        return dropdown
+        return {"year": year,
+                "monthname": monthname,
+                "data": monthlists}
 
     def get_badge_set_milestones(self):
         """

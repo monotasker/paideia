@@ -13,10 +13,11 @@ import {
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { useHistory } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { returnStatusCheck, getProfileInfo } from "../Services/authService";
 import { UserContext } from "../UserContext/UserProvider";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Calendar from "../Components/Calendar";
 
 const UpdateNotice = ({status}) => {
   return (status ? <span className="update-msg">
@@ -65,15 +66,21 @@ const Profile = (props) => {
   const [ updating, setUpdating ] = useState(true);
   const viewingSelf = !(!!props.userId && props.userId != user.userId);
   const userId = !!viewingSelf ? user.userId : props.userId;
-  const [ firstName, setFirstName ] = useState(!!viewingSelf ? user.firstName : null);
-  const [ lastName, setLastName ] = useState(!!viewingSelf ? user.lastName : null);
-  const [ userEmail, setUserEmail ] = useState(!!viewingSelf ? user.userEmail : null);
-  const [ userTimezone, setUserTimezone ] = useState(!!viewingSelf ? user.userTimezone : null);
-  const [ currentBadgeSet, setCurrentBadgeSet ] = useState(!!viewingSelf ? user.currentBadgeSet : null);
+  const [ firstName, setFirstName ] = useState(
+    !!viewingSelf ? user.firstName : null);
+  const [ lastName, setLastName ] = useState(
+    !!viewingSelf ? user.lastName : null);
+  const [ userEmail, setUserEmail ] = useState(
+    !!viewingSelf ? user.userEmail : null);
+  const [ userTimezone, setUserTimezone ] = useState(
+    !!viewingSelf ? user.userTimezone : null);
+  const [ currentBadgeSet, setCurrentBadgeSet ] = useState(
+    !!viewingSelf ? user.currentBadgeSet : null);
   const [ scaleBadgeSet, setScaleBadgeSet ] = useState(1);
-  const [ badgeLevels, setBadgeLevels ] = useState(!!viewingSelf ? user.badgeLevels : null);
-  console.log('badge levels');
-  console.log(badgeLevels);
+  const [ badgeLevels, setBadgeLevels ] = useState(
+    !!viewingSelf ? user.badgeLevels : null);
+  const [ calendarData, setCalendarData ] = useState(
+    !!viewingSelf ? user.calendar : null);
 
   useEffect(() => {
     window.setTimeout(2000);
@@ -90,6 +97,7 @@ const Profile = (props) => {
           console.log(info);
           setCurrentBadgeSet(info.currentBadgeSet);
           setBadgeLevels(info.badgeLevels);
+          setCalendarData(info.calendar);
           setUpdating(false);
         },
         dispatch
@@ -111,12 +119,20 @@ const Profile = (props) => {
 
   return (
     <Row className="profile-component content-view">
+
       <Col className="profile-info" xs={12} lg={4}>
         <FontAwesomeIcon icon="user-circle" size="5x" />
         <span className="profile-name">{firstName} {lastName}</span><br />
         <span className="profile-email"><FontAwesomeIcon icon="envelope" />{userEmail}</span>&nbsp;
         <span className="profile-timezone"><FontAwesomeIcon icon="globe-americas" />{userTimezone}</span>
       </Col>
+
+      <Col className="profile-calendar" xs={12} lg={4}>
+        <h3>My Activity</h3>
+        <UpdateNotice status={updating} />
+        <Calendar year={} month={} user={} monthData={} />
+      </Col>
+
       <Col className="profile-progress" xs={12} lg={8}>
         <h3>My Progress</h3>
         <UpdateNotice status={updating} />
