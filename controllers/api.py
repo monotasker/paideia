@@ -577,6 +577,25 @@ def get_profile_info():
             default=my_custom_json)
 
 
+def get_calendar_month():
+    """
+    api method to fetch user attempt data for one calendar month
+
+    Expects the request variables "user_id", "year", "month"
+    - month is 0-based integer and year is a 4-digit year
+
+    Returns a json object with the keys
+    ::year
+    ::month
+    ::data
+
+    """
+    stats = Stats(request.vars.user_id)
+    calendar = stats.monthcal(year=request.vars.year,
+                              month=request.vars.month)
+    return json(calendar, default=my_custom_json)
+
+
 def _is_my_student(user, student):
     """
     Return a boolean indicating if student is in a class taught by user

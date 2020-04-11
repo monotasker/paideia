@@ -74,6 +74,33 @@ const getProfileInfo = async ({forSelf=false,
   return mydata
 }
 
+const getCalendarMonth = async ({userId=null,
+                                 year=null,
+                                 month=null}) => {
+  let response = await fetch('/paideia/api/get_calendar_month', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user: userId,
+        year: year,
+        month: month
+      })
+  })
+
+  let mystatus = response.status;
+  const jsonData = await response.json();
+
+  const mydata = {
+    calendar: jsonData,
+    status_code: mystatus
+  }
+  return mydata
+}
+
 function returnStatusCheck(mydata, history, action, reducer) {
   if ( mydata.status_code === 200 ) {
     action(mydata);
@@ -108,6 +135,7 @@ export {
   checkLogin,
   updateUserInfo,
   getProfileInfo,
+  getCalendarMonth,
   returnStatusCheck,
   formatLoginData
 }

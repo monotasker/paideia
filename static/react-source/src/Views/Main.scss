@@ -831,20 +831,49 @@ h3                                      {font-family: $sans-fonts;
       .calendar                  {border-radius: 0.25rem;
                                   border: 1px solid $pallette1;
                                   background-color: $white;
+                                  margin-right: 4rem;
         .month-indicator         {text-align: center;
+                                  font-size: $font-size-lg;
+                                  line-height: 3rem;
+                                  color: $accent2;
+            a                    {cursor: pointer;
+                                  margin: 0 2rem;
+                                  color: $pallette2;
+            }
         }
         .day-of-week,
         .date-grid               {display: grid;
                                   grid-template-columns: repeat(7, 1fr);
         }
         .day-of-week             {text-align: center;
+                                  color: $pallette2;
+                                  position: relative;
+            .summary             {position: absolute;
+                                  right: -2.5rem;
+            }
         }
-        .date-grid div               {border: 1px solid $pallette1;
+        .date-grid               {position: relative;
+            div               {border: 1px solid $pallette1;
                                       border-right: 0;
                                       border-bottom: 0;
                                       min-height: 2rem;
                                       text-align: center;
                                       position: relative;
+            &.summary                {position: absolute;
+                                      right: -2.5rem;
+                                      color: $green;
+                                      font-size: $font-size-lg;
+                                      line-height: 1.5rem;
+                                      text-align: center;
+                &.row1               {top: 2rem;
+                }
+                &.row2               {top: 4rem;
+                }
+                &.row3               {top: 6rem;
+                }
+                &.row4               {top: 8rem;
+                }
+            }
             .datenum             {color: $pallette2;
                                   font-size: $font-size-sm;
                                   position: absolute;
@@ -856,6 +885,7 @@ h3                                      {font-family: $sans-fonts;
                 .datenum         {color: $heading-color;
                 }
             }
+          }
         }
         @include neumorphism-shadow();
       }
