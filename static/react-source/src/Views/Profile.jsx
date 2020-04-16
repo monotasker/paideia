@@ -143,8 +143,8 @@ const Profile = (props) => {
       </Col>
 
       <Col className="profile-classinfo">
+        <h3>My Class Group</h3>
         <UpdateNotice status={updating} />
-        <h3>My Current Class Group</h3>
         {user.classInfo === null ?
          <Spinner animation="grow" variant="secondary" />
          : (user.classInfo !== {} ? user.classInfo.institution

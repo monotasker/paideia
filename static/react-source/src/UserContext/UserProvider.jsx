@@ -7,9 +7,6 @@ const UserContext = createContext();
 // const UserDispatchContext = createContext();
 const ls = window.localStorage
 
-console.log('classInfo');
-console.log(ls.classInfo);
-
 let userDefaults = {
   userId: parseInt(ls.getItem('userId')) || null,
   firstName: ls.getItem('firstName') || null,
