@@ -12,7 +12,6 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
   const [ userID, setUserID ] = useState(user);
   const [ myYear, setMyYear ] = useState(year);
   const [ myMonth, setMyMonth ] = useState(month);
-  console.log('myMonth' + myMonth.toString());
   const [ myMonthName, setMyMonthName ] = useState(moment.months(myMonth));
   const [ myMonthData, setMyMonthData ] = useState(monthData);
   const [ updating, setUpdating ] = useState(false);
@@ -58,7 +57,23 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
     })
   }
 
+  const weekCounts = myMonthData.map((wk) => {
+    const count = wk.reduce((total, day) => {
+                    total += day[1].length >= dailyQuota ? 1 : 0;
+                    return total
+                 }, 0);
+    const success = count >= weeklyQuota ? true : false;
+    console.log("quotas");
+
+    console.log(count);
+    console.log(weeklyQuota);
+
+    return([count, success])
+    }
+  );
+
   return (
+    <React.Fragment>
     <div className="calendar">
       <div className="month-indicator">
         <a onClick={() => changeMonthAction(myYear, myMonth, "back")}>
@@ -75,27 +90,29 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d =>
           <div key={d}>{d}</div>
         )}
-        <div className="summary">Total</div>
+        <div className="summary">Days on target</div>
       </div>
       <div className="date-grid">
           {(!updating && myMonthData) ? myMonthData.map((wk, index) => {
               return (
                 <React.Fragment key={wk}>
                 {wk.map(d =>
-                  <div key={`${wk}-${d}`} className={isCurrentMonth(d[0])}>
+                  <div key={`${wk}-${d}`} className={`${isCurrentMonth(d[0])} ${d[1].length >= dailyQuota ? "success" : ""}`}>
                       <span className="datenum">{makeDayNum(d[0])}</span>
                       <span className="countnum">{d[1].length > 0 ? d[1].length : ""}</span>
                   </div>
                 )}
-                <div className={`summary row${index}`}>
-                  {wk.reduce((total, day) => {console.log(day[1].length); total += day[1].length; return total}, 0)}
-                </div>
+                 <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
+                   {weekCounts[index][0]} {weekCounts[index][1] && <FontAwesomeIcon icon="check-circle" />}
+                 </div>
                 </React.Fragment>
               )
             }
           ) : <Spinner animation="grow" />}
       </div>
     </div>
+    <span className="calendar-target-message">My target is at least {dailyQuota} paths per day, {weeklyQuota} days per week.</span>
+    </React.Fragment>
   )
 }
 

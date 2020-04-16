@@ -859,9 +859,11 @@ h3                                      {font-family: $sans-fonts;
                                       min-height: 2rem;
                                       text-align: center;
                                       position: relative;
+                                      color: $danger;
+            &.success                {color: $green;
+            }
             &.summary                {position: absolute;
                                       right: -2.5rem;
-                                      color: $green;
                                       font-size: $font-size-lg;
                                       line-height: 1.5rem;
                                       text-align: center;
