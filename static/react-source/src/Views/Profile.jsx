@@ -133,9 +133,19 @@ const Profile = (props) => {
       <Col className="profile-calendar" xs={12} lg={4}>
         <h3>My Activity</h3>
         <UpdateNotice status={updating} />
-        <Calendar year={calYear} month={calMonth}
-          user={userId} monthData={calendarData.data}
-        />
+        {calendarData &&
+          <Calendar year={calYear} month={calMonth}
+            user={userId} monthData={calendarData.data}
+            dailyQuota={parseInt(user.dailyQuota)}
+            weeklyQuota={parseInt(user.weeklyQuota)}
+          />
+        }
+      </Col>
+
+      <Col className="profile-classinfo">
+        <h3>My Current Class Group</h3>
+        {user.classInfo != {} ? user.classInfo
+        : "I'm not currently enrolled in a class."}
       </Col>
 
       <Col className="profile-progress" xs={12} lg={8}>

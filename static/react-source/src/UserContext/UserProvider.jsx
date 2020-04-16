@@ -34,7 +34,7 @@ let userDefaults = {
   dailyQuota: ls.getItem('dailyQuota') || null,
   weeklyQuota: ls.getItem('weeklyQuota') || null,
   classInfo: JSON.parse(ls.getItem('classInfo')) || null,
-  instructing: null //JSON.parse(ls.getItem('instructing')) ||
+  instructing: null // JSON.parse(ls.getItem('instructing')) || null
 }
 
 

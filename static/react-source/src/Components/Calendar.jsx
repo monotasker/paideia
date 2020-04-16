@@ -4,9 +4,9 @@ import moment from "moment";
 import { Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { returnStatusCheck, getCalendarMonth } from "../Services/authService";
+import { getCalendarMonth } from "../Services/authService";
 
-const Calendar = ({year, month, monthData, user}) => {
+const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
   /* Note that month is 0-indexed, but that the api call for calendar
   updates expects a 1-indexed month number. */
   const [ userID, setUserID ] = useState(user);
