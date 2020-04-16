@@ -37,8 +37,6 @@ const updateUserInfo = async (dispatch) => {
   })
   const jsonData = await response.json();
   const myinfo = formatLoginData(jsonData);
-  console.log('updating local info');
-  console.log(myinfo);
   dispatch({type: 'initializeUser', payload: myinfo});
   return myinfo
 }
@@ -125,7 +123,11 @@ const formatLoginData = (data) => {
     userTimezone: data['time_zone'],
     hideReadQueries: data['hide_read_queries'],
     currentBadgeSet: data['current_badge_set'],
-    reviewSet: data['review_set']
+    reviewSet: data['review_set'],
+    dailyQuota: data['daily_quota'],
+    weeklyQuota: data['weekly_quota'],
+    classInfo: data['class_info'],
+    instructing: data['instructing']
   }
 }
 

@@ -1066,9 +1066,13 @@ h3                                      {font-family: $sans-fonts;
             }
             .video-display                    {padding-right: 0;
                                                padding-left: 0;
+                .video-mask                   {
+                    @include react-transition-fade("video-mask");
+                }
                 .youtube-container            {overflow: hidden;
                                                position: relative;
                                                width: 100%;
+                    @include react-transition-fade("youtube-container");
                     &::after                  {padding-top: 56.25%;
                                                display: block;
                                                content: "";

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useLayoutEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   Row,
@@ -9,6 +9,9 @@ import {
   ListGroup,
   Spinner
 } from "react-bootstrap";
+import {
+  CSSTransition
+} from "react-transition-group";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { UserContext } from "../UserContext/UserProvider";
@@ -19,7 +22,6 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
     item => parseInt(item.lesson_position.toString().slice(0, -1))
   );
   const sets = [...new Set(setnums.filter(i => !!i))];
-
   const setTitles = {
     1: ["Alphabet, Nouns, and Nominative Case", "First Words"],
     2: ["Alphabet (again), Article, Clauses", "Words for Household and Town, Pronouns"],
@@ -42,13 +44,13 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
     19: ["Perfect Tense", "Prominent Names, Words for Religion, Marketplace, Geography"],
     20: ["Optative Mood", "Words for Motion (again), Power, Knowledge and Perception"]
   }
+  const [ loading, setLoading ] = useState(true);
 
   useEffect(() => {
     console.log(defaultSet);
     console.log(sets);
     console.log(sets.includes(defaultSet));
     console.log(defaultSet != 0 && sets.length != 0);
-
 
     if ( defaultSet != 0 && sets.length != 0) {
       const $myCard = document.getElementById(`badgeset_header_${defaultSet}`);
@@ -91,25 +93,16 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
 
 const VideoDisplay = ({ activeLesson }) => {
   console.log(activeLesson);
-  if ( !!activeLesson ) {
-    return (
-    <div className="youtube-container invisible">
+  return (
+    <div className="youtube-container">
       <iframe
         src={activeLesson.video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")}
         frameBorder="0"
         allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
       >
       </iframe>
-    </div>)
-  } else {
-    return (
-      <div className="youtube-container visible">Choose a Lesson
-Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
-
-Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.
-</div>
-    )
-  }
+    </div>
+  )
 }
 
 const Videos = (props) => {
@@ -133,6 +126,8 @@ const Videos = (props) => {
     fetchLessons()
     .then(mydata => {
       setLessons(mydata);
+      console.log(mydata);
+
       setActiveLesson(!!lessonParam ?
         mydata.filter(l => l.lesson_position == parseInt(lessonParam))[0].id
         : 0
@@ -141,13 +136,9 @@ const Videos = (props) => {
   }, []);
 
   const setOpenVideo = (event, id) => {
+    setLoading(true);
     setActiveLesson(id);
-  }
-
-  const showLoadedVideo = () => {
-    const $vid = document.getElementsByClassName("youtube-container");
-    $vid.classList.add("visible");
-    $vid.classList.remove("invisible");
+    window.setTimeout(setLoading(false), 500);
   }
 
   return (
@@ -171,11 +162,36 @@ const Videos = (props) => {
           <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
             className="video-display"
           >
-            <Spinner animation="grow" variant="secondary" />
-            <VideoDisplay
-              activeLesson={!!activeLesson ? lessons.filter(l => l.id == activeLesson)[0] : null}
-              makeVisibleCallback={showLoadedVideo}
-            />
+            {activeLesson != null &&
+                <div className="youtube-container visible">Choose a Lesson
+                Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
+
+                Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don\'t skip watching through the video first.
+                </div>
+            }
+            <CSSTransition
+              in={loading && activeLesson != null}
+              timeout={200}
+              appear={true}
+              classNames="video-mask"
+              mountOnEnter={true}
+            >
+              <div className="video-mask">
+                <Spinner animation="grow" variant="secondary" />
+              </div>
+            </CSSTransition>
+
+            <CSSTransition
+              in={!loading && activeLesson != null}
+              timeout={200}
+              appear={true}
+              classNames="youtube-container"
+              mountOnEnter={true}
+            >
+              <VideoDisplay
+                activeLesson={!!activeLesson ? lessons.filter(l => l.id == activeLesson)[0] : null}
+              />
+            </CSSTransition>
           </Col>
 
         </Row>

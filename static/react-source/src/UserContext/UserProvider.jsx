@@ -30,7 +30,11 @@ let userDefaults = {
   currentLogID: ls.getItem('currentLogID') || null,
   currentBadgeSet: ls.getItem('currentBadgeSet') || null,
   badgeLevels: JSON.parse(ls.getItem('badgeLevels')) || null,
-  calendar: JSON.parse(ls.getItem('calendar')) || null
+  calendar: JSON.parse(ls.getItem('calendar')) || null,
+  dailyQuota: ls.getItem('dailyQuota') || null,
+  weeklyQuota: ls.getItem('weeklyQuota') || null,
+  classInfo: JSON.parse(ls.getItem('classInfo')) || null,
+  instructing: null //JSON.parse(ls.getItem('instructing')) ||
 }
 
 
@@ -50,6 +54,11 @@ function userReducer(state, action) {
       ls.setItem('hideReadQueries', action.payload.hideReadQueries);
       ls.setItem('currentBadgeSet', action.payload.currentBadgeSet);
       ls.setItem('reviewSet', action.payload.reviewSet);
+      ls.setItem('dailyQuota', action.payload.dailyQuota);
+      ls.setItem('weeklyQuota', action.payload.weeklyQuota);
+      ls.setItem('classInfo', action.payload.classInfo);
+      ls.setItem('instructing', action.payload.instructing);
+
       return({
         ...state,
         userId: action.payload.userId,
@@ -64,7 +73,11 @@ function userReducer(state, action) {
         currentPath: null,
         hideReadQueries: action.payload.hideReadQueries,
         currentBadgeSet: action.payload.currentBadgeSet,
-        reviewSet: action.payload.reviewSet
+        reviewSet: action.payload.reviewSet,
+        dailyQuota: action.payload.dailyQuota,
+        weeklyQuota: action.payload.weeklyQuota,
+        classInfo: action.payload.classInfo,
+        instructing: action.payload.instructing
       })
     }
     case 'deactivateUser': {
@@ -85,7 +98,11 @@ function userReducer(state, action) {
         currentLocation: null,
         hideReadQueries: null,
         currentBadgeSet: null,
-        reviewSet: null
+        reviewSet: null,
+        dailyQuota: null,
+        weeklyQuota: null,
+        classInfo: null,
+        instructing: null
       })
     }
     case 'setEvalResults': {

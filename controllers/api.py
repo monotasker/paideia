@@ -105,6 +105,67 @@ def evaluate_answer():
         return json({'status': 'unauthorized'})
 
 
+def _fetch_userdata(raw_user, vars):
+    """
+    Private function called by get_login and get_userdata
+
+    This is where the actual user data collection happens
+    """
+    try:
+        user = {k:v for k, v in raw_user.items() if k in
+                ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+        memberships = db((db.auth_membership.user_id == user['id']) &
+                            (db.auth_membership.group_id == db.auth_group.id)
+                            ).select(db.auth_group.role).as_list()
+        user['roles'] = [m['role'] for m in memberships]
+
+        if any(r for r in ['instructors', 'administrators']
+                if r in user['roles']):
+            instructing = db(db.classes.instructor == user['id']).select()
+            if instructing:
+                user['instructing'] = []
+                for i in instructing:
+                    user['instructing'].append({k: v for k, v in i.items()
+                        if k in ['institution', 'academic_year',
+                                 'term', 'course_section',
+                                 'instructor', 'start_date',
+                                 'end_date', 'paths_per_day',
+                                 'a_target', 'a_cap', 'b_target',
+                                 'b_cap', 'c_target', 'c_cap',
+                                 'd_target', 'd_cap', 'f_target']
+                    })
+            else:
+                user['instructing'] = None
+
+        current_class = get_current_class(user['id'], datetime.datetime.utcnow())
+        if current_class:
+            user['daily_quota'] = current_class['paths_per_day']
+            user['weekly_quota'] = current_class['paths_per_week']
+            user['class_info'] = {k: v for k, v in current_class.items()
+                                    if k in ['institution', 'academic_year',
+                                            'term', 'course_section',
+                                            'instructor', 'start_date',
+                                            'end_date', 'paths_per_day',
+                                            'a_target', 'a_cap', 'b_target',
+                                            'b_cap', 'c_target', 'c_cap',
+                                            'd_target', 'd_cap', 'f_target']
+                                    }
+        else:
+            user['daily_quota'] = 20
+            user['weekly_quota'] = 5
+            user['class_info'] = None
+
+        user['current_badge_set'] = db(
+            db.tag_progress.name == user['id']
+            ).select().first().latest_new
+
+    except AttributeError:  # if login response was False and has no items
+        print(format_exc())
+        user = {'id': None}
+
+    return user
+
+
 def get_login():
     """
     API method to log a user in with web2py's authentication system.
@@ -119,23 +180,13 @@ def get_login():
     try:
         mylogin = auth.login_bare(request.vars['email'],
                                   request.vars['password'])
-        try:
-            myuser = {k:v for k, v in mylogin.items() if k in
-                    ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
-            memberships = db((db.auth_membership.user_id == myuser['id']) &
-                             (db.auth_membership.group_id == db.auth_group.id)
-                             ).select(db.auth_group.role).as_list()
-            myuser['roles'] = [m['role'] for m in memberships]
-
-            myuser['current_badge_set'] = db(
-                db.tag_progress.name == myuser['id']
-                ).select().first().latest_new
-            myuser['review_set'] = session.set_review \
-                if 'set_review' in session.keys() else None
-
-        except AttributeError:  # if login response was False and has no items
-            myuser = {'id': None}
-        return json(myuser)
+        user = {k:v for k, v in mylogin.items() if k in
+                ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+        pprint(user)
+        full_user = _fetch_userdata(user, request.vars)
+        full_user['review_set'] = session.set_review \
+            if 'set_review' in session.keys() else None
+        return json(full_user, default=my_custom_json)
     except Exception as e:
         return json({'error': e})
 
@@ -147,24 +198,11 @@ def get_userdata():
     auth = current.auth
     session = current.session
     try:
-        myuser = db.auth_user(auth.user_id).as_dict()
-        try:
-            myuser = {k:v for k, v in myuser.items() if k in
-                    ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
-            memberships = db((db.auth_membership.user_id == myuser['id']) &
-                             (db.auth_membership.group_id == db.auth_group.id)
-                             ).select(db.auth_group.role).as_list()
-            myuser['roles'] = [m['role'] for m in memberships]
-
-            myuser['current_badge_set'] = db(
-                db.tag_progress.name == myuser['id']
-                ).select().first().latest_new
-            myuser['review_set'] = session.set_review \
-                if 'set_review' in session.keys() else None
-
-        except AttributeError:
-            myuser = {'id': None}
-        return json(myuser)
+        user = db.auth_user(auth.user_id).as_dict()
+        full_user = _fetch_userdata(user, request.vars)
+        full_user['review_set'] = session.set_review \
+            if 'set_review' in session.keys() else None
+        return json(full_user, default=my_custom_json)
     except Exception as e:
         return json({'error': e})
 
