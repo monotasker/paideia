@@ -144,16 +144,20 @@ def _fetch_userdata(raw_user, vars):
             user['class_info'] = {k: v for k, v in current_class.items()
                                     if k in ['institution', 'academic_year',
                                             'term', 'course_section',
-                                            'instructor', 'start_date',
+                                            'start_date',
                                             'end_date', 'paths_per_day',
                                             'a_target', 'a_cap', 'b_target',
                                             'b_cap', 'c_target', 'c_cap',
                                             'd_target', 'd_cap', 'f_target']
                                     }
+            my_instructor = db.auth_user(current_class['instructor'])
+            user['class_info']['instructor'] == {'first_name': my_instructor['first_name'],
+                                                 'last_name': my_instructor['last_name'],
+                                                 'id': current_class['instructor']}
         else:
             user['daily_quota'] = 20
             user['weekly_quota'] = 5
-            user['class_info'] = None
+            user['class_info'] = {}
 
         user['current_badge_set'] = db(
             db.tag_progress.name == user['id']

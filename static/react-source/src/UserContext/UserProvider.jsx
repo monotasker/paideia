@@ -7,6 +7,9 @@ const UserContext = createContext();
 // const UserDispatchContext = createContext();
 const ls = window.localStorage
 
+console.log('classInfo');
+console.log(ls.classInfo);
+
 let userDefaults = {
   userId: parseInt(ls.getItem('userId')) || null,
   firstName: ls.getItem('firstName') || null,
@@ -18,23 +21,23 @@ let userDefaults = {
   userLoggedIn: ( ls.getItem('userLoggedIn') === "true" ) || false,
   flags: ls.getItem('flags') || [],
   hideReadQueries: ( ls.getItem('hideReadQueries') === "true" ) || null,
-  reviewSet: ls.getItem('reviewSet') || null,
+  reviewSet: parseInt(ls.getItem('reviewSet')) || null,
   currentLocation: ls.getItem('currentLocation') || null,
   currentLocationBG: ls.getItem('currentLocationBG') || null,
   currentNpc: ls.getItem('currentNpc') || null,
   currentNpcImage: ls.getItem('currentNpcImage') || null,
-  currentPath: ls.getItem('currentPath') || null,
-  currentStep: ls.getItem('currentStep') || null,
+  currentPath: parseInt(ls.getItem('currentPath')) || null,
+  currentStep: parseInt(ls.getItem('currentStep')) || null,
   currentAnswer: ls.getItem('currentAnswer') || null,
   currentScore: ls.getItem('currentScore') || null,
-  currentLogID: ls.getItem('currentLogID') || null,
-  currentBadgeSet: ls.getItem('currentBadgeSet') || null,
+  currentLogID: parseInt(ls.getItem('currentLogID')) || null,
+  currentBadgeSet: parseInt(ls.getItem('currentBadgeSet')) || null,
   badgeLevels: JSON.parse(ls.getItem('badgeLevels')) || null,
   calendar: JSON.parse(ls.getItem('calendar')) || null,
-  dailyQuota: ls.getItem('dailyQuota') || null,
-  weeklyQuota: ls.getItem('weeklyQuota') || null,
+  dailyQuota: parseInt(ls.getItem('dailyQuota')) || null,
+  weeklyQuota: parseInt(ls.getItem('weeklyQuota')) || null,
   classInfo: JSON.parse(ls.getItem('classInfo')) || null,
-  instructing: null // JSON.parse(ls.getItem('instructing')) || null
+  instructing: JSON.parse(ls.getItem('instructing')) || null
 }
 
 
@@ -56,8 +59,8 @@ function userReducer(state, action) {
       ls.setItem('reviewSet', action.payload.reviewSet);
       ls.setItem('dailyQuota', action.payload.dailyQuota);
       ls.setItem('weeklyQuota', action.payload.weeklyQuota);
-      ls.setItem('classInfo', action.payload.classInfo);
-      ls.setItem('instructing', action.payload.instructing);
+      ls.setItem('classInfo', JSON.stringify(action.payload.classInfo));
+      ls.setItem('instructing', JSON.stringify(action.payload.instructing));
 
       return({
         ...state,

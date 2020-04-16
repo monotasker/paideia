@@ -136,16 +136,20 @@ const Profile = (props) => {
         {calendarData &&
           <Calendar year={calYear} month={calMonth}
             user={userId} monthData={calendarData.data}
-            dailyQuota={parseInt(user.dailyQuota)}
-            weeklyQuota={parseInt(user.weeklyQuota)}
+            dailyQuota={user.dailyQuota}
+            weeklyQuota={user.weeklyQuota}
           />
         }
       </Col>
 
       <Col className="profile-classinfo">
+        <UpdateNotice status={updating} />
         <h3>My Current Class Group</h3>
-        {user.classInfo != {} ? user.classInfo
-        : "I'm not currently enrolled in a class."}
+        {user.classInfo === null ?
+         <Spinner animation="grow" variant="secondary" />
+         : (user.classInfo !== {} ? user.classInfo.institution
+            : "I'm not currently enrolled in a class.")
+        }
       </Col>
 
       <Col className="profile-progress" xs={12} lg={8}>
