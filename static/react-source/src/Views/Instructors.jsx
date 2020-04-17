@@ -1,25 +1,23 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
-  Row,
-} from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
-import { withRouter } from "react-router";
+  useHistory
+} from "react-router-dom";
 
-class Instructors extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currentPage: this.props.location.search
+import Endpoint from "../Components/Endpoint";
+import InstructorDashboard from "../Views/InstructorDashboard";
+
+const Instructors = () => {
+  let history = useHistory();
+
+  const branches = [
+    { slug: "dashboard",
+      component: <InstructorDashboard backFunc={history.goBack} />
     }
-  }
+  ];
 
-  render() {
-    return(
-      <div className="instructors-component content-view">
-        {this.state.currentPage}
-      </div>
-    )
-  }
+  return (
+    <Endpoint path="/instructors/" branches={branches} />
+  );
 }
 
-export default withRouter(Instructors);
+export default Instructors;

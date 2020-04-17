@@ -38,8 +38,8 @@ const dropData = [
    },
   {label: "Instructors",
    icon: 'chalkboard-teacher',
-   links: [{title: "Home",
-            path: "/", icon: 'home'}
+   links: [{title: "Dashboard",
+            path: "/instructors/dashboard", icon: 'users'},
            ]
    }
 ]
