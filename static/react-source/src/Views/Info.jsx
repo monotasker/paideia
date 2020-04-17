@@ -2,14 +2,12 @@ import React from 'react';
 import {
   Row,
 } from "react-bootstrap";
-// import { LinkContainer } from "react-router-bootstrap";
 import {
   Switch,
   Route,
-  useParams,
-  useHistory,
-  useRouteMatch
+  useHistory
 } from "react-router-dom";
+import { CSSTransition } from "react-transition-group";
 
 import TypingGreekContent from "../Content/TypingGreek";
 import HowItWorksContent from "../Content/HowItWorks";
@@ -17,10 +15,8 @@ import FaqContent from "../Content/Faq";
 import KnownBugsContent from "../Content/KnownBugs";
 
 const Info = () => {
-  let { infoPage } = useParams();
-  const { path, url } = useRouteMatch();
-
   let history = useHistory();
+
 
   const content = [
     { slug: "faq",
@@ -41,7 +37,7 @@ const Info = () => {
     <Row className="content-view info-component justify-content-sm-center">
       <Switch>
         {content.map(({ slug, component }) => (
-          <Route key={slug} exact={true} path={`${url}/${slug}`}>
+          <Route key={slug} exact={true} path={`/info/${slug}`}>
             {( { match } ) => (
               <CSSTransition
                 classNames="content-view"
