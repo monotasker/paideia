@@ -191,6 +191,7 @@ h3                                      {font-family: $sans-fonts;
                                          color: $heading-color;
             }
             @include react-transition-fade("content-view", 400);
+            @include react-transition-fade("content-page-component", 400);
         }
     }
 }
