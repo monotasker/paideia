@@ -9,7 +9,11 @@ import {
   OverlayTrigger,
   Popover,
   PopoverTitle,
-  PopoverContent
+  PopoverContent,
+  InputGroup,
+  FormControl,
+  Form,
+  Button
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { useHistory } from "react-router-dom";
@@ -67,6 +71,8 @@ const Profile = (props) => {
   const [ updating, setUpdating ] = useState(true);
   const viewingSelf = !(!!props.userId && props.userId != user.userId);
   const userId = !!viewingSelf ? user.userId : props.userId;
+  const dailyQuota = !!viewingSelf ? user.dailyQuota : props.dailyQuota;
+  const weeklyQuota = !!viewingSelf ? user.weeklyQuota : props.weeklyQuota;
   const [ firstName, setFirstName ] = useState(
     !!viewingSelf ? user.firstName : null);
   const [ lastName, setLastName ] = useState(
@@ -84,6 +90,8 @@ const Profile = (props) => {
     !!viewingSelf ? user.calendar : null);
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
+  console.log(user.classInfo);
+
 
   useEffect(() => {
     window.setTimeout(2000);
@@ -136,10 +144,37 @@ const Profile = (props) => {
         {calendarData &&
           <Calendar year={calYear} month={calMonth}
             user={userId} monthData={calendarData.data}
-            dailyQuota={user.dailyQuota}
-            weeklyQuota={user.weeklyQuota}
+            dailyQuota={dailyQuota}
+            weeklyQuota={weeklyQuota}
           />
         }
+        <InputGroup className="profile-classinfo-targets-daily">
+            <InputGroup.Prepend>
+              <InputGroup.Text id="daytarget-label">Daily target</InputGroup.Text>
+            </InputGroup.Prepend>
+            <FormControl
+              placeholder={dailyQuota}
+              aria-label="paths completed per day"
+              aria-describedby="daytarget-label"
+            />
+            <InputGroup.Append>
+              <InputGroup.Text id="basic-addon2">paths per day</InputGroup.Text>
+            </InputGroup.Append>
+        </InputGroup>
+        <InputGroup className="profile-classinfo-targets-weekly">
+            <InputGroup.Prepend>
+              <InputGroup.Text id="weektarget-label">Weekly target</InputGroup.Text>
+            </InputGroup.Prepend>
+            <FormControl
+              placeholder={weeklyQuota}
+              aria-label="days meeting the daily target per week"
+              aria-describedby="weektarget-label"
+            />
+            <InputGroup.Append>
+              <InputGroup.Text id="basic-addon2">days meeting that target each week</InputGroup.Text>
+            </InputGroup.Append>
+        </InputGroup>
+        <span>Note that if you are enrolled in a course you can't lower your targets below the minimum set by your instructor.</span>
       </Col>
 
       <Col className="profile-classinfo">
@@ -147,8 +182,24 @@ const Profile = (props) => {
         <UpdateNotice status={updating} />
         {user.classInfo === null ?
          <Spinner animation="grow" variant="secondary" />
-         : (user.classInfo !== {} ? user.classInfo.institution
-            : "I'm not currently enrolled in a class.")
+         : (Object.keys(user.classInfo) > 0 ?
+              user.classInfo.institution
+            : <React.Fragment>
+                <div className="profile-classinfo-signup">
+                You're not currently part of a class group in Paideia. If you have a class enrollment code, you can enter it here to join the class group.
+                </div>
+                <Form>
+                  <Form.Row>
+                    <Form.Col>
+                      <Form.Control type="text" placeholder="Enter code here" />
+                    </Form.Col>
+                    <Form.Col>
+                      <Button variant="primary" type="submit">Join</Button>
+                    </Form.Col>
+                  </Form.Row>
+                </Form>
+              </React.Fragment>
+            )
         }
       </Col>
 

@@ -63,11 +63,6 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
                     return total
                  }, 0);
     const success = count >= weeklyQuota ? true : false;
-    console.log("quotas");
-
-    console.log(count);
-    console.log(weeklyQuota);
-
     return([count, success])
     }
   );
