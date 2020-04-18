@@ -12,12 +12,13 @@ import { UserContext } from "../UserContext/UserProvider";
 
 
 
-const NavLink = ({title, path, icon, ...rest}) => {
+const NavLink = ({title, path, icon, displayAt, ...rest}) => {
+  const extraDisplay = displayAt === "lg" ? "d-sm-none" : "";
   return(
     <LinkContainer key={title} to={path} {...rest}>
       <Nav.Link>
         <FontAwesomeIcon icon={icon} size="sm" />
-        <span className="d-none d-lg-inline">{title}</span>
+        <span className={`${extraDisplay} d-${displayAt}-inline`}>{title}</span>
       </Nav.Link>
     </LinkContainer>
   )
@@ -27,10 +28,10 @@ const MyDropdown = ({label, icon, children}) => {
   return(
     <NavDropdown
       title={
-        <span>
+        <React.Fragment>
           <FontAwesomeIcon icon={icon} />
-          <span className="d-none d-xl-inline">{label}</span>
-        </span>
+          <span className="d-sm-none d-lg-inline">{label}</span>
+        </React.Fragment>
       }
       id={`nav-dropdown-${label}`}
     >
@@ -53,48 +54,47 @@ const TopNavbar = () => {
       });
     }
 
-    const welcome = (
-      <React.Fragment>
-        <span>Hi {user.firstName}</span>
-        <NavLink title="Profile" path="/profile" icon="user" />
-        <NavLink title="Log out" path="/" icon="sign-out-alt"
-          onClick={doLogout} />
-      </React.Fragment>
-    )
 
     return(
       <Navbar bg="light" expand="sm" className="fixed">
           <LinkContainer to="/">
-            <Navbar.Brand>Greektown</Navbar.Brand>
+            <Navbar.Brand>Paideia</Navbar.Brand>
           </LinkContainer>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto main-nav">
-              <NavLink title="Home" path="/" icon='home' />
-              <NavLink title="Map" path="/walk/map" icon='map' />
-              <NavLink title="Lessons" path="/videos" icon='video' />
+              <NavLink title="Home" path="/" icon='home' displayAt="lg" />
+              <NavLink title="Map" path="/walk/map" icon='map' displayAt="lg" />
+              <NavLink title="Lessons" path="/videos" icon='video' displayAt="lg" />
               {user.userRoles &&
                ['instructors', 'administrators'].some(e => user.userRoles.includes(e)) &&
                 <NavLink title="Instructors"
                   path="/instructors/dashboard"
-                  icon='chalkboard-teacher'
+                  icon='chalkboard-teacher' displayAt="lg"
                 />
               }
               <MyDropdown label="Info" icon='info-circle' >
-                <NavLink title="FAQs" path="/info/faq" icon='question-circle' />
-                <NavLink title="Typing Greek" path="/info/typing-greek" icon='keyboard' />
-                <NavLink title="How It Works" path="/info/how-it-works" icon='cog' />
-                <NavLink title="Known Bugs" path="/info/known-bugs" icon='bug' />
+                <NavLink title="FAQs" path="/info/faq" icon='question-circle' displayAt="sm" />
+                <NavLink title="Typing Greek" path="/info/typing-greek" icon='keyboard'  displayAt="sm" />
+                <NavLink title="How It Works" path="/info/how-it-works" icon='cog'  displayAt="sm" />
+                <NavLink title="Known Bugs" path="/info/known-bugs" icon='bug'  displayAt="sm" />
               </MyDropdown>
               {user.userRoles && user.userRoles.includes('administrators') &&
               <MyDropdown label="Admin" icon='wrench' >
-                <NavLink title="Class management" path="/admin/classes" icon='home' />
+                <NavLink title="Classes" path="/admin/classes" icon='home'  displayAt="sm" />
+                <NavLink title="Paths" path="/admin/paths" icon='home'  displayAt="sm" />
               </MyDropdown>
               }
             </Nav>
             <Nav className="welcome-nav">
-              {user.userLoggedIn != false ? welcome
-               : <NavLink title="Log in" path="/login" icon="sign-in-alt" />
+              {user.userLoggedIn != false ?
+                <React.Fragment>
+                  <span className="navbar-welcome">Hi {user.firstName}</span>
+                  <NavLink title="Profile" path="/profile" icon="user" displayAt="lg" />
+                  <NavLink title="Log out" path="/" icon="sign-out-alt"
+                    onClick={doLogout} displayAt="lg" />
+                </React.Fragment>
+               : <NavLink title="Log in" path="/login" icon="sign-in-alt" displayAt="sm" />
               }
             </Nav>
           </Navbar.Collapse>

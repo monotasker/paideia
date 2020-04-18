@@ -203,7 +203,7 @@ h3                                      {font-family: $sans-fonts;
                             padding-top: 0;
                             padding-bottom: 0;
                             padding-right: 0;
-                            z-index: 1;
+                            z-index: 20;
   a.navbar-brand           {text-transform: uppercase;
                             letter-spacing: 2px;
                             color: $danger;
@@ -215,6 +215,8 @@ h3                                      {font-family: $sans-fonts;
                             transition: 100ms all linear;
     }
   }
+  .navbar-toggler          {margin-right: 0.5rem;
+  }
   small                    {display: none;
   }
   a                        {color: #aaa;
@@ -224,39 +226,50 @@ h3                                      {font-family: $sans-fonts;
   }
   .navbar-toggle span      {background-color: #aaa;
   }
-  .navbar-nav              {height: 4rem;
-                            line-height: 3rem;
-    >span                  {line-height: 4rem;
-                            padding-right: 1em;
-    }
-    >a.nav-link                     {
+  .navbar-nav              {line-height: 3rem;
+    a.nav-link             {
         &:hover,
-        &:active,
-        &:focus,
-        &.open             {color: $white;
+        &:focus            {color: $white;
                             background-color: lighten($accent2, 20%);
+                            transition: all 200ms linear;
+        }
+        &.open,
+        &:active             {color: $white;
+                            background-color: lighten($accent2, 10%);
+                            transition: all 200ms linear;
+        }
+        >span              {margin-left: 0.25rem;
+                            margin-right: 0.25rem;
+        }
+    }
+    .dropdown-menu         {background-color: lighten($accent2, 20%);
+                            border: 1px solid lighten($accent2, 15%);
+                            border-top: 1px solid lighten($accent2, 10%);
+                            margin-top: 0;
+                            box-shadow: $hard-shadow;
+                            border-radius: 0 0 0.25rem 0.25rem;
+        a.nav-link         {color: $white;
+                            line-height: 3rem;
+                            height: 3rem;
+                            padding-top: 0;
+                            padding-bottom: 0;
+            &:hover,
+            &:active    {background-color: lighten($accent2, 10%);
+            }
+        }
+    }
+    &.welcome-nav        {color: darken($pallette1, 50%);
+      >span                {line-height: 3rem;
+                            padding: 0.5rem;
+        span               {padding-left: 0.25rem;
+        }
       }
-      .dropdown-menu       {top: -2px;
-                            background-color: lighten($accent2, 20%);
-                            border: 1px solid lighten($accent2, 10%);
-        li                 {
-            &.divider {background-color: lighten($accent2, 10%);
-                             margin: 0;
-                  }
-                  a         {color: $white;
-                             line-height: 3em;
-                             height: 3em;
-                             padding-top: 0;
-                             padding-bottom: 0;
-                      &:hover,
-                      &:active    {background-color: lighten($accent2, 10%);
-                      }
-                  }
-              }
-          }
+      a.nav-link         {color: darken($pallette1, 50%);
+        &:hover,
+        &:active         {color: $white;
+        }
       }
-      &.welcome-nav         {color: darken($pallette1, 50%);
-      }
+    }
   }
   .badge-wrapper         {height: 100%;
                           line-height: 100%;
