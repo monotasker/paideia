@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import { withRouter } from "react-router";
 import { useHistory } from "react-router-dom";
 import {
   Navbar,
@@ -11,83 +10,36 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { logout } from '../Services/authService';
 import { UserContext } from "../UserContext/UserProvider";
 
-const navData = [
-  {title: "Home", path: "/", icon: 'home'},
-  {title: "Map", path: "/walk/map", icon: 'map'},
-  {title: "Lessons", path: "/videos", icon: 'video'}
-]
 
-const dropData = [
-  {label: "Info",
-   icon: 'info-circle',
-   links: [{title: "FAQs",
-            path: "/info/faq", icon: 'question-circle'},
-           {title: "Typing Greek",
-            path: "/info/typing-greek", icon: 'keyboard'},
-           {title: "How It Works",
-            path: "/info/how-it-works", icon: 'cog'},
-           {title: "Known Bugs",
-            path: "/info/known-bugs", icon: 'bug'},
-          ],
-   },
-  {label: "Admin",
-   icon: 'wrench',
-   links: [{title: "Home",
-            path: "/", icon: 'home'}
-          ]
-   },
-  {label: "Instructors",
-   icon: 'chalkboard-teacher',
-   links: [{title: "Dashboard",
-            path: "/instructors/dashboard", icon: 'users'},
-           ]
-   }
-]
 
-const navs = navData.map( (item) =>
-  <LinkContainer key={item.title} to={item.path}>
-    <Nav.Link>
-      <FontAwesomeIcon icon={item.icon} size="sm" />
-      <span className="d-none d-lg-inline">{item.title}</span>
-    </Nav.Link>
-  </LinkContainer>
-);
+const NavLink = ({title, path, icon, ...rest}) => {
+  return(
+    <LinkContainer key={title} to={path} {...rest}>
+      <Nav.Link>
+        <FontAwesomeIcon icon={icon} size="sm" />
+        <span className="d-none d-lg-inline">{title}</span>
+      </Nav.Link>
+    </LinkContainer>
+  )
+}
 
-const drops = dropData.map( (item) =>
-  <NavDropdown
-    key={item.label}
-    title={
-      <span>
-        <FontAwesomeIcon icon={item.icon} />
-        <span className="d-none d-xl-inline">{item.label}</span>
-      </span>
-    }
-    id="basic-nav-dropdown"
+const MyDropdown = ({label, icon, children}) => {
+  return(
+    <NavDropdown
+      title={
+        <span>
+          <FontAwesomeIcon icon={icon} />
+          <span className="d-none d-xl-inline">{label}</span>
+        </span>
+      }
+      id={`nav-dropdown-${label}`}
     >
-    {item.links.map( (link) =>
-      <LinkContainer key={link.title} to={link.path}>
-        <NavDropdown.Item>
-          <FontAwesomeIcon icon={link.icon} size="sm" />
-          {link.title}
-        </NavDropdown.Item>
-      </LinkContainer>
-    )}
-  </NavDropdown>
-);
-
-const login = (
-  <LinkContainer to="/login">
-    <Nav.Link href="/login">
-      <FontAwesomeIcon icon='sign-in-alt' size="sm" />
-      Log in
-    </Nav.Link>
-  </LinkContainer>
-)
-
+      {children}
+    </NavDropdown>
+  )
+}
 
 const TopNavbar = () => {
-
-    let history = useHistory();
     const { user, dispatch } = useContext(UserContext);
 
     const doLogout = () => {
@@ -103,19 +55,10 @@ const TopNavbar = () => {
 
     const welcome = (
       <React.Fragment>
-      <span>Hi {user.firstName}</span>
-      <LinkContainer key={user.userId} to="/profile">
-        <Nav.Link>
-          <FontAwesomeIcon icon='user' size="sm" />
-          <span className="d-none d-lg-inline">Profile</span>
-        </Nav.Link>
-      </LinkContainer>
-      <LinkContainer key={`logout-${user.userId}`} to="/">
-        <Nav.Link onClick={doLogout} >
-          <FontAwesomeIcon icon='sign-out-alt' size="sm" />
-          <span className="d-none d-lg-inline">Log out</span>
-        </Nav.Link>
-      </LinkContainer>
+        <span>Hi {user.firstName}</span>
+        <NavLink title="Profile" path="/profile" icon="user" />
+        <NavLink title="Log out" path="/" icon="sign-out-alt"
+          onClick={doLogout} />
       </React.Fragment>
     )
 
@@ -127,11 +70,32 @@ const TopNavbar = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto main-nav">
-              {navs}
-              {drops}
+              <NavLink title="Home" path="/" icon='home' />
+              <NavLink title="Map" path="/walk/map" icon='map' />
+              <NavLink title="Lessons" path="/videos" icon='video' />
+              {user.userRoles &&
+               ['instructors', 'administrators'].some(e => user.userRoles.includes(e)) &&
+                <NavLink title="Instructors"
+                  path="/instructors/dashboard"
+                  icon='chalkboard-teacher'
+                />
+              }
+              <MyDropdown label="Info" icon='info-circle' >
+                <NavLink title="FAQs" path="/info/faq" icon='question-circle' />
+                <NavLink title="Typing Greek" path="/info/typing-greek" icon='keyboard' />
+                <NavLink title="How It Works" path="/info/how-it-works" icon='cog' />
+                <NavLink title="Known Bugs" path="/info/known-bugs" icon='bug' />
+              </MyDropdown>
+              {user.userRoles && user.userRoles.includes('administrators') &&
+              <MyDropdown label="Admin" icon='wrench' >
+                <NavLink title="Class management" path="/admin/classes" icon='home' />
+              </MyDropdown>
+              }
             </Nav>
             <Nav className="welcome-nav">
-              {user.userLoggedIn != false ? welcome : login}
+              {user.userLoggedIn != false ? welcome
+               : <NavLink title="Log in" path="/login" icon="sign-in-alt" />
+              }
             </Nav>
           </Navbar.Collapse>
       </Navbar>
