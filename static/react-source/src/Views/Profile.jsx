@@ -11,7 +11,6 @@ import {
   PopoverTitle,
   PopoverContent,
   InputGroup,
-  FormControl,
   Form,
   Button
 } from "react-bootstrap";
@@ -152,7 +151,7 @@ const Profile = (props) => {
             <InputGroup.Prepend>
               <InputGroup.Text id="daytarget-label">Daily target</InputGroup.Text>
             </InputGroup.Prepend>
-            <FormControl
+            <Form.Control
               placeholder={dailyQuota}
               aria-label="paths completed per day"
               aria-describedby="daytarget-label"
@@ -165,7 +164,7 @@ const Profile = (props) => {
             <InputGroup.Prepend>
               <InputGroup.Text id="weektarget-label">Weekly target</InputGroup.Text>
             </InputGroup.Prepend>
-            <FormControl
+            <Form.Control
               placeholder={weeklyQuota}
               aria-label="days meeting the daily target per week"
               aria-describedby="weektarget-label"
@@ -190,12 +189,12 @@ const Profile = (props) => {
                 </div>
                 <Form>
                   <Form.Row>
-                    <Form.Col>
+                    <Col>
                       <Form.Control type="text" placeholder="Enter code here" />
-                    </Form.Col>
-                    <Form.Col>
+                    </Col>
+                    <Col>
                       <Button variant="primary" type="submit">Join</Button>
-                    </Form.Col>
+                    </Col>
                   </Form.Row>
                 </Form>
               </React.Fragment>
