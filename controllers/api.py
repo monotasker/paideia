@@ -126,7 +126,8 @@ def _fetch_userdata(raw_user, vars):
                 user['instructing'] = []
                 for i in instructing:
                     user['instructing'].append({k: v for k, v in i.items()
-                        if k in ['institution', 'academic_year',
+                        if k in ['id', 'days_per_week',
+                                 'institution', 'academic_year',
                                  'term', 'course_section',
                                  'instructor', 'start_date',
                                  'end_date', 'paths_per_day',
