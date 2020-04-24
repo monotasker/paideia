@@ -639,6 +639,97 @@ def get_calendar_month():
     return json(calendar, default=my_custom_json)
 
 
+def get_course_data():
+    """
+    Return the data on a single course and its students.
+
+    Private api method to handle calls from the react front-end.
+
+    Expects url variables:
+        course_id (int)
+
+    Returns:
+        JSON object with the following keys:
+            institution
+            academic_year
+            term
+            course_section
+            instructor
+            start_date
+            end_date
+            paths_per_day
+            days_per_week
+            a_target
+            a_cap
+            b_target
+            b_cap
+            c_target
+            c_cap
+            d_target
+            d_cap
+            f_target
+            members
+        members is an array of objects which each have the following keys:
+            first_name
+            last_name
+            custom_start
+            starting_set
+            custom_end
+            ending_set
+            custom_a_cap
+            custom_b_cap
+            custom_c_cap
+            custom_d_cap
+            final_grade
+    """
+    auth = current.auth
+    session = current.session
+    try:
+        course_rec = db(
+            db.classes.id==request.vars.course_id).first().as_dict()
+        mycourse = {k: v for k, v in course_rec.items() if k in [
+                    'institution', 'academic_year', 'term',
+                    'course_section',
+                    'start_date', 'end_date',
+                    'paths_per_day', 'days_per_week',
+                    'a_target', 'a_cap',
+                    'b_target', 'b_cap',
+                    'c_target', 'c_cap',
+                    'd_target', 'd_cap',
+                    'f_target'
+                    ]}
+        assert auth.is_logged_in()
+        assert (auth.has_membership('administrators') or
+                (auth.has_membership('instructors') and
+                 mycourse['instructor'] == auth.user_id)
+                )
+        members = [{'first_name': m.auth_user.first_name,
+                    'last_name': m.auth_user.last_name,
+                    'custom_start': m.class_membership.custom_start,
+                    'starting_set': m.class_membership.starting_set,
+                    'custom_end': m.class_membership.custom_end,
+                    'ending_set': m.class_membership.ending_set,
+                    'custom_a_cap': m.class_membership.custom_a_cap,
+                    'custom_b_cap': m.class_membership.custom_b_cap,
+                    'custom_c_cap': m.class_membership.custom_c_cap,
+                    'custom_d_cap': m.class_membership.custom_d_cap,
+                    'final_grade': m.class_membership.final_grade}
+            for m in
+            db((db.class_membership.class_section==mycourse['id']) &
+               (db.class_membership.name==db.auth_user.id)
+               ).iterselect().as_list()
+        ]
+        mycourse['members'] = members
+
+    except AssertionError:
+        print(format_exc(5))
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
+
+    return json(mycourse, default=my_custom_json)
+
+
 def _is_my_student(user, student):
     """
     Return a boolean indicating if student is in a class taught by user

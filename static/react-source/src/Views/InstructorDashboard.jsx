@@ -9,6 +9,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {UserContext} from "../UserContext/UserProvider";
+import {fetchClassInfo} from "../Services/infoFetchService";
 
 
 const InstructorDashboard = () => {
@@ -40,39 +41,63 @@ const InstructorDashboard = () => {
     const [ classRegCode, setClassRegCode ] = useState(null);
 
     useEffect(() => {
+      fetchClassInfo({courseId: activeClassId})
+      .then(info => {
+        console.log(info);
+        setClassInstitution(info.classInstitution);
+        setClassYear(info.classYear);
+        setClassTerm(info.classTerm);
+        setClassStart(info.classsStart);
+        setClassEnd(info.classEnd);
+        setClassDailyQuota(info.classDailyQuota);
+        setClassWeeklyQuota(info.classWeeklyQuota);
+        setClassTargetA(info.classTargetA);
+        setClassTargetB(info.classTargetB);
+        setClassTargetC(info.classTargetC);
+        setClassTargetD(info.classTargetD);
+        setClassTargetF(info.classTargetF);
+        setClassCapA(info.classCapA);
+        setClassCapB(info.classCapB);
+        setClassCapC(info.classCapC);
+        setClassCapD(info.classCapD);
+        setClassMembers(info.classMembers);
+      });
+    }, [activeClassId]);
 
+    const changeClassAction = (id) => {
+      setActiveClassId(id);
     }
-    )
 
     return(
-    <Row className="dashboard-component content-view">
-      <h2>My Dashboard</h2>
-      <Col className="dashboard-class-selector" xs={12} lg={4}>
-        <Form.Group controlId="exampleForm.ControlSelect1">
-          <Form.Label>Example select</Form.Label>
-          <Form.Control as="select">
-            {myClasses.map((c, index) =>
-              <option key={index}>
-                {`${c.course_section}, ${c.term}, ${c.academic_year}, ${c.institution}`}
-              </option>
-            )}
-          </Form.Control>
-        </Form.Group>
-      </Col>
+      <Row className="dashboard-component content-view">
+        <Col className="dashboard-class-selector" xs={12} lg={4}>
+          <h2>My Dashboard</h2>
+          <Form.Group controlId="exampleForm.ControlSelect1">
+            <Form.Label>Choose a class group</Form.Label>
+            <Form.Control as="select"
+              onChange={e => changeClassAction()}
+            >
+              {myClasses.map((c, index) =>
+                <option key={index}>
+                  {`${c.course_section}, ${c.term}, ${c.academic_year}, ${c.institution}`}
+                </option>
+              )}
+            </Form.Control>
+          </Form.Group>
+        </Col>
 
-      <Col className="dashboard-classes" xs={12} lg={4}>
-        <Form.Group controlId="exampleForm.ControlSelect1">
-          <Form.Label>Example select</Form.Label>
-          <Form.Control as="select">
-            {myClasses.map((c, index) =>
-              <option key={index}>
-                {`${c.course_section}, ${c.term}, ${c.academic_year}`}
-              </option>
-            )}
-          </Form.Control>
-        </Form.Group>
-      </Col>
-    </Row>
+        <Col className="dashboard-class-info" xs={12} lg={4}>
+          <h3>{classSection} {classTerm} {classYear}</h3>
+          <Form.Group controlId="exampleForm.ControlSelect1">
+            <Form.Label>Begins</Form.Label>
+            <Form.Control defaultValue={classStart} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Ends</Form.Label>
+            <Form.Control defaultValue={classEnd} />
+          </Form.Group>
+        </Col>
+      </Row>
     )
 }
 
