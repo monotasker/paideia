@@ -99,12 +99,23 @@ const getCalendarMonth = async ({userId=null,
   return mydata
 }
 
-function returnStatusCheck(mydata, history, action, reducer) {
+function returnStatusCheck(mydata, history, action, reducer,
+                           otherActions={}) {
   if ( mydata.status_code === 200 ) {
     action(mydata);
   } else if ( mydata.status_code === 401 ) {
-    reducer({type: 'deactivateUser', payload: null});
-    history.push("/login");
+    if ( mydata.reason == "Not logged in" ) {
+      reducer({type: 'deactivateUser', payload: null});
+      history.push("/login");
+    } else if ( mydata.reason == "Insufficient privileges" ) {
+      if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
+        otherActions.insufficientPrivilegesAction(mydata);
+      }
+    }
+  } else if ( mydata.status_code === 404 ) {
+    if ( otherActions.hasOwnProperty("noRecordAction") ) {
+      otherActions.noRecordAction(mydata);
+    }
   } else {
     console.log('Problem in returnStatusCheck:');
     console.log(mydata);
