@@ -1,6 +1,8 @@
 import { createGlobalStyle } from "styled-components";
 import TownMapPng from "./Images/town_map.png";
 
+const urlBase = "paideia";
+
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans');
 
@@ -129,6 +131,7 @@ const darken = x => ({lightness, ...rest}) => ({
 });
 
 export {
+  urlBase,
   images,
   breakpoints,
   colors,

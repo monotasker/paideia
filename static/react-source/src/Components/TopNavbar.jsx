@@ -9,13 +9,14 @@ import { LinkContainer } from "react-router-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { logout } from '../Services/authService';
 import { UserContext } from "../UserContext/UserProvider";
+import { urlBase } from "../variables";
 
 
 
 const NavLink = ({title, path, icon, displayAt, ...rest}) => {
   const extraDisplay = displayAt === "lg" ? "d-sm-none" : "";
   return(
-    <LinkContainer key={title} to={path} {...rest}>
+    <LinkContainer key={title} to={`/${urlBase}${path}`} {...rest}>
       <Nav.Link>
         <FontAwesomeIcon icon={icon} size="sm" />
         <span className={`${extraDisplay} d-${displayAt}-inline`}>{title}</span>

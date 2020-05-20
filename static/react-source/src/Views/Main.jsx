@@ -58,6 +58,7 @@ import {
 // import './Main.css';
 import './Main.scss';
 
+import { urlBase } from "../variables";
 import PrivateRoute from "../Components/PrivateRoute";
 import TopNavbar from "../Components/TopNavbar";
 import Tools from "../Components/Tools";
@@ -117,14 +118,14 @@ library.add(
 
 
 const myroutes = [
-  {path: "/(paideia/static/react-source/dist/index.html|)", exact: true, Component: Home},
-  {path: "/walk/:walkPage", exact: false, Component: Walk},
-  {path: "/videos/:lessonParam?", exact: false, Component: Videos},
-  {path: "/profile", exact: false, Component: Profile},
-  {path: "/info/:infoPage", exact: false, Component: Info},
-  {path: "/admin/:adminPage", exact: false, Component: Admin},
-  {path: "/instructors/:instrPage", exact: false, Component: Instructors},
-  {path: "/login", exact: false, Component: Login}
+  {path: "/" + urlBase + "(/static/react-source/dist/index.html|)", exact: true, Component: Home},
+  {path: "/" + urlBase + "/walk/:walkPage", exact: false, Component: Walk},
+  {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
+  {path: "/" + urlBase + "/profile", exact: false, Component: Profile},
+  {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
+  {path: "/" + urlBase + "/admin/:adminPage", exact: false, Component: Admin},
+  {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},
+  {path: "/" + urlBase + "/login", exact: false, Component: Login}
 ]
 
 
