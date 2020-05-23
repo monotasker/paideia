@@ -8,6 +8,7 @@ import TypingGreekContent from "../Content/TypingGreek";
 import HowItWorksContent from "../Content/HowItWorks";
 import FaqContent from "../Content/Faq";
 import KnownBugsContent from "../Content/KnownBugs";
+import { urlBase } from "../variables";
 
 const Info = () => {
   let history = useHistory();
@@ -28,7 +29,7 @@ const Info = () => {
   ];
 
   return (
-    <Endpoint path="/info/" branches={branches} />
+    <Endpoint path={`/${urlBase}/info/`} branches={branches} />
   );
 }
 

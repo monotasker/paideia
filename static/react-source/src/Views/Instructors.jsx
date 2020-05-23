@@ -5,6 +5,7 @@ import {
 
 import Endpoint from "../Components/Endpoint";
 import InstructorDashboard from "../Views/InstructorDashboard";
+import { urlBase } from "../variables";
 
 const Instructors = () => {
   let history = useHistory();
@@ -16,7 +17,7 @@ const Instructors = () => {
   ];
 
   return (
-    <Endpoint path="/instructors/" branches={branches} />
+    <Endpoint path={`/${urlBase}/instructors/`} branches={branches} />
   );
 }
 
