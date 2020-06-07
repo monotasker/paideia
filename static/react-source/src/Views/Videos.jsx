@@ -114,13 +114,16 @@ const Videos = (props) => {
   const [lessons, setLessons ] = useState([]);
   console.log(lessons);
 
-
   const [activeLesson, setActiveLesson] = useState(
     (!!lessonParam && lessons.length != 0) ? lessons.filter(l => l.lesson_position == lessonParam)[0].id
-    : 0
+    : undefined
   );
+  console.log("activeLesson");
+  console.log(activeLesson);
   const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : 0);
   const [loading, setLoading] = useState(false);
+  console.log("loading?");
+  console.log(loading);
 
   useEffect( () => {
     fetchLessons()
@@ -150,7 +153,7 @@ const Videos = (props) => {
           <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
             className="lessonlist"
           >
-            { ( !!lessons && lessons != [] ) && <LessonList defaultSet={user.currentBadgeSet}
+            { ( lessons.length != 0 ) && <LessonList defaultSet={user.currentBadgeSet}
               defaultSet={!!defaultSet ? defaultSet : 0}
               lessons={lessons}
               showVideoHandler={setOpenVideo}
@@ -162,7 +165,7 @@ const Videos = (props) => {
           <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
             className="video-display"
           >
-            {activeLesson != null &&
+            {!activeLesson &&
                 <div className="youtube-container visible">Choose a Lesson
                 Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
 
@@ -170,7 +173,7 @@ const Videos = (props) => {
                 </div>
             }
             <CSSTransition
-              in={loading && activeLesson != null}
+              in={loading && !activeLesson}
               timeout={200}
               appear={true}
               classNames="video-mask"
@@ -182,14 +185,14 @@ const Videos = (props) => {
             </CSSTransition>
 
             <CSSTransition
-              in={!loading && activeLesson != null}
+              in={!loading && !!activeLesson}
               timeout={200}
               appear={true}
               classNames="youtube-container"
               mountOnEnter={true}
             >
               <VideoDisplay
-                activeLesson={!!activeLesson ? lessons.filter(l => l.id == activeLesson)[0] : null}
+                activeLesson={lessons.filter(l => l.id == activeLesson)[0]}
               />
             </CSSTransition>
           </Col>
