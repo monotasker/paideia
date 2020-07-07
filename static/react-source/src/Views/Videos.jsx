@@ -17,7 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { UserContext } from "../UserContext/UserProvider";
 import { fetchLessons } from "../Services/stepFetchService";
 
-const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
+const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
   const setnums = lessons.map(
     item => parseInt(item.lesson_position.toString().slice(0, -1))
   );
@@ -76,7 +76,7 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
                     <ListGroup.Item key={i.title}
                       active={i.id == activeLesson ? true : false}
                       action
-                      onClick={e => showVideoHandler(e, i.id)}
+                      onClick={e => setVideoHandler(e, i.id)}
                     >
                       {i.title}
 
@@ -91,19 +91,6 @@ const LessonList = ({defaultSet, lessons, showVideoHandler, activeLesson}) => {
   )
 }
 
-const VideoDisplay = ({ activeLesson }) => {
-  console.log(activeLesson);
-  return (
-    <div className="youtube-container">
-      <iframe
-        src={activeLesson.video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")}
-        frameBorder="0"
-        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
-      >
-      </iframe>
-    </div>
-  )
-}
 
 const Videos = (props) => {
 
@@ -114,16 +101,21 @@ const Videos = (props) => {
   const [lessons, setLessons ] = useState([]);
   console.log(lessons);
 
-  const [activeLesson, setActiveLesson] = useState(
+  const [activeLessonId, setActiveLessonId] = useState(
     (!!lessonParam && lessons.length != 0) ? lessons.filter(l => l.lesson_position == lessonParam)[0].id
-    : undefined
+    : null
   );
-  console.log("activeLesson");
-  console.log(activeLesson);
-  const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : 0);
-  const [loading, setLoading] = useState(!!loading ? loading : false);
-  console.log("loading?");
-  console.log(loading);
+  console.log("activeLessonId");
+  console.log(activeLessonId);
+
+  const activeLessonSrc = !!activeLessonId ?
+    lessons.filter(l => l.id == activeLessonId)[0].video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
+  :
+    null
+  ;
+
+  const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : user.currentBadgeSet);
+  const [loaded, setLoaded] = useState(true);
 
   useEffect( () => {
     fetchLessons()
@@ -131,22 +123,20 @@ const Videos = (props) => {
       setLessons(mydata);
       console.log(mydata);
 
-      setActiveLesson(!!lessonParam ?
+      setActiveLessonId(!!lessonParam ?
         mydata.filter(l => l.lesson_position == parseInt(lessonParam))[0].id
         : 0
       );
     });
   }, []);
 
-  const setOpenVideo = (event, id) => {
-    setLoading(true);
-    console.log('loading');
-    console.log(loading);
-    setActiveLesson(id);
-    window.setTimeout(setLoading(false), 500);
-    console.log('loading');
-    console.log(loading);
+  useEffect( () => {
+    setLoaded(!loaded ? true : false);
+  }, [activeLessonId])
 
+  const setOpenVideo = (event, id) => {
+    setLoaded(false);
+    setActiveLessonId(id);
   }
 
   return (
@@ -154,15 +144,17 @@ const Videos = (props) => {
       <Col className="">
       <h2>Video Lessons</h2>
 
+
         <Row className="lessons-display-container horizontal">
           <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
             className="lessonlist"
           >
-            { ( lessons.length != 0 ) && <LessonList defaultSet={user.currentBadgeSet}
-              defaultSet={!!defaultSet ? defaultSet : 0}
+            { lessons.length != 0 &&
+            <LessonList
+              defaultSet={defaultSet}
               lessons={lessons}
-              showVideoHandler={setOpenVideo}
-              activeLesson={activeLesson}
+              setVideoHandler={setOpenVideo}
+              activeLesson={activeLessonId}
             />
             }
           </Col>
@@ -170,37 +162,44 @@ const Videos = (props) => {
           <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
             className="video-display"
           >
-            {!activeLesson &&
-                <div className="youtube-container visible">Choose a Lesson
-                Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
+            <div className="video-mask">
+              <Spinner animation="grow" variant="secondary" />
+            </div>
 
-                Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don\'t skip watching through the video first.
-                </div>
-            }
             <CSSTransition
-              in={!!loading}
-              timeout={200}
+              in={!activeLessonId}
+              timeout={500}
               appear={true}
-              classNames="video-mask"
+              classNames="youtube-container"
+              mountOnEnter={true}
+              unmountOnExit={true}
             >
-              <div className="video-mask">
-                <Spinner animation="grow" variant="secondary" />
+              <div className="youtube-container empty">Choose a Lesson
+              Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.
+
+              Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don\'t skip watching through the video first.
               </div>
             </CSSTransition>
 
             <CSSTransition
-              in={!loading && !!activeLesson}
-              timeout={200}
+              in={!!loaded}
+              timeout={2000}
               appear={true}
               classNames="youtube-container"
               mountOnEnter={true}
+              unmountOnExit={true}
             >
-              <VideoDisplay
-                activeLesson={lessons.filter(l => l.id == activeLesson)[0]}
-              />
+                <div className="youtube-container">
+                  <iframe
+                    src={activeLessonSrc}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                  >
+                  </iframe>
+                </div>
             </CSSTransition>
-          </Col>
 
+          </Col>
         </Row>
 
       </Col>

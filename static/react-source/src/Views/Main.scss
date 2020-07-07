@@ -1082,13 +1082,17 @@ h3                                      {font-family: $sans-fonts;
             }
             .video-display                    {padding-right: 0;
                                                padding-left: 0;
-                .video-mask                   {
-                    @include react-transition-fade("video-mask");
+                .video-mask                   {position: absolute;
+                    .spinner-grow             {margin: 0 auto;
+                    }
                 }
                 .youtube-container            {overflow: hidden;
                                                position: relative;
                                                width: 100%;
-                    @include react-transition-fade("youtube-container");
+                    @include react-transition-fade("youtube-container", 2000);
+                    &.empty                   {
+                        @include react-transition-fade("youtube-container", 500);
+                    }
                     &::after                  {padding-top: 56.25%;
                                                display: block;
                                                content: "";
