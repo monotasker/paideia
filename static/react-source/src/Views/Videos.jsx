@@ -121,7 +121,7 @@ const Videos = (props) => {
   console.log("activeLesson");
   console.log(activeLesson);
   const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : 0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!loading ? loading : false);
   console.log("loading?");
   console.log(loading);
 
@@ -140,8 +140,13 @@ const Videos = (props) => {
 
   const setOpenVideo = (event, id) => {
     setLoading(true);
+    console.log('loading');
+    console.log(loading);
     setActiveLesson(id);
     window.setTimeout(setLoading(false), 500);
+    console.log('loading');
+    console.log(loading);
+
   }
 
   return (
@@ -173,11 +178,10 @@ const Videos = (props) => {
                 </div>
             }
             <CSSTransition
-              in={loading && !activeLesson}
+              in={!!loading}
               timeout={200}
               appear={true}
               classNames="video-mask"
-              mountOnEnter={true}
             >
               <div className="video-mask">
                 <Spinner animation="grow" variant="secondary" />
