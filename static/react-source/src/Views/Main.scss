@@ -112,17 +112,16 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 // mixins --------------------------------------------------
 
 @mixin react-transition-fade($class, $duration: 200) {
-    &.#{$class}-enter,
-    &.#{$class}-appear          {opacity: 0;
+    &.#{$class}-appear,
+    &.#{$class}-enter          {opacity: 0;
     }
-    &.#{$class}-enter-active,
-    &.#{$class}-appear-active  {opacity: 1;
+    &.#{$class}-appear-active,
+    &.#{$class}-enter-active   {opacity: 1;
                                 transition: opacity #{$duration}ms;
     }
-    &.#{$class}-enter-done,
-    &.#{$class}-appear-done     {opacity: 1;
+    &.#{$class}-appear-done,
+    &.#{$class}-enter-done     {opacity: 1;
                                 transition: opacity #{$duration}ms;
-
     }
     &.#{$class}-exit            {opacity: 1;
     }
@@ -130,7 +129,7 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                                  transition: opacity #{$duration}ms;
     }
     &.#{$class}-exit-done       {opacity: 0;
-                                 transition: opacity #{$duration}ms;
+                                transition: opacity #{$duration}ms;
     }
 }
 
@@ -165,12 +164,16 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 // typography ---------------------------------------------
 
+h2                                      {font-family: $title-fonts;
+                                         font-weight: normal;
+                                         color: $heading-color;
+}
+
 h3                                      {font-family: $sans-fonts;
                                          font-weight: normal;
                                          font-size: $font-size-lg;
                                          color: $heading-color;
 }
-
 
 //-- basic layout -------------------------------------------
 .Main                                   {margin-left: 0;
@@ -187,9 +190,6 @@ h3                                      {font-family: $sans-fonts;
                                          margin-bottom: 0;
         }
         > div                           {
-            h2                          {font-family: $title-fonts;
-                                         color: $heading-color;
-            }
             @include react-transition-fade("content-view", 400);
             @include react-transition-fade("content-page-component", 400);
         }
@@ -1042,17 +1042,14 @@ h3                                      {font-family: $sans-fonts;
 
 // lessons interface------------------------------------
 
-.videos-component               {flex-grow: 1;
+.videos-component                             {flex-grow: 1;
                                                flex-direction: column;
+                                               padding-top: 0;
     .col                                      {overflow: hidden;
                                                display: flex;
                                                flex-direction: column;
                                                padding-right: 0;
                                                padding-left: 0;
-        h2                                    {flex-basis: 2rem;
-                                               flex-grow: 0;
-                                               padding-left: 2rem;
-        }
         .lessons-display-container            {overflow: hidden;
             .lessonlist                       {overflow: auto;
                                                max-height: 100%;
@@ -1087,11 +1084,15 @@ h3                                      {font-family: $sans-fonts;
                     }
                 }
                 .youtube-container            {overflow: hidden;
-                                               position: relative;
+                                               position: absolute;
                                                width: 100%;
-                    @include react-transition-fade("youtube-container", 2000);
-                    &.empty                   {
-                        @include react-transition-fade("youtube-container", 500);
+                                               opacity: 0;
+                    @include react-transition-fade("youtube-container", 200);
+                    &.empty                   {background-color: #fff;
+                                               padding-left: 1rem;
+                                               padding-right: 1rem;
+                                               padding-top: 2rem;
+                        @include react-transition-fade("youtube-container", 200);
                     }
                     &::after                  {padding-top: 56.25%;
                                                display: block;
@@ -1102,6 +1103,16 @@ h3                                      {font-family: $sans-fonts;
                                                left: 0;
                                                width: 100%;
                                                height: 100%;
+                    }
+                    .iframe-mask              {position: absolute;
+                                               width: 100%;
+                                               height: 100%;
+                                               background-color: #fff;
+                                               opacity: 1;
+                                               z-index: 10;
+                        &.iframe-loaded       {opacity: 0;
+                                               transition: all 500ms;
+                        }
                     }
                 }
             }
