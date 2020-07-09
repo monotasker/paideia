@@ -24,26 +24,26 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
   );
   const sets = [...new Set(setnums.filter(i => !!i))];
   const setTitles = {
-    1: ["Alphabet, Nouns, and Nominative Case", "First Words"],
-    2: ["Alphabet (again), Article, Clauses", "Words for Household and Town, Pronouns"],
-    3: ["Vocative Case, Greetings, Word Order", "Exclamations and Conjunctions, Possessives, Demonstratives"],
-    4: ["'What' and 'Who' Questions", "Words for Food and Meals"],
-    5: ["Genitive Case, 3rd Declension Stems", "Words for Places and People"],
-    6: ["Plural Nominals, Adjectives", "Words for Evaluating, Possessive Adjectives"],
-    7: ["Verbs, Present Tense, Accusative Case, Contract Verbs", "Words for Trade and Market, Numbers"],
-    8: ["Dative Case, 'Where' Questions, MI Verbs", "Words for Temple and Synagogue"],
-    9: ["Passive and Middle Voices", "Words for Movement, Prayer and Worship"],
-    10: ["Aorist Tense", "Words for Time, Knowing, the Life Cycle"],
-    11: ["Future Tense, Ὁτι Clauses, Reporting Speech", "Verbs of Being, Words for Speech and Thought"],
-    12: ["Prepositions, Infinitive Clauses, 'How' and 'Why' Questions", "Words for Gifts, Warfare"],
-    13: ["Aorist Participles, Genitive Absolute", "Words for Work and Building, Politics"],
-    14: ["Present Participles", "Words for Reading and Writing, Cooking and Hosting"],
-    15: ["Imperfect Tense, Prepositions (again), Comparisons", "Words for Health, the Cosmos"],
-    16: ["Aorist Passive, Future Passive", "Words for Clothing and Deliveries, Education, Justice"],
-    17: ["Adverbs, Relative Clauses", "Words for the Body, Athletics"],
-    18: ["Subjunctive Mood, Conditional Clauses", "Words for Emotions, Prepositional Prefix Words"],
-    19: ["Perfect Tense", "Prominent Names, Words for Religion, Marketplace, Geography"],
-    20: ["Optative Mood", "Words for Motion (again), Power, Knowledge and Perception"]
+    1: ["Alphabet, Nouns, Nominative", "First Words"],
+    2: ["Alphabet, Article, Clauses", "Household, Town, Pronouns"],
+    3: ["Vocative, Greetings, Word Order", "Exclamations, Conjunctions, Possessives, Demonstratives"],
+    4: ["'What' and 'Who' Questions", "Food and Meals"],
+    5: ["Genitive, 3rd Declension Stems", "Places and People"],
+    6: ["Plural Nominals, Adjectives", "Evaluating, Possessive Adjectives"],
+    7: ["Verbs, Present, Accusative, Contract", "Trade and Market, Numbers"],
+    8: ["Dative, 'Where', MI Verbs", "Temple and Synagogue"],
+    9: ["Passive and Middle", "Movement, Prayer and Worship"],
+    10: ["Aorist", "Time, Knowing, the Life Cycle"],
+    11: ["Future, Ὁτι, Reporting Speech", "Verbs of Being, Speech and Thought"],
+    12: ["Prepositions, Infinitive Clauses, 'How' and 'Why'", "Gifts, Warfare"],
+    13: ["Aorist Participles, Genitive Absolute", "Work and Building, Politics"],
+    14: ["Present Participles", "Reading, Writing, Cooking, Hosting"],
+    15: ["Imperfect, Prepositions, Comparisons", "Health, the Cosmos"],
+    16: ["Aorist Passive, Future Passive", "Clothing, Deliveries, Education, Justice"],
+    17: ["Adverbs, Relative Clauses", "Body, Athletics"],
+    18: ["Subjunctive, Conditional Clauses", "Emotions, Prepositional Prefix"],
+    19: ["Perfect", "Names, Religion, Marketplace, Geography"],
+    20: ["Optative", "Motion, Power, Knowledge, Perception"]
   }
   const [ loading, setLoading ] = useState(true);
 
@@ -123,6 +123,7 @@ const Videos = (props) => {
     if (!!loaded) {
       let $mask = document.getElementsByClassName("iframe-mask")[0];
       $mask.classList.add("iframe-loaded");
+      window.setTimeout($mask.classList.add("mask-done"), 700);
     }
   }, [loaded])
 

@@ -1055,24 +1055,43 @@ h3                                      {font-family: $sans-fonts;
                                                max-height: 100%;
                                                padding-left: 0;
                                                padding-right: 0;
+                &::-webkit-scrollbar           {width: 0.5rem;
+                }
+                &::-webkit-scrollbar-track    {background: $blueDark;
+                }
+                &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
+                }
                 .card                         {border-radius: 0;
+                                               border: 0;
                     .card-header              {padding-top: 0;
                                                padding-bottom: 0;
-                                               background-color: $table-background;
-                                               border-color: darken($table-background, 10%);
+                                               background-color: $blueDark;
+                                               border: 0;
                         .btn                  {text-align: left;
                                                padding-left: 0;
                                                padding-right: 0;
+                            &.btn-link        {color: #fff;
+                                &:hover,
+                                &:active,
+                                &:visited     {text-decoration: none;}
+                            }
                             .lessonLink-grammar   {font-size: $font-size-sm;
+                                                   color: desaturate(lighten($blueDark, 30%), 30%);
                             }
                             .lessonLink-vocab   {font-size: $font-size-sm;
-                        }
+                                                 color: desaturate(lighten($blueDark, 25%), 25%);
+                            }
                         }
                     }
                     .card-body                {padding: 0;
-                        .list-group.item      {border-right: 0;
+                        .list-group-item      {border-right: 0;
                                                border-left: 0;
                                                border-radius: 0;
+                                               border-top: 0;
+                                               border-bottom: 0;
+                                               background-color: lighten($pallette2, 10%);
+                            &.active          {background-color: $pallette2;
+                            }
                         }
                     }
                 }
@@ -1112,6 +1131,8 @@ h3                                      {font-family: $sans-fonts;
                                                z-index: 10;
                         &.iframe-loaded       {opacity: 0;
                                                transition: all 500ms;
+                        }
+                        &.mask-done           {display: none;
                         }
                     }
                 }
