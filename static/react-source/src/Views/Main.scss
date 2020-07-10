@@ -133,6 +133,11 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
     }
 }
 
+@mixin center-content-both() {display: flex;
+                              align-items: center;
+                              justify-content: center;
+}
+
 @mixin triangle-bottom($color, $width: 8) {
     &:after                       {content: '';
                                    position: absolute;
@@ -305,6 +310,8 @@ h3                                      {font-family: $sans-fonts;
     .btn                   {text-align: left;
                             border-radius: $border-radius 0 0 $border-radius;
                             padding-left: .25rem;
+        &.btn-primary       {background-color: $nominative;
+                            border-color: $nominative;}
     }
 }
 
@@ -1055,6 +1062,8 @@ h3                                      {font-family: $sans-fonts;
                                                max-height: 100%;
                                                padding-left: 0;
                                                padding-right: 0;
+                                               scrollbar-color: lighten($blueDark, 10%) $blueDark;
+                                               scrollbar-width: thin;
                 &::-webkit-scrollbar           {width: 0.5rem;
                 }
                 &::-webkit-scrollbar-track    {background: $blueDark;
@@ -1067,6 +1076,8 @@ h3                                      {font-family: $sans-fonts;
                                                padding-bottom: 0;
                                                background-color: $blueDark;
                                                border: 0;
+                        &:first-child         {border-radius: 0;
+                        }
                         .btn                  {text-align: left;
                                                padding-left: 0;
                                                padding-right: 0;
@@ -1091,6 +1102,14 @@ h3                                      {font-family: $sans-fonts;
                                                border-bottom: 0;
                                                background-color: lighten($pallette2, 10%);
                             &.active          {background-color: $pallette2;
+                                               color: #333;
+                                &:focus,
+                                &:active      {outline: none;
+                                }
+                            }
+                            &:active,
+                            &:hover           {border: 0;
+                                               background-color: lighten($pallette2, 5%);
                             }
                         }
                     }
@@ -1098,26 +1117,26 @@ h3                                      {font-family: $sans-fonts;
             }
             .video-display                    {padding-right: 0;
                                                padding-left: 0;
-                .video-mask                   {position: absolute;
-                    .spinner-grow             {margin: 0 auto;
-                    }
-                }
                 .youtube-container            {overflow: hidden;
                                                position: absolute;
                                                width: 100%;
                                                opacity: 0;
                     @include react-transition-fade("youtube-container", 200);
+                    @media (max-width: map-get($grid-breakpoints, md))  {position: relative;
+                    }
                     &.empty                   {background-color: #fff;
                                                padding-left: 1rem;
                                                padding-right: 1rem;
                                                padding-top: 2rem;
                         @include react-transition-fade("youtube-container", 200);
+                        &::after              {padding-top: 0;}
                     }
                     &::after                  {padding-top: 56.25%;
                                                display: block;
                                                content: "";
                     }
-                    iframe                    {position: absolute;
+                    iframe                    {
+                                               position: absolute;
                                                top: 0;
                                                left: 0;
                                                width: 100%;
@@ -1129,6 +1148,7 @@ h3                                      {font-family: $sans-fonts;
                                                background-color: #fff;
                                                opacity: 1;
                                                z-index: 10;
+                        @include center-content-both();
                         &.iframe-loaded       {opacity: 0;
                                                transition: all 500ms;
                         }

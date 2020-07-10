@@ -159,6 +159,7 @@ const Videos = (props) => {
               timeout={200}
               appear={true}
               classNames="youtube-container"
+              unmountOnExit={true}
             >
               <Col className="youtube-container empty">
                 <h2>Choose a Lesson</h2>
@@ -175,6 +176,7 @@ const Videos = (props) => {
                 appear={true}
                 classNames="youtube-container"
                 mountOnEnter={true}
+                unmountOnExit={true}
               >
                   <div className="youtube-container">
                     <div className="iframe-mask">
