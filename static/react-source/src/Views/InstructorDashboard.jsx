@@ -30,29 +30,28 @@ const InstructorDashboard = () => {
     const [ activeClassInfo, setActiveClassInfo ] = useState(myClasses[0]);
     const [ activeClassId, setActiveClassId ] = useState(activeClassInfo.id);
     const [ classInstitution, setClassInstitution ] = useState(activeClassInfo.institution);
-    const [ classYear, setClassYear ] = useState(activeClassInfo.academic_year);
+    const [ classYear, setClassYear ] = useState(activeClassInfo.academic_year || '');
     console.log(classYear);
-    const [ classTerm, setClassTerm ] = useState(activeClassInfo.term);
+    const [ classTerm, setClassTerm ] = useState(activeClassInfo.term || '');
     console.log(classTerm);
-    const [ classSection, setClassSection ] = useState(activeClassInfo.course_section);
-    console.log(classSection);
+    const [ classSection, setClassSection ] = useState(activeClassInfo.course_section || '');
     const [ classStart, setClassStart ] = useState(
       moment(activeClassInfo.start_date).toDate()
     );
     const [ classEnd, setClassEnd ] = useState(
       moment(activeClassInfo.end_date).toDate()
     );
-    const [ classDailyQuota, setClassDailyQuota ] = useState(activeClassInfo.paths_per_day);
-    const [ classWeeklyQuota, setClassWeeklyQuota ] = useState(activeClassInfo.days_per_week);
-    const [ classTargetA, setClassTargetA ] = useState(activeClassInfo.a_target);
-    const [ classTargetB, setClassTargetB ] = useState(activeClassInfo.b_target);
-    const [ classTargetC, setClassTargetC ] = useState(activeClassInfo.c_target);
-    const [ classTargetD, setClassTargetD ] = useState(activeClassInfo.d_target);
-    const [ classTargetF, setClassTargetF ] = useState(activeClassInfo.f_target);
-    const [ classCapA, setClassCapA ] = useState(activeClassInfo.a_cap);
-    const [ classCapB, setClassCapB ] = useState(activeClassInfo.b_cap);
-    const [ classCapC, setClassCapC ] = useState(activeClassInfo.c_cap);
-    const [ classCapD, setClassCapD ] = useState(activeClassInfo.d_cap);
+    const [ classDailyQuota, setClassDailyQuota ] = useState(activeClassInfo.paths_per_day || '');
+    const [ classWeeklyQuota, setClassWeeklyQuota ] = useState(activeClassInfo.days_per_week || '');
+    const [ classTargetA, setClassTargetA ] = useState(activeClassInfo.a_target || 'set me');
+    const [ classTargetB, setClassTargetB ] = useState(activeClassInfo.b_target || '');
+    const [ classTargetC, setClassTargetC ] = useState(activeClassInfo.c_target || '');
+    const [ classTargetD, setClassTargetD ] = useState(activeClassInfo.d_target || '');
+    const [ classTargetF, setClassTargetF ] = useState(activeClassInfo.f_target || '');
+    const [ classCapA, setClassCapA ] = useState(activeClassInfo.a_cap || '');
+    const [ classCapB, setClassCapB ] = useState(activeClassInfo.b_cap || '');
+    const [ classCapC, setClassCapC ] = useState(activeClassInfo.c_cap || '');
+    const [ classCapD, setClassCapD ] = useState(activeClassInfo.d_cap || '');
     const [ classMembers, setClassMembers ] = useState([]);
     const [ classSignInLink, setClassSignInLink ] = useState(null);
     const [ classRegCode, setClassRegCode ] = useState(null);
@@ -121,6 +120,25 @@ const InstructorDashboard = () => {
       setActiveClassId(id);
     }
 
+    useEffect(() => {
+      console.log("handling form change");
+      console.log(classStart);
+      console.log(classEnd);
+      console.log(classDailyQuota);
+      console.log(classWeeklyQuota);
+      console.log(classCapA);
+      console.log(classCapB);
+      console.log(classCapC);
+      console.log(classCapD);
+      console.log(classTargetA);
+      console.log(classTargetB);
+      console.log(classTargetC);
+      console.log(classTargetD);
+      console.log(classTargetF);
+    }, [classStart, classEnd, classDailyQuota, classWeeklyQuota, classCapA, classCapB, classCapC, classCapD, classTargetA, classTargetB, classTargetC, classTargetD, classTargetF]
+
+    )
+
     return(
       <Row className="dashboard-component content-view">
         <Col>
@@ -154,6 +172,7 @@ const InstructorDashboard = () => {
                     selectedDays: {classStart}
                   }}
                   placeholder={`${formatDate(new Date(classStart), 'LL')}`}
+                  onChange={e => setClassStart(e.target.value)}
                 />
               </Form.Group>
               <Form.Group controlId="classForm.endDatePicker">
@@ -167,6 +186,7 @@ const InstructorDashboard = () => {
                     selectedDays: {classEnd}
                   }}
                   placeholder={`${formatDate(new Date(classEnd), 'LL')}`}
+                  onChange={e => setClassStart(e.target.value)}
                 />
               </Form.Group>
             </Col>
@@ -174,11 +194,17 @@ const InstructorDashboard = () => {
               <h4>Minimum Participation Requirements</h4>
               <Form.Group controlId="classForm.dailyQuotaInput">
                 <Form.Label>Minimum paths / day</Form.Label>
-                <Form.Control defaultValue={classDailyQuota} value={classDailyQuota}></Form.Control>
+                <Form.Control
+                  value={classDailyQuota}
+                  onChange={e => setClassDailyQuota(e.target.value)}
+                ></Form.Control>
               </Form.Group>
               <Form.Group controlId="classForm.weeklyQuotaInput">
                 <Form.Label>Minimum days / week</Form.Label>
-                <Form.Control defaultValue={classWeeklyQuota} value={classWeeklyQuota}></Form.Control>
+                <Form.Control
+                  value={classWeeklyQuota}
+                  onChange={e => setClassWeeklyQuota(e.target.value)}
+                ></Form.Control>
               </Form.Group>
             </Col>
             <Col>
@@ -196,47 +222,65 @@ const InstructorDashboard = () => {
                   <tr>
                     <td>A</td>
                     <td>
-                      <Form.Control defaultValue={classTargetA} value={classTargetA}></Form.Control> new sets
+                      <Form.Control value={classTargetA}
+                        onChange={e => setClassTargetA(e.target.value)}
+                      ></Form.Control> new sets
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control defaultValue={classCapA} value={classCapA}></Form.Control>
+                      Begin set <Form.Control value={classCapA}
+                        onChange={e => setClassCapA(e.target.value)}
+                      ></Form.Control>
                     </td>
                   </tr>
                   <tr>
                     <td>B</td>
                     <td>
-                      <Form.Control defaultValue={classTargetB} value={classTargetB}></Form.Control> new sets
+                      <Form.Control value={classTargetB}
+                        onChange={e => setClassTargetB(e.target.value)}
+                      ></Form.Control> new sets
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control defaultValue={classCapB} value={classCapB}></Form.Control>
+                      Begin set <Form.Control value={classCapB}
+                        onChange={e => setClassCapB(e.target.value)}
+                      ></Form.Control>
                     </td>
                   </tr>
                   <tr>
                     <td>C</td>
                     <td>
-                      <Form.Control defaultValue={classTargetC} value={classTargetC}></Form.Control> new sets
+                      <Form.Control value={classTargetC}
+                        onChange={e => setClassTargetC(e.target.value)}
+                      ></Form.Control> new sets
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control defaultValue={classCapC} value={classCapC}></Form.Control>
+                      Begin set <Form.Control value={classCapC}
+                        onChange={e => setClassCapC(e.target.value)}
+                      ></Form.Control>
                     </td>
                   </tr>
                   <tr>
                     <td>D</td>
                     <td>
-                      <Form.Control defaultValue={classTargetD} value={classTargetD}></Form.Control> new sets
+                      <Form.Control value={classTargetD}
+                        onChange={e => setClassTargetD(e.target.value)}
+                      ></Form.Control> new sets
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control defaultValue={classCapD} value={classCapD}></Form.Control>
+                      Begin set <Form.Control value={classCapD}
+                        onChange={e => setClassCapD(e.target.value)}
+                      ></Form.Control>
                     </td>
                   </tr>
                   <tr>
                     <td>F</td>
                     <td>
-                      <Form.Control defaultValue={classTargetF} value={classTargetF}></Form.Control> new sets
+                      <Form.Control value={classTargetF}
+                        onChange={e => setClassTargetF(e.target.value)}
+                      ></Form.Control> new sets
                     </td>
                     <td>OR</td>
                     <td>

@@ -639,6 +639,82 @@ def get_calendar_month():
     return json(calendar, default=my_custom_json)
 
 
+def update_course_membership_data():
+    pass
+
+
+def update_course_data():
+    """
+    Update a db record in the "classes" table.
+
+    Private api method to handle calls from the react front-end. This method does not handle data on student membership in a course. That information must be updated separately with the update_course_membership_data method.
+
+    Expects URL variables:
+        course_id (int)
+        course_data (dict)
+
+    The course_data dictionary can have any of the following keys:
+
+                institution (str)
+                academic_year (int)
+                term (str)
+                course_section (str)
+                instructor (int [reference auth_user])
+                start_date (str [datetime])
+                end_date (str [datetime])
+                paths_per_day (int)
+                days_per_week (int)
+                a_target (int)
+                a_cap (int)
+                b_target (int)
+                b_cap (int)
+                c_target (int)
+                c_cap (int)
+                d_target (int)
+                d_cap (int)
+                f_target (int)
+
+    """
+
+    mydata = request.vars.course_data
+    mydata['modified_on'] = datetime.datetime.utcnow
+
+    try:
+        print('updating course', request.vars.course_id)
+        course_rec = db.classes(request.vars.course_id)
+        print('old data:')
+        print(course_rec)
+    except AttributeError:
+        print(format_exc(5))
+        response = current.response
+        response.status = 404
+        return json({'status': 'No such record'})
+
+    try:
+        assert auth.is_logged_in()
+    except AssertionError:
+        print(format_exc(5))
+        response = current.response
+        response.status = 401
+        return json({'status': 'Not logged in'})
+
+    try:
+        assert (auth.has_membership('administrators') or
+                (auth.has_membership('instructors') and
+                course_rec['instructor'] == auth.user_id)
+                )
+    except AssertionError:
+        print(format_exc(5))
+        response = current.response
+        response.status = 401
+        return json({'status': 'Insufficient privileges'})
+
+    myresult = db(db.classes.id == course_id).update(**course_data)
+    assert myresult == 1
+
+    return json({"update_count": myresult}, default=my_custom_json)
+
+
 def get_course_data():
     """
     Return the data on a single course and its students.
