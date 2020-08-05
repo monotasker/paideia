@@ -93,10 +93,14 @@ const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler })
       </thead>
       <tbody>
         {vocab.map((w, i) => <WordRow w={w} key={`wordrow_${i}`} />)}
+        <tr className="scrollDownTarget">
+          {headings.map(() => <td></td>)}
+        </tr>
       </tbody>
     </Table>
   )
 }, vocabIsEqual);
+
 
 const VocabView = (props) => {
 
@@ -171,53 +175,24 @@ const VocabView = (props) => {
   let scrollDownObserver = new IntersectionObserver(
     (entries, observer) => {
       entries.forEach(entry => {
-          console.log(entry.intersectionRatio);
-          console.log(entry.isIntersecting);
-
-          if ( entry.intersectionRatio > 0 && !!entry.isIntersecting && !entry.target.classList.contains("triggered")) {
-            setDisplayRange([displayRange[0] + 10, displayRange[1] + 10]);
-            observer.disconnect();
-          }
-        },
-        {root: scrollContainer.current,
-          threshold: 0.2
-        }
-      );
-    }
-  );
-
-  let scrollUpObserver = new IntersectionObserver(
-    (entries, observer) => {
-      entries.forEach(entry => {
-          console.log(entry.intersectionRatio);
-          console.log(entry.isIntersecting);
-
           if ( entry.intersectionRatio > 0 && !!entry.isIntersecting ) {
-            // setDisplayRange([displayRange[0] + 10, displayRange[1] + 10]);
+            setDisplayRange([displayRange[0], displayRange[1] + 10]);
             observer.disconnect();
           }
         },
         {root: scrollContainer.current,
-          threshold: 0.2
+          threshold: 0
         }
       );
     }
   );
 
   useLayoutEffect(() => {
-    firstTableRow = document.querySelector(".vocabtable-container tbody > tr:first-child");
-    lastTableRow = document.querySelector(".vocabtable-container tbody > tr:last-child");
+    lastTableRow = document.querySelector(".vocabtable-container tbody > tr.scrollDownTarget");
     scrollContainer.current = document.querySelector(".vocabtable-container");
-    console.log('last table row');
-    console.log(lastTableRow);
-    console.log('scroll container');
-    console.log(scrollContainer.current);
 
     if (!!lastTableRow && restrictedVocab.length > 19) {
       scrollDownObserver.observe(lastTableRow);
-    }
-    if (!!firstTableRow && restrictedVocab.length > 19) {
-
     }
 
     return (() => {
@@ -238,11 +213,11 @@ const VocabView = (props) => {
       setVocab(assembleVocab(mydata.mylemmas));
       window.localStorage.setItem('vocab', JSON.stringify(mydata.mylemmas));
       setUpdating(false);
+      setProcessing(false);
     });
   }, []);
 
-  useEffect(() => {
-    window.setTimeout(1);
+  // useEffect(() => {
     // const storedData = window.localStorage.getItem('vocab');
     // if ( storedData ) {
     //   try {
@@ -253,8 +228,8 @@ const VocabView = (props) => {
     //     window.localStorage.removeItem('vocab');
     //   }
     // }
-    setProcessing(false);
-  }, []);
+  //   setProcessing(false);
+  // }, []);
 
   const sortVocab = (event, mystring) => {
     console.log('fired with', mystring);
