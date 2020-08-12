@@ -73,6 +73,10 @@ const getStepQueries = async ({step_id=null, user_id=null}) => {
   return await response.json();
 }
 
+const getGeneralQueries = async () => {
+
+}
+
 const submitNewQuery = async ({step_id=null,
                                path_id=null,
                                user_id=null,
@@ -103,6 +107,70 @@ const submitNewQuery = async ({step_id=null,
   let response_json = await response.json();
   response_json.status_code = mystatus;
   return response_json
+}
+
+const addQueryPost = async({user_id=null,
+                            query_id=null,
+                            post_text=null,
+                            public=null,
+                            prev_post=null}) => {
+  let response = await fetch('/paideia/api/add_query_post', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: user_id,
+        query_id: query_id,
+        post_text: post_text,
+        public: public,
+        prev_post: prev_post
+      })
+  })
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
+}
+
+const updateQueryPost = async({user_id=null,
+                               post_id=null,
+                               post_text=null,
+                               public=null,
+                               hidden=null,
+                               deleted=null,
+                               flagged=null}) => {
+  let response = await fetch('/paideia/api/update_query_post', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: user_id,
+        post_id: post_id,
+        post_text: post_text,
+        public: public,
+        hidden: hidden,
+        deleted: deleted,
+        flagged: flagged
+      })
+  })
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
+}
+
+const addQueryComment = async() => {
+
+}
+
+const updateQueryComment = async() => {
+
 }
 
 const fetchVocabulary = async ({vocab_scope_selector=0}) => {

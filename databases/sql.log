@@ -1638,3 +1638,33 @@ CREATE TABLE "bug_posts"(
     "modified_on" TIMESTAMP
 );
 success!
+timestamp: 2020-08-12T13:58:49.725400
+ALTER TABLE "bugs" ADD "public" CHAR(1);
+timestamp: 2020-08-12T13:58:49.748335
+ALTER TABLE "bugs" ADD "flagged" CHAR(1);
+timestamp: 2020-08-12T13:58:49.749321
+ALTER TABLE "bugs" ADD "posts" TEXT;
+success!
+timestamp: 2020-08-12T13:58:49.759872
+ALTER TABLE "bug_posts" ADD "public" CHAR(1);
+timestamp: 2020-08-12T13:58:49.762656
+ALTER TABLE "bug_posts" ADD "flagged" CHAR(1);
+timestamp: 2020-08-12T13:58:49.763280
+ALTER TABLE "bug_posts" ADD "comments" TEXT;
+success!
+timestamp: 2020-08-12T13:58:49.768728
+CREATE TABLE "bug_post_comments"(
+    "id" SERIAL PRIMARY KEY,
+    "poster" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "on_post" INTEGER REFERENCES "bugs" ("id") ON DELETE CASCADE  ,
+    "dt_posted" TIMESTAMP,
+    "thread_index" INTEGER,
+    "comment_body" TEXT,
+    "public" CHAR(1),
+    "hidden" CHAR(1),
+    "deleted" CHAR(1),
+    "flagged" CHAR(1),
+    "uuid" VARCHAR(64),
+    "modified_on" TIMESTAMP
+);
+success!

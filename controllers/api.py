@@ -356,9 +356,9 @@ def update_query_post():
             new_data = {k: v for k, v in request.vars
                         if k in ['post_text', 'public', 'deleted', 'hidden']}
             post_list, updated_post = record_bug_post(
-                'uid'=uid,
-                'bug_id'=request.vars['query_id'],
-                'post_id'=request.vars['query_id'],
+                uid=uid,
+                bug_id=request.vars['query_id'],
+                post_id=request.vars['post_id'],
                 **new_data
                 )
         return json({'post_list': post_list,
@@ -394,7 +394,6 @@ def add_query_post():
         post_list, new_post = record_bug_post(
             uid=uid,
             bug_id=request.vars['query_id'],
-            post_id=request.vars['query_id'],
             **new_data
             )
         return json({'post_list': post_list,
@@ -403,6 +402,29 @@ def add_query_post():
         response = current.response
         response.status = 401
         return json({'status': 'unauthorized'})
+
+
+def delete_query_post():
+    """
+    """
+    pass
+
+
+def add_post_comment():
+    """
+    """
+    pass
+
+
+def update_post_comment():
+    """
+    """
+    pass
+
+def delete_post_comment():
+    """
+    """
+    pass
 
 
 def log_new_query():
