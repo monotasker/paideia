@@ -9,7 +9,7 @@ from paideia import Walk
 from paideia_utils import GreekNormalizer
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
-from paideia_bugs import Bug, trigger_bug_undo
+from paideia_bugs import Bug, trigger_bug_undo, record_bug_post
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -330,9 +330,92 @@ def get_step_queries():
                  })
 
 
+def update_query_post():
+    """
+    API method to update a post in an existing query discussion.
+
+    Expects the following required request parameters:
+    user_id (int)
+    query_id (int)
+    post_id (int)
+    post_text (str)
+    public (bool)
+    deleted (bool)
+    hidden (bool)
+    """
+    vbs = False
+
+    uid = request.vars['user_id']
+
+    if auth.is_logged_in():
+        if ((auth.user_id == uid)
+                or auth.has_membership('administrators')
+                or auth.has_membership('instructors') and _is_my_student(auth.user_id, uid)
+                ):
+            if vbs: print('api::update_query_post: vars are', request.vars)
+            new_data = {k: v for k, v in request.vars
+                        if k in ['post_text', 'public', 'deleted', 'hidden']}
+            post_list, updated_post = record_bug_post(
+                'uid'=uid,
+                'bug_id'=request.vars['query_id'],
+                'post_id'=request.vars['query_id'],
+                **new_data
+                )
+        return json({'post_list': post_list,
+                     'new_post': updated_post})
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
+
+
+def add_query_post():
+    """
+    API method to add a post in an existing query discussion.
+
+    Expected request variables:
+    user_id (int)
+    query_id (int)
+    post_text (str)
+    public (bool)
+    prev_post (int)
+    """
+    vbs = False
+
+    uid = request.vars['user_id']
+
+    if auth.is_logged_in():
+        if vbs: print('api::add_query_post: vars are', request.vars)
+
+        new_data = {k: v for k, v in request.vars
+                    if k in ['post_text', 'public', 'deleted', 'hidden']}
+        post_list, new_post = record_bug_post(
+            'uid'=uid,
+            'bug_id'=request.vars['query_id'],
+            'post_id'=request.vars['query_id'],
+            **new_data
+            )
+        return json({'post_list': post_list,
+                     'new_post': new_post})
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
+
+
 def log_new_query():
     """
     API method to log a new user query.
+
+    Expected request variables:
+    user_id (int)
+    step_id (int)
+    path_id (int)
+    loc_name (str)
+    answer (str)
+    log_id (int)
+    score (double)
+    user_comment (str)
 
     Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
     """

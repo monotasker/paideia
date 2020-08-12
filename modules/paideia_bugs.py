@@ -361,3 +361,64 @@ def trigger_bug_undo(*args, **kwargs):
         result = mybug.undo(bug_id, log_id, score, bugstatus, user_id, comment,
                             user_response, user_comment, adjusted_score)
     return result
+
+
+def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
+                    deleted=None, hidden=None, post_id=None
+                    ):
+    """
+    Internal method to add/update a discussion post on an existing bug.
+
+    This is called by both public API methods add_query_post and
+    log_new_query.
+
+    positional params
+        uid (int)
+        bug_id (int)
+        post_text(str)
+        public(bool)
+        deleted(bool)
+        hidden(bool)
+
+    named params
+        post_id(int) OPTIONAL
+
+    If no value is supplied for post_id this method creates a new post
+    for the specified bug. If a post_id is supplied that bug_posts record
+    is updated with the new post_text string.
+
+    Returns a dictionary with the keys
+        bug_post_list (list): A list of the ids for all posts on this bug.
+        new_post (dict): A dictionary containing the record data for the
+            newly inserted or updated post.
+
+    """
+    mybug = db(db.bugs.id == bug_id).select()
+    bug_posts = mybug['posts']
+    newdata = {k:v for k, v in {"post_body": post_text,
+                                "public": public,
+                                "deleted": deleted,
+                                "hidden": hidden}
+               if v is not None}
+    if post_id:
+        assert post_id in bug_posts
+        db(db.bug_posts.id == post_id).update(post_body=post_text,
+                                              modified_on=datetime.datetime.utcnow(),
+                                              **newdata
+                                              )
+    else:
+        assert post_id not in bug_posts
+        post_id = db.bug_posts.insert(poster=uid,
+                                      on_bug=bug_id,
+                                      thread_index=len(bug_posts),
+                                      **newdata
+                                      )
+        bug_posts.append(post_id)
+        mybug.update_record(posts = bug_posts)
+    db.commit()
+
+    newbug = db.bugs(bug_id)
+    newpost = db.bug_posts(post_id)
+
+    return {'bug_post_list': newbug['posts'],
+            'new_post': newpost.as_dict()}
