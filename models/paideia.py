@@ -643,6 +643,7 @@ db.define_table('bugs',
                 Field('admin_comment', 'text'),
                 Field('hidden', 'boolean'),
                 Field('deleted', 'boolean'),
+                Field('posts', 'list:reference bug_posts'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(step)s')
