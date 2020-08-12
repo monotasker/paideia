@@ -649,6 +649,18 @@ db.define_table('bugs',
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name,
 # bug_status);')
 
+db.define_table('bug_posts',
+                Field('poster', 'reference auth_user', default=auth.user_id),
+                Field('on_bug', 'reference bugs'),
+                Field('dt_posted', 'datetime', default=request.now),
+                Field('thread_index', 'integer'),
+                Field('post_body', 'text'),
+                Field('hidden', 'boolean'),
+                Field('deleted', 'boolean'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=request.now),
+)
+
 db.define_table('session_data',
                 Field('name', 'reference auth_user'),  # default=auth.user_id
                 Field('updated', 'datetime', default=dtnow),
@@ -672,7 +684,7 @@ db.define_table('session_data',
                 Field('prev_loc', 'string'),
                 Field('npc', 'reference npcs'),
                 Field('prev_npc', 'reference npcs'),
-                Field('past_quota', 'boolean'), 
+                Field('past_quota', 'boolean'),
                 Field('viewed_slides', 'boolean'),
                 Field('reported_badges', 'boolean'),
                 Field('reported_promotions', 'boolean'),

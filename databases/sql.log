@@ -1624,3 +1624,17 @@ ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_right";
 timestamp: 2019-09-17T15:59:11.745388
 ALTER TABLE "weekly_user_stats" DROP COLUMN "logs_wrong";
 success!
+timestamp: 2020-08-12T10:39:56.462765
+CREATE TABLE "bug_posts"(
+    "id" SERIAL PRIMARY KEY,
+    "poster" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "on_bug" INTEGER REFERENCES "bugs" ("id") ON DELETE CASCADE  ,
+    "dt_posted" TIMESTAMP,
+    "thread_index" INTEGER,
+    "post_body" TEXT,
+    "hidden" CHAR(1),
+    "deleted" CHAR(1),
+    "uuid" VARCHAR(64),
+    "modified_on" TIMESTAMP
+);
+success!
