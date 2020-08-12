@@ -388,11 +388,13 @@ def add_query_post():
         if vbs: print('api::add_query_post: vars are', request.vars)
 
         new_data = {k: v for k, v in request.vars
-                    if k in ['post_text', 'public', 'deleted', 'hidden']}
+                    if k in ['post_text', 'public', 'deleted',
+                             'hidden', 'flagged']
+                    }
         post_list, new_post = record_bug_post(
-            'uid'=uid,
-            'bug_id'=request.vars['query_id'],
-            'post_id'=request.vars['query_id'],
+            uid=uid,
+            bug_id=request.vars['query_id'],
+            post_id=request.vars['query_id'],
             **new_data
             )
         return json({'post_list': post_list,

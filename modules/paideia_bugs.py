@@ -363,6 +363,67 @@ def trigger_bug_undo(*args, **kwargs):
     return result
 
 
+def record_post_comment(uid=None, post_id=None, comment_text=None, public=True,
+                        deleted=None, hidden=None, comment_id=None
+                        ):
+    """
+    Internal method to add/update a comment on an existing bug answer post.
+
+    This is called by the public API methods add_post_comment and update_post_comment.
+
+    positional params
+        uid (int)
+        post_id (int)
+        comment_text(str)
+        public(bool)
+        deleted(bool)
+        hidden(bool)
+
+    named params
+        comment_id(int) OPTIONAL
+
+    If no value is supplied for comment_id this method creates a new comment
+    for the specified bug post. If a comment_id is supplied that
+    bug_post_comments record is updated with the new comment_text string.
+    Returns a dictionary with the keys
+        post_comment_list (list): A list of the ids for all posts on this bug.
+        new_comment (dict): A dictionary containing the record data for the
+            newly inserted or updated post.
+
+    """
+    mypost = db(db.bug_posts.id == post_id).select()
+    post_comments = mybug['comments']
+    newdata = {k:v for k, v in {"comment_body": comment_text,
+                                "public": public,
+                                "deleted": deleted,
+                                "hidden": hidden,
+                                "flagged": flagged}
+               if v is not None}
+    if comment_id:
+        assert comment_id in post_comments
+        db(db.bug_post_comments.id == comment_id).update(
+           comment_body=comment_text,
+           modified_on=datetime.datetime.utcnow(),
+           **newdata
+           )
+    else:
+        comment_id = db.bug_post_comments.insert(
+            poster=uid,
+            on_post=post_id,
+            thread_index=len(post_comments),
+            **newdata
+            )
+        post_comments.append(comment_id)
+        mypost.update_record(comments = post_comments)
+    db.commit()
+
+    newpost = db.bug_posts(post_id)
+    newcomment = db.bug_post_comments(comment_id)
+
+    return {'post_comment_list': newpost['comments'],
+            'new_comment': newcomment.as_dict()}
+
+
 def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
                     deleted=None, hidden=None, post_id=None
                     ):
@@ -398,7 +459,8 @@ def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
     newdata = {k:v for k, v in {"post_body": post_text,
                                 "public": public,
                                 "deleted": deleted,
-                                "hidden": hidden}
+                                "hidden": hidden,
+                                "flagged": flagged}
                if v is not None}
     if post_id:
         assert post_id in bug_posts
@@ -407,7 +469,6 @@ def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
                                               **newdata
                                               )
     else:
-        assert post_id not in bug_posts
         post_id = db.bug_posts.insert(poster=uid,
                                       on_bug=bug_id,
                                       thread_index=len(bug_posts),
