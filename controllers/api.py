@@ -250,44 +250,10 @@ def check_login():
     return json(my_login)
 
 
-def get_step_queries():
-    """
-    API method to return queries for the selected step.
-    """
-    print(request.vars)
-    stepid = request.vars['step_id']
-    queries = db((db.bugs.step == stepid) &
-                 (db.bugs.user_name == db.auth_user.id)
-                 ).iterselect(db.bugs.id,
-                              db.bugs.step,
-                              db.bugs.in_path,
-                              db.bugs.step_options,
-                              db.bugs.user_response,
-                              db.bugs.score,
-                              db.bugs.adjusted_score,
-                              db.bugs.log_id,
-                              db.bugs.user_comment,
-                              db.bugs.date_submitted,
-                              db.bugs.bug_status,
-                              db.bugs.admin_comment,
-                              db.bugs.hidden,
-                              db.bugs.deleted,
-                              db.bugs.public,
-                              db.bugs.posts,
-                              db.bugs.pinned,
-                              db.bugs.popularity,
-                              db.bugs.helpfulness,
-                              db.bugs.user_role,
-                              db.auth_user.id,
-                              db.auth_user.first_name,
-                              db.auth_user.last_name
-                              ).as_list()
+def _add_posts_to_queries(queries):
 
     for idx, q in enumerate(queries):
-        print("query")
-        print(q)
         if q['bugs']['posts']:
-            print("FOUND POSTS!!!!!!!!!!!!")
             myposts = db(
                 (db.bug_posts.id.belongs(q['bugs']['posts'])) &
                 (db.bug_posts.poster==db.auth_user.id)
@@ -334,20 +300,47 @@ def get_step_queries():
                                  db.bug_post_comments.modified_on,
                                  orderby=db.bug_post_comments.thread_index
                                  ).as_list()
-                print('comments')
-                print(mycomments)
                 myposts[i]['comments'] = mycomments
-            print('posts')
-            print(myposts)
             queries[idx]['posts'] = myposts
         else:
-            print('NO POSTS')
             queries[idx]['posts'] = []
 
-    myuser = request.vars['user_id']
-    user_queries = [q for q in queries if q['auth_user']['id'] == myuser]
+    return queries
 
-    myclasses = db((db.class_membership.name == myuser) &
+
+def _fetch_step_queries(stepid, userid):
+    queries = db((db.bugs.step == stepid) &
+                 (db.bugs.user_name == db.auth_user.id)
+                 ).iterselect(db.bugs.id,
+                              db.bugs.step,
+                              db.bugs.in_path,
+                              db.bugs.step_options,
+                              db.bugs.user_response,
+                              db.bugs.score,
+                              db.bugs.adjusted_score,
+                              db.bugs.log_id,
+                              db.bugs.user_comment,
+                              db.bugs.date_submitted,
+                              db.bugs.bug_status,
+                              db.bugs.admin_comment,
+                              db.bugs.hidden,
+                              db.bugs.deleted,
+                              db.bugs.public,
+                              db.bugs.posts,
+                              db.bugs.pinned,
+                              db.bugs.popularity,
+                              db.bugs.helpfulness,
+                              db.bugs.user_role,
+                              db.auth_user.id,
+                              db.auth_user.first_name,
+                              db.auth_user.last_name
+                              ).as_list()
+
+    queries = _add_posts_to_queries(queries)
+
+    user_queries = [q for q in queries if q['auth_user']['id'] == userid]
+
+    myclasses = db((db.class_membership.name == userid) &
                    (db.class_membership.class_section == db.classes.id)
                    ).iterselect(db.classes.id,
                                 db.classes.institution,
@@ -378,11 +371,20 @@ def get_step_queries():
                                       'section': myclass.course_section,
                                       'queries': member_queries}
                                     )
+    return {'user_queries': user_queries,
+            'class_queries': myclasses_queries,
+            'other_queries': external_queries
+            }
 
-    return json({'user_queries': user_queries,
-                 'class_queries': myclasses_queries,
-                 'other_queries': external_queries
-                 })
+
+def get_step_queries():
+    """
+    API method to return queries for the selected step.
+    """
+    queries = _fetch_step_queries(request.vars['step_id'],
+                                  request.vars['user_id'])
+
+    return json(queries)
 
 
 def add_query_post():
@@ -503,6 +505,7 @@ def log_new_query():
     log_id (int)
     score (double)
     user_comment (str)
+    public (bool)
 
     Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
     """
@@ -521,7 +524,8 @@ def log_new_query():
         logged = b.log_new(request.vars['answer'],
                         request.vars['log_id'],
                         request.vars['score'],
-                        request.vars['user_comment'])
+                        request.vars['user_comment'],
+                        request.vars['public'])
         if vbs: print('creating::submit_bug: logged bug - response is', logged)
 
         myqueries = db((db.bugs.step == request.vars['step_id']) &
@@ -541,10 +545,14 @@ def log_new_query():
                                  db.bugs.admin_comment,
                                  db.bugs.hidden,
                                  db.bugs.deleted,
+                                 db.bugs.pinned,
+                                 db.bugs.flagged,
+                                 db.bugs.posts,
                                  db.auth_user.id,
                                  db.auth_user.first_name,
                                  db.auth_user.last_name
                                 ).as_list()
+        myqueries = _add_posts_to_queries(myqueries)
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
 

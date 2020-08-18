@@ -27,21 +27,37 @@ import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
 
 const NewQueryForm = ({answer, score, action}) => {
+  const [queryText, setQueryText] = useState(" ");
+  const [showPublic, setShowPublic] = useState(true);
   return (
-    <Form onSubmit={action}>
+    <Form onSubmit={() => action(queryText, showPublic)}>
       <Form.Group controlId="newQueryFormAnswer">
-        <Form.Label>You said</Form.Label>
-        <Form.Control as="textarea" disabled={true} value={answer}></Form.Control>
-      </Form.Group>
-      <Form.Group controlId="newQueryFormScore">
-        <Form.Label>Awarded</Form.Label>
-        <Form.Control disabled={true} value={score}></Form.Control>
+        {!!answer && answer !== "null" ? <React.Fragment>
+          <Form.Label>You said</Form.Label>
+          <p>{answer}</p>
+          <Form.Label>Awarded</Form.Label>
+          <span>{score}</span>
+          </React.Fragment>
+        :
+          <Form.Label>You haven't answered this question yet</Form.Label>
+        }
       </Form.Group>
       <Form.Group controlId="newQueryFormTextarea">
         <Form.Label>Your question or comment</Form.Label>
-        <Form.Control as="textarea" rows="3"></Form.Control>
+        <Form.Control as="textarea" rows="3"
+          defaultValue={queryText}
+          onChange={e => setQueryText(e.target.value)}
+        />
       </Form.Group>
-      <Button variant="primary" type="submit">Submit query</Button>
+
+      <Form.Group controlId={`addQueryPrivateCheckbox`}>
+        <Form.Check type="checkbox" label="Keep this question or comment private."
+          defaultValue={!showPublic}
+          onChange={e => setShowPublic(!e.target.value)}
+          />
+      </Form.Group>
+      <Button variant="primary" type="submit"
+      >Submit my query</Button>
     </Form>
   );
 }
@@ -398,17 +414,19 @@ const QueriesView = () => {
 
     useEffect(() => fetchAction(), [user.currentStep]);
 
-    const newQueryAction = () => {
+    const newQueryAction = (myComment, showPublic) => {
       event.preventDefault();
-      let $myform = event.target;
+      const myscore = !!user.currentScore && user.currentScore != 'null' ?
+        user.currentScore : null;
       submitNewQuery({step_id: user.currentStep,
                       path_id: user.currentPath,
                       user_id: user.userId,
                       loc_name: user.currentLocation,
                       answer: user.currentAnswer,
                       log_id: user.currentLogID,
-                      score: user.currentScore,
-                      user_comment: $myform.querySelector('#newQueryFormTextarea').value})
+                      score: myscore,
+                      user_comment: myComment,
+                      show_public: showPublic})
       .then(myresponse => {
         setUserQueries(myresponse.map(
           q => _formatQueryData(q)

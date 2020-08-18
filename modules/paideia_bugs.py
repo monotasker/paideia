@@ -26,7 +26,7 @@ class Bug(object):
             self.loc_id = db(db.locations.loc_alias == loc_id
                              ).select(db.locations.id).first()
 
-    def log_new(self, answer, log_id, score, user_comment):
+    def log_new(self, answer, log_id, score, user_comment, show_public):
         """
         creates a new bug report and provides confirmation to the user.
         """
@@ -41,7 +41,8 @@ class Bug(object):
                        "user_response": answer,
                        "sample_answers": self.readable_response,
                        "user_comment": user_comment,
-                       "score": score}
+                       "score": score,
+                       "public": show_public}
 
             if log_id not in [None, False, 'None']:  # to allow for queries on repeating (unrecorded) steps
                 argdict['log_id'] = log_id

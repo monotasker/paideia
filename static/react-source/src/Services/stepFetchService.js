@@ -84,7 +84,8 @@ const submitNewQuery = async ({step_id=null,
                                answer="",
                                log_id=null,
                                score=null,
-                               user_comment=null}) => {
+                               user_comment=null,
+                               show_public=true}) => {
   let response = await fetch('/paideia/api/log_new_query', {
       method: "POST",
       cache: "no-cache",
@@ -100,7 +101,8 @@ const submitNewQuery = async ({step_id=null,
         answer: answer,
         log_id: log_id,
         score: score,
-        user_comment: user_comment
+        user_comment: user_comment,
+        public: show_public
       })
   })
   let mystatus = response.status;

@@ -655,6 +655,8 @@ db.define_table('bugs',
                 format='%(step)s')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name,
 # bug_status);')
+db.bugs.log_id.requires = IS_EMPTY_OR(IS_IN_DB(db, 'attempt_log.id',
+                                               db.attempt_log._format))
 
 db.define_table('bug_posts',
                 Field('poster', 'reference auth_user', default=auth.user_id),
