@@ -112,8 +112,8 @@ const submitNewQuery = async ({step_id=null,
 const addQueryPost = async({user_id=null,
                             query_id=null,
                             post_text=null,
-                            public=null,
-                            prev_post=null}) => {
+                            showPublic=null
+                            }) => {
   let response = await fetch('/paideia/api/add_query_post', {
       method: "POST",
       cache: "no-cache",
@@ -125,8 +125,7 @@ const addQueryPost = async({user_id=null,
         user_id: user_id,
         query_id: query_id,
         post_text: post_text,
-        public: public,
-        prev_post: prev_post
+        public: showPublic,
       })
   })
   let mystatus = response.status;
@@ -138,7 +137,7 @@ const addQueryPost = async({user_id=null,
 const updateQueryPost = async({user_id=null,
                                post_id=null,
                                post_text=null,
-                               public=null,
+                               showPublic=null,
                                hidden=null,
                                deleted=null,
                                flagged=null}) => {
@@ -153,7 +152,7 @@ const updateQueryPost = async({user_id=null,
         user_id: user_id,
         post_id: post_id,
         post_text: post_text,
-        public: public,
+        public: showPublic,
         hidden: hidden,
         deleted: deleted,
         flagged: flagged
@@ -222,6 +221,10 @@ export { getPromptData,
          evaluateAnswer,
          getStepQueries,
          submitNewQuery,
+         addQueryPost,
+         updateQueryPost,
+         addQueryComment,
+         updateQueryComment,
          fetchVocabulary,
          fetchLessons,
          setServerReviewMode

@@ -1,12 +1,13 @@
 import React, { useContext, useState, useEffect } from "react";
 import {
-    Row,
-    Col,
-    Table,
-    Form,
+    Badge,
     Button,
+    Col,
+    Collapse,
+    Form,
+    Row,
     Spinner,
-    Badge
+    Table,
 } from "react-bootstrap";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import marked from "marked";
@@ -14,9 +15,230 @@ import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { UserContext } from "../UserContext/UserProvider";
-import { getStepQueries } from "../Services/stepFetchService";
-import { submitNewQuery } from "../Services/stepFetchService";
+import { getStepQueries,
+         submitNewQuery,
+         addQueryPost,
+         updateQueryPost,
+         addQueryComment,
+         updateQueryComment
+ } from "../Services/stepFetchService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { findIndex } from "core-js/es/array";
+import { readableDateAndTime } from "../Services/dateTimeService";
+
+const NewQueryForm = ({answer, score, action}) => {
+  return (
+    <Form onSubmit={action}>
+      <Form.Group controlId="newQueryFormAnswer">
+        <Form.Label>You said</Form.Label>
+        <Form.Control as="textarea" disabled={true} value={answer}></Form.Control>
+      </Form.Group>
+      <Form.Group controlId="newQueryFormScore">
+        <Form.Label>Awarded</Form.Label>
+        <Form.Control disabled={true} value={score}></Form.Control>
+      </Form.Group>
+      <Form.Group controlId="newQueryFormTextarea">
+        <Form.Label>Your question or comment</Form.Label>
+        <Form.Control as="textarea" rows="3"></Form.Control>
+      </Form.Group>
+      <Button variant="primary" type="submit">Submit query</Button>
+    </Form>
+  );
+}
+
+const PostRow = ({postId, posterId, postText, posterNameFirst, posterNameLast,
+                  postDate, postEditedDate, posterRole, hidden, deleted,
+                  flagged, showPublic,
+                  updatePostAction, newCommentAction, updateCommentAction,
+                  classId
+                }) => {
+  const {user, dispatch} = useContext(UserContext);
+  const [ editing, setEditing ] = useState(false);
+  console.log("myID");
+  console.log(posterId);
+  console.log(user.userId);
+  return (
+    <li key={`${postId}_${classId}`}>
+      <p className={`post-display-info ${posterRole.map(r => `${r}`).join(" ")}`}>
+        <FontAwesomeIcon icon="user-circle" size="3x" /><br />
+        <span className={`post-display-name ${posterRole.map(r => `${r}`).join(" ")}`}>
+          {`${posterNameFirst} ${posterNameLast}`}
+        </span><br />
+        {posterRole.map(r =>
+          <React.Fragment key={r}>
+            <span className={`post-display-role ${r}`}>{r}</span><br />
+          </React.Fragment>
+        )}
+        <span className={`post-display-date`}>
+          {readableDateAndTime(postDate)}
+        </span>
+        {user.userId === posterId &&
+          <a onClick={() => setEditing(!editing)}>
+            <FontAwesomeIcon icon="pencil-alt" />
+          </a>
+        }
+        {user.userId !== posterId &&
+          <a>
+            <FontAwesomeIcon icon="thumbs-up" />
+          </a>
+        }
+        {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors") && user.instructing.find(c => c.id == classId)) &&
+          <a>
+            <FontAwesomeIcon icon="thumbtack" />
+          </a>
+        }
+        {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors")) &&
+          <a>
+            <FontAwesomeIcon icon="lightbulb" />
+          </a>
+        }
+      </p>
+      <p className={`post-display-body ${posterRole.map(r => r).join(" ")}`}
+        dangerouslySetInnerHTML={{
+          __html: postText ? DOMPurify.sanitize(marked(postText)) : ""}}
+      />
+    </li>
+  )
+}
+
+
+const AddPostForm = ({queryId, newPostAction}) => {
+  const [postText, setPostText] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  return (
+    <Form id={`add-post-form-${queryId}`} className="add-post-form">
+        <Form.Group controlId={`addPostPrivateCheckbox-${queryId}`}>
+          <Form.Check type="checkbox" label="Keep my answer private."
+            defaultValue={isPrivate}
+            onChange={e => setIsPrivate(e.target.value)}
+            />
+        </Form.Group>
+        <Form.Group controlId={`addPostTextarea-${queryId}`}>
+          <Form.Control as="textarea" onChange={e => setPostText(e.target.value)} />
+        </Form.Group>
+        <Button variant="primary"
+          type="submit"
+          onClick={e => newPostAction(queryId, postText, !isPrivate, e)}
+        >Submit reply</Button>
+    </Form>
+  )
+}
+
+const DisplayRow = ({newPostAction, newCommentAction, updatePostAction,
+                     updateCommentAction, classId, queryId, opNameFirst,
+                     opNameLast, posts, dateSubmitted, queryStatus, opResponse,
+                     opQueryText, hidden, showPublic, flagged, deleted,
+                     queryStep, queryPath
+                    }) => {
+  console.log([queryId, opNameFirst, opNameLast, posts,
+                     dateSubmitted, queryStatus, opResponse, opQueryText,
+                     hidden, showPublic, flagged, deleted, queryStep, queryPath
+                    ]);
+  const [ showAdder, setShowAdder ] = useState(false);
+
+  return (
+      <tr key={queryId}>
+        <td key={`${queryId}_cell`}>
+          <p className="query-display-op">
+            <span className="query-display-op-name">
+              {`${opNameFirst} ${opNameLast}`}
+            </span> answered...<br />
+            <FontAwesomeIcon icon="user-circle" size="3x" /><br />
+            <span className="query-display-op-date">
+              {readableDateAndTime(dateSubmitted)}
+            </span><br />
+            <span className="query-display-op-status">{queryStatus}</span>
+          </p>
+          <p className="query-display-response"
+            dangerouslySetInnerHTML={{
+              __html: opResponse ? DOMPurify.sanitize(marked(opResponse)) : ""
+            }} />
+          <p className="query-display-op-question"
+            dangerouslySetInnerHTML={{
+              __html: opQueryText ? DOMPurify.sanitize(marked(opQueryText)) : ""
+            }} />
+          <ul className="query-display-replies">
+          {!!posts && posts.map(p =>
+            <PostRow key={p.postId} {...p}
+              updatePostAction={updatePostAction}
+              newCommentAction={newCommentAction}
+              updateCommentAction={updateCommentAction}
+              classId={classId}
+            />)}
+          </ul>
+
+          <span className="query-display-add-post">
+            <a className="label"
+              onClick={() => setShowAdder(!showAdder)}
+              aria-controls="add-post-form-wrapper"
+              aria-expanded={showAdder}
+            >
+              <FontAwesomeIcon icon="reply" />Reply
+            </a>
+            <Collapse in={showAdder}>
+              <div className="add-post-form-wrapper">
+                <AddPostForm className="add-post-form" queryId={queryId} newPostAction={newPostAction} />
+              </div>
+            </Collapse>
+          </span>
+        </td>
+      </tr>
+    )
+}
+
+
+const DisplayTable = ({queries, newPostAction, newCommentAction,
+                       updatePostAction, updateCommentAction}) => {
+  if (!!queries && !!queries[0] && !queries[0].section) {
+    return (<Table>
+            <tbody>
+              {queries.map(
+                q => <DisplayRow key={q.queryId}
+                       newPostAction={newPostAction}
+                       newCommentAction={newCommentAction}
+                       updatePostAction={updatePostAction}
+                       updateCommentAction={updateCommentAction}
+                       classId={null}
+                       {...q}
+                     />
+              )}
+            </tbody>
+            </Table>
+      )
+  } else if (!!queries && !!queries[0] && !!queries[0].section) {
+    return (
+        <Table>
+        <tbody>
+          {queries != [] && queries.map(({classId, institution, year, section, queries}) =>
+            <tr key={`${institution}_${year}_${section}`} >
+              <td>
+                <span className="query-display-class-header">
+                  {`${institution}, ${year}, ${section}`}
+                </span>
+                <Table>
+                  <tbody>
+                  {!!queries.length && queries.map(
+                    q => <DisplayRow key={`${classId}_${q.queryId}`}
+                           newPostAction={newPostAction}
+                           newCommentAction={newCommentAction}
+                           updatePostAction={updatePostAction}
+                           updateCommentAction={updateCommentAction}
+                           classId={classId}
+                           {...q}
+                         />
+                  )}
+                  </tbody>
+                </Table>
+              </td>
+            </tr>
+          )}
+        </tbody>
+        </Table>
+    )
+  } else {
+    return <Table />
+  }
+}
 
 const QueriesView = () => {
 
@@ -26,16 +248,95 @@ const QueriesView = () => {
     const [classQueries, setClassQueries] = useState(null);
     const [otherQueries, setOtherQueries] = useState(null);
     const [viewScope, setViewScope] = useState('public');
+    const [onStep, setOnStep] = useState(!!user.currentStep);
+
+    const _formatPostData = p => {
+      return ({postId: p.bug_posts.id,
+                posterId: p.bug_posts.poster,
+                postText: p.bug_posts.post_body,
+                posterNameFirst: p.auth_user.first_name,
+                posterNameLast: p.auth_user.last_name,
+                postDate: p.bug_posts.dt_posted,
+                postEditedDate: p.bug_posts.modified_on,
+                posterRole: p.bug_posts.poster_role,
+                hidden: p.bug_posts.hidden,
+                deleted: p.bug_posts.deleted || false,
+                flagged: p.bug_posts.flagged || false,
+                pinned: p.bug_posts.pinned || false,
+                showPublic: p.bug_posts.public || true,
+                threadIndex: p.bug_posts.thread_index,
+                comments: p.comments
+              }
+      )
+    }
+
+    const _formatQueryData = q => {
+      let formattedPosts = q.posts.map(p => _formatPostData(p));
+      if ( !!q.bugs.admin_comment ) {
+        formattedPosts.unshift({
+          postId: undefined,
+          posterId: 19,
+          postText: q.bugs.admin_comment,
+          posterNameFirst: "Ian",
+          posterNameLast: "Scott",
+          postDate: "",
+          postEditedDate: "",
+          posterRole: ["administrators", "instructors"],
+          hidden: false,
+          deleted: false,
+          flagged: false,
+          showPublic: true,
+          threadIndex: 0,
+          comments: []
+        });
+      }
+      return ({queryId: q.bugs.id,
+                opId: q.auth_user.id,
+                opNameFirst: q.auth_user.first_name,
+                opNameLast: q.auth_user.last_name,
+                posts: formattedPosts,
+                dateSubmitted: q.bugs.date_submitted,
+                queryStatus: q.bugs.bug_status,
+                opResponse: q.bugs.user_response,
+                opQueryText: q.bugs.user_comment,
+                hidden: q.bugs.hidden,
+                showPublic: q.bugs.public,
+                flagged: q.bugs.flagged,
+                deleted: q.bugs.deleted,
+                queryStep: q.bugs.step,
+                queryPath: q.bugs.in_path,
+              }
+      )
+    }
+
+    const _formatClassData = ({id, institution, section, year, queries}) => {
+      return ({classId: id,
+               institution: institution,
+               section: section,
+               year: year,
+               queries: queries.map(q => _formatQueryData(q))
+              }
+      )
+    }
 
     const fetchAction = () => {
-        getStepQueries({step_id: user.currentStep,
-                        user_id: user.userId})
-        .then(queryfetch => {
-            setQueries(queryfetch);
-            setUserQueries(queryfetch.user_queries);
-            setClassQueries(queryfetch.class_queries);
-            setOtherQueries(queryfetch.other_queries.slice(0, 20));
-        });
+
+      getStepQueries({step_id: user.currentStep,
+                      user_id: user.userId})
+      .then(queryfetch => {
+        console.log(queryfetch);
+
+        setQueries(queryfetch);
+        setUserQueries(queryfetch.user_queries.map(
+          q => _formatQueryData(q)
+        ));
+        setClassQueries(queryfetch.class_queries.map(
+          c => _formatClassData(c)
+        ));
+        setOtherQueries(queryfetch.other_queries.slice(0, 20).map(
+          q => _formatQueryData(q)
+        ));
+      });
     }
 
     useEffect(() => fetchAction(), [user.currentStep]);
@@ -52,6 +353,72 @@ const QueriesView = () => {
                       score: user.currentScore,
                       user_comment: $myform.querySelector('#newQueryFormTextarea').value})
       .then(myresponse => {
+        setUserQueries(myresponse.map(
+          q => _formatQueryData(q)
+        ));
+      });
+    }
+
+    const newPostAction = (queryId, postText, isPublic, event) => {
+      event.preventDefault();
+      addQueryPost({user_id: user.userId,
+                    query_id: queryId,
+                    post_text: postText,
+                    showPublic: isPublic
+                    })
+      .then(myresponse => {
+        // console.log(myresponse);
+        const scope = myScopes.find(s => s.scope===viewScope);
+        let qList = [...scope.list];
+        const queryIndex = qList.findIndex(q => q.queryId==myresponse.new_post.bug_posts.on_bug);
+        qList[queryIndex].posts.push(_formatPostData(myresponse.new_post));
+        scope.action(qList);
+      });
+    }
+
+    const newCommentAction = () => {
+      event.preventDefault();
+      addQueryComment({user_id: user.userId,
+                       post_id: queryId,
+                       comment_text: postText,
+                       showPublic: isPublic
+                       })
+      .then(myresponse => {
+          setUserQueries(myresponse);
+      });
+    }
+
+    const updatePostAction = (postId, postText, isPublic, hidden,
+                              flagged, pinned, popular, useful) => {
+      event.preventDefault();
+      updateQueryPost({user_id: user.userId,
+                       post_id: postId,
+                       post_text: postText,
+                       showPublic: isPublic,
+                       hidden: hidden,
+                       flagged: flagged,
+                       pinned: pinned,
+                       popuar: popular,
+                       useful: useful
+                       })
+      .then(myresponse => {
+          setUserQueries(myresponse);
+      });
+    }
+
+    const updateCommentAction = () => {
+      event.preventDefault();
+      updateQueryComment({user_id: user.userId,
+                          comment_id: queryId,
+                          comment_text: postText,
+                          showPublic: isPublic,
+                          hidden: hidden,
+                          flagged: flagged,
+                          pinned: pinned,
+                          popuar: popular,
+                          useful: useful
+                          })
+      .then(myresponse => {
           setUserQueries(myresponse);
       });
     }
@@ -61,99 +428,23 @@ const QueriesView = () => {
         className="align-self-center map-spinner" />
     );
 
-    const DisplayRow = (props) => (
-      <tr key={props.q.bugs.id}>
-        <td key={`${props.q.bugs.id}_cell`}>
-          <p className="query-display-op">
-            <span className="query-display-op-name">
-              {`${props.q.auth_user.first_name} ${props.q.auth_user.last_name}`}
-            </span> answered...<br />
-            <FontAwesomeIcon icon="user-circle" size="3x" /><br />
-            <span className="query-display-op-date">
-              {props.q.bugs.date_submitted}
-            </span><br />
-            <span className="query-display-op-status">
-              {props.q.bugs.bug_status}
-            </span>
-          </p>
-          <p className="query-display-response"
-            dangerouslySetInnerHTML={{
-              __html: props.q.bugs.user_response ? DOMPurify.sanitize(marked(props.q.bugs.user_response)) : ""
-            }} />
-
-          <p className="query-display-op-question"
-            dangerouslySetInnerHTML={{
-              __html: props.q.bugs.user_comment ? DOMPurify.sanitize(marked(props.q.bugs.user_comment)) : ""
-            }} />
-
-          <p className="query-display-admin">
-            <FontAwesomeIcon icon="user-circle" size="3x" /><br />
-            <span className="query-display-admin-name">
-              {"Instructor"}
-            </span><br />
-            <span className="query-display-admin-date">
-              {"mydate"}
-            </span>
-          </p>
-          <p className="query-display-admin-comment"
-            dangerouslySetInnerHTML={{
-              __html: props.q.bugs.admin_comment ? DOMPurify.sanitize(marked(props.q.bugs.admin_comment)) : ""
-            }} />
-        </td>
-      </tr>
-    );
-
-    const DisplayTable = (props) => (
-      props.queries != [] && !!props.queries[0] && !!props.queries[0].bugs) ?
-      (
-        <Table><tbody>
-          {props.queries.map(q => <DisplayRow q={q} key={q.bugs.id} />)}
-        </tbody></Table>
-      ) : (
-        <Table><tbody>
-          {props.queries != [] && props.queries.map(myclass =>
-            <tr
-              key={`${myclass.institution}_${myclass.year}_${myclass.section}`}
-            >
-              <td>
-                <span className="query-display-class-header">{`${myclass.institution}, ${myclass.year}, ${myclass.section}`}</span>
-                <Table><tbody>
-                  {myclass && myclass.queries.map(q => {
-                    if (q.bugs) { return(<DisplayRow q={q} key={q.bugs.id} />)}
-                  })}
-                </tbody></Table>
-              </td>
-            </tr>
-          )}
-        </tbody></Table>
-    );
-
+    console.log("class queries");
+    console.log(classQueries);
+    console.log("user queries");
+    console.log(userQueries);
+    console.log("other queries");
+    console.log(otherQueries);
     const myScopes = [
       {scope: 'user',
-       list: userQueries},
+       list: userQueries,
+       action: setUserQueries},
       {scope: 'class',
-       list: classQueries},
+       list: classQueries,
+       action: setClassQueries},
       {scope: 'public',
-       list: otherQueries}
+       list: otherQueries,
+       action: setOtherQueries}
     ];
-
-    const NewForm = (props) => (
-      <Form onSubmit={newQueryAction}>
-        <Form.Group controlId="newQueryFormAnswer">
-          <Form.Label>You said</Form.Label>
-          <Form.Control as="textarea" disabled={true} value={props.answer}></Form.Control>
-        </Form.Group>
-        <Form.Group controlId="newQueryFormScore">
-          <Form.Label>Awarded</Form.Label>
-          <Form.Control disabled={true} value={props.score}></Form.Control>
-        </Form.Group>
-        <Form.Group controlId="newQueryFormTextarea">
-          <Form.Label>Your question or comment</Form.Label>
-          <Form.Control as="textarea" rows="3"></Form.Control>
-        </Form.Group>
-        <Button variant="primary" type="submit">Submit query</Button>
-      </Form>
-    );
 
     const DisplayContent = () => (
       <React.Fragment>
@@ -192,8 +483,14 @@ const QueriesView = () => {
             unmountOnExit={true}
           >
             <div className="queries-view-pane">
-              {scope === 'user' ? <NewForm answer={user.currentAnswer} score={user.currentScore} /> : ''}
-              <DisplayTable queries={list} />
+              {scope === 'user' ? <NewQueryForm answer={user.currentAnswer} score={user.currentScore} action={newQueryAction} /> : ''}
+              <DisplayTable
+                queries={list}
+                newPostAction={newPostAction}
+                updatePostAction={updatePostAction}
+                newCommentAction={newCommentAction}
+                updateCommentAction={updateCommentAction}
+              />
             </div>
           </CSSTransition>
         )}

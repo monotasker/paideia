@@ -391,6 +391,7 @@ def record_post_comment(uid=None, post_id=None, comment_text=None, public=True,
             newly inserted or updated post.
 
     """
+    db = current.db
     mypost = db(db.bug_posts.id == post_id).select()
     post_comments = mybug['comments']
     newdata = {k:v for k, v in {"comment_body": comment_text,
@@ -424,8 +425,10 @@ def record_post_comment(uid=None, post_id=None, comment_text=None, public=True,
             'new_comment': newcomment.as_dict()}
 
 
-def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
-                    deleted=None, hidden=None, post_id=None
+def record_bug_post(uid=None, bug_id=None, poster_role=None, post_text=None,
+                    public=True, deleted=None, hidden=None, pinned=None,
+                    flagged=None, helpfulness=None, popularity=None,
+                    post_id=None
                     ):
     """
     Internal method to add/update a discussion post on an existing bug.
@@ -433,16 +436,19 @@ def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
     This is called by both public API methods add_query_post and
     log_new_query.
 
-    positional params
-        uid (int)
-        bug_id (int)
+    params
+        uid (int) *required
+        bug_id (int) *required if no post_id
+        post_id(int) *required if no bug_id
+        poster_role(list)
         post_text(str)
         public(bool)
         deleted(bool)
         hidden(bool)
-
-    named params
-        post_id(int) OPTIONAL
+        pinned(bool)
+        flagged(bool)
+        helpfulness(double)
+        popularity(double)
 
     If no value is supplied for post_id this method creates a new post
     for the specified bug. If a post_id is supplied that bug_posts record
@@ -454,13 +460,19 @@ def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
             newly inserted or updated post.
 
     """
-    mybug = db(db.bugs.id == bug_id).select()
-    bug_posts = mybug['posts']
+
+    db = current.db
+    mybug = db(db.bugs.id == bug_id).select().first()
+    bug_posts = mybug['posts'] if mybug['posts'] else []
     newdata = {k:v for k, v in {"post_body": post_text,
+                                "poster_role": poster_role,
                                 "public": public,
                                 "deleted": deleted,
                                 "hidden": hidden,
-                                "flagged": flagged}
+                                "pinned": pinned,
+                                "flagged": flagged,
+                                "helpfulness": helpfulness,
+                                "popularity": popularity}.items()
                if v is not None}
     if post_id:
         assert post_id in bug_posts
@@ -469,13 +481,14 @@ def record_bug_post(uid=None, bug_id=None, post_text=None, public=True,
                                               **newdata
                                               )
     else:
-        post_id = db.bug_posts.insert(poster=uid,
-                                      on_bug=bug_id,
-                                      thread_index=len(bug_posts),
-                                      **newdata
-                                      )
+        post_id = db.bug_posts.insert(
+            poster=uid,
+            on_bug=bug_id,
+            thread_index=len(bug_posts) if bug_posts else 0,
+            **newdata
+            )
         bug_posts.append(post_id)
-        mybug.update_record(posts = bug_posts)
+        mybug.update_record(posts=bug_posts)
     db.commit()
 
     newbug = db.bugs(bug_id)

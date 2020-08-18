@@ -1668,3 +1668,34 @@ CREATE TABLE "bug_post_comments"(
     "modified_on" TIMESTAMP
 );
 success!
+timestamp: 2020-08-13T13:30:02.247218
+ALTER TABLE "bugs" ADD "pinned" CHAR(1);
+timestamp: 2020-08-13T13:30:02.266214
+ALTER TABLE "bugs" ADD "popularity" FLOAT8;
+timestamp: 2020-08-13T13:30:02.271228
+ALTER TABLE "bugs" ADD "helpfulness" FLOAT8;
+timestamp: 2020-08-13T13:30:02.274970
+ALTER TABLE "bugs" ADD "user_role" TEXT;
+success!
+timestamp: 2020-08-13T13:30:02.284461
+ALTER TABLE "bug_posts" ADD "poster_role" TEXT;
+timestamp: 2020-08-13T13:30:02.293122
+ALTER TABLE "bug_posts" ADD "pinned" CHAR(1);
+timestamp: 2020-08-13T13:30:02.293926
+ALTER TABLE "bug_posts" ADD "popularity" FLOAT8;
+timestamp: 2020-08-13T13:30:02.294621
+ALTER TABLE "bug_posts" ADD "helpfulness" FLOAT8;
+success!
+timestamp: 2020-08-13T13:30:02.303562
+ALTER TABLE "bug_post_comments" ADD "commenter" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ;
+timestamp: 2020-08-13T13:30:02.344377
+ALTER TABLE "bug_post_comments" ADD "commenter_role" TEXT;
+timestamp: 2020-08-13T13:30:02.360555
+ALTER TABLE "bug_post_comments" ADD "pinned" CHAR(1);
+timestamp: 2020-08-13T13:30:02.361551
+ALTER TABLE "bug_post_comments" ADD "popularity" FLOAT8;
+timestamp: 2020-08-13T13:30:02.362211
+ALTER TABLE "bug_post_comments" ADD "helpfulness" FLOAT8;
+timestamp: 2020-08-13T13:30:02.363526
+ALTER TABLE "bug_post_comments" DROP COLUMN "poster";
+success!

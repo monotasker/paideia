@@ -272,24 +272,78 @@ def get_step_queries():
                               db.bugs.admin_comment,
                               db.bugs.hidden,
                               db.bugs.deleted,
+                              db.bugs.public,
+                              db.bugs.posts,
+                              db.bugs.pinned,
+                              db.bugs.popularity,
+                              db.bugs.helpfulness,
+                              db.bugs.user_role,
                               db.auth_user.id,
                               db.auth_user.first_name,
                               db.auth_user.last_name
                               ).as_list()
-                              #  TODO: db.bugs.public,
-                              #  TODO: db.bugs.popularity,
-                              #  TODO: db.bugs.pinned,
-                              #  TODO: db.bugs.helpfulness,
-                              #  TODO: db.bug_posts.user_id,
-                              #  TODO: db.bug_posts.user_role,
-                              #  TODO: db.bug_posts.post_body
-                              #  TODO: db.bug_posts.response_to
-                              #  TODO: db.bug_posts.posted_date
-                              #  TODO: db.bug_posts.updated_date
-                              #  TODO: db.bug_posts.public
-                              #  TODO: db.bug_posts.popularity
-                              #  TODO: db.bug_posts.helpfulness
-                              #  TODO: db.bug_posts.pinned
+
+    for idx, q in enumerate(queries):
+        print("query")
+        print(q)
+        if q['bugs']['posts']:
+            print("FOUND POSTS!!!!!!!!!!!!")
+            myposts = db(
+                (db.bug_posts.id.belongs(q['bugs']['posts'])) &
+                (db.bug_posts.poster==db.auth_user.id)
+                ).select(db.auth_user.first_name,
+                         db.auth_user.last_name,
+                         db.bug_posts.id,
+                         db.bug_posts.poster,
+                         db.bug_posts.poster_role,
+                         db.bug_posts.dt_posted,
+                         db.bug_posts.post_body,
+                         db.bug_posts.modified_on,
+                         db.bug_posts.hidden,
+                         db.bug_posts.deleted,
+                         db.bug_posts.flagged,
+                         db.bug_posts.public,
+                         db.bug_posts.thread_index,
+                         db.bug_posts.pinned,
+                         db.bug_posts.popularity,
+                         db.bug_posts.helpfulness,
+                         db.bug_posts.comments,
+                         orderby=db.bug_posts.thread_index
+                         ).as_list()
+            for i, p in enumerate(myposts):
+                mycomments = []
+                if p['bug_posts']['comments']:
+                    mycomments = db(
+                        (db.bug_post_comments.id.belongs(p['bug_posts']['comments']))
+                        & (db.bug_post_comments.commenter==db.auth_user.id)
+                        ).select(db.bug_post_comments.id,
+                                 db.bug_post_comments.commenter,
+                                 db.auth_user.first_name,
+                                 db.auth_user.last_name,
+                                 db.bug_post_comments.commenter_role,
+                                 db.bug_post_comments.dt_posted,
+                                 db.bug_post_comments.thread_index,
+                                 db.bug_post_comments.comment_body,
+                                 db.bug_post_comments.public,
+                                 db.bug_post_comments.hidden,
+                                 db.bug_post_comments.deleted,
+                                 db.bug_post_comments.flagged,
+                                 db.bug_post_comments.pinned,
+                                 db.bug_post_comments.popularity,
+                                 db.bug_post_comments.helpfulness,
+                                 db.bug_post_comments.modified_on,
+                                 orderby=db.bug_post_comments.thread_index
+                                 ).as_list()
+                print('comments')
+                print(mycomments)
+                myposts[i]['comments'] = mycomments
+            print('posts')
+            print(myposts)
+            queries[idx]['posts'] = myposts
+        else:
+            print('NO POSTS')
+            queries[idx]['posts'] = []
+
     myuser = request.vars['user_id']
     user_queries = [q for q in queries if q['auth_user']['id'] == myuser]
 
@@ -318,7 +372,8 @@ def get_step_queries():
                                       myclass.course_section)
 
         if member_queries:
-            myclasses_queries.append({'institution': myclass.institution,
+            myclasses_queries.append({'id': myclass.id,
+                                      'institution': myclass.institution,
                                       'year': myclass.academic_year,
                                       'section': myclass.course_section,
                                       'queries': member_queries}
@@ -328,6 +383,49 @@ def get_step_queries():
                  'class_queries': myclasses_queries,
                  'other_queries': external_queries
                  })
+
+
+def add_query_post():
+    """
+    API method to add a post in an existing query discussion.
+
+    Expected request variables:
+    query_id (int) *required
+    post_text (str) *required
+    public (bool) *required
+    """
+    vbs = False
+
+    uid = request.vars['user_id']
+
+    if auth.is_logged_in():
+        if vbs: print('api::add_query_post: vars are', request.vars)
+
+        data = {k: v for k, v in request.vars.items()
+                    if k in ['post_text', 'public']
+                    }
+
+        data['poster_role'] = []
+        if auth.has_membership('administrators'):
+            data['poster_role'].append('administrators')
+        if auth.has_membership('instructors'):
+            data['poster_role'].append('instructors')
+
+        post_result = record_bug_post(
+            uid=uid,
+            bug_id=request.vars['query_id'],
+            **data
+            )
+        pprint(post_result)
+        full_rec = {'auth_user': db(db.auth_user.id==post_result['new_post']['poster']).select().first().as_dict(),
+                    'bug_posts': post_result['new_post'],
+                    'comments': []}
+        return json({'bug_post_list': post_result['bug_post_list'],
+                     'new_post': full_rec})
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
 
 
 def update_query_post():
@@ -363,41 +461,6 @@ def update_query_post():
                 )
         return json({'post_list': post_list,
                      'new_post': updated_post})
-    else:
-        response = current.response
-        response.status = 401
-        return json({'status': 'unauthorized'})
-
-
-def add_query_post():
-    """
-    API method to add a post in an existing query discussion.
-
-    Expected request variables:
-    user_id (int)
-    query_id (int)
-    post_text (str)
-    public (bool)
-    prev_post (int)
-    """
-    vbs = False
-
-    uid = request.vars['user_id']
-
-    if auth.is_logged_in():
-        if vbs: print('api::add_query_post: vars are', request.vars)
-
-        new_data = {k: v for k, v in request.vars
-                    if k in ['post_text', 'public', 'deleted',
-                             'hidden', 'flagged']
-                    }
-        post_list, new_post = record_bug_post(
-            uid=uid,
-            bug_id=request.vars['query_id'],
-            **new_data
-            )
-        return json({'post_list': post_list,
-                     'new_post': new_post})
     else:
         response = current.response
         response.status = 401
@@ -465,22 +528,22 @@ def log_new_query():
                     (db.bugs.user_name == db.auth_user.id) &
                     (db.bugs.user_name == uid)
                     ).iterselect(db.bugs.id,
-                                db.bugs.step,
-                                db.bugs.in_path,
-                                db.bugs.step_options,
-                                db.bugs.user_response,
-                                db.bugs.score,
-                                db.bugs.adjusted_score,
-                                db.bugs.log_id,
-                                db.bugs.user_comment,
-                                db.bugs.date_submitted,
-                                db.bugs.bug_status,
-                                db.bugs.admin_comment,
-                                db.bugs.hidden,
-                                db.bugs.deleted,
-                                db.auth_user.id,
-                                db.auth_user.first_name,
-                                db.auth_user.last_name
+                                 db.bugs.step,
+                                 db.bugs.in_path,
+                                 db.bugs.step_options,
+                                 db.bugs.user_response,
+                                 db.bugs.score,
+                                 db.bugs.adjusted_score,
+                                 db.bugs.log_id,
+                                 db.bugs.user_comment,
+                                 db.bugs.date_submitted,
+                                 db.bugs.bug_status,
+                                 db.bugs.admin_comment,
+                                 db.bugs.hidden,
+                                 db.bugs.deleted,
+                                 db.auth_user.id,
+                                 db.auth_user.first_name,
+                                 db.auth_user.last_name
                                 ).as_list()
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]

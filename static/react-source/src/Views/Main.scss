@@ -663,33 +663,29 @@ h3                                      {font-family: $sans-fonts;
                                         position: absolute;
             }
         }
-        .query-display-admin            {float: right;
-                                         width: 30%;
-                                         padding-bottom: 0;
-            .query-display-admin-name       {color: darken($pallette1, 50%);
-            }
-            .query-display-admin-date       {font-size: $font-size-base * 0.75;
-            }
-            .query-display-admin-status     {font-size: $font-size-base * 0.75;
-            }
-        }
-        .query-display-admin-comment     {background-color: lighten($pallette3, 45%);
-                                          color: darken($pallette3, 20%);
-                                        position: relative;
-                                        margin-right: 36%;
-                                        margin-left: 1rem;
-                                        border-radius: 1rem;
-                                        padding: 1rem;
-                                        margin-top: -1.5rem;
+        .query-display-replies          {
+            li                          {display: flex;
+                .post-display-info  {flex: 2 1 auto;
+                    .post-display-name  {color: darken($pallette1, 50%);
 
-            &:after                    {border-left: 25px solid lighten($pallette3, 40%);
-                                        border-bottom: 25px solid transparent;
-                                        right: -25px;
-                                        top: 40%;
-                                        content: '';
-                                        position: absolute;
+                    }
+                    .post-display-role  {font-size: $font-size-sm;
+                    }
+                }
+                .post-display-body  {flex: 9 1 auto;
+                                     margin-left: 1rem;
+                                     color: darken($pallette3, 5%);
+                    &.instructors,
+                    &.administrators    {color: darken($pallette3, 5%);
+
+                    }
+                }
             }
         }
+
+        .query-display-admin-status     {font-size: $font-size-base * 0.75;
+        }
+
         .query-display-class-header     {color: $danger;
         }
     }
