@@ -679,6 +679,10 @@ h3                                      {font-family: $sans-fonts;
                     &.administrators    {color: darken($pallette3, 5%);
 
                     }
+                    .control-row        {display: flex;
+                        .comment-button-container   {flex: 1 1 auto;
+                        }
+                    }
                 }
             }
         }

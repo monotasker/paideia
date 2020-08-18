@@ -46,20 +46,18 @@ const NewQueryForm = ({answer, score, action}) => {
   );
 }
 
-const PostRow = ({postId, posterId, postText, posterNameFirst, posterNameLast,
-                  postDate, postEditedDate, posterRole, hidden, deleted,
-                  flagged, showPublic,
+const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
+                  posterNameLast, postDate, postEditedDate, posterRole, hidden,
+                  deleted, flagged, showPublic,
                   updatePostAction, newCommentAction, updateCommentAction,
                   classId
                 }) => {
   const {user, dispatch} = useContext(UserContext);
+  const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
-  console.log("myID");
-  console.log(posterId);
-  console.log(user.userId);
   return (
-    <li key={`${postId}_${classId}`}>
-      <p className={`post-display-info ${posterRole.map(r => `${r}`).join(" ")}`}>
+    <li key={`${classId}_${queryId}_${postId}`}>
+      <div className={`post-display-info ${posterRole.map(r => `${r}`).join(" ")}`}>
         <FontAwesomeIcon icon="user-circle" size="3x" /><br />
         <span className={`post-display-name ${posterRole.map(r => `${r}`).join(" ")}`}>
           {`${posterNameFirst} ${posterNameLast}`}
@@ -72,35 +70,92 @@ const PostRow = ({postId, posterId, postText, posterNameFirst, posterNameLast,
         <span className={`post-display-date`}>
           {readableDateAndTime(postDate)}
         </span>
-        {user.userId === posterId &&
-          <a onClick={() => setEditing(!editing)}>
-            <FontAwesomeIcon icon="pencil-alt" />
-          </a>
-        }
-        {user.userId !== posterId &&
-          <a>
-            <FontAwesomeIcon icon="thumbs-up" />
-          </a>
-        }
-        {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors") && user.instructing.find(c => c.id == classId)) &&
-          <a>
-            <FontAwesomeIcon icon="thumbtack" />
-          </a>
-        }
-        {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors")) &&
-          <a>
-            <FontAwesomeIcon icon="lightbulb" />
-          </a>
-        }
-      </p>
-      <p className={`post-display-body ${posterRole.map(r => r).join(" ")}`}
-        dangerouslySetInnerHTML={{
-          __html: postText ? DOMPurify.sanitize(marked(postText)) : ""}}
-      />
+      </div>
+      <div className={`post-display-body ${posterRole.map(r => r).join(" ")}`}>
+        <p
+          dangerouslySetInnerHTML={{
+            __html: postText ? DOMPurify.sanitize(marked(postText)) : ""}}
+        />
+        <div className="control-row">
+          <span className="comment-button-container">
+            <Button variant="outline-secondary"
+              onClick={() => setShowAdder(!showAdder)}
+              aria-controls="add-comment-form-wrapper"
+              aria-expanded={showAdder}
+            >
+              <FontAwesomeIcon icon="comment" />
+              Add a comment
+            </Button>
+          </span>
+
+          {user.userId === posterId &&
+            <Button variant="outline-secondary"
+              onClick={() => setEditing(!editing)}
+            >
+              <FontAwesomeIcon icon="pencil-alt" />
+            </Button>
+          }
+          {user.userId === posterId &&
+            <Button variant="outline-secondary">
+              <FontAwesomeIcon icon="trash-alt" />
+            </Button>
+          }
+          {user.userId !== posterId &&
+            <Button variant="outline-secondary">
+              <FontAwesomeIcon icon="thumbs-up" />
+            </Button>
+          }
+          {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors") && user.instructing.find(c => c.id == classId)) &&
+            <Button variant="outline-secondary">
+              <FontAwesomeIcon icon="thumbtack" />
+            </Button>
+          }
+          {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors")) &&
+            <Button variant="outline-secondary">
+              <FontAwesomeIcon icon="lightbulb" />
+            </Button>
+          }
+        </div>
+        <Collapse in={showAdder}>
+          <div className="add-comment-form-wrapper">
+            <AddCommentForm className="add-comment-form"
+              queryId={queryId}
+              postId={postId}
+              newCommentAction={newCommentAction}
+            />
+          </div>
+        </Collapse>
+      </div>
     </li>
   )
 }
 
+const AddCommentForm = ({queryId, postId, newCommentAction}) => {
+  const [commentText, setCommentText] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  return (
+    <Form id={`add-comment-form-${queryId}-${postId}`}
+       className="add-comment-form"
+    >
+        <Form.Group controlId={`addCommentPrivateCheckbox-${queryId}-${postId}`}
+        >
+          <Form.Check type="checkbox" label="Keep my comment private."
+            defaultValue={isPrivate}
+            onChange={e => setIsPrivate(e.target.value)}
+            />
+        </Form.Group>
+        <Form.Group controlId={`addCommentTextarea-${queryId}-${postId}`}>
+          <Form.Control as="textarea"
+            onChange={e => setCommentText(e.target.value)}
+          />
+        </Form.Group>
+        <Button variant="primary"
+          type="submit"
+          onClick={e => newCommentAction(postId, commentText, !isPrivate, e)}
+        >Submit comment</Button>
+    </Form>
+  )
+}
 
 const AddPostForm = ({queryId, newPostAction}) => {
   const [postText, setPostText] = useState("");
@@ -159,7 +214,9 @@ const DisplayRow = ({newPostAction, newCommentAction, updatePostAction,
             }} />
           <ul className="query-display-replies">
           {!!posts && posts.map(p =>
-            <PostRow key={p.postId} {...p}
+            <PostRow key={`${classId}_${queryId}_${p.postId}`}
+              queryId={queryId}
+              {...p}
               updatePostAction={updatePostAction}
               newCommentAction={newCommentAction}
               updateCommentAction={updateCommentAction}
