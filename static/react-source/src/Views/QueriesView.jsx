@@ -71,11 +71,17 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
   const {user, dispatch} = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
+  const showEditingForm = (e) => {
+    e.preventDefault();
+    setEditing(true);
+  }
+  const myRoles = !!posterRole ? posterRole.map(r => `${r}`).join(" ") : "";
+  console.log(postId);
   return (
     <li key={`${classId}_${queryId}_${postId}`}>
-      <div className={`post-display-info ${posterRole.map(r => `${r}`).join(" ")}`}>
+      <div className={`post-display-info ${myRoles}`}>
         <FontAwesomeIcon icon="user-circle" size="3x" /><br />
-        <span className={`post-display-name ${posterRole.map(r => `${r}`).join(" ")}`}>
+        <span className={`post-display-name ${myRoles}`}>
           {`${posterNameFirst} ${posterNameLast}`}
         </span><br />
         {posterRole.map(r =>
@@ -86,12 +92,25 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
         <span className={`post-display-date`}>
           {readableDateAndTime(postDate)}
         </span>
+        {!!postEditedDate &&
+          <span className={`post-display-edited-date`}>
+            last edited {readableDateAndTime(postEditedDate)}
+          </span>
+        }
       </div>
-      <div className={`post-display-body ${posterRole.map(r => r).join(" ")}`}>
-        <p
-          dangerouslySetInnerHTML={{
-            __html: postText ? DOMPurify.sanitize(marked(postText)) : ""}}
-        />
+      <div className={`post-display-body ${myRoles}`}>
+        {!!editing ?
+          <UpdatePostForm postId={postId}
+            queryId={queryId}
+            updatePostAction={updatePostAction}
+            currentText={postText ? DOMPurify.sanitize(postText) : ""}
+          />
+          :
+          <div
+            dangerouslySetInnerHTML={{
+              __html: postText ? DOMPurify.sanitize(marked(postText)) : ""}}
+          />
+        }
         <div className="control-row">
           <span className="comment-button-container">
             <Button variant="outline-secondary"
@@ -103,10 +122,9 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
               Add a comment
             </Button>
           </span>
-
           {user.userId === posterId &&
             <Button variant="outline-secondary"
-              onClick={() => setEditing(!editing)}
+              onClick={e => showEditingForm(e)}
             >
               <FontAwesomeIcon icon="pencil-alt" />
             </Button>
@@ -173,6 +191,27 @@ const AddCommentForm = ({queryId, postId, newCommentAction}) => {
   )
 }
 
+const UpdatePostForm = ({postId, queryId, updatePostAction, currentText}) => {
+  const [postText, setPostText] = useState("");
+  return (
+    <Form id={`update-post-form-${postId}`} className="update-post-form">
+        <Form.Group controlId={`updatePostTextarea-${postId}`}>
+          <TextareaAutosize
+            defaultValue={currentText}
+            onChange={e => setPostText(e.target.value)}
+          />
+        </Form.Group>
+        <Button variant="primary"
+          type="submit"
+          onClick={e => updatePostAction({postId: postId,
+                                          queryId: queryId,
+                                          postText: postText,
+                                          event: e})}
+        >Update</Button>
+    </Form>
+  )
+}
+
 const AddPostForm = ({queryId, newPostAction}) => {
   const [postText, setPostText] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -201,10 +240,6 @@ const DisplayRow = ({newPostAction, newCommentAction, updatePostAction,
                      opQueryText, hidden, showPublic, flagged, deleted,
                      queryStep, queryPath
                     }) => {
-  console.log([queryId, opNameFirst, opNameLast, posts,
-                     dateSubmitted, queryStatus, opResponse, opQueryText,
-                     hidden, showPublic, flagged, deleted, queryStep, queryPath
-                    ]);
   const [ showAdder, setShowAdder ] = useState(false);
 
   return (
@@ -442,7 +477,6 @@ const QueriesView = () => {
                     showPublic: isPublic
                     })
       .then(myresponse => {
-        // console.log(myresponse);
         const scope = myScopes.find(s => s.scope===viewScope);
         let qList = [...scope.list];
         const queryIndex = qList.findIndex(q => q.queryId==myresponse.new_post.bug_posts.on_bug);
@@ -463,21 +497,36 @@ const QueriesView = () => {
       });
     }
 
-    const updatePostAction = (postId, postText, isPublic, hidden,
-                              flagged, pinned, popular, useful) => {
+    const updatePostAction = ({postId=null,
+                               queryId=null,
+                               postText=null,
+                               isPublic=null,
+                               hidden=null,
+                               flagged=null,
+                               pinned=null,
+                               popular=null,
+                               helpfulness=null,
+                               deleted=null,
+                               event=null
+                              }) => {
       event.preventDefault();
+      console.log("postId");
+      console.log(postId);
       updateQueryPost({user_id: user.userId,
                        post_id: postId,
+                       query_id: queryId,
                        post_text: postText,
-                       showPublic: isPublic,
+                       show_public: isPublic,
                        hidden: hidden,
                        flagged: flagged,
                        pinned: pinned,
                        popuar: popular,
-                       useful: useful
+                       helpulness: helpfulness,
+                       deleted: deleted
                        })
       .then(myresponse => {
-          setUserQueries(myresponse);
+        console.log(myresponse.bug_post_list);
+        console.log(myresponse.new_post);
       });
     }
 
@@ -491,7 +540,7 @@ const QueriesView = () => {
                           flagged: flagged,
                           pinned: pinned,
                           popuar: popular,
-                          useful: useful
+                          helpfulness: helpfulness
                           })
       .then(myresponse => {
           setUserQueries(myresponse);

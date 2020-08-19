@@ -138,11 +138,15 @@ const addQueryPost = async({user_id=null,
 
 const updateQueryPost = async({user_id=null,
                                post_id=null,
+                               query_id=null,
                                post_text=null,
-                               showPublic=null,
+                               show_public=null,
                                hidden=null,
                                deleted=null,
-                               flagged=null}) => {
+                               flagged=null,
+                               pinned=null,
+                               useful=null
+                              }) => {
   let response = await fetch('/paideia/api/update_query_post', {
       method: "POST",
       cache: "no-cache",
@@ -153,11 +157,14 @@ const updateQueryPost = async({user_id=null,
       body: JSON.stringify({
         user_id: user_id,
         post_id: post_id,
+        query_id: query_id,
         post_text: post_text,
-        public: showPublic,
+        public: show_public,
         hidden: hidden,
         deleted: deleted,
-        flagged: flagged
+        flagged: flagged,
+        pinned: pinned,
+        useful: useful
       })
   })
   let mystatus = response.status;

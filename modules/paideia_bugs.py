@@ -463,6 +463,8 @@ def record_bug_post(uid=None, bug_id=None, poster_role=None, post_text=None,
     """
 
     db = current.db
+    request = current.request
+    print(request.vars)
     mybug = db(db.bugs.id == bug_id).select().first()
     bug_posts = mybug['posts'] if mybug['posts'] else []
     newdata = {k:v for k, v in {"post_body": post_text,
@@ -474,13 +476,13 @@ def record_bug_post(uid=None, bug_id=None, poster_role=None, post_text=None,
                                 "flagged": flagged,
                                 "helpfulness": helpfulness,
                                 "popularity": popularity}.items()
-               if v is not None}
+               if v not in [None, "null"]}
     if post_id:
         assert post_id in bug_posts
-        db(db.bug_posts.id == post_id).update(post_body=post_text,
-                                              modified_on=datetime.datetime.utcnow(),
-                                              **newdata
-                                              )
+        db(db.bug_posts.id == post_id).update(
+            modified_on=datetime.datetime.utcnow(),
+            **newdata
+            )
     else:
         post_id = db.bug_posts.insert(
             poster=uid,
