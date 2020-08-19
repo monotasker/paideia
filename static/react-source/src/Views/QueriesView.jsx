@@ -104,6 +104,7 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
             queryId={queryId}
             updatePostAction={updatePostAction}
             currentText={postText ? DOMPurify.sanitize(postText) : ""}
+            setEditing={setEditing}
           />
           :
           <div
@@ -191,8 +192,14 @@ const AddCommentForm = ({queryId, postId, newCommentAction}) => {
   )
 }
 
-const UpdatePostForm = ({postId, queryId, updatePostAction, currentText}) => {
+const UpdatePostForm = ({postId, queryId, updatePostAction, currentText,
+                         setEditing}) => {
   const [postText, setPostText] = useState("");
+  const sendUpdate = e => {
+    updatePostAction({postId: postId, queryId: queryId,
+                      postText: postText, event: e});
+    setEditing(false);
+  }
   return (
     <Form id={`update-post-form-${postId}`} className="update-post-form">
         <Form.Group controlId={`updatePostTextarea-${postId}`}>
@@ -203,10 +210,7 @@ const UpdatePostForm = ({postId, queryId, updatePostAction, currentText}) => {
         </Form.Group>
         <Button variant="primary"
           type="submit"
-          onClick={e => updatePostAction({postId: postId,
-                                          queryId: queryId,
-                                          postText: postText,
-                                          event: e})}
+          onClick={e => sendUpdate(e)}
         >Update</Button>
     </Form>
   )
@@ -427,6 +431,17 @@ const QueriesView = () => {
       )
     }
 
+    const _findAndUpdatePost = (mylist, newPost) => {
+      const myQueryId = newPost.bug_posts.on_bug;
+      const queryIndex = qList.findIndex(q => q.queryId==myQueryId);
+      if ( mylist.length && !!mylist[0].classId ) {
+
+      } else {
+
+        qList[queryIndex].posts.push(_formatPostData(newPost));
+      }
+    }
+
     const fetchAction = () => {
 
       getStepQueries({step_id: user.currentStep,
@@ -477,11 +492,20 @@ const QueriesView = () => {
                     showPublic: isPublic
                     })
       .then(myresponse => {
-        const scope = myScopes.find(s => s.scope===viewScope);
-        let qList = [...scope.list];
-        const queryIndex = qList.findIndex(q => q.queryId==myresponse.new_post.bug_posts.on_bug);
-        qList[queryIndex].posts.push(_formatPostData(myresponse.new_post));
-        scope.action(qList);
+        for (i=0, i < myScopes.length, i++) {
+          let qList = [...myScopes[i].list];
+          const newPost = myresponse.new_post;
+          const newQList;
+          if ( mylist.length && !!mylist[0].classId ) {
+            newQList = qList.map(myClass => {
+              myClass.queries = _findAndUpdatePost(myClass.queries, newPost);
+              return myClass;
+            })
+          } else if ( mylist.length ) {
+            newQList = _findAndUpdatePost(qList, newPost);
+          }
+          myScopes[i].action(newQList);
+        }
       });
     }
 
