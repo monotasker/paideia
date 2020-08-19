@@ -5,9 +5,11 @@ import {
     Col,
     Collapse,
     Form,
+    OverlayTrigger,
     Row,
     Spinner,
     Table,
+    Tooltip,
 } from "react-bootstrap";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import marked from "marked";
@@ -25,6 +27,22 @@ import { getStepQueries,
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
+
+const RoleIcon = ({icon}) => {
+  const roles = {instructors: "chalkboard-teacher",
+                 administrators: "hard-hat",
+                 students: "graduation-cap"
+                 }
+  return ( <OverlayTrigger placement="top"
+             className={`role-icon-${icon}`}
+             overlay={
+               <Tooltip id={`tooltip-role-${icon}`}>{icon.slice(0, -1)}</Tooltip>
+             }
+           >
+             <FontAwesomeIcon icon={roles[icon]} />
+           </OverlayTrigger>
+  )
+}
 
 const NewQueryForm = ({answer, score, action}) => {
   const [queryText, setQueryText] = useState(" ");
@@ -71,6 +89,7 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
   const {user, dispatch} = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
+  const keyStr = `${classId}_${queryId}_${postId}`;
   const showEditingForm = (e) => {
     e.preventDefault();
     setEditing(true);
@@ -78,17 +97,13 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
   const myRoles = !!posterRole ? posterRole.map(r => `${r}`).join(" ") : "";
   console.log(postId);
   return (
-    <li key={`${classId}_${queryId}_${postId}`}>
+    <li key={keyStr}>
       <div className={`post-display-info ${myRoles}`}>
         <FontAwesomeIcon icon="user-circle" size="3x" /><br />
         <span className={`post-display-name ${myRoles}`}>
           {`${posterNameFirst} ${posterNameLast}`}
         </span><br />
-        {posterRole.map(r =>
-          <React.Fragment key={r}>
-            <span className={`post-display-role ${r}`}>{r}</span><br />
-          </React.Fragment>
-        )}
+        {posterRole.map(r => <RoleIcon key={`${keyStr}-${r}`} icon={r} />)}
         <span className={`post-display-date`}>
           {readableDateAndTime(postDate)}
         </span>
@@ -257,7 +272,11 @@ const DisplayRow = ({newPostAction, newCommentAction, updatePostAction,
             <span className="query-display-op-date">
               {readableDateAndTime(dateSubmitted)}
             </span><br />
-            <span className="query-display-op-status">{queryStatus}</span>
+            <span className="query-display-op-status">{
+              ["", "confirmed",	"fixed",	"not_a_bug",
+              "duplicate",	"awaiting review",	"allowance_given",
+              "question_answered"][queryStatus].replace("_", " ")
+              }</span>
           </p>
           <p className="query-display-response"
             dangerouslySetInnerHTML={{
@@ -453,6 +472,25 @@ const QueriesView = () => {
       return mylist;
     }
 
+    // Non-returning function to properly update state with one post
+    // expects myresponse to have keys "post_list" and "new_post"
+    const _updatePostInState = (myresponse, myscopes) => {
+      for (let i=0; i < myScopes.length; i++) {
+        let qList = [...myScopes[i].list];
+        const newPost = myresponse.new_post;
+        const newQList = [];
+        if ( qList.length && !!qList[0].classId ) {
+          newQList = qList.map(myClass => {
+            myClass.queries = _findAndUpdatePost(myClass.queries, newPost);
+            return myClass;
+          })
+        } else if ( qList.length ) {
+          newQList = _findAndUpdatePost(qList, newPost);
+        }
+        myScopes[i].action(newQList);
+      }
+    }
+
     const fetchAction = () => {
 
       getStepQueries({step_id: user.currentStep,
@@ -503,20 +541,7 @@ const QueriesView = () => {
                     showPublic: isPublic
                     })
       .then(myresponse => {
-        for (let i=0; i < myScopes.length; i++) {
-          let qList = [...myScopes[i].list];
-          const newPost = myresponse.new_post;
-          const newQList = [];
-          if ( qList.length && !!qList[0].classId ) {
-            newQList = qList.map(myClass => {
-              myClass.queries = _findAndUpdatePost(myClass.queries, newPost);
-              return myClass;
-            })
-          } else if ( qList.length ) {
-            newQList = _findAndUpdatePost(qList, newPost);
-          }
-          myScopes[i].action(newQList);
-        }
+        _updatePostInState(myresponse, myScopes);
       });
     }
 
