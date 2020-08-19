@@ -92,7 +92,7 @@ const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
         <span className={`post-display-date`}>
           {readableDateAndTime(postDate)}
         </span>
-        {!!postEditedDate &&
+        {!!postEditedDate && (postEditedDate !== postDate) &&
           <span className={`post-display-edited-date`}>
             last edited {readableDateAndTime(postEditedDate)}
           </span>
@@ -431,15 +431,26 @@ const QueriesView = () => {
       )
     }
 
+    // finds and updates a post in a list of queries in state
+    // doesn't assume query or post already exist
+    // creates new post if specified doesn't exist
+    // returns the modified version of the supplied query list
     const _findAndUpdatePost = (mylist, newPost) => {
       const myQueryId = newPost.bug_posts.on_bug;
-      const queryIndex = qList.findIndex(q => q.queryId==myQueryId);
-      if ( mylist.length && !!mylist[0].classId ) {
-
-      } else {
-
-        qList[queryIndex].posts.push(_formatPostData(newPost));
+      console.log(`query id: ${myQueryId}`);
+      const myPostId = newPost.bug_posts.id;
+      const queryIndex = mylist.findIndex(q => q.queryId==myQueryId);
+      console.log(`query index: ${queryIndex}`);
+      if ( queryIndex > -1 ) {
+        const postIndex = mylist[queryIndex].posts.find(p => p.postId==myPostId);
+        console.log(`post index: ${postIndex}`);
+        if ( postIndex > -1 ) {
+          mylist[queryIndex].posts[postIndex] = _formatPostData(newPost);
+        } else {
+          mylist[queryIndex].posts.push(_formatPostData(newPost));
+        }
       }
+      return mylist;
     }
 
     const fetchAction = () => {
@@ -496,12 +507,12 @@ const QueriesView = () => {
           let qList = [...myScopes[i].list];
           const newPost = myresponse.new_post;
           const newQList = [];
-          if ( mylist.length && !!mylist[0].classId ) {
+          if ( qList.length && !!qList[0].classId ) {
             newQList = qList.map(myClass => {
               myClass.queries = _findAndUpdatePost(myClass.queries, newPost);
               return myClass;
             })
-          } else if ( mylist.length ) {
+          } else if ( qList.length ) {
             newQList = _findAndUpdatePost(qList, newPost);
           }
           myScopes[i].action(newQList);
