@@ -492,10 +492,10 @@ const QueriesView = () => {
                     showPublic: isPublic
                     })
       .then(myresponse => {
-        for (i=0, i < myScopes.length, i++) {
+        for (i=0; i < myScopes.length; i++) {
           let qList = [...myScopes[i].list];
           const newPost = myresponse.new_post;
-          const newQList;
+          const newQList = [];
           if ( mylist.length && !!mylist[0].classId ) {
             newQList = qList.map(myClass => {
               myClass.queries = _findAndUpdatePost(myClass.queries, newPost);
