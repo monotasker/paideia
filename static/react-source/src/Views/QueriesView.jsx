@@ -492,7 +492,7 @@ const QueriesView = () => {
                     showPublic: isPublic
                     })
       .then(myresponse => {
-        for (i=0; i < myScopes.length; i++) {
+        for (let i=0; i < myScopes.length; i++) {
           let qList = [...myScopes[i].list];
           const newPost = myresponse.new_post;
           const newQList = [];
