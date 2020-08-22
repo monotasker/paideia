@@ -28,6 +28,7 @@ $blueDark:              #1c7f99; // #006699;
 $blue:                  #049cdb;
 $yellow:                #ffc40d;
 $orange:                #f89406;
+$niceGrey:              #6c757d;
 
 // Applied Pallette (modded)
 // -------------------------
@@ -605,84 +606,223 @@ h3                                      {font-family: $sans-fonts;
                                         flex-direction: column;
                                         height: 100%;
     > div                              {flex: 1;
-                                        overflow-y: auto;
+                                        padding: 0;
+                                        display: flex;
+                                        flex-direction: column;
+                                        height: 100%;
     }
-    .queries-view-changer          {border-radius: 0.25rem 0.25rem 0 0;
+    h2                             {flex: 0 0 auto;
+                                    margin-bottom: 0;
+        .btn                       {background-color: transparent;
+                                    font-size: 1.75rem;
+                                    border: 1px solid transparent;
+            &:first-of-type        {margin-left:1.5rem;
+            }
+        }
+    }
+    > .form-group                  {flex: 0 0 auto;
+                                    margin-bottom: .5rem;
+    }
+    .queries-view-wrapper          {flex: 1 0;
+                                    display: flex;
+                                    flex-direction: column;
+                                    overflow: hidden;
+    }
+    .queries-view-changer-wrapper  {flex: 0 0 auto;
+                                    display: block;
+        .queries-view-changer      {border-radius: 0.25rem 0.25rem 0 0;
                                     background-color: lighten($pallette1, 10%);
                                     border-color: $pallette1;
-        &.in                       {background-color: $pallette1;
+            &.in                   {background-color: $pallette1;
                                     border-color: darken($pallette1, 5%);
+                &:hover            {background-color: darken($pallette1, 20%);
+                }
+            }
             &:hover                {background-color: darken($pallette1, 20%);
             }
-        }
-        &:hover                    {background-color: darken($pallette1, 20%);
-        }
-        .badge                     {margin-left: 0.5rem;
+            .badge                 {margin-left: 0.5rem;
+            }
         }
     }
-    .queries-view-pane                  {opacity: 0;
-                                         border-top: 1px solid $pallette2;
+    .queries-view-pane              {opacity: 0;
+                                     border-top: 1px solid $pallette2;
+                                     overflow-y: auto;
         @include react-transition-fade('queries-view-pane');
-        td                           {border-top: 0;
-                                      padding: 0;
-        }
-        .query-display-op            {width: 30%;
-                                      float: left;
-                                      padding-top: 0.5rem;
-                                      padding-left: 1rem;
-            .query-display-op-name       {color: darken($pallette1, 60%);
-            }
-            svg                          {margin-top: 0.25rem;
-            }
-            .query-display-op-date       {font-size: $font-size-base * 0.75;
-            }
-            .query-display-op-status     {font-size: $font-size-base * 0.75;
+        table                       {margin-top: 1rem;
+            td                      {border-top: 0;
+                                     padding: 0;
             }
         }
-        .query-display-response     {padding: 1rem;
-                                     padding-left: 30%;
-                                     padding-bottom: 0.5rem;
-                                        font-size: $font-size-lg;
-                                        font-family: $greek-fonts;
-                                        background-color: lighten($pallette2, 20%);
-                                        border-top: 4px solid $pallette2;
+        .col, .col-2, .col-3, .col-4,
+        .col-5, .col-6, .col-7, .col-8,
+        .col-9, .col-10             {padding-left: 0;
         }
-        .query-display-op-question   {background-color: lighten($accent2, 60%);
-                                        color: darken($accent2, 5%);
-                                        margin-left: 30%;
-                                        border-radius: 0.75rem;
-                                        padding: 1rem;
-                                        padding-bottom: .5rem;
-                                        position: relative;
-                                        margin-top: -2rem;
-            &:after                    {border-right: 25px solid lighten($accent2, 60%);
-                                        border-bottom: 25px solid transparent;
-                                        left: -25px;
-                                        top: 40%;
-                                        content: '';
-                                        position: absolute;
+        .query-display-op-wrapper   {
+
+            .query-display-op            {padding-top: 0.5rem;
+                                          color: darken($accent2, 5%);
+                .query-display-op-name       {font-weight: bold;
+                }
+                svg                          {margin-top: 0.25rem;
+                }
+                .query-display-op-date       {font-size: $font-size-sm
+                }
+                .query-display-op-status     {font-size: $font-size-sm;
+                }
             }
+            .query-display-body-wrapper {background-color: lighten($accent2, 60%);
+                                         color: darken($accent2, 5%);
+                                         border-radius: 0.75rem;
+                                         padding: 1rem 0 0.5rem 1rem;
+                                         position: relative;
+                                         margin-bottom: 1rem;
+                                         border: 1px solid lighten($accent2, 55%);
+                &:after                 {border-right: 25px solid lighten($accent2, 60%);
+                                         border-bottom: 25px solid transparent;
+                                         left: -25px;
+                                         top: 40%;
+                                         content: '';
+                                         position: absolute;
+                }
+                .query-display-response,
+                .query-display-prompt   {padding: .5rem;
+                                         font-size: $font-size-base;
+                                         font-family: $greek-fonts;
+                                         background-color: lighten($pallette2, 20%);
+                                         color: darken($pallette2, 60%);
+                                         margin-bottom: .5rem;
+                    p:last-of-type      {margin-bottom: 0;
+                    }
+                }
+                .query-display-op-question  {
+                                         margin-bottom: 0;
+                    p:last-of-type      {margin-bottom: 0;
+                    }
+                }
+            }
+
         }
-        .query-display-replies          {
-            li                          {display: flex;
-                .post-display-info  {flex: 2 1 auto;
-                    .post-display-name  {color: darken($pallette1, 50%);
+        .query-display-replies          {list-style-type: none;
+                                         color: lighten($niceGrey, 20%);
+                                         padding-left: 0;
+            li                          {margin-bottom: 1rem;
+                                         list-style-type: none;
+                .post-display-date,
+                .post-display-edited-date {font-size: $font-size-sm;
+                                           margin-right: 0.5rem;
+                    svg                    {margin-left: 0;
+                    }
+                }
+                .post-display-info      {position: relative;
+                                         text-align: right;
+                    svg                 {margin-right: 0;
+                    }
+                    .post-display-name  {font-weight: bold;
+                                         color: darken($niceGrey, 5%);
+                    }
+                    .fa-hard-hat,
+                    .fa-chalkboard-teacher {
+                                         position: absolute;
+                                         right: 4.25rem;
+                    }
+                    .fa-hard-hat           {top: 1.75rem;
+
+                    }
+                    .fa-chalkboard-teacher {top: 3rem;
 
                     }
                     .post-display-role  {font-size: $font-size-sm;
                     }
                 }
-                .post-display-body  {flex: 9 1 auto;
-                                     margin-left: 1rem;
-                                     color: darken($pallette3, 5%);
-                    &.instructors,
-                    &.administrators    {color: darken($pallette3, 5%);
+                .post-display-body  {padding-right: 0;
+                                     padding-left: 1rem;
+                    // &.instructors,
+                    // &.administrators    {color: $pallette3;
+                    //     .post-display-body-text {
+                    //                      color: darken($pallette3, 10%)
+                    //     }
+                    //     .btn-outline-secondary  {color: $pallette3;
+                    //     }
+                    // }
+                    .post-display-body-wrapper {
+                                        height: 100%;
+                        @include react-transition-fade('post-display-body-wrapper');
 
+                        .update-post-form   {
+                            .form-group     {margin: 0;
+                            }
+                            textarea        {width: 100%;
+                            }
+                        }
+                        .post-display-body-text     {color: darken($niceGrey, 5%);
+                            p:last-of-type  {margin-bottom: 0.5rem;
+
+                            }
+                        }
+                        .control-row        {display: flex;
+                                             flex: 0 0 auto;
+                            .comment-button-container   {
+                                             flex: 1 1 auto;
+                                .btn        {padding-left: 0;
+                                             color: $niceGrey;
+                                    svg     {margin-left: 0;
+                                             color: lighten($niceGrey, 20%);
+                                    }
+                                }
+                            }
+                            .btn            {border-color: transparent;
+                                             color: lighten($niceGrey, 20%);
+                                &:hover,
+                                &:active,
+                                &:focus     {background-color: lighten($niceGrey, 40%);
+                                             color: $niceGrey;
+                                }
+                            }
+                        }
+                        .add-comment-form   {padding-top: 0.5rem;
+                            .form-group     {margin-bottom: 0.5rem;
+                            }
+                        }
                     }
-                    textarea            {width: 100%;
-                    }
-                    .control-row        {display: flex;
-                        .comment-button-container   {flex: 1 1 auto;
+                }
+                .post-display-comments-list {color: darken($pallette2, 25%);
+                                             width: 100%;
+                                             padding-left: 6rem;
+                                             margin-top: 0.5rem;
+                    li                      {margin-bottom: 0;
+                        .comment-display-info   {text-align: right;
+                            .comment-display-name   {
+                                                 font-weight: bold;
+                                                 color: darken($pallette2, 25%);
+                            }
+                        }
+                        .comment-display-body   {
+                            .comment-display-date   {font-size: $font-size-sm;
+                                                     margin-right: 1rem;
+                            }
+                            .comment-display-body   {padding-right: 0;}
+                            .comment-display-body-text {
+                                                    color: darken($pallette2, 45%);
+                                p:last-of-type      {margin-bottom: 0;
+                                }
+                            }
+                            .comment-display-date   {
+                                svg                 {margin-left: 0;
+                                }
+                            }
+                            .comment-display-controls   {
+                                                    display: inline-block;
+                                .btn-outline-secondary  {
+                                                    border-color: transparent;
+                                                    color: darken($pallette2, 25%);
+                                    &:hover,
+                                    &:active,
+                                    &:focus         {
+                                        background-color: lighten($pallette2, 10%);
+                                        color: darken($pallette2, 45%);
+                                    }
+                                }
+                            }
                         }
                     }
                 }

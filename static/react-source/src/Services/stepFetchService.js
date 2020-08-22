@@ -173,11 +173,34 @@ const updateQueryPost = async({user_id=null,
   return response_json
 }
 
-const addQueryComment = async() => {
-
+const addPostComment = async({user_id=null,
+                               post_id=null,
+                               query_id=null,
+                               comment_text=null,
+                               showPublic=null
+                               }) => {
+  let response = await fetch('/paideia/api/add_post_comment', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: user_id,
+        bug_id: query_id,
+        post_id: post_id,
+        comment_text: comment_text,
+        public: showPublic,
+      })
+  })
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
 }
 
-const updateQueryComment = async() => {
+const updatePostComment = async() => {
 
 }
 
@@ -232,8 +255,8 @@ export { getPromptData,
          submitNewQuery,
          addQueryPost,
          updateQueryPost,
-         addQueryComment,
-         updateQueryComment,
+         addPostComment,
+         updatePostComment,
          fetchVocabulary,
          fetchLessons,
          setServerReviewMode

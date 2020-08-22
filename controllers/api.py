@@ -10,6 +10,7 @@ from paideia_utils import GreekNormalizer
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo, record_bug_post
+from paideia_bugs import record_post_comment
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -256,7 +257,9 @@ def _add_posts_to_queries(queries):
         if q['bugs']['posts']:
             myposts = db(
                 (db.bug_posts.id.belongs(q['bugs']['posts'])) &
-                (db.bug_posts.poster==db.auth_user.id)
+                (db.bug_posts.poster==db.auth_user.id) &
+                ((db.bug_posts.deleted == False) |
+                 (db.bug_posts.deleted == None))
                 ).select(db.auth_user.first_name,
                          db.auth_user.last_name,
                          db.bug_posts.id,
@@ -281,7 +284,9 @@ def _add_posts_to_queries(queries):
                 if p['bug_posts']['comments']:
                     mycomments = db(
                         (db.bug_post_comments.id.belongs(p['bug_posts']['comments']))
-                        & (db.bug_post_comments.commenter==db.auth_user.id)
+                        & (db.bug_post_comments.commenter==db.auth_user.id) &
+                        ((db.bug_post_comments.deleted == False) |
+                         (db.bug_post_comments.deleted == None))
                         ).select(db.bug_post_comments.id,
                                  db.bug_post_comments.commenter,
                                  db.auth_user.first_name,
@@ -310,10 +315,12 @@ def _add_posts_to_queries(queries):
 
 def _fetch_step_queries(stepid, userid):
     queries = db((db.bugs.step == stepid) &
-                 (db.bugs.user_name == db.auth_user.id)
+                 (db.bugs.user_name == db.auth_user.id) &
+                 ((db.bugs.deleted == False) | (db.bugs.deleted == None))
                  ).iterselect(db.bugs.id,
                               db.bugs.step,
                               db.bugs.in_path,
+                              db.bugs.prompt,
                               db.bugs.step_options,
                               db.bugs.user_response,
                               db.bugs.score,
@@ -447,23 +454,41 @@ def update_query_post():
 
     uid = request.vars['user_id']
 
-    if auth.is_logged_in():
-        if ((auth.user_id == uid)
-                or auth.has_membership('administrators')
-                or auth.has_membership('instructors') and _is_my_student(auth.user_id, uid)
-                ):
-            if vbs: print('api::update_query_post: vars are', request.vars)
-            new_data = {k: v for k, v in request.vars.items()
-                        if k in ['post_text', 'public', 'deleted', 'hidden',
-                                 'pinned', 'popularity', 'helpfulness']}
-            result = record_bug_post(
-                uid=uid,
-                bug_id=request.vars['query_id'],
-                post_id=request.vars['post_id'],
-                **new_data
-                )
+    if (auth.is_logged_in() and
+        (auth.user_id == uid
+         or auth.has_membership('administrators')
+         or auth.has_membership('instructors')
+         and _is_my_student(auth.user_id, uid)
+         )
+    ):
+        if vbs: print('api::update_query_post: vars are', request.vars)
+        new_data = {k: v for k, v in request.vars.items()
+                    if k in ['post_text', 'public', 'deleted', 'hidden',
+                                'pinned', 'popularity', 'helpfulness']}
+        result = record_bug_post(
+            uid=uid,
+            bug_id=request.vars['query_id'],
+            post_id=request.vars['post_id'],
+            **new_data
+            )
+
+        user_rec = db(db.auth_user.id==result['new_post']['poster']
+                    ).select().first().as_dict()
+        mycomments = []
+        if result['new_post']['comments']:
+            mycomments = db(
+                (db.bug_post_comments.id.belongs(result['new_post']['comments'])) &
+                (db.bug_post_comments.commenter==db.auth_user.id) &
+                ((db.bug_post_comments.deleted == False) |
+                (db.bug_post_comments.deleted == None))
+                ).select(orderby=db.bug_post_comments.thread_index
+                        ).as_list()
+        full_rec = {'auth_user': user_rec,
+                    'bug_posts': result['new_post'],
+                    'comments': mycomments}
+
         return json({'post_list': result['bug_post_list'],
-                     'new_post': result['new_post']})
+                     'new_post': full_rec})
     else:
         response = current.response
         response.status = 401
@@ -479,7 +504,37 @@ def delete_query_post():
 def add_post_comment():
     """
     """
-    pass
+    vbs = False
+
+    uid = request.vars['user_id']
+
+    if auth.is_logged_in():
+        if vbs: print('api::add_post_comment: vars are', request.vars)
+
+        data = {k: v for k, v in request.vars.items()
+                if k in ['comment_text', 'public']
+                }
+
+        data['commenter_role'] = []
+        if auth.has_membership('administrators'):
+            data['commenter_role'].append('administrators')
+        if auth.has_membership('instructors'):
+            data['commenter_role'].append('instructors')
+
+        result = record_post_comment(
+            uid=uid,
+            post_id=request.vars['post_id'],
+            **data
+            )
+        pprint(result)
+        full_rec = {'auth_user': db(db.auth_user.id==result['new_comment']['commenter']).select().first().as_dict(),
+                    'bug_post_comments': result['new_comment']}
+        return json({'post_comment_list': result['post_comment_list'],
+                     'new_comment': full_rec})
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
 
 
 def update_post_comment():

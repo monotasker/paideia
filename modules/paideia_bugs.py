@@ -364,23 +364,25 @@ def trigger_bug_undo(*args, **kwargs):
     return result
 
 
-def record_post_comment(uid=None, post_id=None, comment_text=None, public=True,
-                        deleted=None, hidden=None, comment_id=None
+def record_post_comment(uid=None, commenter_role=None, post_id=None,
+                        comment_text=None, public=None, flagged=None,
+                        deleted=None, hidden=None, pinned=None, popularity=None, helpfulness=None, comment_id=None
                         ):
     """
     Internal method to add/update a comment on an existing bug answer post.
 
     This is called by the public API methods add_post_comment and update_post_comment.
 
-    positional params
+    params
         uid (int)
         post_id (int)
         comment_text(str)
         public(bool)
         deleted(bool)
         hidden(bool)
-
-    named params
+        pinned(bool)
+        popularity(double)
+        helpfulness(double)
         comment_id(int) OPTIONAL
 
     If no value is supplied for comment_id this method creates a new comment
@@ -393,13 +395,16 @@ def record_post_comment(uid=None, post_id=None, comment_text=None, public=True,
 
     """
     db = current.db
-    mypost = db(db.bug_posts.id == post_id).select()
-    post_comments = mybug['comments']
+    mypost = db(db.bug_posts.id == post_id).select().first()
+    post_comments = mypost['comments'] if mypost['comments'] else []
     newdata = {k:v for k, v in {"comment_body": comment_text,
                                 "public": public,
                                 "deleted": deleted,
                                 "hidden": hidden,
-                                "flagged": flagged}
+                                "flagged": flagged,
+                                "pinned": pinned,
+                                "popularity": popularity,
+                                "helpfulness": helpfulness}.items()
                if v is not None}
     if comment_id:
         assert comment_id in post_comments
@@ -410,9 +415,10 @@ def record_post_comment(uid=None, post_id=None, comment_text=None, public=True,
            )
     else:
         comment_id = db.bug_post_comments.insert(
-            poster=uid,
+            commenter=uid,
+            commenter_role=commenter_role,
             on_post=post_id,
-            thread_index=len(post_comments),
+            thread_index=len(post_comments) if post_comments else 0,
             **newdata
             )
         post_comments.append(comment_id)

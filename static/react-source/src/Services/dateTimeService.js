@@ -5,15 +5,15 @@ const readableDateAndTime = myString => {
   const now = moment.utc();
   let output = "";
   if ( theDate.isSame(now, 'day') ) {
-    output = theDate.local().format("[today at] h:mm a");
+    output = theDate.local().format("[today at] h:mma");
   } else if ( theDate.isSame(now.subtract(1, 'days'), 'day') ) {
-    output = theDate.local().format("[yesterday at] h:mm a");
+    output = theDate.local().format("[yesterday at] h:mma");
   } else if ( theDate.isSame(now, 'week') ) {
-    output = theDate.local().format("ddd [at] h:mm a");
+    output = theDate.local().format("ddd [at] h:mma");
   } else if ( theDate.isSame(now, 'year') ) {
-    output = theDate.local().format("MMM Do [at] h:mm a");
+    output = theDate.local().format("MMM Do [at] h:mma");
   } else if ( !!myString && myString !== "" ) {
-    output = theDate.local().format("MMM Do YYYY [at] h:mm a");
+    output = theDate.local().format("MMM Do YYYY [at] h:mma");
   }
   return output;
 }
