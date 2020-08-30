@@ -365,7 +365,7 @@ def trigger_bug_undo(*args, **kwargs):
 
 
 def record_post_comment(uid=None, commenter_role=None, post_id=None,
-                        comment_text=None, public=None, flagged=None,
+                        comment_body=None, public=None, flagged=None,
                         deleted=None, hidden=None, pinned=None, popularity=None, helpfulness=None, comment_id=None
                         ):
     """
@@ -375,7 +375,7 @@ def record_post_comment(uid=None, commenter_role=None, post_id=None,
 
     params
         uid (int)
-        post_id (int)
+        post_id (int)* required
         comment_text(str)
         public(bool)
         deleted(bool)
@@ -397,7 +397,7 @@ def record_post_comment(uid=None, commenter_role=None, post_id=None,
     db = current.db
     mypost = db(db.bug_posts.id == post_id).select().first()
     post_comments = mypost['comments'] if mypost['comments'] else []
-    newdata = {k:v for k, v in {"comment_body": comment_text,
+    newdata = {k:v for k, v in {"comment_body": comment_body,
                                 "public": public,
                                 "deleted": deleted,
                                 "hidden": hidden,
@@ -409,7 +409,6 @@ def record_post_comment(uid=None, commenter_role=None, post_id=None,
     if comment_id:
         assert comment_id in post_comments
         db(db.bug_post_comments.id == comment_id).update(
-           comment_body=comment_text,
            modified_on=datetime.datetime.utcnow(),
            **newdata
            )
@@ -432,7 +431,7 @@ def record_post_comment(uid=None, commenter_role=None, post_id=None,
             'new_comment': newcomment.as_dict()}
 
 
-def record_bug_post(uid=None, bug_id=None, poster_role=None, post_text=None,
+def record_bug_post(uid=None, bug_id=None, poster_role=None, post_body=None,
                     public=True, deleted=None, hidden=None, pinned=None,
                     flagged=None, helpfulness=None, popularity=None,
                     post_id=None
@@ -473,7 +472,7 @@ def record_bug_post(uid=None, bug_id=None, poster_role=None, post_text=None,
     print(request.vars)
     mybug = db(db.bugs.id == bug_id).select().first()
     bug_posts = mybug['posts'] if mybug['posts'] else []
-    newdata = {k:v for k, v in {"post_body": post_text,
+    newdata = {k:v for k, v in {"post_body": post_body,
                                 "poster_role": poster_role,
                                 "public": public,
                                 "deleted": deleted,

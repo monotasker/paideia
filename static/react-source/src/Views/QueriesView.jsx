@@ -18,11 +18,12 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 import { UserContext } from "../UserContext/UserProvider";
 import { getStepQueries,
-         submitNewQuery,
-         addQueryPost,
-         updateQueryPost,
-         addPostComment,
-         updatePostComment
+         addQuery,
+         updateQuery,
+         addQueryReply,
+         updateQueryReply,
+         addReplyComment,
+         updateReplyComment
  } from "../Services/stepFetchService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { findIndex } from "core-js/es/array";
@@ -41,6 +42,119 @@ const RoleIcon = ({icon}) => {
            >
              <FontAwesomeIcon icon={roles[icon]} />
            </OverlayTrigger>
+  )
+}
+
+const AdderButton = ({level, showAdderValue, showAdderAction, label, icon}) => {
+  return (
+    <span className={`${level}-button-container`}>
+      <Button variant="outline-secondary"
+        onClick={() => showAdderAction(!showAdderValue)}
+        aria-controls={`add-${level}-form-wrapper`}
+        aria-expanded={showAdderValue}
+      >
+        <FontAwesomeIcon icon={icon} />
+        {label}
+      </Button>
+    </span>
+  )
+}
+
+const ControlRow = ({userId, opId, level, icon, showAdderValue,
+                     showAdderAction=None,
+                     showEditorAction, updateAction, defaultUpdateArgs,
+                     userRoles, instructing, showPublic,
+                     flagged, pinned, popularity, helpfulness
+                    }) => {
+  const labelLevel = level === "query" ? "reply" : "comment";
+  return(
+    <div className={`control-row-${level}`}>
+      {level !== "comment" ?
+        <AdderButton level={level}
+          showAdderValue={showAdderValue}
+          showAdderAction={showAdderAction}
+          label={`Add your ${labelLevel}`}
+          icon={icon}
+        />
+        :
+        ""
+      }
+      {userId === opId &&
+        <Button variant="outline-secondary"
+          onClick={e => showEditorAction(e)}
+        >
+          <FontAwesomeIcon icon="pencil-alt" />
+        </Button>
+      }
+      {userId === opId &&
+        <Button variant="outline-secondary"
+          onClick={e =>
+            updateAction({...defaultUpdateArgs,
+                              deleted: true, event: e})
+          }
+        >
+          <FontAwesomeIcon icon="trash-alt" />
+        </Button>
+      }
+      {userId !== opId &&
+        <Button variant="outline-secondary"
+          onClick={e =>
+            updateAction({...defaultUpdateArgs,
+                              popularity: popularity + 1, event: e})
+          }
+        >
+          <FontAwesomeIcon icon="thumbs-up" />
+        </Button>
+      }
+      {(userRoles.includes("administrators") || userRoles.includes("instructors") && instructing.find(c => c.id == classId)) &&
+        <Button variant="outline-secondary"
+          onClick={e =>
+            updateAction({...defaultUpdateArgs,
+                              pinned: !pinned, event: e})
+          }
+        >
+          <FontAwesomeIcon icon="thumbtack" />
+        </Button>
+      }
+      {(userRoles.includes("administrators") || userRoles.includes("instructors")) &&
+        <Button variant="outline-secondary"
+          onClick={e =>
+            updateAction({...defaultUpdateArgs,
+                          helpfulness: helpfulness + 1, event: e})
+          }
+        >
+          <FontAwesomeIcon icon="lightbulb" />
+        </Button>
+      }
+    </div>
+  )
+}
+
+const UpdateForm = ({level, idArgs, opId, updateAction, currentText,
+                     setEditingAction
+                    }) => {
+  const [myText, setMyText] = useState(currentText);
+  const idString = Object.values(idArgs).join("-");
+  const sendUpdate = e => {
+    e.preventDefault();
+    updateAction({...idArgs, opId: opId, opText: myText});
+    setEditingAction(false);
+  }
+  return (
+    <Form id={`update-${level}-form-${idString}`}
+      className={`update-${level}-form`}
+    >
+        <Form.Group controlId={`update${level}Textarea-${idString}`}>
+          <TextareaAutosize
+            defaultValue={currentText}
+            onChange={e => setMyText(e.target.value)}
+          />
+        </Form.Group>
+        <Button variant="primary"
+          type="submit"
+          onClick={e => sendUpdate(e)}
+        >Update {level}</Button>
+    </Form>
   )
 }
 
@@ -80,442 +194,261 @@ const NewQueryForm = ({answer, score, action}) => {
   );
 }
 
-const CommentRow = ({queryId, commentId, commenterId, commenterRole,
-                     postId, commentDate, threadIndex, commentText,
-                     showPublic, hidden, deleted, flagged, pinned,
-                     popularity, helpfulness, editedDate,
-                     commenterFirstName, commenterLastName,
-                     updateCommentAction, classId
-                   }) => {
-
-  const {user, dispatch} = useContext(UserContext);
-  const keyStr = `${classId}_${queryId}_${postId}`;
-  const myRoles = !!commenterRole && commenterRole != null ? commenterRole.map(r => `${r}`).join(" ") : "";
-  const showEditingForm = () => {};
-
-  console.log("comment to display");
-  console.log(commentText);
-
+const AddChildForm = ({level, classId, queryId, replyId=null,
+                       addChildAction, setShowAdder
+                      }) => {
+  // FIXME: Handling legacy data here
+  if ( level=="reply" && replyId==undefined ) { replyId="null" };
+  const [childText, setChildText] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const uid = [classId, queryId, replyId].join("_");
+  const createChild = e => {
+    e.preventDefault();
+    console.log({replyId: replyId, queryId: queryId,
+                    childText: childText,
+                    isPublic: !isPrivate,
+                    event: e,
+                    addChildAction: addChildAction,
+                    setShowAdder: setShowAdder
+                    });
+    addChildAction({replyId: replyId, queryId: queryId,
+                    opText: childText,
+                    isPublic: !isPrivate
+                    });
+    setShowAdder(false);
+  }
   return (
-    <li key={keyStr}>
-      <Row>
-      <Col xs={3} className={`comment-display-info ${myRoles}`}>
-        <span className={`comment-display-name ${myRoles}`}>
-          {`${commenterFirstName} ${commenterLastName}`}
-        </span><br />
-        {commenterRole.map(r =>
-          <RoleIcon className={`role-icon ${r}`}
-            key={`${keyStr}-${r}`} icon={r}
-          />
-        )}
-      </Col>
-      <Col xs={9} className={`comment-display-body ${myRoles}`}>
-        <div
-          className="comment-display-body-text"
-          dangerouslySetInnerHTML={{
-            __html: commentText ? DOMPurify.sanitize(marked(commentText)) : ""}}
+    <Form id={`add-child-form-${uid}`}
+      className={`add-child-form add-${level}-form`}
+    >
+      <Form.Group controlId={`addChildPrivateCheckbox-${uid}`}>
+        <Form.Check type="checkbox"
+          label={`Keep my ${level} private`}
+          defaultValue={isPrivate}
+          onChange={e => setIsPrivate(e.target.value)}
         />
-        <span className={`comment-display-date`}>
-          <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(commentDate)}
-        </span>
-        {!!editedDate && (editedDate !== commentDate) &&
-          <span className={`comment-display-edited-date`}>
-            <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(editedDate)}
-          </span>
-        }
-        <div className="comment-display-controls">
-          {user.userId === commenterId &&
-            <Button variant="outline-secondary"
-              onClick={e => showEditingForm(e)}
-            >
-              <FontAwesomeIcon icon="pencil-alt" />
-            </Button>
-          }
-          {user.userId === commenterId &&
-            <Button variant="outline-secondary"
-              onClick={e =>
-                updateCommentAction({postId: postId, commentId: queryId,
-                                  deleted: true, event: e})
-              }
-            >
-              <FontAwesomeIcon icon="trash-alt" />
-            </Button>
-          }
-          {user.userId !== commenterId &&
-            <Button variant="outline-secondary"
-              onClick={e =>
-                updateCommentAction({postId: postId, commentId: commentId,
-                                  popularity: popularity + 1, event: e})
-              }
-            >
-              <FontAwesomeIcon icon="thumbs-up" />
-            </Button>
-          }
-          {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors") && user.instructing.find(c => c.id == classId)) &&
-            <Button variant="outline-secondary"
-              onClick={e =>
-                updateCommentAction({postId: postId, commentId: commentId,
-                                  pinned: true, event: e})
-              }
-            >
-              <FontAwesomeIcon icon="thumbtack" />
-            </Button>
-          }
-          {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors")) &&
-            <Button variant="outline-secondary"
-              onClick={e =>
-                updateCommentAction({postId: postId, commentId: commentId,
-                                  helpfulness: helpfulness + 1, event: e})
-              }
-            >
-              <FontAwesomeIcon icon="lightbulb" />
-            </Button>
-          }
-        </div>
-      </Col>
-      </Row>
-    </li>
+      </Form.Group>
+      <Form.Group controlId={`addChildTextarea-${uid}`}>
+        <TextareaAutosize
+          onChange={e => setChildText(e.target.value)}
+        />
+      </Form.Group>
+      <Button variant="primary" type="submit"
+        onClick={e => createChild(e)}
+      >
+        Submit {level}
+      </Button>
+    </Form>
   )
 }
 
-const PostRow = ({queryId, postId, posterId, postText, posterNameFirst,
-                  posterNameLast, postDate, postEditedDate, posterRole, hidden,
-                  deleted, flagged, showPublic, popularity, helpfulness,
-                  comments,
-                  updatePostAction, newCommentAction, updateCommentAction,
-                  classId
-                }) => {
+const DisplayRow = ({level, newReplyAction, newCommentAction,
+                     updateReplyAction, updateCommentAction, updateQueryAction, queryId, opId, opNameFirst, opNameLast, opRole,
+                     dateSubmitted, dateUpdated, opText,
+                     hidden, showPublic, flagged, deleted,
+                     popularity, helpfulness, pinned,
+                     classId=null, replyId=null, commentId=null,
+                     queryStatus=null, opResponseText=null, stepPrompt=null,
+                     queryStep=null, queryPath=null,
+                     children=null, threadIndex=0
+                    }) => {
+  const myRoles = !!opRole && opRole != null ?
+    opRole.map(r => `${r}`).join(" ") : "";
   const {user, dispatch} = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
-  const keyStr = `${classId}_${queryId}_${postId}`;
   const showEditingForm = (e) => {
     e.preventDefault();
     setEditing(true);
   }
-  const myRoles = !!posterRole && posterRole != null ? posterRole.map(r => `${r}`).join(" ") : "";
-  console.log(postId);
+  const uid = [classId, queryId, replyId, commentId].join('_');
+  const levels = ["query", "reply", "comment"];
+  const childLevel = levels[levels.indexOf(level) + 1];
+  const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
+                              opId: opId, queryId: queryId},
+                      reply: {opId: opId, replyId: replyId,
+                              queryId: queryId},
+                      comment: {opId: opId, commentId: commentId,
+                                replyId: replyId, queryId: queryId}
+  };
+  const updateThisAction = {query: updateQueryAction,
+                            reply: updateReplyAction,
+                            comment: updateCommentAction
+  };
+  const addChildAction = {query: newReplyAction,
+                          reply: newCommentAction,
+                          comment: null
+  };
+
   return (
-    <li key={keyStr}>
-      <Row>
-      <Col xs={3} className={`post-display-info ${myRoles}`}>
-        <span className={`post-display-name ${myRoles}`}>
-          {`${posterNameFirst} ${posterNameLast}`}
-        </span><br />
-        {posterRole.map(r =>
-          <RoleIcon className={`role-icon ${r}`}
-            key={`${keyStr}-${r}`} icon={r}
-          />
-        )}
-        <FontAwesomeIcon icon="user-circle" size="3x" /><br />
-      </Col>
-      <Col xs={9} className={`post-display-body ${myRoles}`}>
-        <SwitchTransition>
-          <CSSTransition
-            key={!!editing ? "post-display-body-editor" : "post-display-body-text"}
-            classNames='post-display-body-wrapper'
-            unmountOnExit={false}
-            timeout={200}
-          >
-          {!!editing ?
-            <div className="post-display-body-wrapper">
-              <UpdatePostForm postId={postId}
-                queryId={queryId}
-                updatePostAction={updatePostAction}
-                currentText={postText ? DOMPurify.sanitize(postText) : ""}
-                setEditing={setEditing}
-              />
-            </div>
-            :
-            <div className="post-display-body-wrapper">
-              <div
-                className="post-display-body-text"
+    <li key={`${uid}-display-row ${level}-display-row ${myRoles}`}>
+      <Row className={`${level}-display-op-wrapper`} >
+        <Col xs={3} className={`${level}-display-op`}>
+          <span className={`${level}-display-op-name`}>
+            {`${opNameFirst} ${opNameLast}`}
+          </span><br />
+          <span className={`${level}-display-op-date`}>
+            {readableDateAndTime(dateSubmitted)}
+          </span><br />
+          {level != "comment" ?
+            <FontAwesomeIcon icon="user-circle"
+              size={level == "query" ? "3x" : "1x"}
+            /> : ""
+          }
+          {!!opRole && opRole.map(r =>
+            <RoleIcon className={`role-icon ${r}`}
+              key={`${uid}-${r}`} icon={r}
+            />
+          )}
+          {!!queryStatus ?
+            <span className={`${level}-display-op-status`}>{
+              ["", "confirmed",	"fixed",	"not_a_bug",
+              "duplicate",	"awaiting review",	"allowance_given",
+              "question_answered"][queryStatus].replace("_", " ")}
+            </span>
+            : ""
+          }
+        </Col>
+        <Col xs={9} className={`${level}-display-body-wrapper`}>
+          {!!queryStep &&
+            <React.Fragment>
+              The step asked...
+              <p className="query-display-prompt"
                 dangerouslySetInnerHTML={{
-                  __html: postText ? DOMPurify.sanitize(marked(postText)) : ""}}
+                  __html: !!stepPrompt ? DOMPurify.sanitize(marked(stepPrompt)) : ""}}
               />
-              <span className={`post-display-date`}>
-                <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(postDate)}
-              </span>
-              {!!postEditedDate && (postEditedDate !== postDate) &&
-                <span className={`post-display-edited-date`}>
-                  <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(postEditedDate)}
-                </span>
+            </React.Fragment>
+          }
+          {!!opResponseText &&
+            <React.Fragment>
+              And I responded...
+              <p className="query-display-response"
+                dangerouslySetInnerHTML={{
+                  __html: !!opResponseText ? DOMPurify.sanitize(marked(opResponseText)) : ""}}
+              />
+            </React.Fragment>
+          }
+          <SwitchTransition>
+            <CSSTransition
+              key={!!editing ? `${level}-display-body-editor` : `${level}-display-body-text`}
+              classNames={`${level}-display-body-wrapper`}
+              unmountOnExit={false}
+              timeout={200}
+            >
+              {!!editing ?
+                <div className={`${level}-display-body-wrapper`}>
+                  <UpdateForm level={level}
+                    idArgs={updateArgs[level]}
+                    updateAction={updateThisAction[level]}
+                    currentText={opText ? DOMPurify.sanitize(opText) : ""}
+                    setEditingAction={setEditing}
+                  />
+                </div>
+                :
+                <div className={`${level}-display-body-wrapper`}>
+                  <p className={`${level}-display-op-question`}
+                    dangerouslySetInnerHTML={{
+                      __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
+                  />
+                  <span className={`${level}-display-date`}>
+                    <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(dateSubmitted)}
+                  </span>
+                  {!!dateUpdated && (dateUpdated !== dateSubmitted) &&
+                    <span className={`${level}-display-edited-date`}>
+                      <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
+                    </span>
+                  }
+                  <ControlRow
+                    userId={user.userId}
+                    opId={opId}
+                    level={level}
+                    icon={level == "comment" ? null : childLevel}
+                    showAdderValue={level == "comment" ? null : showAdder}
+                    showAdderAction={level == "comment" ? null : setShowAdder}
+                    showEditorAction={showEditingForm}
+                    updateAction={updateThisAction[level]}
+                    defaultUpdateArgs={updateArgs[level]}
+                    userRoles={user.userRoles}
+                    instructing={user.instructing}
+                    showPublic={showPublic}
+                    flagged={flagged}
+                    pinned={pinned}
+                    popularity={popularity}
+                    helpfulness={helpfulness}
+                    userRoles={user.userRoles}
+                    instructing={user.instructing}
+                  />
+                </div>
               }
-              <div className="control-row">
-                <span className="comment-button-container">
-                  <Button variant="outline-secondary"
-                    onClick={() => setShowAdder(!showAdder)}
-                    aria-controls="add-comment-form-wrapper"
-                    aria-expanded={showAdder}
-                  >
-                    <FontAwesomeIcon icon="comment" />
-                    Add a comment
-                  </Button>
-                </span>
-                {user.userId === posterId &&
-                  <Button variant="outline-secondary"
-                    onClick={e => showEditingForm(e)}
-                  >
-                    <FontAwesomeIcon icon="pencil-alt" />
-                  </Button>
-                }
-                {user.userId === posterId &&
-                  <Button variant="outline-secondary"
-                    onClick={e =>
-                      updatePostAction({postId: postId, queryId: queryId,
-                                        deleted: true, event: e})
-                    }
-                  >
-                    <FontAwesomeIcon icon="trash-alt" />
-                  </Button>
-                }
-                {user.userId !== posterId &&
-                  <Button variant="outline-secondary"
-                    onClick={e =>
-                      updatePostAction({postId: postId, queryId: queryId,
-                                        popularity: popularity + 1, event: e})
-                    }
-                  >
-                    <FontAwesomeIcon icon="thumbs-up" />
-                  </Button>
-                }
-                {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors") && user.instructing.find(c => c.id == classId)) &&
-                  <Button variant="outline-secondary"
-                    onClick={e =>
-                      updatePostAction({postId: postId, queryId: queryId,
-                                        pinned: true, event: e})
-                    }
-                  >
-                    <FontAwesomeIcon icon="thumbtack" />
-                  </Button>
-                }
-                {(user.userRoles.includes("administrators") || user.userRoles.includes("instructors")) &&
-                  <Button variant="outline-secondary"
-                    onClick={e =>
-                      updatePostAction({postId: postId, queryId: queryId,
-                                        helpfulness: helpfulness + 1, event: e})
-                    }
-                  >
-                    <FontAwesomeIcon icon="lightbulb" />
-                  </Button>
-                }
-              </div>
+              </CSSTransition>
+              </SwitchTransition>
+            </Col>
+          </Row>
+
+          {level != "comment" &&
+            <span className={`${level}-display-add-child`}>
+              <a className="label"
+                onClick={() => setShowAdder(!showAdder)}
+                aria-controls={`${uid}-add-child-form-wrapper`}
+                aria-expanded={showAdder}
+              >
+                <FontAwesomeIcon icon={childLevel} />{childLevel.toUpperCase()}
+              </a>
               <Collapse in={showAdder}>
-                <div className="add-comment-form-wrapper">
-                  <AddCommentForm className="add-comment-form"
+                <div className={`${uid}-add-child-form-wrapper`}>
+                  <AddChildForm className="add-child-form"
+                    level={childLevel}
+                    classId={classId}
                     queryId={queryId}
-                    postId={postId}
-                    newCommentAction={newCommentAction}
+                    replyId={replyId}
+                    addChildAction={addChildAction[level]}
                     setShowAdder={setShowAdder}
                   />
                 </div>
               </Collapse>
-            </div>
+            </span>
           }
-          </CSSTransition>
-        </SwitchTransition>
-      </Col>
-      </Row>
-      <Row>
-      <ul className="post-display-comments-list">
-        {!!comments.length ? comments.map(c =>
-          <CommentRow key={`${keyStr}_${c.commentId}`}
-            queryId={queryId}
-            updateCommentAction={updateCommentAction}
-            classId={classId}
-            {...c}
-          />)
-          :
-          ""
-        }
-      </ul>
-      </Row>
-    </li>
-  )
-}
 
-const AddCommentForm = ({queryId, postId, newCommentAction, setShowAdder}) => {
-  const [commentText, setCommentText] = useState("");
-  const [isPrivate, setIsPrivate] = useState(false);
-  const submitComment = e => {
-    newCommentAction({postId: postId, queryId: queryId,
-                      commentText: commentText,
-                      isPublic: !isPrivate,
-                      event: e
-                     });
-    setShowAdder(false);
-  }
-  return (
-    <Form id={`add-comment-form-${queryId}-${postId}`}
-       className="add-comment-form"
-    >
-        <Form.Group controlId={`addCommentPrivateCheckbox-${queryId}-${postId}`}
-        >
-          <Form.Check type="checkbox" label="Keep my comment private."
-            defaultValue={isPrivate}
-            onChange={e => setIsPrivate(e.target.value)}
-            />
-        </Form.Group>
-        <Form.Group controlId={`addCommentTextarea-${queryId}-${postId}`}>
-          <Form.Control as="textarea"
-            onChange={e => setCommentText(e.target.value)}
-          />
-        </Form.Group>
-        <Button variant="primary"
-          type="submit"
-          onClick={e => submitComment(e)}
-        >Submit comment</Button>
-    </Form>
-  )
-}
-
-const UpdatePostForm = ({postId, queryId, updatePostAction, currentText,
-                         setEditing}) => {
-  const [postText, setPostText] = useState(currentText);
-  const sendUpdate = e => {
-    updatePostAction({postId: postId, queryId: queryId,
-                      postText: postText, event: e});
-    setEditing(false);
-  }
-  return (
-    <Form id={`update-post-form-${postId}`} className="update-post-form">
-        <Form.Group controlId={`updatePostTextarea-${postId}`}>
-          <TextareaAutosize
-            defaultValue={currentText}
-            onChange={e => setPostText(e.target.value)}
-          />
-        </Form.Group>
-        <Button variant="primary"
-          type="submit"
-          onClick={e => sendUpdate(e)}
-        >Update</Button>
-    </Form>
-  )
-}
-
-const AddPostForm = ({queryId, newPostAction}) => {
-  const [postText, setPostText] = useState("");
-  const [isPrivate, setIsPrivate] = useState(false);
-  return (
-    <Form id={`add-post-form-${queryId}`} className="add-post-form">
-        <Form.Group controlId={`addPostPrivateCheckbox-${queryId}`}>
-          <Form.Check type="checkbox" label="Keep my answer private."
-            defaultValue={isPrivate}
-            onChange={e => setIsPrivate(e.target.value)}
-            />
-        </Form.Group>
-        <Form.Group controlId={`addPostTextarea-${queryId}`}>
-          <Form.Control as="textarea" onChange={e => setPostText(e.target.value)} />
-        </Form.Group>
-        <Button variant="primary"
-          type="submit"
-          onClick={e => newPostAction(queryId, postText, !isPrivate, e)}
-        >Submit reply</Button>
-    </Form>
-  )
-}
-
-const DisplayRow = ({newPostAction, newCommentAction, updatePostAction,
-                     updateCommentAction, classId, queryId, opNameFirst,
-                     opNameLast, posts, dateSubmitted, queryStatus, opResponse,
-                     opQueryText, stepPrompt, hidden, showPublic, flagged, deleted,
-                     popularity, hepfulness, pinned,
-                     queryStep, queryPath
-                    }) => {
-  const [ showAdder, setShowAdder ] = useState(false);
-
-  return (
-      <tr key={queryId}>
-        <td key={`${queryId}_cell`}>
-          <Row className="query-display-op-wrapper" >
-            <Col xs={3} className="query-display-op">
-              <span className="query-display-op-name">
-                {`${opNameFirst} ${opNameLast}`}
-              </span><br />
-              <span className="query-display-op-date">
-                {readableDateAndTime(dateSubmitted)}
-              </span><br />
-              <FontAwesomeIcon icon="user-circle" size="3x" /><br />
-              <span className="query-display-op-status">{
-                ["", "confirmed",	"fixed",	"not_a_bug",
-                "duplicate",	"awaiting review",	"allowance_given",
-                "question_answered"][queryStatus].replace("_", " ")
-                }</span>
-            </Col>
-            <Col xs={9} className="query-display-body-wrapper">
-              {!!queryStep &&
-                <React.Fragment>
-                  The step asked...
-                  <p className="query-display-prompt"
-                    dangerouslySetInnerHTML={{
-                      __html: !!stepPrompt ? DOMPurify.sanitize(marked(stepPrompt)) : ""}}
-                  />
-                </React.Fragment>
-              }
-              {!!opResponse &&
-                <React.Fragment>
-                  And I responded...
-                  <p className="query-display-response"
-                    dangerouslySetInnerHTML={{
-                      __html: !!opResponse ? DOMPurify.sanitize(marked(opResponse)) : ""}}
-                  />
-                </React.Fragment>
-              }
-              <p className="query-display-op-question"
-                dangerouslySetInnerHTML={{
-                  __html: opQueryText ? DOMPurify.sanitize(marked(opQueryText)) : ""
-                }} />
-            </Col>
-          </Row>
-          <ul className="query-display-replies">
-          {!!posts && posts.map(p =>
-            <PostRow key={`${classId}_${queryId}_${p.postId}`}
+          <ul className={`${level}-display-children`}>
+          {!!children && children.map(c =>
+            <DisplayRow key={`${classId}_${queryId}_${!!replyId ? `${replyId}_${c.commentId}` : c.replyId}`}
+              level={childLevel}
+              classId={classId}
               queryId={queryId}
-              {...p}
-              updatePostAction={updatePostAction}
+              replyId={!!replyId ? replyId : c.replyId}
+              commentId={!!replyId ? c.commentId: null}
+              {...c}
+              updateQueryAction={updateQueryAction}
+              newReplyAction={newReplyAction}
+              updateReplyAction={updateReplyAction}
               newCommentAction={newCommentAction}
               updateCommentAction={updateCommentAction}
-              classId={classId}
             />)}
           </ul>
 
-          <span className="query-display-add-post">
-            <a className="label"
-              onClick={() => setShowAdder(!showAdder)}
-              aria-controls="add-post-form-wrapper"
-              aria-expanded={showAdder}
-            >
-              <FontAwesomeIcon icon="reply" />Reply
-            </a>
-            <Collapse in={showAdder}>
-              <div className="add-post-form-wrapper">
-                <AddPostForm className="add-post-form" queryId={queryId} newPostAction={newPostAction} />
-              </div>
-            </Collapse>
-          </span>
-        </td>
-      </tr>
+      </li>
     )
 }
 
 
-const DisplayTable = ({queries, newPostAction, newCommentAction,
-                       updatePostAction, updateCommentAction}) => {
+const DisplayTable = ({queries, updateQueryAction, newReplyAction,
+                       newCommentAction, updateReplyAction,
+                       updateCommentAction}) => {
   if (!!queries && !!queries[0] && !queries[0].section) {
-    return (<Table>
-            <tbody>
+    return (<ul>
               {queries.map(
-                q => <DisplayRow key={q.queryId}
-                       newPostAction={newPostAction}
+                q => <DisplayRow key={`query-row-${q.queryId}`}
+                       level="query"
+                       updateQueryAction={updateQueryAction}
+                       newReplyAction={newReplyAction}
                        newCommentAction={newCommentAction}
-                       updatePostAction={updatePostAction}
+                       updateReplyAction={updateReplyAction}
                        updateCommentAction={updateCommentAction}
                        classId={null}
                        {...q}
                      />
               )}
-            </tbody>
-            </Table>
+            </ul>
       )
   } else if (!!queries && !!queries[0] && !!queries[0].section) {
     return (
@@ -527,20 +460,20 @@ const DisplayTable = ({queries, newPostAction, newCommentAction,
                 <span className="query-display-class-header">
                   {`${institution}, ${year}, ${section}`}
                 </span>
-                <Table>
-                  <tbody>
+                <ul>
                   {!!queries.length && queries.map(
                     q => <DisplayRow key={`${classId}_${q.queryId}`}
-                           newPostAction={newPostAction}
+                           level="query"
+                           updateQueryAction={updateQueryAction}
+                           newReplyAction={newReplyAction}
                            newCommentAction={newCommentAction}
-                           updatePostAction={updatePostAction}
+                           updateReplyAction={updateReplyAction}
                            updateCommentAction={updateCommentAction}
                            classId={classId}
                            {...q}
                          />
                   )}
-                  </tbody>
-                </Table>
+                  </ul>
               </td>
             </tr>
           )}
@@ -564,84 +497,96 @@ const QueriesView = () => {
     const [onStep, setOnStep] = useState(!!user.currentStep);
 
     const _formatCommentData = c => {
-      return ({commentId: c.bug_post_comments.id,
-               commenterId: c.bug_post_comments.commenter,
-               commenterRole: c.bug_post_comments.commenter_role,
-               postId: c.bug_post_comments.on_post,
-               commentDate: c.bug_post_comments.dt_posted,
-               threadIndex: c.bug_post_comments.thread_index,
-               commentText: c.bug_post_comments.comment_body,
-               showPublic: c.bug_post_comments.public,
+      return ({level: "comment",
+               replyId: c.bug_post_comments.on_post,
+               commentId: c.bug_post_comments.id,
+               opId: c.bug_post_comments.commenter,
+               opFirstName: c.auth_user.first_name,
+               opLastName: c.auth_user.last_name,
+               opText: c.bug_post_comments.comment_body,
+               dateSubmitted: c.bug_post_comments.dt_posted,
+               dateUpdated: c.bug_post_comments.modified_on,
+               opRole: c.bug_post_comments.commenter_role,
                hidden: c.bug_post_comments.hidden,
                deleted: c.bug_post_comments.deleted,
                flagged: c.bug_post_comments.flagged,
                pinned: c.bug_post_comments.pinned,
                popularity: c.bug_post_comments.popularity,
                helpfulness: c.bug_post_comments.helpfulness,
-               editedDate: c.bug_post_comments.modified_on,
-               commenterFirstName: c.auth_user.first_name,
-               commenterLastName: c.auth_user.last_name
+               showPublic: c.bug_post_comments.public,
+               threadIndex: c.bug_post_comments.thread_index
               })
     }
 
-    const _formatPostData = p => {
+    const _formatReplyData = p => {
       let formattedComments = p.comments.map(c => _formatCommentData(c));
-      return ({postId: p.bug_posts.id,
-                posterId: p.bug_posts.poster,
-                postText: p.bug_posts.post_body,
-                posterNameFirst: p.auth_user.first_name,
-                posterNameLast: p.auth_user.last_name,
-                postDate: p.bug_posts.dt_posted,
-                postEditedDate: p.bug_posts.modified_on,
-                posterRole: p.bug_posts.poster_role,
-                hidden: p.bug_posts.hidden,
-                deleted: p.bug_posts.deleted || false,
-                flagged: p.bug_posts.flagged || false,
-                pinned: p.bug_posts.pinned || false,
-                showPublic: p.bug_posts.public || true,
-                threadIndex: p.bug_posts.thread_index,
-                comments: formattedComments
+      return ({level: "reply",
+               replyId: p.bug_posts.id,
+               opId: p.bug_posts.poster,
+               opNameFirst: p.auth_user.first_name,
+               opNameLast: p.auth_user.last_name,
+               opText: p.bug_posts.post_body,
+               dateSubmitted: p.bug_posts.dt_posted,
+               dateUpdated: p.bug_posts.modified_on,
+               opRole: p.bug_posts.poster_role,
+               hidden: p.bug_posts.hidden,
+               deleted: p.bug_posts.deleted || false,
+               flagged: p.bug_posts.flagged || false,
+               pinned: p.bug_posts.pinned || false,
+               popularity: 0,
+               helpfulness: 0,
+               showPublic: p.bug_posts.public || true,
+               threadIndex: p.bug_posts.thread_index,
+               children: formattedComments
               }
       )
     }
 
     const _formatQueryData = q => {
-      let formattedPosts = q.posts.map(p => _formatPostData(p));
+      let formattedReplies = q.posts.map(p => _formatReplyData(p));
       if ( !!q.bugs.admin_comment ) {
-        formattedPosts.unshift({
-          postId: undefined,
-          posterId: 19,
-          postText: q.bugs.admin_comment,
-          posterNameFirst: "Ian",
-          posterNameLast: "Scott",
-          postDate: q.bugs.date_submitted,
-          postEditedDate: q.bugs.modified_on,
-          posterRole: ["administrators", "instructors"],
+        formattedReplies.unshift({
+          level: "reply",
+          replyId: undefined,
+          opId: 19,
+          opNameFirst: "Ian",
+          opNameLast: "Scott",
+          opText: q.bugs.admin_comment,
+          dateSubmitted: q.bugs.date_submitted,
+          dateUpdated: q.bugs.modified_on,
+          opRole: ["administrators", "instructors"],
           hidden: false,
           deleted: false,
           flagged: false,
+          pinned: false,
+          popularity: 0,
+          helpfulness: 0,
           showPublic: true,
           threadIndex: 0,
-          comments: []
+          children: []
         });
       }
-      return ({queryId: q.bugs.id,
-                opId: q.auth_user.id,
-                opNameFirst: q.auth_user.first_name,
-                opNameLast: q.auth_user.last_name,
-                posts: formattedPosts,
-                dateSubmitted: q.bugs.date_submitted,
-                queryStatus: q.bugs.bug_status,
-                opResponse: q.bugs.user_response,
-                opQueryText: q.bugs.user_comment,
-                stepPrompt: q.bugs.prompt,
-                hidden: q.bugs.hidden,
-                showPublic: q.bugs.public,
-                flagged: q.bugs.flagged,
-                deleted: q.bugs.deleted,
-                queryStep: q.bugs.step,
-                queryPath: q.bugs.in_path,
-                dateUpdated: q.bugs.modified_on
+      return ({level: "query",
+               queryId: q.bugs.id,
+               opId: q.auth_user.id,
+               opNameFirst: q.auth_user.first_name,
+               opNameLast: q.auth_user.last_name,
+               children: formattedReplies,
+               dateSubmitted: q.bugs.date_submitted,
+               dateUpdated: q.bugs.modified_on,
+               queryStatus: q.bugs.bug_status,
+               opResponseText: q.bugs.user_response,
+               opText: q.bugs.user_comment,
+               stepPrompt: q.bugs.prompt,
+               hidden: q.bugs.hidden,
+               showPublic: q.bugs.public,
+               flagged: q.bugs.flagged,
+               deleted: q.bugs.deleted,
+               pinned: q.bugs.pinned,
+               helpfulness: q.bugs.helpfulness,
+               popularity: q.bugs.popularity,
+               queryStep: q.bugs.step,
+               queryPath: q.bugs.in_path,
               }
       )
     }
@@ -661,20 +606,24 @@ const QueriesView = () => {
     // creates new post if specified doesn't exist
     // returns the modified version of the supplied query list
     // if the new post has deleted: true it is removed
-    const _findAndUpdatePost = (mylist, newPost) => {
-      const myQueryId = newPost.bug_posts.on_bug;
-      const myPostId = newPost.bug_posts.id;
+    const _findAndUpdateReply = (mylist, newReply) => {
+      const myQueryId = newReply.bug_posts.on_bug;
+      console.log(myQueryId);
+      const myReplyId = newReply.bug_posts.id;
+      console.log(myReplyId);
       const queryIndex = mylist.findIndex(q => q.queryId==myQueryId);
+      console.log(queryIndex);
+      console.log(mylist[queryIndex]);
       if ( queryIndex > -1 ) {
-        const postIndex = mylist[queryIndex].posts.findIndex(p => p.postId==myPostId);
-        if ( postIndex > -1 ) {
-          if ( newPost.bug_posts.deleted ) {
-            mylist[queryIndex].posts.splice(postIndex, 1);
+        const replyIndex = mylist[queryIndex].children.findIndex(p => p.postId==myReplyId);
+        if ( replyIndex > -1 ) {
+          if ( newReply.bug_posts.deleted ) {
+            mylist[queryIndex].children.splice(replyIndex, 1);
           } else {
-            mylist[queryIndex].posts[postIndex] = _formatPostData(newPost);
+            mylist[queryIndex].children[replyIndex] = _formatReplyData(newReply);
           }
         } else {
-          mylist[queryIndex].posts.push(_formatPostData(newPost));
+          mylist[queryIndex].children.push(_formatReplyData(newReply));
         }
       }
       return mylist;
@@ -682,18 +631,18 @@ const QueriesView = () => {
 
     // Non-returning function to properly update state with one post
     // expects myresponse to have keys "post_list" and "new_post"
-    const _updatePostInState = (myresponse, myscopes) => {
+    const _updateReplyInState = (myresponse, myscopes) => {
       for (let i=0; i < myscopes.length; i++) {
         let qList = [...myscopes[i].list];
-        const newPost = myresponse.new_post;
+        const newReply = myresponse.new_post;
         const newQList = [];
         if ( qList.length && !!qList[0].classId ) {
           newQList = qList.map(myClass => {
-            myClass.queries = _findAndUpdatePost(myClass.queries, newPost);
+            myClass.queries = _findAndUpdateReply(myClass.queries, newReply);
             return myClass;
           })
         } else if ( qList.length ) {
-          newQList = _findAndUpdatePost(qList, newPost);
+          newQList = _findAndUpdateReply(qList, newReply);
         }
         myscopes[i].action(newQList);
       }
@@ -705,21 +654,21 @@ const QueriesView = () => {
     // returns the modified version of the supplied query list
     // if the new comment has deleted: true it is removed
     const _findAndUpdateComment = (mylist, newComment, queryId) => {
-      const myPostId = newComment.bug_post_comments.on_post;
+      const myReplyId = newComment.bug_post_comments.on_post;
       const myCommentId = newComment.bug_post_comments.id;
       const queryIndex = mylist.findIndex(q => q.queryId==queryId);
       if ( queryIndex > -1 ) {
-        const postIndex = mylist[queryIndex].posts.findIndex(p => p.postId==myPostId);
-        if ( postIndex > -1 ) {
-          const commIndex = mylist[queryIndex].posts[postIndex].comments.findIndex(c => c.commentId==myCommentId);
+        const replyIndex = mylist[queryIndex].children.findIndex(p => p.postId==myReplyId);
+        if ( replyIndex > -1 ) {
+          const commIndex = mylist[queryIndex].children[replyIndex].children.findIndex(c => c.commentId==myCommentId);
           if ( commIndex > -1 ) {
             if ( newComment.bug_post_comments.deleted ) {
-              mylist[queryIndex].posts[postIndex].comments.splice(commIndex, 1);
+              mylist[queryIndex].children[replyIndex].children.splice(commIndex, 1);
             } else {
-              mylist[queryIndex].posts[postIndex].comments[commIndex] = _formatCommentData(newComment);
+              mylist[queryIndex].children[replyIndex].children[commIndex] = _formatCommentData(newComment);
             }
           } else {
-            mylist[queryIndex].posts[postIndex].comments.push(_formatCommentData(newComment));
+            mylist[queryIndex].children[replyIndex].children.push(_formatCommentData(newComment));
           }
         }
       }
@@ -771,7 +720,7 @@ const QueriesView = () => {
       event.preventDefault();
       const myscore = !!user.currentScore && user.currentScore != 'null' ?
         user.currentScore : null;
-      submitNewQuery({step_id: user.currentStep,
+      addQuery({step_id: user.currentStep,
                       path_id: user.currentPath,
                       user_id: user.userId,
                       loc_name: user.currentLocation,
@@ -787,29 +736,30 @@ const QueriesView = () => {
       });
     }
 
-    const newPostAction = (queryId, postText, isPublic, event) => {
-      event.preventDefault();
-      addQueryPost({user_id: user.userId,
+    const newReplyAction = ({replyId,
+                             queryId,
+                             opText,
+                             isPublic
+                             }) => {
+      addQueryReply({user_id: user.userId,
                     query_id: queryId,
-                    post_text: postText,
+                    post_text: opText,
                     showPublic: isPublic
                     })
       .then(myresponse => {
-        _updatePostInState(myresponse, myScopes);
+        _updateReplyInState(myresponse, myScopes);
       });
     }
 
-    const newCommentAction = ({postId=null,
+    const newCommentAction = ({replyId=null,
                                queryId=null,
-                               commentText=null,
+                               opText=null,
                                isPublic=null,
-                               event=null
                               }) => {
-      event.preventDefault();
-      addPostComment({user_id: user.userId,
-                      post_id: postId,
+      addReplyComment({user_id: user.userId,
+                      post_id: replyId,
                       query_id: queryId,
-                      comment_text: commentText,
+                      comment_text: opText,
                       showPublic: isPublic
                       })
       .then(myresponse => {
@@ -818,23 +768,20 @@ const QueriesView = () => {
       });
     }
 
-    const updatePostAction = ({postId=null,
-                               queryId=null,
-                               postText=null,
-                               isPublic=null,
-                               hidden=null,
-                               flagged=null,
-                               pinned=null,
-                               popularity=null,
-                               helpfulness=null,
-                               deleted=null,
-                               event=null
-                              }) => {
-      event.preventDefault();
-      updateQueryPost({user_id: user.userId,
-                       post_id: postId,
+    const updateQueryAction = ({opId=null,
+                                queryId=null,
+                                opText=null,
+                                isPublic=null,
+                                hidden=null,
+                                flagged=null,
+                                pinned=null,
+                                popularity=null,
+                                helpfulness=null,
+                                deleted=null
+                               }) => {
+      updateQuery({user_id: opId,
                        query_id: queryId,
-                       post_text: postText,
+                       query_text: opText,
                        show_public: isPublic,
                        hidden: hidden,
                        flagged: flagged,
@@ -844,30 +791,59 @@ const QueriesView = () => {
                        deleted: deleted
                        })
       .then(myresponse => {
-        _updatePostInState(myresponse, myScopes);
+        _updateQueryInState(myresponse, myScopes);
       });
     }
 
-    const updateCommentAction = ({commentId=null,
-                                  postId=null,
+    const updateReplyAction = ({opId,
+                               replyId,
+                               queryId,
+                               opText=null,
+                               showPublic=null,
+                               hidden=null,
+                               flagged=null,
+                               pinned=null,
+                               popularity=null,
+                               helpfulness=null,
+                               deleted=null
+                              }) => {
+      updateQueryReply({user_id: opId,
+                       post_id: replyId,
+                       query_id: queryId,
+                       post_text: opText,
+                       show_public: showPublic,
+                       hidden: hidden,
+                       flagged: flagged,
+                       pinned: pinned,
+                       popularity: popularity,
+                       helpulness: helpfulness,
+                       deleted: deleted
+                       })
+      .then(myresponse => {
+        _updateReplyInState(myresponse, myScopes);
+      });
+    }
+
+    const updateCommentAction = ({opId=null,
+                                  commentId=null,
+                                  replyId=null,
                                   queryId=null,
-                                  commentText=null,
-                                  isPublic=null,
+                                  opText=null,
+                                  showPublic=null,
                                   hidden=null,
                                   flagged=null,
                                   pinned=null,
                                   popularity=null,
                                   helpfulness=null,
-                                  deleted=null,
-                                  event=null
+                                  deleted=null
                                   }) => {
-      event.preventDefault();
-      updatePostComment({user_id: user.userId,
+      updateReplyComment({user_id: opId,
                          comment_id: commentId,
-                         post_id: postId,
+                         post_id: replyId,
                          bug_id: queryId,
-                         comment_text: commentText,
-                         showPublic: isPublic,
+                         comment_text: opText,
+                         showPublic: showPublic,
+                         deleted: deleted,
                          hidden: hidden,
                          flagged: flagged,
                          pinned: pinned,
@@ -944,8 +920,9 @@ const QueriesView = () => {
               {scope === 'user' ? <NewQueryForm answer={user.currentAnswer} score={user.currentScore} action={newQueryAction} /> : ''}
               <DisplayTable
                 queries={list}
-                newPostAction={newPostAction}
-                updatePostAction={updatePostAction}
+                updateQueryAction={updateQueryAction}
+                newReplyAction={newReplyAction}
+                updateReplyAction={updateReplyAction}
                 newCommentAction={newCommentAction}
                 updateCommentAction={updateCommentAction}
               />

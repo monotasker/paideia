@@ -77,7 +77,7 @@ const getGeneralQueries = async () => {
 
 }
 
-const submitNewQuery = async ({step_id=null,
+const addQuery = async ({step_id=null,
                                path_id=null,
                                user_id=null,
                                loc_name=null,
@@ -111,7 +111,42 @@ const submitNewQuery = async ({step_id=null,
   return response_json
 }
 
-const addQueryPost = async({user_id=null,
+const updateQuery = async({query_id=null,
+                           query_text=null,
+                           show_public=null,
+                           hidden=null,
+                           deleted=null,
+                           flagged=null,
+                           pinned=null,
+                           helpfulness=null,
+                           popularity=null
+                          }) => {
+  let response = await fetch('/paideia/api/update_query', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query_id: query_id,
+        user_comment: query_text,
+        public: show_public,
+        hidden: hidden,
+        deleted: deleted,
+        flagged: flagged,
+        pinned: pinned,
+        helpfulness: helpfulness,
+        popularity: popularity
+      })
+  })
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json
+}
+
+const addQueryReply = async({user_id=null,
                             query_id=null,
                             post_text=null,
                             showPublic=null
@@ -126,7 +161,7 @@ const addQueryPost = async({user_id=null,
       body: JSON.stringify({
         user_id: user_id,
         query_id: query_id,
-        post_text: post_text,
+        post_body: post_text,
         public: showPublic,
       })
   })
@@ -136,7 +171,7 @@ const addQueryPost = async({user_id=null,
   return response_json
 }
 
-const updateQueryPost = async({user_id=null,
+const updateQueryReply = async({user_id=null,
                                post_id=null,
                                query_id=null,
                                post_text=null,
@@ -145,7 +180,8 @@ const updateQueryPost = async({user_id=null,
                                deleted=null,
                                flagged=null,
                                pinned=null,
-                               useful=null
+                               helpfulness=null,
+                               popularity=null
                               }) => {
   let response = await fetch('/paideia/api/update_query_post', {
       method: "POST",
@@ -158,13 +194,14 @@ const updateQueryPost = async({user_id=null,
         user_id: user_id,
         post_id: post_id,
         query_id: query_id,
-        post_text: post_text,
+        post_body: post_text,
         public: show_public,
         hidden: hidden,
         deleted: deleted,
         flagged: flagged,
         pinned: pinned,
-        useful: useful
+        helpfulness: helpfulness,
+        popularity: popularity
       })
   })
   let mystatus = response.status;
@@ -173,7 +210,7 @@ const updateQueryPost = async({user_id=null,
   return response_json
 }
 
-const addPostComment = async({user_id=null,
+const addReplyComment = async({user_id=null,
                                post_id=null,
                                query_id=null,
                                comment_text=null,
@@ -190,7 +227,7 @@ const addPostComment = async({user_id=null,
         user_id: user_id,
         bug_id: query_id,
         post_id: post_id,
-        comment_text: comment_text,
+        comment_body: comment_text,
         public: showPublic,
       })
   })
@@ -200,8 +237,43 @@ const addPostComment = async({user_id=null,
   return response_json
 }
 
-const updatePostComment = async() => {
-
+const updateReplyComment = async({user_id=null,
+                               post_id=null,
+                               comment_id=null,
+                               comment_text=null,
+                               show_public=null,
+                               hidden=null,
+                               deleted=null,
+                               flagged=null,
+                               pinned=null,
+                               helpfulness=null,
+                               popularity=null
+                              }) => {
+  let response = await fetch('/paideia/api/update_post_comment', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: user_id,
+        post_id: post_id,
+        comment_id: comment_id,
+        comment_body: comment_text,
+        public: show_public,
+        hidden: hidden,
+        deleted: deleted,
+        flagged: flagged,
+        pinned: pinned,
+        helpfulness: helpfulness,
+        popularity: popularity
+      })
+  })
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json;
 }
 
 const fetchVocabulary = async ({vocab_scope_selector=0}) => {
@@ -252,11 +324,12 @@ const setServerReviewMode = async (mylevel) => {
 export { getPromptData,
          evaluateAnswer,
          getStepQueries,
-         submitNewQuery,
-         addQueryPost,
-         updateQueryPost,
-         addPostComment,
-         updatePostComment,
+         addQuery,
+         updateQuery,
+         addQueryReply,
+         updateQueryReply,
+         addReplyComment,
+         updateReplyComment,
          fetchVocabulary,
          fetchLessons,
          setServerReviewMode

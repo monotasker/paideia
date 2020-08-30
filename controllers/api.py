@@ -411,7 +411,7 @@ def add_query_post():
         if vbs: print('api::add_query_post: vars are', request.vars)
 
         data = {k: v for k, v in request.vars.items()
-                    if k in ['post_text', 'public']
+                    if k in ['post_body', 'public']
                     }
 
         data['poster_role'] = []
@@ -429,7 +429,7 @@ def add_query_post():
         full_rec = {'auth_user': db(db.auth_user.id==post_result['new_post']['poster']).select().first().as_dict(),
                     'bug_posts': post_result['new_post'],
                     'comments': []}
-        return json({'bug_post_list': post_result['bug_post_list'],
+        return json({'post_list': post_result['bug_post_list'],
                      'new_post': full_rec})
     else:
         response = current.response
@@ -463,7 +463,7 @@ def update_query_post():
     ):
         if vbs: print('api::update_query_post: vars are', request.vars)
         new_data = {k: v for k, v in request.vars.items()
-                    if k in ['post_text', 'public', 'deleted', 'hidden',
+                    if k in ['post_body', 'public', 'deleted', 'hidden',
                                 'pinned', 'popularity', 'helpfulness']}
         result = record_bug_post(
             uid=uid,
@@ -495,12 +495,6 @@ def update_query_post():
         return json({'status': 'unauthorized'})
 
 
-def delete_query_post():
-    """
-    """
-    pass
-
-
 def add_post_comment():
     """
     """
@@ -512,7 +506,7 @@ def add_post_comment():
         if vbs: print('api::add_post_comment: vars are', request.vars)
 
         data = {k: v for k, v in request.vars.items()
-                if k in ['comment_text', 'public']
+                if k in ['comment_body', 'public']
                 }
 
         data['commenter_role'] = []
@@ -529,7 +523,7 @@ def add_post_comment():
         pprint(result)
         full_rec = {'auth_user': db(db.auth_user.id==result['new_comment']['commenter']).select().first().as_dict(),
                     'bug_post_comments': result['new_comment']}
-        return json({'post_comment_list': result['post_comment_list'],
+        return json({'comment_list': result['post_comment_list'],
                      'new_comment': full_rec})
     else:
         response = current.response
@@ -539,13 +533,54 @@ def add_post_comment():
 
 def update_post_comment():
     """
-    """
-    pass
+    API method to update a post comment in an existing query discussion.
 
-def delete_post_comment():
+    Expects the following request parameters:
+    user_id (int)* required
+    comment_id (int)* required
+    post_id (int)* required
+    comment_body (str)
+    public (bool)
+    deleted (bool)
+    hidden (bool)
+    pinned (bool)
+    helpfulness (double)
+    popularity (double)
     """
-    """
-    pass
+    vbs = False
+
+    uid = request.vars['user_id']
+
+    if (auth.is_logged_in() and
+        (auth.user_id == uid
+         or auth.has_membership('administrators')
+         or auth.has_membership('instructors')
+         and _is_my_student(auth.user_id, uid)
+         )
+    ):
+        if vbs: print('api::update_post_comment: vars are', request.vars)
+        new_data = {k: v for k, v in request.vars.items()
+                    if k in ['comment_body', 'public', 'deleted', 'hidden',
+                             'pinned', 'popularity', 'helpfulness']}
+        result = record_post_comment(
+            uid=uid,
+            post_id=request.vars['post_id'],
+            comment_id=request.vars['comment_id'],
+            **new_data
+            )
+
+        user_rec = db(db.auth_user.id==result['new_comment']['commenter']
+                    ).select().first().as_dict()
+        full_rec = {'auth_user': user_rec,
+                    'bug_post_comments': result['new_comment'],
+                    }
+
+        return json({'comment_list': result['post_comment_list'],
+                     'new_comment': full_rec})
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
 
 
 def log_new_query():
@@ -613,6 +648,44 @@ def log_new_query():
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
 
         return json(myqueries)
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized'})
+
+
+def update_query():
+    """
+    Api method to update one bug record.
+
+    Expects the following required request parameters:
+    query_id (int)
+    public (bool)
+    deleted (bool)
+    hidden (bool)
+    ...
+    """
+    vbs = False
+
+    uid = request.vars['user_id']
+
+    if (auth.is_logged_in() and
+        (auth.user_id == uid
+         or auth.has_membership('administrators')
+         or auth.has_membership('instructors')
+         and _is_my_student(auth.user_id, uid)
+         )
+    ):
+        if vbs: print('api::update_query_post: vars are', request.vars)
+        new_data = {k: v for k, v in request.vars.items()
+                    if k in ['query_text', 'public', 'deleted', 'hidden',
+                             'pinned', 'popularity', 'helpfulness']}
+        result = Bug.update_bug(request.vars["query_id"], new_data)
+        user_rec = db(db.auth_user.id==result['new_post']['poster']
+                    ).select().first().as_dict()
+        full_rec = {'auth_user': user_rec,
+                    'bugs': result}
+        return json(full_rec)
     else:
         response = current.response
         response.status = 401
