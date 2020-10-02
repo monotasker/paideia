@@ -567,7 +567,7 @@ const QueriesView = () => {
         });
       }
       let myPrompt = q.bugs.prompt;
-      if ( q.bugs.step_options.length ) {
+      if ( !!q.bugs.step_optios && q.bugs.step_options.length ) {
         const optString = q.bugs.step_options.join("\n- ");
         myPrompt = `${myPrompt}\n\n- ${optString}`;
       }

@@ -681,7 +681,8 @@ def update_query():
                     if k in ['query_text', 'public', 'deleted', 'hidden',
                              'pinned', 'popularity', 'helpfulness']}
         result = Bug.update_bug(request.vars["query_id"], new_data)
-        user_rec = db(db.auth_user.id==result['new_post']['poster']
+        pprint(result)
+        user_rec = db(db.auth_user.id==db.bugs(result).user_name
                     ).select().first().as_dict()
         full_rec = {'auth_user': user_rec,
                     'bugs': result}
