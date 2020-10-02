@@ -47,6 +47,10 @@ class Bug(object):
             if log_id not in [None, False, 'None']:  # to allow for queries on repeating (unrecorded) steps
                 argdict['log_id'] = log_id
 
+            # if self.step_id and not self.prompt:  # for queries before step V
+            #     argdict['prompt'] = db.steps(self.step_id).prompt
+
+            pprint(argdict)
             db.bugs.insert(**argdict)
             return True
         except Exception:

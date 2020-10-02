@@ -566,6 +566,11 @@ const QueriesView = () => {
           children: []
         });
       }
+      let myPrompt = q.bugs.prompt;
+      if ( q.bugs.step_options.length ) {
+        const optString = q.bugs.step_options.join("\n- ");
+        myPrompt = `${myPrompt}\n\n- ${optString}`;
+      }
       return ({level: "query",
                queryId: q.bugs.id,
                opId: q.auth_user.id,
@@ -577,7 +582,7 @@ const QueriesView = () => {
                queryStatus: q.bugs.bug_status,
                opResponseText: q.bugs.user_response,
                opText: q.bugs.user_comment,
-               stepPrompt: q.bugs.prompt,
+               stepPrompt: myPrompt,
                hidden: q.bugs.hidden,
                showPublic: q.bugs.public,
                flagged: q.bugs.flagged,
