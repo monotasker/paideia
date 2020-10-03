@@ -663,9 +663,13 @@ def update_query():
     public (bool)
     deleted (bool)
     hidden (bool)
+
+    A value of None for a parameter indicates that no update is requested. A value of False is a negative boolean value to be updated.
     ...
     """
     vbs = False
+
+    pprint(request.vars)
 
     uid = request.vars['user_id']
 
@@ -679,13 +683,13 @@ def update_query():
         if vbs: print('api::update_query_post: vars are', request.vars)
         new_data = {k: v for k, v in request.vars.items()
                     if k in ['query_text', 'public', 'deleted', 'hidden',
-                             'pinned', 'popularity', 'helpfulness']}
+                             'pinned', 'popularity', 'helpfulness']
+                    and v is not None}
         result = Bug.update_bug(request.vars["query_id"], new_data)
-        pprint(result)
         user_rec = db(db.auth_user.id==db.bugs(result).user_name
                     ).select().first().as_dict()
         full_rec = {'auth_user': user_rec,
-                    'bugs': result}
+                    'bugs': result}  #!!FIXME this 'bugs' value is just an int
         return json(full_rec)
     else:
         response = current.response
