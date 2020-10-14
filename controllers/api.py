@@ -426,7 +426,12 @@ def add_query_post():
             **data
             )
         pprint(post_result)
-        full_rec = {'auth_user': db(db.auth_user.id==post_result['new_post']['poster']).select().first().as_dict(),
+        user_rec = db(db.auth_user.id==post_result['new_post']['poster']
+                      ).select(db.auth_user.id,
+                               db.auth_user.first_name,
+                               db.auth_user.last_name
+                               ).first().as_dict()
+        full_rec = {'auth_user': user_rec,
                     'bug_posts': post_result['new_post'],
                     'comments': []}
         return json({'post_list': post_result['bug_post_list'],
@@ -473,7 +478,10 @@ def update_query_post():
             )
 
         user_rec = db(db.auth_user.id==result['new_post']['poster']
-                    ).select().first().as_dict()
+                    ).select(db.auth_user.id,
+                             db.auth_user.first_name,
+                             db.auth_user.last_name
+                             ).first().as_dict()
         mycomments = []
         if result['new_post']['comments']:
             mycomments = db(
@@ -521,7 +529,12 @@ def add_post_comment():
             **data
             )
         pprint(result)
-        full_rec = {'auth_user': db(db.auth_user.id==result['new_comment']['commenter']).select().first().as_dict(),
+        user_rec = db(db.auth_user.id==result['new_comment']['commenter']
+                      ).select(db.auth_user.id,
+                               db.auth_user.first_name,
+                               db.auth_user.last_name
+                               ).first().as_dict()
+        full_rec = {'auth_user': user_rec,
                     'bug_post_comments': result['new_comment']}
         return json({'comment_list': result['post_comment_list'],
                      'new_comment': full_rec})
@@ -570,7 +583,10 @@ def update_post_comment():
             )
 
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
-                    ).select().first().as_dict()
+                      ).select(db.auth_user.id,
+                               db.auth_user.first_name,
+                               db.auth_user.last_name
+                               ).first().as_dict()
         full_rec = {'auth_user': user_rec,
                     'bug_post_comments': result['new_comment'],
                     }
@@ -688,7 +704,10 @@ def update_query():
                     and v is not None}
         result = Bug.update_bug(request.vars["query_id"], new_data)
         user_rec = db(db.auth_user.id==db.bugs(result).user_name
-                    ).select().first().as_dict()
+                    ).select(db.auth_user.id,
+                             db.auth_user.first_name,
+                             db.auth_user.last_name
+                             ).first().as_dict()
         full_rec = {'auth_user': user_rec,
                     'bugs': result}  #!!FIXME this 'bugs' value is just an int
         return json(full_rec)
