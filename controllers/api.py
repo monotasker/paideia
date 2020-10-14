@@ -625,6 +625,7 @@ def log_new_query():
                     ).iterselect(db.bugs.id,
                                  db.bugs.step,
                                  db.bugs.in_path,
+                                 db.bugs.prompt,
                                  db.bugs.step_options,
                                  db.bugs.user_response,
                                  db.bugs.score,
