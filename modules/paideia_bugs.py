@@ -327,7 +327,7 @@ class Bug(object):
             myrow = db.bugs(log_id)
             myrow.update_record(**new_content)
             db.commit()
-            return myrow.id
+            return db.bugs(log_id).as_dict()
         except Exception as e:
             print('Error in Bug::update_bug()')
             print(e)

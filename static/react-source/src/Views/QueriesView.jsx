@@ -634,6 +634,11 @@ const QueriesView = () => {
       return mylist;
     }
 
+
+    const _updateQueryInState = () => {
+
+    }
+
     // Non-returning function to properly update state with one post
     // expects myresponse to have keys "post_list" and "new_post"
     const _updateReplyInState = (myresponse, myscopes) => {
