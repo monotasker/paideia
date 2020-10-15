@@ -607,8 +607,7 @@ const QueriesView = () => {
     }
 
     // finds and updates a query in a list of queries in state
-    // doesn't assume query already exists
-    // creates new query if specified doesn't exist
+    // DOES NOT create new query if specified doesn't exist
     // returns the modified version of the supplied query list
     // if the new query has deleted: true it is removed
     const _findAndUpdateQuery = (mylist, newQuery) => {
@@ -623,8 +622,6 @@ const QueriesView = () => {
         } else {
           mylist[queryIndex] = _formatQueryData(newQuery);
         }
-      } else {
-        mylist[queryIndex].push(_formatQueryData(newQuery));
       }
       return mylist;
     }

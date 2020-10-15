@@ -638,7 +638,8 @@ def log_new_query():
 
         myqueries = db((db.bugs.step == request.vars['step_id']) &
                     (db.bugs.user_name == db.auth_user.id) &
-                    (db.bugs.user_name == uid)
+                    (db.bugs.user_name == uid) &
+                    (db.bugs.deleted.belongs([None, False]))
                     ).iterselect(db.bugs.id,
                                  db.bugs.step,
                                  db.bugs.in_path,
@@ -713,19 +714,20 @@ def update_query():
                              db.auth_user.last_name
                              ).first().as_dict()
 
-        myposts = []
-        if result['posts']:
-            myposts = db(
-                (db.bug_posts.id.belongs(result['posts'])) &
-                (db.bug_posts.poster==db.auth_user.id) &
-                ((db.bug_posts.deleted == False) |
-                 (db.bug_posts.deleted == None))
-                ).select(orderby=db.bug_posts.thread_index
-                         ).as_list()
+        # myposts = []
+        # if result['posts']:
+        #     myposts = db(
+        #         (db.bug_posts.id.belongs(result['posts'])) &
+        #         (db.bug_posts.poster==db.auth_user.id) &
+        #         ((db.bug_posts.deleted == False) |
+        #          (db.bug_posts.deleted == None))
+        #         ).select(orderby=db.bug_posts.thread_index
+        #                  ).as_list()
 
         full_rec = {'auth_user': user_rec,
                     'bugs': result,
-                    'posts': myposts}
+                    }
+        full_rec = _add_posts_to_queries([full_rec])[0]
         return json(full_rec)
     else:
         response = current.response
