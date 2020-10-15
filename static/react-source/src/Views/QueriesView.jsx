@@ -619,7 +619,7 @@ const QueriesView = () => {
       console.log(mylist[queryIndex]);
       if ( queryIndex > -1 ) {
         if ( newQuery.bugs.deleted ) {
-          mylist[queryIndex].splice(queryIndex, 1);
+          mylist.splice(queryIndex, 1);
         } else {
           mylist[queryIndex] = _formatQueryData(newQuery);
         }
