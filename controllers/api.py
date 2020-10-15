@@ -360,13 +360,14 @@ def _fetch_step_queries(stepid, userid):
     for myclass in myclasses:
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
-                               myclass.id).iterselect()]
+                               myclass.id).iterselect()
+                            if m.name != userid]
                             ))
 
         member_queries = list(filter(lambda x: x['auth_user']['id'] in members,
                                      queries))
         external_queries = list(filter(lambda x: x['auth_user']['id']
-                                       not in members, external_queries))
+                                       not in members + [userid], external_queries))
         mylabel = "{}, {}, {}".format(myclass.institution,
                                       myclass.academic_year,
                                       myclass.course_section)
