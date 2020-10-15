@@ -630,38 +630,40 @@ def log_new_query():
                 )
         if vbs: print('creating::submit_bug: created bug object successfully')
         logged = b.log_new(request.vars['answer'],
-                        request.vars['log_id'],
-                        request.vars['score'],
-                        request.vars['user_comment'],
-                        request.vars['public'])
+                           request.vars['log_id'],
+                           request.vars['score'],
+                           request.vars['user_comment'],
+                           request.vars['public'])
         if vbs: print('creating::submit_bug: logged bug - response is', logged)
 
         myqueries = db((db.bugs.step == request.vars['step_id']) &
-                    (db.bugs.user_name == db.auth_user.id) &
-                    (db.bugs.user_name == uid) &
-                    (db.bugs.deleted.belongs([None, False]))
-                    ).iterselect(db.bugs.id,
-                                 db.bugs.step,
-                                 db.bugs.in_path,
-                                 db.bugs.prompt,
-                                 db.bugs.step_options,
-                                 db.bugs.user_response,
-                                 db.bugs.score,
-                                 db.bugs.adjusted_score,
-                                 db.bugs.log_id,
-                                 db.bugs.user_comment,
-                                 db.bugs.date_submitted,
-                                 db.bugs.bug_status,
-                                 db.bugs.admin_comment,
-                                 db.bugs.hidden,
-                                 db.bugs.deleted,
-                                 db.bugs.pinned,
-                                 db.bugs.flagged,
-                                 db.bugs.posts,
-                                 db.auth_user.id,
-                                 db.auth_user.first_name,
-                                 db.auth_user.last_name
-                                ).as_list()
+                       (db.bugs.user_name == db.auth_user.id) &
+                       (db.bugs.user_name == uid) &
+                       ((db.bugs.deleted == False) |
+                        (db.bugs.deleted == None))
+                       ).iterselect(db.bugs.id,
+                                    db.bugs.step,
+                                    db.bugs.in_path,
+                                    db.bugs.prompt,
+                                    db.bugs.step_options,
+                                    db.bugs.user_response,
+                                    db.bugs.score,
+                                    db.bugs.adjusted_score,
+                                    db.bugs.log_id,
+                                    db.bugs.user_comment,
+                                    db.bugs.date_submitted,
+                                    db.bugs.bug_status,
+                                    db.bugs.admin_comment,
+                                    db.bugs.hidden,
+                                    db.bugs.deleted,
+                                    db.bugs.pinned,
+                                    db.bugs.flagged,
+                                    db.bugs.posts,
+                                    db.auth_user.id,
+                                    db.auth_user.first_name,
+                                    db.auth_user.last_name
+                                    ).as_list()
+        print('got', len(myqueries), '++++++++++++++++++++++++++++++++++')
         myqueries = _add_posts_to_queries(myqueries)
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
