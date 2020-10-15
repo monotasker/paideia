@@ -632,6 +632,7 @@ const QueriesView = () => {
     // returns the modified version of the supplied query list
     // if the new post has deleted: true it is removed
     const _findAndUpdateReply = (mylist, newReply) => {
+      console.log(mylist);
       const myQueryId = newReply.bug_posts.on_bug;
       console.log(myQueryId);
       const myReplyId = newReply.bug_posts.id;
@@ -640,7 +641,9 @@ const QueriesView = () => {
       console.log(queryIndex);
       console.log(mylist[queryIndex]);
       if ( queryIndex > -1 ) {
-        const replyIndex = mylist[queryIndex].children.findIndex(p => p.postId==myReplyId);
+        const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId==myReplyId);
+        console.log('replyIndex');
+        console.log(replyIndex);
         if ( replyIndex > -1 ) {
           if ( newReply.bug_posts.deleted ) {
             mylist[queryIndex].children.splice(replyIndex, 1);
@@ -676,9 +679,12 @@ const QueriesView = () => {
     // Non-returning function to properly update state with one post
     // expects myresponse to have keys "post_list" and "new_post"
     const _updateReplyInState = (myresponse, myscopes) => {
+      console.log('updateReplyInState===============================');
       for (let i=0; i < myscopes.length; i++) {
         let qList = [...myscopes[i].list];
+        console.log(qList);
         const newReply = myresponse.new_post;
+        console.log(newReply);
         let newQList = [];
         if ( qList.length && !!qList[0].classId ) {
           newQList = qList.map(myClass => {
@@ -851,6 +857,10 @@ const QueriesView = () => {
                                helpfulness=null,
                                deleted=null
                               }) => {
+
+      console.log('updateReplyAction**************************');
+      console.log(replyId);
+      console.log(queryId);
       updateQueryReply({user_id: opId,
                        post_id: replyId,
                        query_id: queryId,
@@ -864,6 +874,7 @@ const QueriesView = () => {
                        deleted: deleted
                        })
       .then(myresponse => {
+        console.log(myScopes);
         _updateReplyInState(myresponse, myScopes);
       });
     }
