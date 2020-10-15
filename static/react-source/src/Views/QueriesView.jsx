@@ -606,6 +606,29 @@ const QueriesView = () => {
       )
     }
 
+    // finds and updates a query in a list of queries in state
+    // doesn't assume query already exists
+    // creates new query if specified doesn't exist
+    // returns the modified version of the supplied query list
+    // if the new query has deleted: true it is removed
+    const _findAndUpdateQuery = (mylist, newQuery) => {
+      const myQueryId = newQuery.bugs.id;
+      console.log(myQueryId);
+      const queryIndex = mylist.findIndex(q => q.queryId==myQueryId);
+      console.log(queryIndex);
+      console.log(mylist[queryIndex]);
+      if ( queryIndex > -1 ) {
+        if ( newQuery.bugs.deleted ) {
+          mylist[queryIndex].splice(queryIndex, 1);
+        } else {
+          mylist[queryIndex] = _formatQueryData(newQuery);
+        }
+      } else {
+        mylist[queryIndex].push(_formatQueryData(newQuery));
+      }
+      return mylist;
+    }
+
     // finds and updates a post in a list of queries in state
     // doesn't assume query or post already exist
     // creates new post if specified doesn't exist
@@ -635,8 +658,22 @@ const QueriesView = () => {
     }
 
 
-    const _updateQueryInState = () => {
-
+    // Non-returning function to properly update state with one post
+    // expects myresponse to have keys "auth_user", "bugs", and "posts"
+    const _updateQueryInState = (myresponse, myscopes) => {
+      for (let i=0; i < myscopes.length; i++) {
+        let qList = [ ...myscopes[i].list ];
+        let newQList = [];
+        if ( qList.length && !!qList[0].classId ) {
+          newQList = qList.map(myClass => {
+            myClass.queries = _findAndUpdateQuery(myClass.queries, myresponse);
+            return myClass;
+          })
+        } else if ( qList.length ) {
+          newQList = _findAndUpdateQuery(qList, myresponse);
+        }
+        myscopes[i].action(newQList);
+      }
     }
 
     // Non-returning function to properly update state with one post
@@ -645,7 +682,7 @@ const QueriesView = () => {
       for (let i=0; i < myscopes.length; i++) {
         let qList = [...myscopes[i].list];
         const newReply = myresponse.new_post;
-        const newQList = [];
+        let newQList = [];
         if ( qList.length && !!qList[0].classId ) {
           newQList = qList.map(myClass => {
             myClass.queries = _findAndUpdateReply(myClass.queries, newReply);

@@ -711,8 +711,20 @@ def update_query():
                              db.auth_user.first_name,
                              db.auth_user.last_name
                              ).first().as_dict()
+
+        myposts = []
+        if result['posts']:
+            myposts = db(
+                (db.bug_posts.id.belongs(result['posts'])) &
+                (db.bug_posts.poster==db.auth_user.id) &
+                ((db.bug_posts.deleted == False) |
+                 (db.bug_posts.deleted == None))
+                ).select(orderby=db.bug_posts.thread_index
+                         ).as_list()
+
         full_rec = {'auth_user': user_rec,
-                    'bugs': result}
+                    'bugs': result,
+                    'posts': myposts}
         return json(full_rec)
     else:
         response = current.response
