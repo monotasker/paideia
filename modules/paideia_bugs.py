@@ -400,7 +400,8 @@ def record_post_comment(uid=None, commenter_role=None, post_id=None,
     """
     db = current.db
     mypost = db(db.bug_posts.id == post_id).select().first()
-    post_comments = mypost['comments'] if mypost['comments'] else []
+    post_comments = mypost['comments'] if 'comments' in mypost.keys() \
+        and mypost['comments'] else []
     newdata = {k:v for k, v in {"comment_body": comment_body,
                                 "public": public,
                                 "deleted": deleted,

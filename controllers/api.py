@@ -293,6 +293,7 @@ def _add_posts_to_queries(queries):
                                  db.auth_user.last_name,
                                  db.bug_post_comments.commenter_role,
                                  db.bug_post_comments.dt_posted,
+                                 db.bug_post_comments.on_post,
                                  db.bug_post_comments.thread_index,
                                  db.bug_post_comments.comment_body,
                                  db.bug_post_comments.public,

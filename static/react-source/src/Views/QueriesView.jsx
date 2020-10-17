@@ -252,6 +252,9 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      queryStep=null, queryPath=null,
                      children=null, threadIndex=0
                     }) => {
+  console.log('displayRow==================================');
+  console.log(level);
+  console.log(replyId);
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
   const {user, dispatch} = useContext(UserContext);
@@ -715,6 +718,8 @@ const QueriesView = () => {
     // Non-returning function to properly update state with one comment
     // expects myresponse to have keys "comment_list" and "new_comment"
     const _updateCommentInState = (myresponse, myscopes, queryId) => {
+      console.log(myresponse);
+      console.log(queryId);
       for (let i=0; i < myscopes.length; i++) {
         let qList = [...myscopes[i].list];
         const newComment = myresponse.new_comment;
@@ -875,11 +880,10 @@ const QueriesView = () => {
                                   deleted=null
                                   }) => {
       updateReplyComment({user_id: opId,
-                         comment_id: commentId,
                          post_id: replyId,
-                         bug_id: queryId,
+                         comment_id: commentId,
                          comment_text: opText,
-                         showPublic: showPublic,
+                         show_public: showPublic,
                          deleted: deleted,
                          hidden: hidden,
                          flagged: flagged,
