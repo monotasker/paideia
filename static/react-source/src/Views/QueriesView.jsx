@@ -695,12 +695,17 @@ const QueriesView = () => {
     // if the new comment has deleted: true it is removed
     const _findAndUpdateComment = (mylist, newComment, queryId) => {
       const myReplyId = newComment.bug_post_comments.on_post;
+      console.log(`reply id: ${myReplyId}`);
       const myCommentId = newComment.bug_post_comments.id;
+      console.log(`comment id: ${myCommentId}`);
       const queryIndex = mylist.findIndex(q => q.queryId==queryId);
+      console.log(`queryIndex: ${queryIndex}`);
       if ( queryIndex > -1 ) {
-        const replyIndex = mylist[queryIndex].children.findIndex(p => p.postId==myReplyId);
+        const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId==myReplyId);
+        console.log(`replyIndex: ${replyIndex}`);
         if ( replyIndex > -1 ) {
           const commIndex = mylist[queryIndex].children[replyIndex].children.findIndex(c => c.commentId==myCommentId);
+          console.log(`commIndex: ${commIndex}`);
           if ( commIndex > -1 ) {
             if ( newComment.bug_post_comments.deleted ) {
               mylist[queryIndex].children[replyIndex].children.splice(commIndex, 1);
@@ -730,6 +735,7 @@ const QueriesView = () => {
             return myClass;
           })
         } else if ( qList.length ) {
+          console.log('updating*******************');
           newQList = _findAndUpdateComment(qList, newComment, queryId);
         }
         myScopes[i].action(newQList);
