@@ -252,14 +252,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      queryStep=null, queryPath=null,
                      children=null, threadIndex=0
                     }) => {
-  console.log('displayRow==================================');
-  console.log(level);
-  console.log(replyId);
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
   const {user, dispatch} = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
+  const [ isPublic, setIsPublic ] = useState(showPublic);
   const showEditingForm = (e) => {
     e.preventDefault();
     setEditing(true);
@@ -267,6 +265,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const uid = [classId, queryId, replyId, commentId].join('_');
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
+  const iconSize = level == "query" ? "3x" : "1x";
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
                               opId: opId, queryId: queryId},
                       reply: {opId: opId, replyId: replyId,
@@ -282,6 +281,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                           reply: newCommentAction,
                           comment: null
   };
+  const togglePublic = () => {
+    updateThisAction[level]({showPublic: !isPublic, ...updateArgs[level]});
+    setIsPublic(!isPublic);
+  };
 
   return (
     <li key={`${uid}-display-row ${level}-display-row ${myRoles}`}>
@@ -294,9 +297,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             {readableDateAndTime(dateSubmitted)}
           </span><br />
           {level != "comment" ?
-            <FontAwesomeIcon icon="user-circle"
-              size={level == "query" ? "3x" : "1x"}
-            /> : ""
+            <FontAwesomeIcon icon="user-circle" size={iconSize} /> : ""
           }
           {!!opRole && opRole.map(r =>
             <RoleIcon className={`role-icon ${r}`}
@@ -310,6 +311,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               "question_answered"][queryStatus].replace("_", " ")}
             </span>
             : ""
+          }
+          {<a className={`${level}-display-op-public`} onClick={togglePublic}>
+              {!!isPublic ? "Visible to public" : "Hidden from public"}
+              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                size="1x" />
+           </a>
           }
         </Col>
         <Col xs={9} className={`${level}-display-body-wrapper`}>
@@ -764,6 +771,9 @@ const QueriesView = () => {
 
     useEffect(() => fetchAction(), [user.currentStep]);
 
+    // replyId: replyId, queryId: queryId,
+    //                 opText: childText,
+    //                 isPublic: !isPrivate
     const newQueryAction = (myComment, showPublic) => {
       event.preventDefault();
       const myscore = !!user.currentScore && user.currentScore != 'null' ?
@@ -784,15 +794,15 @@ const QueriesView = () => {
       });
     }
 
-    const newReplyAction = ({replyId,
-                             queryId,
-                             opText,
-                             isPublic
+    const newReplyAction = ({replyId=null,
+                             queryId=null,
+                             opText=null,
+                             showPublic=true
                              }) => {
       addQueryReply({user_id: user.userId,
                     query_id: queryId,
                     post_text: opText,
-                    showPublic: isPublic
+                    show_public: showPublic
                     })
       .then(myresponse => {
         _updateReplyInState(myresponse, myScopes);
@@ -802,13 +812,13 @@ const QueriesView = () => {
     const newCommentAction = ({replyId=null,
                                queryId=null,
                                opText=null,
-                               isPublic=null,
+                               showPublic=true,
                               }) => {
       addReplyComment({user_id: user.userId,
                       post_id: replyId,
                       query_id: queryId,
                       comment_text: opText,
-                      showPublic: isPublic
+                      show_public: showPublic
                       })
       .then(myresponse => {
         _updateCommentInState(myresponse, myScopes, queryId);
@@ -818,7 +828,7 @@ const QueriesView = () => {
     const updateQueryAction = ({opId=null,
                                 queryId=null,
                                 opText=null,
-                                isPublic=null,
+                                showPublic=null,
                                 hidden=null,
                                 flagged=null,
                                 pinned=null,
@@ -826,10 +836,12 @@ const QueriesView = () => {
                                 helpfulness=null,
                                 deleted=null
                                }) => {
+      console.log('updating query------------');
+      console.log(showPublic);
       updateQuery({user_id: opId,
                        query_id: queryId,
                        query_text: opText,
-                       show_public: isPublic,
+                       show_public: showPublic,
                        hidden: hidden,
                        flagged: flagged,
                        pinned: pinned,

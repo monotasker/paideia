@@ -86,6 +86,8 @@ const addQuery = async ({step_id=null,
                                score=null,
                                user_comment=null,
                                show_public=true}) => {
+  console.log('in service-----------------');
+  console.log(show_public);
   let response = await fetch('/paideia/api/log_new_query', {
       method: "POST",
       cache: "no-cache",
@@ -149,7 +151,7 @@ const updateQuery = async({query_id=null,
 const addQueryReply = async({user_id=null,
                             query_id=null,
                             post_text=null,
-                            showPublic=null
+                            show_public=null
                             }) => {
   let response = await fetch('/paideia/api/add_query_post', {
       method: "POST",
@@ -162,7 +164,7 @@ const addQueryReply = async({user_id=null,
         user_id: user_id,
         query_id: query_id,
         post_body: post_text,
-        public: showPublic,
+        public: show_public,
       })
   })
   let mystatus = response.status;
@@ -214,7 +216,7 @@ const addReplyComment = async({user_id=null,
                                post_id=null,
                                query_id=null,
                                comment_text=null,
-                               showPublic=null
+                               show_public=null
                                }) => {
   let response = await fetch('/paideia/api/add_post_comment', {
       method: "POST",
@@ -228,7 +230,7 @@ const addReplyComment = async({user_id=null,
         bug_id: query_id,
         post_id: post_id,
         comment_body: comment_text,
-        public: showPublic,
+        public: show_public,
       })
   })
   let mystatus = response.status;

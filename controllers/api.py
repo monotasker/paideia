@@ -659,6 +659,7 @@ def log_new_query():
                                     db.bugs.deleted,
                                     db.bugs.pinned,
                                     db.bugs.flagged,
+                                    db.bugs.public,
                                     db.bugs.posts,
                                     db.auth_user.id,
                                     db.auth_user.first_name,
