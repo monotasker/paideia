@@ -151,7 +151,7 @@ const updateQuery = async({query_id=null,
 const addQueryReply = async({user_id=null,
                             query_id=null,
                             post_text=null,
-                            show_public=null
+                            show_public=true
                             }) => {
   let response = await fetch('/paideia/api/add_query_post', {
       method: "POST",

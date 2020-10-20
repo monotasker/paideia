@@ -204,16 +204,9 @@ const AddChildForm = ({level, classId, queryId, replyId=null,
   const uid = [classId, queryId, replyId].join("_");
   const createChild = e => {
     e.preventDefault();
-    console.log({replyId: replyId, queryId: queryId,
-                    childText: childText,
-                    isPublic: !isPrivate,
-                    event: e,
-                    addChildAction: addChildAction,
-                    setShowAdder: setShowAdder
-                    });
     addChildAction({replyId: replyId, queryId: queryId,
                     opText: childText,
-                    isPublic: !isPrivate
+                    showPublic: !isPrivate
                     });
     setShowAdder(false);
   }
@@ -540,12 +533,12 @@ const QueriesView = () => {
                dateUpdated: p.bug_posts.modified_on,
                opRole: p.bug_posts.poster_role,
                hidden: p.bug_posts.hidden,
-               deleted: p.bug_posts.deleted || false,
-               flagged: p.bug_posts.flagged || false,
-               pinned: p.bug_posts.pinned || false,
+               deleted: p.bug_posts.deleted,
+               flagged: p.bug_posts.flagged,
+               pinned: p.bug_posts.pinned,
                popularity: 0,
                helpfulness: 0,
-               showPublic: p.bug_posts.public || true,
+               showPublic: p.bug_posts.public,
                threadIndex: p.bug_posts.thread_index,
                children: formattedComments
               }
