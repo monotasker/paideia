@@ -7,6 +7,7 @@ const UserContext = createContext();
 // const UserDispatchContext = createContext();
 const ls = window.localStorage
 
+console.log(ls.getItem('instructing'));
 let userDefaults = {
   userId: parseInt(ls.getItem('userId')) || null,
   firstName: ls.getItem('firstName') || null,
@@ -34,7 +35,7 @@ let userDefaults = {
   dailyQuota: parseInt(ls.getItem('dailyQuota')) || null,
   weeklyQuota: parseInt(ls.getItem('weeklyQuota')) || null,
   classInfo: JSON.parse(ls.getItem('classInfo')) || null,
-  instructing: JSON.parse(ls.getItem('instructing')) || null
+  instructing: !!ls.getItem('instructing') && JSON.parse(ls.getItem('instructing')) || null
 }
 
 

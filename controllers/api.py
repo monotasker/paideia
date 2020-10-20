@@ -380,6 +380,18 @@ def _fetch_step_queries(stepid, userid):
                                       'section': myclass.course_section,
                                       'queries': member_queries}
                                     )
+
+    if not auth.has_membership('administrators'):
+        if auth.has_membership('instructors'):
+            external_queries = list(filter(lambda x: (
+                x['bugs']['public'] is True)
+                or _is_my_student(x['auth_user']['id']),
+                external_queries))
+        else:
+            external_queries = list(filter(
+                lambda x: x['bugs']['public'] is True,
+                external_queries))
+
     return {'user_queries': user_queries,
             'class_queries': myclasses_queries,
             'other_queries': external_queries
