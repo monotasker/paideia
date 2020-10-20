@@ -35,7 +35,7 @@ let userDefaults = {
   dailyQuota: parseInt(ls.getItem('dailyQuota')) || null,
   weeklyQuota: parseInt(ls.getItem('weeklyQuota')) || null,
   classInfo: JSON.parse(ls.getItem('classInfo')) || null,
-  instructing: !!ls.getItem('instructing') && JSON.parse(ls.getItem('instructing')) || null
+  instructing: ls.getItem('instructing') != "undefined" && JSON.parse(ls.getItem('instructing')) || null
 }
 
 

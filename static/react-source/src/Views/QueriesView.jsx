@@ -60,7 +60,7 @@ const AdderButton = ({level, showAdderValue, showAdderAction, label, icon}) => {
   )
 }
 
-const ControlRow = ({userId, opId, level, icon, showAdderValue,
+const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
                      showAdderAction=None,
                      showEditorAction, updateAction, defaultUpdateArgs,
                      userRoles, instructing, showPublic,
@@ -106,7 +106,7 @@ const ControlRow = ({userId, opId, level, icon, showAdderValue,
           <FontAwesomeIcon icon="thumbs-up" />
         </Button>
       }
-      {(userRoles.includes("administrators") || userRoles.includes("instructors") && instructing.find(c => c.id == classId)) &&
+      {(userRoles.includes("administrators") || userRoles.includes("instructors") && !!classId && instructing.find(c => c.id == classId)) &&
         <Button variant="outline-secondary"
           onClick={e =>
             updateAction({...defaultUpdateArgs,
@@ -305,11 +305,17 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </span>
             : ""
           }
-          {<a className={`${level}-display-op-public`} onClick={togglePublic}>
+          {user.userId == opId ?
+           <a className={`${level}-display-op-public`} onClick={togglePublic}>
               {!!isPublic ? "Visible to public" : "Hidden from public"}
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
-           </a>
+           </a> :
+           <span className={`${level}-display-op-public`} >
+              {!!isPublic ? "Visible to public" : "Hidden from public"}
+              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                size="1x" />
+           </span>
           }
         </Col>
         <Col xs={9} className={`${level}-display-body-wrapper`}>
@@ -365,6 +371,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     userId={user.userId}
                     opId={opId}
                     level={level}
+                    classId={classId}
                     icon={level == "comment" ? null : childLevel}
                     showAdderValue={level == "comment" ? null : showAdder}
                     showAdderAction={level == "comment" ? null : setShowAdder}

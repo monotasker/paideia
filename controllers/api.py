@@ -279,6 +279,19 @@ def _add_posts_to_queries(queries):
                          db.bug_posts.comments,
                          orderby=db.bug_posts.thread_index
                          ).as_list()
+
+            if not auth.has_membership('administrators'):
+                if auth.has_membership('instructors'):
+                    myposts = list(filter(
+                        lambda x: x['bug_posts']['public'] is True
+                        or x['bug_posts']['poster'] == auth.user_id
+                        or _is_my_student(auth.user_id, x['bug_posts']['poster']),
+                        myposts))
+                else:
+                    myposts = list(filter(
+                        lambda x: x['bug_posts']['public'] is True
+                        or x['bug_posts']['poster'] == auth.user_id,
+                        myposts))
             for i, p in enumerate(myposts):
                 mycomments = []
                 if p['bug_posts']['comments']:
@@ -306,7 +319,21 @@ def _add_posts_to_queries(queries):
                                  db.bug_post_comments.modified_on,
                                  orderby=db.bug_post_comments.thread_index
                                  ).as_list()
+
+                    if not auth.has_membership('administrators'):
+                        if auth.has_membership('instructors'):
+                            mycomments = list(filter(
+                                lambda x: x['bug_post_comments']['public'] is True
+                                or x['bug_post_comments']['commenter'] == auth.user_id
+                                or _is_my_student(auth.user_id, x['bug_post_comments']['commenter']),
+                                mycomments))
+                        else:
+                            mycomments = list(filter(
+                                lambda x: x['bug_post_comments']['public'] is True
+                                or x['bug_post_comments']['commenter'] == auth.user_id,
+                                mycomments))
                 myposts[i]['comments'] = mycomments
+
             queries[idx]['posts'] = myposts
         else:
             queries[idx]['posts'] = []
@@ -385,7 +412,7 @@ def _fetch_step_queries(stepid, userid):
         if auth.has_membership('instructors'):
             external_queries = list(filter(lambda x: (
                 x['bugs']['public'] is True)
-                or _is_my_student(x['auth_user']['id']),
+                or _is_my_student(auth.user_id, x['auth_user']['id']),
                 external_queries))
         else:
             external_queries = list(filter(
@@ -477,7 +504,7 @@ def update_query_post():
         (auth.user_id == uid
          or auth.has_membership('administrators')
          or auth.has_membership('instructors')
-         and _is_my_student(auth.user_id, uid)
+         and _is_my_student(auth.user_id, auth.user_id, uid)
          )
     ):
         if vbs: print('api::update_query_post: vars are', request.vars)
@@ -582,7 +609,7 @@ def update_post_comment():
         (auth.user_id == uid
          or auth.has_membership('administrators')
          or auth.has_membership('instructors')
-         and _is_my_student(auth.user_id, uid)
+         and _is_my_student(auth.user_id, auth.user_id, uid)
          )
     ):
         if vbs: print('api::update_post_comment: vars are', request.vars)
