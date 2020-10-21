@@ -67,6 +67,8 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
                      flagged, pinned, popularity, helpfulness
                     }) => {
   const labelLevel = level === "query" ? "reply" : "comment";
+  let myPop = Array.isArray(popularity) ? popularity : [];
+  let myHelp = Array.isArray(helpfulness) ? helpfulness : [];
   return(
     <div className={`control-row-${level}`}>
       {level !== "comment" ?
@@ -98,19 +100,23 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
       }
       {userId !== opId &&
         <Button variant="outline-secondary"
-          onClick={e =>
-            updateAction({...defaultUpdateArgs,
-                              popularity: popularity + 1, event: e})
-          }
+          onClick={e => {
+            if (myPop.includes(userId)) {
+              const i = myPop.indexOf(userId);
+              myPop.splice(i, 1);
+            } else {
+              myPop.push(userId);
+            }
+            updateAction({...defaultUpdateArgs, popularity: myPop, event: e})
+          }}
         >
-          <FontAwesomeIcon icon="thumbs-up" />
+          <FontAwesomeIcon icon="thumbs-up" /> {myPop.length}
         </Button>
       }
       {(userRoles.includes("administrators") || userRoles.includes("instructors") && !!classId && instructing.find(c => c.id == classId)) &&
         <Button variant="outline-secondary"
           onClick={e =>
-            updateAction({...defaultUpdateArgs,
-                              pinned: !pinned, event: e})
+            updateAction({...defaultUpdateArgs, pinned: !pinned, event: e})
           }
         >
           <FontAwesomeIcon icon="thumbtack" />
@@ -118,12 +124,19 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
       }
       {(userRoles.includes("administrators") || userRoles.includes("instructors")) &&
         <Button variant="outline-secondary"
-          onClick={e =>
-            updateAction({...defaultUpdateArgs,
-                          helpfulness: helpfulness + 1, event: e})
-          }
+          onClick={e => {
+            if (myHelp.includes(userId)) {
+              const i = myHelp.indexOf(userId);
+              myHelp.splice(i, 1);
+            } else {
+              myHelp.push(userId);
+            }
+            console.log('myHelp');
+            console.log(myHelp);
+            updateAction({...defaultUpdateArgs, helpfulness: myHelp, event: e})
+          }}
         >
-          <FontAwesomeIcon icon="lightbulb" />
+          <FontAwesomeIcon icon="lightbulb" /> {myHelp.length}
         </Button>
       }
     </div>
@@ -829,24 +842,24 @@ const QueriesView = () => {
                                 queryId=null,
                                 opText=null,
                                 showPublic=null,
-                                hidden=null,
                                 flagged=null,
                                 pinned=null,
                                 popularity=null,
                                 helpfulness=null,
                                 deleted=null
+                                // hidden=null,
                                }) => {
-      console.log('updating query------------');
-      console.log(showPublic);
+      // console.log('updating query------------');
+      // console.log(helpfulness);
       updateQuery({user_id: opId,
                        query_id: queryId,
                        query_text: opText,
                        show_public: showPublic,
-                       hidden: hidden,
+                      //  hidden: hidden,
                        flagged: flagged,
                        pinned: pinned,
                        popularity: popularity,
-                       helpulness: helpfulness,
+                       helpfulness: helpfulness,
                        deleted: deleted
                        })
       .then(myresponse => {

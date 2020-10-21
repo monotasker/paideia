@@ -1706,3 +1706,72 @@ success!
 timestamp: 2020-08-20T15:45:20.386625
 ALTER TABLE "bug_post_comments" ADD "on_post" INTEGER REFERENCES "bug_posts" ("id") ON DELETE CASCADE  ;
 success!
+timestamp: 2020-10-21T10:56:15.175817
+ALTER TABLE "bugs" ADD "hidden__tmp" TEXT;
+UPDATE "bugs" SET "hidden__tmp"="hidden";
+ALTER TABLE "bugs" DROP COLUMN "hidden";
+ALTER TABLE "bugs" ADD "hidden" TEXT;
+UPDATE "bugs" SET "hidden"="hidden__tmp";
+ALTER TABLE "bugs" DROP COLUMN "hidden__tmp";
+timestamp: 2020-10-21T10:56:16.962540
+ALTER TABLE "bugs" ADD "popularity__tmp" TEXT;
+UPDATE "bugs" SET "popularity__tmp"="popularity";
+ALTER TABLE "bugs" DROP COLUMN "popularity";
+ALTER TABLE "bugs" ADD "popularity" TEXT;
+UPDATE "bugs" SET "popularity"="popularity__tmp";
+ALTER TABLE "bugs" DROP COLUMN "popularity__tmp";
+timestamp: 2020-10-21T10:56:17.319749
+ALTER TABLE "bugs" ADD "helpfulness__tmp" TEXT;
+UPDATE "bugs" SET "helpfulness__tmp"="helpfulness";
+ALTER TABLE "bugs" DROP COLUMN "helpfulness";
+ALTER TABLE "bugs" ADD "helpfulness" TEXT;
+UPDATE "bugs" SET "helpfulness"="helpfulness__tmp";
+ALTER TABLE "bugs" DROP COLUMN "helpfulness__tmp";
+success!
+timestamp: 2020-10-21T11:15:17.109599
+ALTER TABLE "bugs" DROP COLUMN "hidden";
+success!
+timestamp: 2020-10-21T12:39:48.727370
+ALTER TABLE "bug_posts" ADD "hidden__tmp" TEXT;
+UPDATE "bug_posts" SET "hidden__tmp"="hidden";
+ALTER TABLE "bug_posts" DROP COLUMN "hidden";
+ALTER TABLE "bug_posts" ADD "hidden" TEXT;
+UPDATE "bug_posts" SET "hidden"="hidden__tmp";
+ALTER TABLE "bug_posts" DROP COLUMN "hidden__tmp";
+timestamp: 2020-10-21T12:39:48.790612
+ALTER TABLE "bug_posts" ADD "popularity__tmp" TEXT;
+UPDATE "bug_posts" SET "popularity__tmp"="popularity";
+ALTER TABLE "bug_posts" DROP COLUMN "popularity";
+ALTER TABLE "bug_posts" ADD "popularity" TEXT;
+UPDATE "bug_posts" SET "popularity"="popularity__tmp";
+ALTER TABLE "bug_posts" DROP COLUMN "popularity__tmp";
+timestamp: 2020-10-21T12:39:48.803389
+ALTER TABLE "bug_posts" ADD "helpfulness__tmp" TEXT;
+UPDATE "bug_posts" SET "helpfulness__tmp"="helpfulness";
+ALTER TABLE "bug_posts" DROP COLUMN "helpfulness";
+ALTER TABLE "bug_posts" ADD "helpfulness" TEXT;
+UPDATE "bug_posts" SET "helpfulness"="helpfulness__tmp";
+ALTER TABLE "bug_posts" DROP COLUMN "helpfulness__tmp";
+success!
+timestamp: 2020-10-21T12:39:48.827875
+ALTER TABLE "bug_post_comments" ADD "hidden__tmp" TEXT;
+UPDATE "bug_post_comments" SET "hidden__tmp"="hidden";
+ALTER TABLE "bug_post_comments" DROP COLUMN "hidden";
+ALTER TABLE "bug_post_comments" ADD "hidden" TEXT;
+UPDATE "bug_post_comments" SET "hidden"="hidden__tmp";
+ALTER TABLE "bug_post_comments" DROP COLUMN "hidden__tmp";
+timestamp: 2020-10-21T12:39:48.839167
+ALTER TABLE "bug_post_comments" ADD "popularity__tmp" TEXT;
+UPDATE "bug_post_comments" SET "popularity__tmp"="popularity";
+ALTER TABLE "bug_post_comments" DROP COLUMN "popularity";
+ALTER TABLE "bug_post_comments" ADD "popularity" TEXT;
+UPDATE "bug_post_comments" SET "popularity"="popularity__tmp";
+ALTER TABLE "bug_post_comments" DROP COLUMN "popularity__tmp";
+timestamp: 2020-10-21T12:39:48.850278
+ALTER TABLE "bug_post_comments" ADD "helpfulness__tmp" TEXT;
+UPDATE "bug_post_comments" SET "helpfulness__tmp"="helpfulness";
+ALTER TABLE "bug_post_comments" DROP COLUMN "helpfulness";
+ALTER TABLE "bug_post_comments" ADD "helpfulness" TEXT;
+UPDATE "bug_post_comments" SET "helpfulness"="helpfulness__tmp";
+ALTER TABLE "bug_post_comments" DROP COLUMN "helpfulness__tmp";
+success!

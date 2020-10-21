@@ -358,7 +358,7 @@ def _fetch_step_queries(stepid, userid):
                               db.bugs.date_submitted,
                               db.bugs.bug_status,
                               db.bugs.admin_comment,
-                              db.bugs.hidden,
+                            #   db.bugs.hidden,
                               db.bugs.deleted,
                               db.bugs.public,
                               db.bugs.posts,
@@ -694,7 +694,7 @@ def log_new_query():
                                     db.bugs.date_submitted,
                                     db.bugs.bug_status,
                                     db.bugs.admin_comment,
-                                    db.bugs.hidden,
+                                    # db.bugs.hidden,
                                     db.bugs.deleted,
                                     db.bugs.pinned,
                                     db.bugs.flagged,
@@ -744,7 +744,7 @@ def update_query():
     ):
         if vbs: print('api::update_query_post: vars are', request.vars)
         new_data = {k: v for k, v in request.vars.items()
-                    if k in ['user_comment', 'public', 'deleted', 'hidden',
+                    if k in ['user_comment', 'public', 'deleted',
                              'pinned', 'popularity', 'helpfulness']
                     and v is not None}
         print('Updating----------------------------------')
@@ -756,16 +756,6 @@ def update_query():
                              db.auth_user.first_name,
                              db.auth_user.last_name
                              ).first().as_dict()
-
-        # myposts = []
-        # if result['posts']:
-        #     myposts = db(
-        #         (db.bug_posts.id.belongs(result['posts'])) &
-        #         (db.bug_posts.poster==db.auth_user.id) &
-        #         ((db.bug_posts.deleted == False) |
-        #          (db.bug_posts.deleted == None))
-        #         ).select(orderby=db.bug_posts.thread_index
-        #                  ).as_list()
 
         full_rec = {'auth_user': user_rec,
                     'bugs': result,
