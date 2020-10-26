@@ -11,6 +11,7 @@ import {
     Table,
     Tooltip,
 } from "react-bootstrap";
+import { useLocation } from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import marked from "marked";
 import DOMPurify from 'dompurify';
@@ -522,7 +523,14 @@ const QueriesView = () => {
     const [otherQueries, setOtherQueries] = useState(null);
     const [viewScope, setViewScope] = useState('public');
     const [filterUnanswered, setFilterUnanswered] = useState('false');
-    const [onStep, setOnStep] = useState(!!user.currentStep);
+    let location = useLocation();
+    const [onStep, setOnStep] = useState(location.pathname === "/paideia/walk/map" && !!user.currentStep);
+    console.log(onStep);
+
+    useEffect(() => {
+      let amOnStep = location.pathname === "/paideia/walk/map" && !!user.currentStep;
+      setOnStep(amOnStep);
+    }, [location]);
 
     const _formatCommentData = c => {
       return ({level: "comment",
@@ -1032,9 +1040,11 @@ const QueriesView = () => {
       <Row key="QueriesView" className="queriesview-component panel-view">
         <Col>
           <h2>Questions about
-          <Button>This Step</Button>
-          <Button>All Steps</Button>
-          <Button>General</Button>
+            {!!onStep &&
+              <Button>This Step</Button>
+            }
+            <Button>All Steps</Button>
+            <Button>General</Button>
           </h2>
 
           <Form.Group controlId={`filterUnansweredCheckbox`}>
