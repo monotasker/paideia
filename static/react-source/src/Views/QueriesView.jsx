@@ -47,7 +47,7 @@ const RoleIcon = ({icon}) => {
 
 const AdderButton = ({level, showAdderValue, showAdderAction, label, icon}) => {
   return (
-    <span className={`${level}-button-container`}>
+    <span className={`adder-button-container`}>
       <Button variant="outline-secondary"
         onClick={() => showAdderAction(!showAdderValue)}
         aria-controls={`add-${level}-form-wrapper`}
@@ -70,7 +70,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   let myPop = Array.isArray(popularity) ? popularity : [];
   let myHelp = Array.isArray(helpfulness) ? helpfulness : [];
   return(
-    <div className={`control-row-${level}`}>
+    <div className={`control-row control-row-${level}`}>
       {level !== "comment" ?
         <AdderButton level={level}
           showAdderValue={showAdderValue}
@@ -155,7 +155,7 @@ const UpdateForm = ({level, idArgs, opId, updateAction, currentText,
   }
   return (
     <Form id={`update-${level}-form-${idString}`}
-      className={`update-${level}-form`}
+      className={`update-${level}-form update-form`}
     >
         <Form.Group controlId={`update${level}Textarea-${idString}`}>
           <TextareaAutosize
@@ -294,13 +294,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 
   return (
     <li key={`${uid}-display-row ${level}-display-row ${myRoles}`}>
-      <Row className={`${level}-display-op-wrapper`} >
-        <Col xs={3} className={`${level}-display-op`}>
-          <span className={`${level}-display-op-name`}>
+      <Row className={`${level}-display-wrapper display-wrapper`} >
+        <Col xs={3} className={`${level}-display-op display-op`}>
+          <span className={`${level}-display-op-name display-op-name`}>
             {`${opNameFirst} ${opNameLast}`}
-          </span><br />
-          <span className={`${level}-display-op-date`}>
-            {readableDateAndTime(dateSubmitted)}
           </span><br />
           {level != "comment" ?
             <FontAwesomeIcon icon="user-circle" size={iconSize} /> : ""
@@ -310,8 +307,16 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               key={`${uid}-${r}`} icon={r}
             />
           )}
+          <br />
+          {level==="query" &&
+            <React.Fragment>
+            <span className={`${level}-display-op-date display-op-date`}>
+              {readableDateAndTime(dateSubmitted)}
+            </span><br />
+            </React.Fragment>
+          }
           {!!queryStatus ?
-            <span className={`${level}-display-op-status`}>{
+            <span className={`${level}-display-op-status display-op-status`}>{
               ["", "confirmed",	"fixed",	"not_a_bug",
               "duplicate",	"awaiting review",	"allowance_given",
               "question_answered"][queryStatus].replace("_", " ")}
@@ -319,19 +324,19 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             : ""
           }
           {user.userId == opId ?
-           <a className={`${level}-display-op-public`} onClick={togglePublic}>
+           <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
               {!!isPublic ? "Visible to public" : "Hidden from public"}
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
            </a> :
-           <span className={`${level}-display-op-public`} >
+           <span className={`${level}-display-op-public display-op-public`} >
               {!!isPublic ? "Visible to public" : "Hidden from public"}
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
            </span>
           }
         </Col>
-        <Col xs={9} className={`${level}-display-body-wrapper`}>
+        <Col xs={9} className={`${level}-display-body-wrapper display-body-wrapper`}>
           {!!queryStep &&
             <React.Fragment>
               The step asked...
@@ -353,12 +358,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           <SwitchTransition>
             <CSSTransition
               key={!!editing ? `${level}-display-body-editor` : `${level}-display-body-text`}
-              classNames={`${level}-display-body-wrapper`}
+              classNames={`${level}-display-body-text`}
               unmountOnExit={false}
               timeout={200}
             >
               {!!editing ?
-                <div className={`${level}-display-body-wrapper`}>
+                <div className={`${level}-display-body-text display-body-text`}>
                   <UpdateForm level={level}
                     idArgs={updateArgs[level]}
                     updateAction={updateThisAction[level]}
@@ -367,16 +372,16 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                   />
                 </div>
                 :
-                <div className={`${level}-display-body-wrapper`}>
-                  <p className={`${level}-display-op-question`}
+                <div className={`${level}-display-body-text display-body-text`}>
+                  <p className={`${level}-display-op-question display-op-question`}
                     dangerouslySetInnerHTML={{
                       __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
                   />
-                  <span className={`${level}-display-date`}>
+                  <span className={`${level}-display-date display-date`}>
                     <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(dateSubmitted)}
                   </span>
                   {!!dateUpdated && (dateUpdated !== dateSubmitted) &&
-                    <span className={`${level}-display-edited-date`}>
+                    <span className={`${level}-display-edited-date dispay-edited-date`}>
                       <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
                     </span>
                   }
@@ -409,16 +414,16 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           </Row>
 
           {level != "comment" &&
-            <span className={`${level}-display-add-child`}>
-              <a className="label"
+            <span className={`${level}-display-add-child display-add-child`}>
+              {/* <a className="label"
                 onClick={() => setShowAdder(!showAdder)}
                 aria-controls={`${uid}-add-child-form-wrapper`}
                 aria-expanded={showAdder}
               >
                 <FontAwesomeIcon icon={childLevel} />{childLevel.toUpperCase()}
-              </a>
+              </a> */}
               <Collapse in={showAdder}>
-                <div className={`${uid}-add-child-form-wrapper`}>
+                <div className={`${uid}-add-child-form-wrapper add-child-form-wrapper`}>
                   <AddChildForm className="add-child-form"
                     level={childLevel}
                     classId={classId}
@@ -432,7 +437,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </span>
           }
 
-          <ul className={`${level}-display-children`}>
+          <ul className={`${level}-display-children display-children`}>
           {!!children && children.map(c =>
             <DisplayRow key={`${classId}_${queryId}_${!!replyId ? `${replyId}_${c.commentId}` : c.replyId}`}
               level={childLevel}
