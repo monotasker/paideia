@@ -1041,10 +1041,16 @@ const QueriesView = () => {
         <Col>
           <h2>Questions about
             {!!onStep &&
-              <Button>This Step</Button>
+              <Button onClick={setQueryScope('thisStep')}>
+                This Step
+              </Button>
             }
-            <Button>All Steps</Button>
-            <Button>General</Button>
+            <Button onClick={setQueryScope('allSteps')}>
+              All Steps
+            </Button>
+            <Button onClick={setQueryScope('general')}>
+              General
+            </Button>
           </h2>
 
           <Form.Group controlId={`filterUnansweredCheckbox`}>

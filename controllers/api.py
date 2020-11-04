@@ -9,8 +9,7 @@ from paideia import Walk
 from paideia_utils import GreekNormalizer
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
-from paideia_bugs import Bug, trigger_bug_undo, record_bug_post
-from paideia_bugs import record_post_comment
+from paideia_bugs import Bug, trigger_bug_undo
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -461,7 +460,7 @@ def add_query_post():
         if auth.has_membership('instructors'):
             data['poster_role'].append('instructors')
 
-        post_result = record_bug_post(
+        post_result = Bug.record_bug_post(
             uid=uid,
             bug_id=request.vars['query_id'],
             **data
@@ -511,7 +510,7 @@ def update_query_post():
         new_data = {k: v for k, v in request.vars.items()
                     if k in ['post_body', 'public', 'deleted', 'hidden',
                                 'pinned', 'popularity', 'helpfulness']}
-        result = record_bug_post(
+        result = Bug.record_bug_post(
             uid=uid,
             bug_id=request.vars['query_id'],
             post_id=request.vars['post_id'],
@@ -564,7 +563,7 @@ def add_post_comment():
         if auth.has_membership('instructors'):
             data['commenter_role'].append('instructors')
 
-        result = record_post_comment(
+        result = Bug.record_post_comment(
             uid=uid,
             post_id=request.vars['post_id'],
             **data
@@ -616,7 +615,7 @@ def update_post_comment():
         new_data = {k: v for k, v in request.vars.items()
                     if k in ['comment_body', 'public', 'deleted', 'hidden',
                              'pinned', 'popularity', 'helpfulness']}
-        result = record_post_comment(
+        result = Bug.record_post_comment(
             uid=uid,
             post_id=request.vars['post_id'],
             comment_id=request.vars['comment_id'],

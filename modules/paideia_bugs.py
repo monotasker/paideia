@@ -333,6 +333,149 @@ class Bug(object):
             print(e)
             return 'false'
 
+    @staticmethod
+    def record_post_comment(uid=None, commenter_role=None, post_id=None,
+                            comment_body=None, public=None, flagged=None,
+                            deleted=None, hidden=None, pinned=None, popularity=None, helpfulness=None, comment_id=None
+                            ):
+        """
+        Internal method to add/update a comment on an existing bug answer post.
+
+        This is called by the public API methods add_post_comment and update_post_comment.
+
+        params
+            uid (int)
+            post_id (int)* required
+            comment_text(str)
+            public(bool)
+            deleted(bool)
+            hidden(bool)
+            pinned(bool)
+            popularity(double)
+            helpfulness(double)
+            comment_id(int) OPTIONAL
+
+        If no value is supplied for comment_id this method creates a new comment
+        for the specified bug post. If a comment_id is supplied that
+        bug_post_comments record is updated with the new comment_text string.
+        Returns a dictionary with the keys
+            post_comment_list (list): A list of the ids for all posts on this bug.
+            new_comment (dict): A dictionary containing the record data for the
+                newly inserted or updated post.
+
+        """
+        db = current.db
+        mypost = db(db.bug_posts.id == post_id).select().first()
+        post_comments = mypost['comments'] if 'comments' in mypost.keys() \
+            and mypost['comments'] else []
+        newdata = {k:v for k, v in {"comment_body": comment_body,
+                                    "public": public,
+                                    "deleted": deleted,
+                                    "hidden": hidden,
+                                    "flagged": flagged,
+                                    "pinned": pinned,
+                                    "popularity": popularity,
+                                    "helpfulness": helpfulness}.items()
+                if v is not None}
+        if comment_id:
+            assert comment_id in post_comments
+            db(db.bug_post_comments.id == comment_id).update(
+            modified_on=datetime.datetime.utcnow(),
+            **newdata
+            )
+        else:
+            comment_id = db.bug_post_comments.insert(
+                commenter=uid,
+                commenter_role=commenter_role,
+                on_post=post_id,
+                thread_index=len(post_comments) if post_comments else 0,
+                **newdata
+                )
+            post_comments.append(comment_id)
+            mypost.update_record(comments = post_comments)
+        db.commit()
+
+        newpost = db.bug_posts(post_id)
+        newcomment = db.bug_post_comments(comment_id)
+
+        return {'post_comment_list': newpost['comments'],
+                'new_comment': newcomment.as_dict()}
+
+    @staticmethod
+    def record_bug_post(uid=None, bug_id=None, poster_role=None, post_body=None,
+                        public=True, deleted=None, hidden=None, pinned=None,
+                        flagged=None, helpfulness=None, popularity=None,
+                        post_id=None
+                        ):
+        """
+        Internal method to add/update a discussion post on an existing bug.
+
+        This is called by both public API methods add_query_post and
+        log_new_query.
+
+        params
+            uid (int) *required
+            bug_id (int) *required if no post_id
+            post_id(int) *required if no bug_id
+            poster_role(list)
+            post_text(str)
+            public(bool)
+            deleted(bool)
+            hidden(bool)
+            pinned(bool)
+            flagged(bool)
+            helpfulness(double)
+            popularity(double)
+
+        If no value is supplied for post_id this method creates a new post
+        for the specified bug. If a post_id is supplied that bug_posts record
+        is updated with the new post_text string.
+
+        Returns a dictionary with the keys
+            bug_post_list (list): A list of the ids for all posts on this bug.
+            new_post (dict): A dictionary containing the record data for the
+                newly inserted or updated post.
+
+        """
+
+        db = current.db
+        request = current.request
+        print(request.vars)
+        mybug = db(db.bugs.id == bug_id).select().first()
+        bug_posts = mybug['posts'] if mybug['posts'] else []
+        newdata = {k:v for k, v in {"post_body": post_body,
+                                    "poster_role": poster_role,
+                                    "public": public,
+                                    "deleted": deleted,
+                                    "hidden": hidden,
+                                    "pinned": pinned,
+                                    "flagged": flagged,
+                                    "helpfulness": helpfulness,
+                                    "popularity": popularity}.items()
+                if v not in [None, "null"]}
+        if post_id:
+            assert post_id in bug_posts
+            db(db.bug_posts.id == post_id).update(
+                modified_on=datetime.datetime.utcnow(),
+                **newdata
+                )
+        else:
+            post_id = db.bug_posts.insert(
+                poster=uid,
+                on_bug=bug_id,
+                thread_index=len(bug_posts) if bug_posts else 0,
+                **newdata
+                )
+            bug_posts.append(post_id)
+            mybug.update_record(posts=bug_posts)
+        db.commit()
+
+        newbug = db.bugs(bug_id)
+        newpost = db.bug_posts(post_id)
+
+        return {'bug_post_list': newbug['posts'],
+                'new_post': newpost.as_dict()}
+
 
 def trigger_bug_undo(*args, **kwargs):
     """
@@ -367,145 +510,3 @@ def trigger_bug_undo(*args, **kwargs):
                             user_response, user_comment, adjusted_score)
     return result
 
-
-def record_post_comment(uid=None, commenter_role=None, post_id=None,
-                        comment_body=None, public=None, flagged=None,
-                        deleted=None, hidden=None, pinned=None, popularity=None, helpfulness=None, comment_id=None
-                        ):
-    """
-    Internal method to add/update a comment on an existing bug answer post.
-
-    This is called by the public API methods add_post_comment and update_post_comment.
-
-    params
-        uid (int)
-        post_id (int)* required
-        comment_text(str)
-        public(bool)
-        deleted(bool)
-        hidden(bool)
-        pinned(bool)
-        popularity(double)
-        helpfulness(double)
-        comment_id(int) OPTIONAL
-
-    If no value is supplied for comment_id this method creates a new comment
-    for the specified bug post. If a comment_id is supplied that
-    bug_post_comments record is updated with the new comment_text string.
-    Returns a dictionary with the keys
-        post_comment_list (list): A list of the ids for all posts on this bug.
-        new_comment (dict): A dictionary containing the record data for the
-            newly inserted or updated post.
-
-    """
-    db = current.db
-    mypost = db(db.bug_posts.id == post_id).select().first()
-    post_comments = mypost['comments'] if 'comments' in mypost.keys() \
-        and mypost['comments'] else []
-    newdata = {k:v for k, v in {"comment_body": comment_body,
-                                "public": public,
-                                "deleted": deleted,
-                                "hidden": hidden,
-                                "flagged": flagged,
-                                "pinned": pinned,
-                                "popularity": popularity,
-                                "helpfulness": helpfulness}.items()
-               if v is not None}
-    if comment_id:
-        assert comment_id in post_comments
-        db(db.bug_post_comments.id == comment_id).update(
-           modified_on=datetime.datetime.utcnow(),
-           **newdata
-           )
-    else:
-        comment_id = db.bug_post_comments.insert(
-            commenter=uid,
-            commenter_role=commenter_role,
-            on_post=post_id,
-            thread_index=len(post_comments) if post_comments else 0,
-            **newdata
-            )
-        post_comments.append(comment_id)
-        mypost.update_record(comments = post_comments)
-    db.commit()
-
-    newpost = db.bug_posts(post_id)
-    newcomment = db.bug_post_comments(comment_id)
-
-    return {'post_comment_list': newpost['comments'],
-            'new_comment': newcomment.as_dict()}
-
-
-def record_bug_post(uid=None, bug_id=None, poster_role=None, post_body=None,
-                    public=True, deleted=None, hidden=None, pinned=None,
-                    flagged=None, helpfulness=None, popularity=None,
-                    post_id=None
-                    ):
-    """
-    Internal method to add/update a discussion post on an existing bug.
-
-    This is called by both public API methods add_query_post and
-    log_new_query.
-
-    params
-        uid (int) *required
-        bug_id (int) *required if no post_id
-        post_id(int) *required if no bug_id
-        poster_role(list)
-        post_text(str)
-        public(bool)
-        deleted(bool)
-        hidden(bool)
-        pinned(bool)
-        flagged(bool)
-        helpfulness(double)
-        popularity(double)
-
-    If no value is supplied for post_id this method creates a new post
-    for the specified bug. If a post_id is supplied that bug_posts record
-    is updated with the new post_text string.
-
-    Returns a dictionary with the keys
-        bug_post_list (list): A list of the ids for all posts on this bug.
-        new_post (dict): A dictionary containing the record data for the
-            newly inserted or updated post.
-
-    """
-
-    db = current.db
-    request = current.request
-    print(request.vars)
-    mybug = db(db.bugs.id == bug_id).select().first()
-    bug_posts = mybug['posts'] if mybug['posts'] else []
-    newdata = {k:v for k, v in {"post_body": post_body,
-                                "poster_role": poster_role,
-                                "public": public,
-                                "deleted": deleted,
-                                "hidden": hidden,
-                                "pinned": pinned,
-                                "flagged": flagged,
-                                "helpfulness": helpfulness,
-                                "popularity": popularity}.items()
-               if v not in [None, "null"]}
-    if post_id:
-        assert post_id in bug_posts
-        db(db.bug_posts.id == post_id).update(
-            modified_on=datetime.datetime.utcnow(),
-            **newdata
-            )
-    else:
-        post_id = db.bug_posts.insert(
-            poster=uid,
-            on_bug=bug_id,
-            thread_index=len(bug_posts) if bug_posts else 0,
-            **newdata
-            )
-        bug_posts.append(post_id)
-        mybug.update_record(posts=bug_posts)
-    db.commit()
-
-    newbug = db.bugs(bug_id)
-    newpost = db.bug_posts(post_id)
-
-    return {'bug_post_list': newbug['posts'],
-            'new_post': newpost.as_dict()}
