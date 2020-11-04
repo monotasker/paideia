@@ -493,13 +493,18 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
             }
 
 
-def get_step_queries():
+def get_queries():
     """
     API method to return queries for the selected step.
     """
     queries = _fetch_queries(request.vars['step_id'],
-                                  request.vars['user_id'])
-
+                             request.vars['user_id'],
+                             nonstep=request.vars['nonstep'],
+                             unanswered=request.vars['unanswered'],
+                             pagesize=request.vars['pagesize'],
+                             page=request.vars['page'],
+                             orderby=request.vars['orderby']
+                             )
     return json(queries)
 
 

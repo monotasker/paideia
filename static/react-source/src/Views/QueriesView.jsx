@@ -18,7 +18,7 @@ import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { UserContext } from "../UserContext/UserProvider";
-import { getStepQueries,
+import { getQueries,
          addQuery,
          updateQuery,
          addQueryReply,
@@ -521,15 +521,29 @@ const QueriesView = () => {
     const [userQueries, setUserQueries] = useState(null);
     const [classQueries, setClassQueries] = useState(null);
     const [otherQueries, setOtherQueries] = useState(null);
-    const [viewScope, setViewScope] = useState('public');
-    const [filterUnanswered, setFilterUnanswered] = useState('false');
+
     let location = useLocation();
     const [onStep, setOnStep] = useState(location.pathname === "/paideia/walk/map" && !!user.currentStep);
-    console.log(onStep);
+
+    const [singleStep, setSingleStep] = useState(!onStep ? false : true)
+    const [nonStep, setNonStep] = useState(true)
+    const [viewScope, setViewScope] = useState('public');
+    const [filterUnanswered, setFilterUnanswered] = useState('false');
+
+    const setScopeSingleStep = () => {
+      setNonStep(false);
+      setSingleStep(true);
+    }
+
+    const setScopeAllSteps = () => {
+            setNonStep(false);
+            setSingleStep(false)
+    }
 
     useEffect(() => {
       let amOnStep = location.pathname === "/paideia/walk/map" && !!user.currentStep;
       setOnStep(amOnStep);
+      setScopeSingleStep(false);
     }, [location]);
 
     const _formatCommentData = c => {
@@ -777,8 +791,14 @@ const QueriesView = () => {
 
     const fetchAction = () => {
 
-      getStepQueries({step_id: user.currentStep,
-                      user_id: user.userId})
+      getQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
+                  user_id: user.userId,
+                  nonstep: nonStep,
+                  unanswered: filterUnanswered,
+                  pagesize: 50,
+                  page: 0,
+                  orderby: "modified_on"
+                })
       .then(queryfetch => {
         console.log(queryfetch);
 
@@ -795,7 +815,8 @@ const QueriesView = () => {
       });
     }
 
-    useEffect(() => fetchAction(), [user.currentStep]);
+    useEffect(() => fetchAction(),
+              [user.currentStep, onStep, singleStep, nonStep]);
 
     // replyId: replyId, queryId: queryId,
     //                 opText: childText,
@@ -805,14 +826,14 @@ const QueriesView = () => {
       const myscore = !!user.currentScore && user.currentScore != 'null' ?
         user.currentScore : null;
       addQuery({step_id: user.currentStep,
-                      path_id: user.currentPath,
-                      user_id: user.userId,
-                      loc_name: user.currentLocation,
-                      answer: user.currentAnswer,
-                      log_id: user.currentLogID,
-                      score: myscore,
-                      user_comment: myComment,
-                      show_public: showPublic})
+                path_id: user.currentPath,
+                user_id: user.userId,
+                loc_name: user.currentLocation,
+                answer: user.currentAnswer,
+                log_id: user.currentLogID,
+                score: myscore,
+                user_comment: myComment,
+                show_public: showPublic})
       .then(myresponse => {
         setUserQueries(myresponse.map(
           q => _formatQueryData(q)
@@ -826,10 +847,10 @@ const QueriesView = () => {
                              showPublic=true
                              }) => {
       addQueryReply({user_id: user.userId,
-                    query_id: queryId,
-                    post_text: opText,
-                    show_public: showPublic
-                    })
+                     query_id: queryId,
+                     post_text: opText,
+                     show_public: showPublic
+                     })
       .then(myresponse => {
         _updateReplyInState(myresponse, myScopes);
       });
@@ -1041,14 +1062,14 @@ const QueriesView = () => {
         <Col>
           <h2>Questions about
             {!!onStep &&
-              <Button onClick={setQueryScope('thisStep')}>
+              <Button onClick={() => setScopeSingleStep()}>
                 This Step
               </Button>
             }
-            <Button onClick={setQueryScope('allSteps')}>
+            <Button onClick={() => setScopeAllSteps()}>
               All Steps
             </Button>
-            <Button onClick={setQueryScope('general')}>
+            <Button onClick={() => setNonStep(true)}>
               General
             </Button>
           </h2>

@@ -654,6 +654,10 @@ db.define_table('bugs',
                 format='%(step)s')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name,
 # bug_status);')
+db.bugs.step.requires = IS_EMPTY_OR(IS_IN_DB(db, 'steps.id',
+                                             db.steps._format))
+db.bugs.in_path.requires = IS_EMPTY_OR(IS_IN_DB(db, 'paths.id',
+                                             db.paths._format))
 db.bugs.log_id.requires = IS_EMPTY_OR(IS_IN_DB(db, 'attempt_log.id',
                                                db.attempt_log._format))
 
