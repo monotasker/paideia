@@ -340,39 +340,90 @@ def _add_posts_to_queries(queries):
     return queries
 
 
-def _fetch_step_queries(stepid, userid):
-    queries = db((db.bugs.step == stepid) &
-                 (db.bugs.user_name == db.auth_user.id) &
-                 ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                 ).iterselect(db.bugs.id,
-                              db.bugs.step,
-                              db.bugs.in_path,
-                              db.bugs.prompt,
-                              db.bugs.step_options,
-                              db.bugs.user_response,
-                              db.bugs.score,
-                              db.bugs.adjusted_score,
-                              db.bugs.log_id,
-                              db.bugs.user_comment,
-                              db.bugs.date_submitted,
-                              db.bugs.bug_status,
-                              db.bugs.admin_comment,
-                            #   db.bugs.hidden,
-                              db.bugs.deleted,
-                              db.bugs.public,
-                              db.bugs.posts,
-                              db.bugs.pinned,
-                              db.bugs.popularity,
-                              db.bugs.helpfulness,
-                              db.bugs.user_role,
-                              db.auth_user.id,
-                              db.auth_user.first_name,
-                              db.auth_user.last_name
-                              ).as_list()
+def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
+                   pagesize=50, page=0, orderby="date_submitted"):
+    """
+    Return a list of student queries from the db.bugs table.
 
+    If nonstep=True, this only returns general queries that aren't
+    linked with a particular step.
+
+    If unanswered=True, this only returns queries that have not yet been
+    answered.
+
+    pagination, via the "page" parameter, is zero indexed
+    """
+    offset_start = pagesize * page
+    offset_end = offset_start + pagesize
+    table_fields = [db.bugs.id,
+                    db.bugs.step,
+                    db.bugs.in_path,
+                    db.bugs.prompt,
+                    db.bugs.step_options,
+                    db.bugs.user_response,
+                    db.bugs.score,
+                    db.bugs.adjusted_score,
+                    db.bugs.log_id,
+                    db.bugs.user_comment,
+                    db.bugs.date_submitted,
+                    db.bugs.bug_status,
+                    db.bugs.admin_comment,
+                    db.bugs.deleted,
+                    db.bugs.public,
+                    db.bugs.posts,
+                    db.bugs.pinned,
+                    db.bugs.popularity,
+                    db.bugs.helpfulness,
+                    db.bugs.user_role,
+                    db.auth_user.id,
+                    db.auth_user.first_name,
+                    db.auth_user.last_name]
+                    # FIXME:  re-add db.bugs.hidden here and in model,
+
+    queries = []
+    if stepid > 0 & nonstep==False:
+        #  requesting queries on specified step
+        queries = db((db.bugs.step == stepid) &
+                     (db.bugs.user_name == db.auth_user.id) &
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
+                    ).iterselect(*table_fields,
+                                 limitby=(offset_start, offset_end),
+                                 orderby=~db.bugs[orderby]
+                                 )
+    elif stepid==0 & nonstep==False:
+        #  requesting queries on all steps
+        queries = db((db.bugs.user_name == db.auth_user.id) &
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
+                    ).iterselect(*table_fields,
+                                 limitby=(offset_start, offset_end),
+                                 orderby=~db.bugs[orderby]
+                                 )
+    elif nonstep==True:
+        #  requesting general queries not tied to a step
+        queries = db((db.bugs.step == None) &
+                     (db.bugs.user_name == db.auth_user.id) &
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
+                    ).iterselect(*table_fields,
+                                 limitby=(offset_start, offset_end),
+                                 orderby=~db.bugs[orderby]
+                                 )
+
+    if unanswered:
+        queries = queries.find(lambda r:
+            not db(db.bug_posts.on_bug==r['bugs']['id']).first())
+    queries = queries.as_list()
     queries = _add_posts_to_queries(queries)
 
-    user_queries = [q for q in queries if q['auth_user']['id'] == userid]
+
+    #  collect queries posted by current user
+
+    if userid > 0:
+        user_queries = [q for q in queries if q['auth_user']['id'] == userid]
+
+    else:
+        user_queries = []
+
+    #  collect queries posted by user's class members
 
     myclasses = db((db.class_membership.name == userid) &
                    (db.class_membership.class_section == db.classes.id)
@@ -381,7 +432,6 @@ def _fetch_step_queries(stepid, userid):
                                 db.classes.academic_year,
                                 db.classes.course_section, orderby=~db.classes.start_date
                                 )
-
     myclasses_queries = []
     external_queries = copy(queries)
     for myclass in myclasses:
@@ -395,10 +445,6 @@ def _fetch_step_queries(stepid, userid):
                                      queries))
         external_queries = list(filter(lambda x: x['auth_user']['id']
                                        not in members + [userid], external_queries))
-        mylabel = "{}, {}, {}".format(myclass.institution,
-                                      myclass.academic_year,
-                                      myclass.course_section)
-
         if member_queries:
             myclasses_queries.append({'id': myclass.id,
                                       'institution': myclass.institution,
@@ -406,6 +452,26 @@ def _fetch_step_queries(stepid, userid):
                                       'section': myclass.course_section,
                                       'queries': member_queries}
                                     )
+
+    # collect queries posted by the user's students
+
+    mycourses_queries = []
+    if auth.has_membership('instructors') or \
+            auth.has_membership('administrators'):
+        mycourses = db(db.classes.instructor == userid
+                       ).iterselect(orderby=~db.classes.start_date)
+        for course in mycourses:
+            students = db(db.class_membership.class_section == course.id
+                         ).iterselect(db.class_membership.name)
+            student_queries = list(filter(lambda x: x['auth_user']['id']
+                                          in students, queries))
+            mycourses_queries.append({'id': course.id,
+                                      'institution': course.institution,
+                                      'year': course.academic_year,
+                                      'section': course.course_section,
+                                      'queries': student_queries})
+
+    #  collect queries posted by other users
 
     if not auth.has_membership('administrators'):
         if auth.has_membership('instructors'):
@@ -420,7 +486,10 @@ def _fetch_step_queries(stepid, userid):
 
     return {'user_queries': user_queries,
             'class_queries': myclasses_queries,
-            'other_queries': external_queries
+            'course_queries': mycourses_queries,
+            'other_queries': external_queries,
+            'page_start': offset_start,
+            'page_end': offset_end
             }
 
 
@@ -428,7 +497,7 @@ def get_step_queries():
     """
     API method to return queries for the selected step.
     """
-    queries = _fetch_step_queries(request.vars['step_id'],
+    queries = _fetch_queries(request.vars['step_id'],
                                   request.vars['user_id'])
 
     return json(queries)
@@ -838,6 +907,7 @@ def set_review_mode():
 
     Expects one argument: "review_set"
     """
+    session = current.session
     try:
         myset = int(request.vars['review_set'])
     except (ValueError, TypeError):  # if passed a non-numeric value
@@ -1060,6 +1130,7 @@ def update_course_data():
 
     mydata = request.vars.course_data
     mydata['modified_on'] = datetime.datetime.utcnow
+    course_id = request.vars.course_id
 
     try:
         print('updating course', request.vars.course_id)
@@ -1091,7 +1162,7 @@ def update_course_data():
         response.status = 401
         return json({'status': 'Insufficient privileges'})
 
-    myresult = db(db.classes.id == course_id).update(**course_data)
+    myresult = db(db.classes.id == course_id).update(**mydata)
     assert myresult == 1
 
     return json({"update_count": myresult}, default=my_custom_json)
