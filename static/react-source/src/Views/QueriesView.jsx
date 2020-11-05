@@ -175,39 +175,54 @@ const UpdateForm = ({level, idArgs, opId, updateAction, currentText,
 const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
   const [queryText, setQueryText] = useState(" ");
   const [showPublic, setShowPublic] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   return (
-    <Form onSubmit={() => action(queryText, showPublic)}>
-      {(!nonStep && !!singleStep) &&
-        <Form.Group controlId="newQueryFormAnswer">
-          (!!answer && answer !== "null" ?
-            <React.Fragment>
-              <Form.Label>You said</Form.Label>
-              <p>{answer}</p>
-              <Form.Label>Awarded</Form.Label>
-              <span>{score}</span>
-            </React.Fragment>
-          :
-            <Form.Label>You haven't answered this question yet</Form.Label>
-          )
-        </Form.Group>
-      }
-      <Form.Group controlId="newQueryFormTextarea">
-        <Form.Label>Your question or comment</Form.Label>
-        <Form.Control as="textarea" rows="3"
-          defaultValue={queryText}
-          onChange={e => setQueryText(e.target.value)}
-        />
-      </Form.Group>
-
-      <Form.Group controlId={`addQueryPrivateCheckbox`}>
-        <Form.Check type="checkbox" label="Keep this question or comment private."
-          defaultValue={!showPublic}
-          onChange={e => setShowPublic(!e.target.value)}
+    <React.Fragment>
+    <Button variant="outline-success"
+      onClick={() => setShowForm(!showForm)}
+      aria-controls={`add-query-form`}
+      aria-expanded={showForm}
+    >
+      <FontAwesomeIcon icon="plus" />
+      {"Ask a new question or make a comment!"}
+    </Button>
+    <Collapse in={showForm}>
+      <Form
+        onSubmit={() => action(queryText, showPublic)}
+      >
+        {(!nonStep && !!singleStep) &&
+          <Form.Group controlId="newQueryFormAnswer">
+            ({!!answer && answer !== "null" ?
+              <React.Fragment>
+                <Form.Label>You said</Form.Label>
+                <p>{answer}</p>
+                <Form.Label>Awarded</Form.Label>
+                <span>{score}</span>
+              </React.Fragment>
+            :
+              <Form.Label>You haven't answered this question yet</Form.Label>
+            })
+          </Form.Group>
+        }
+        <Form.Group controlId="newQueryFormTextarea">
+          <Form.Label>Your question or comment</Form.Label>
+          <Form.Control as="textarea" rows="3"
+            defaultValue={queryText}
+            onChange={e => setQueryText(e.target.value)}
           />
-      </Form.Group>
-      <Button variant="primary" type="submit"
-      >Submit my query</Button>
-    </Form>
+        </Form.Group>
+
+        <Form.Group controlId={`addQueryPrivateCheckbox`}>
+          <Form.Check type="checkbox" label="Keep this question or comment private."
+            defaultValue={!showPublic}
+            onChange={e => setShowPublic(!e.target.value)}
+            />
+        </Form.Group>
+        <Button variant="primary" type="submit"
+        >Submit my query</Button>
+      </Form>
+    </Collapse>
+    </React.Fragment>
   );
 }
 
