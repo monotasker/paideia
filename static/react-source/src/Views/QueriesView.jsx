@@ -520,6 +520,7 @@ const QueriesView = () => {
     const [queries, setQueries] = useState(null);
     const [userQueries, setUserQueries] = useState(null);
     const [classQueries, setClassQueries] = useState(null);
+    const [studentsQueries, setStudentsQueries] = useState(null);
     const [otherQueries, setOtherQueries] = useState(null);
 
     let location = useLocation();
@@ -543,7 +544,9 @@ const QueriesView = () => {
     useEffect(() => {
       let amOnStep = location.pathname === "/paideia/walk/map" && !!user.currentStep;
       setOnStep(amOnStep);
-      setScopeSingleStep(false);
+      if (!nonStep) {
+        !!amOnStep ? setScopeSingleStep() : setScopeAllSteps();
+      }
     }, [location]);
 
     const _formatCommentData = c => {
@@ -818,9 +821,6 @@ const QueriesView = () => {
     useEffect(() => fetchAction(),
               [user.currentStep, onStep, singleStep, nonStep, filterUnanswered]);
 
-    // replyId: replyId, queryId: queryId,
-    //                 opText: childText,
-    //                 isPublic: !isPrivate
     const newQueryAction = (myComment, showPublic) => {
       event.preventDefault();
       const myscore = !!user.currentScore && user.currentScore != 'null' ?
@@ -979,6 +979,9 @@ const QueriesView = () => {
       {scope: 'class',
        list: classQueries,
        action: setClassQueries},
+      {scope: 'students',
+       list: studentsQueries,
+       action: setStudentsQueries},
       {scope: 'public',
        list: otherQueries,
        action: setOtherQueries}
@@ -1000,7 +1003,15 @@ const QueriesView = () => {
             variant="outline-secondary"
             onClick={() => setViewScope('class')}
           >
-            <FontAwesomeIcon icon="users" />My Classmates
+            <FontAwesomeIcon icon="users" />Classmates
+            <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
+          </Button>
+          <Button
+            className={`queries-view-changer ${viewScope == 'students' ? "in" : "out"}`}
+            variant="outline-secondary"
+            onClick={() => setViewScope('students')}
+          >
+            <FontAwesomeIcon icon="users" />Students
             <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
           </Button>
           <Button
@@ -1008,7 +1019,7 @@ const QueriesView = () => {
             variant="outline-secondary"
             onClick={() => setViewScope('public')}
           >
-            <FontAwesomeIcon icon="globe-americas" />Other Learners
+            <FontAwesomeIcon icon="globe-americas" />Others
             <Badge variant="success">{otherQueries ? otherQueries.length : "0"}</Badge>
           </Button>
         </div>
@@ -1062,14 +1073,23 @@ const QueriesView = () => {
         <Col>
           <h2>Questions about
             {!!onStep &&
-              <Button onClick={() => setScopeSingleStep()}>
+              <Button
+                className={!!onStep && !!singleStep && !nonStep ? "active" : ""}
+                onClick={() => setScopeSingleStep()}
+              >
                 This Step
               </Button>
             }
-            <Button onClick={() => setScopeAllSteps()}>
+            <Button
+              className={!singleStep && !nonStep ? "active" : ""}
+              onClick={() => setScopeAllSteps()}
+            >
               All Steps
             </Button>
-            <Button onClick={() => setNonStep(true)}>
+            <Button
+              className={!!nonStep ? "active" : ""}
+              onClick={() => setNonStep(true)}
+            >
               General
             </Button>
           </h2>
