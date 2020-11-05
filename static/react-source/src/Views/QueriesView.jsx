@@ -523,6 +523,8 @@ const QueriesView = () => {
     const [studentsQueries, setStudentsQueries] = useState(null);
     const [otherQueries, setOtherQueries] = useState(null);
 
+    const [loading, setLoading] = useState(!queries ? true : false);
+
     let location = useLocation();
     const [onStep, setOnStep] = useState(location.pathname === "/paideia/walk/map" && !!user.currentStep);
 
@@ -793,7 +795,7 @@ const QueriesView = () => {
     }
 
     const fetchAction = () => {
-
+      setLoading(true);
       getQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
                   user_id: user.userId,
                   nonstep: nonStep,
@@ -815,6 +817,7 @@ const QueriesView = () => {
         setOtherQueries(queryfetch.other_queries.slice(0, 20).map(
           q => _formatQueryData(q)
         ));
+        setLoading(false);
       });
     }
 
@@ -1109,7 +1112,7 @@ const QueriesView = () => {
                 unmountOnExit
                 mountOnEnter
               >
-                { !queries ? <LoadingContent /> : <DisplayContent /> }
+                { !!loading ? <LoadingContent /> : <DisplayContent /> }
               </CSSTransition>
             </SwitchTransition>
           </div>
