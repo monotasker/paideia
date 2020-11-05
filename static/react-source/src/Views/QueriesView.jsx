@@ -528,7 +528,7 @@ const QueriesView = () => {
     const [singleStep, setSingleStep] = useState(!onStep ? false : true)
     const [nonStep, setNonStep] = useState(true)
     const [viewScope, setViewScope] = useState('public');
-    const [filterUnanswered, setFilterUnanswered] = useState('false');
+    const [filterUnanswered, setFilterUnanswered] = useState(false);
 
     const setScopeSingleStep = () => {
       setNonStep(false);
@@ -816,7 +816,7 @@ const QueriesView = () => {
     }
 
     useEffect(() => fetchAction(),
-              [user.currentStep, onStep, singleStep, nonStep]);
+              [user.currentStep, onStep, singleStep, nonStep, filterUnanswered]);
 
     // replyId: replyId, queryId: queryId,
     //                 opText: childText,
@@ -1077,7 +1077,7 @@ const QueriesView = () => {
           <Form.Group controlId={`filterUnansweredCheckbox`}>
             <Form.Check type="checkbox" label="Only unanswered questions"
               defaultValue={filterUnanswered}
-              onChange={e => setFilterUnanswered()}
+              onChange={e => setFilterUnanswered(!filterUnanswered)}
               />
           </Form.Group>
 

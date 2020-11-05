@@ -10,6 +10,7 @@ from paideia_utils import GreekNormalizer
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
+from pydal.objects import Rows
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -381,37 +382,46 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                     # FIXME:  re-add db.bugs.hidden here and in model,
 
     queries = []
-    if stepid > 0 & nonstep==False:
+    if nonstep is True:
+        #  requesting general queries not tied to a step
+        print('*****NONSTEP')
+        queries = db((db.bugs.step == None) &
+                     (db.bugs.user_name == db.auth_user.id) &
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
+                    ).select(*table_fields,
+                                 limitby=(offset_start, offset_end),
+                                 orderby=~db.bugs[orderby]
+                                 )
+        for r in queries:
+            print(db(db.bug_posts.on_bug==r['bugs']['id']).count() > 0)
+    elif stepid > 0 & nonstep==False:
         #  requesting queries on specified step
         queries = db((db.bugs.step == stepid) &
                      (db.bugs.user_name == db.auth_user.id) &
                      ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                    ).iterselect(*table_fields,
+                    ).select(*table_fields,
                                  limitby=(offset_start, offset_end),
                                  orderby=~db.bugs[orderby]
                                  )
     elif stepid==0 & nonstep==False:
         #  requesting queries on all steps
-        queries = db((db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                    ).iterselect(*table_fields,
-                                 limitby=(offset_start, offset_end),
-                                 orderby=~db.bugs[orderby]
-                                 )
-    elif nonstep==True:
-        #  requesting general queries not tied to a step
-        queries = db((db.bugs.step == None) &
+        queries = db((db.bugs.step != None) &
                      (db.bugs.user_name == db.auth_user.id) &
                      ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                    ).iterselect(*table_fields,
+                    ).select(*table_fields,
                                  limitby=(offset_start, offset_end),
                                  orderby=~db.bugs[orderby]
                                  )
 
+    print('****** nonstep is', nonstep)
+    print('***** found', len(queries))
+
     if unanswered:
-        queries = queries.find(lambda r:
-            not db(db.bug_posts.on_bug==r['bugs']['id']).first())
+        queries = Rows([r for r in queries if
+                   not db(db.bug_posts.on_bug==r['bugs']['id']).count() > 0])
+        print('****** unanswered', len(queries))
     queries = queries.as_list()
+    print('***** list is', len(queries))
     queries = _add_posts_to_queries(queries)
 
 
