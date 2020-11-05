@@ -172,22 +172,25 @@ const UpdateForm = ({level, idArgs, opId, updateAction, currentText,
   )
 }
 
-const NewQueryForm = ({answer, score, action}) => {
+const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
   const [queryText, setQueryText] = useState(" ");
   const [showPublic, setShowPublic] = useState(true);
   return (
     <Form onSubmit={() => action(queryText, showPublic)}>
-      <Form.Group controlId="newQueryFormAnswer">
-        {!!answer && answer !== "null" ? <React.Fragment>
-          <Form.Label>You said</Form.Label>
-          <p>{answer}</p>
-          <Form.Label>Awarded</Form.Label>
-          <span>{score}</span>
-          </React.Fragment>
-        :
-          <Form.Label>You haven't answered this question yet</Form.Label>
-        }
-      </Form.Group>
+      {(!nonStep && !!singleStep) &&
+        <Form.Group controlId="newQueryFormAnswer">
+          (!!answer && answer !== "null" ?
+            <React.Fragment>
+              <Form.Label>You said</Form.Label>
+              <p>{answer}</p>
+              <Form.Label>Awarded</Form.Label>
+              <span>{score}</span>
+            </React.Fragment>
+          :
+            <Form.Label>You haven't answered this question yet</Form.Label>
+          )
+        </Form.Group>
+      }
       <Form.Group controlId="newQueryFormTextarea">
         <Form.Label>Your question or comment</Form.Label>
         <Form.Control as="textarea" rows="3"
@@ -1037,7 +1040,15 @@ const QueriesView = () => {
             unmountOnExit={true}
           >
             <div className="queries-view-pane">
-              {scope === 'user' ? <NewQueryForm answer={user.currentAnswer} score={user.currentScore} action={newQueryAction} /> : ''}
+              {scope === 'user' ?
+                <NewQueryForm
+                  answer={user.currentAnswer}
+                  score={user.currentScore}
+                  action={newQueryAction}
+                  nonStep={nonStep}
+                  singleStep={singleStep}
+                />
+              : ''}
               <DisplayTable
                 queries={list}
                 updateQueryAction={updateQueryAction}
