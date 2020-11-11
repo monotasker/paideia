@@ -1,17 +1,18 @@
 import React, { useContext, useState, useEffect } from "react";
-import {
-    Badge,
-    Button,
-    Col,
-    Collapse,
-    Form,
-    OverlayTrigger,
-    Row,
-    Spinner,
-    Table,
-    Tooltip,
+import { Badge,
+         Button,
+         Col,
+         Collapse,
+         Form,
+         OverlayTrigger,
+         Row,
+         Spinner,
+         Table,
+         Tooltip,
 } from "react-bootstrap";
-import { useLocation } from "react-router-dom";
+import { useLocation,
+         useParams
+} from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import marked from "marked";
 import DOMPurify from 'dompurify';
@@ -132,8 +133,6 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
             } else {
               myHelp.push(userId);
             }
-            console.log('myHelp');
-            console.log(myHelp);
             updateAction({...defaultUpdateArgs, helpfulness: myHelp, event: e})
           }}
         >
@@ -543,8 +542,15 @@ const QueriesView = () => {
 
     const [loading, setLoading] = useState(!queries ? true : false);
 
-    let location = useLocation();
-    const [onStep, setOnStep] = useState(location.pathname === "/paideia/walk/map" && !!user.currentStep);
+    const location = useLocation();
+    const urlParams = useParams();
+    console.log("urlParams is");
+    console.log(urlParams);
+    const pathArray = location.pathname.split('/');
+    console.log(pathArray);
+    const [onStep, setOnStep] = useState(pathArray[2] == "walk" && !["map", undefined].includes(urlParams.walkPage) && !!user.currentStep);
+    console.log("onStep is");
+    console.log(onStep);
 
     const [singleStep, setSingleStep] = useState(!onStep ? false : true)
     const [nonStep, setNonStep] = useState(true)
@@ -562,11 +568,14 @@ const QueriesView = () => {
     }
 
     useEffect(() => {
-      let amOnStep = location.pathname === "/paideia/walk/map" && !!user.currentStep;
+      console.log("effect params");
+      console.log(urlParams);
+      let amOnStep = pathArray[2] == "walk" && !["map", undefined].includes(urlParams.walkPage) && !!user.currentStep;
       setOnStep(amOnStep);
       if (!nonStep) {
         !!amOnStep ? setScopeSingleStep() : setScopeAllSteps();
       }
+      console.log("setting onStep");
     }, [location]);
 
     const _formatCommentData = c => {

@@ -7,13 +7,14 @@ import {
     OverlayTrigger,
     Tooltip
 } from "react-bootstrap";
-import { withRouter } from "react-router";
+import { useHistory } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import marked from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
+import { urlBase } from "../variables";
 import AudioPlayer from "../Components/AudioPlayer";
 import { evaluateAnswer, getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
@@ -23,6 +24,7 @@ import { returnStatusCheck } from "../Services/authService";
 
 const Step = (props) => {
   console.log(props);
+  const history = useHistory();
   const { user, dispatch } = useContext(UserContext);
   const [ stepData, setStepData ] = useState(props.stepdata);
   const [ evalText, setEvalText ] = useState(null);
@@ -80,7 +82,7 @@ const Step = (props) => {
                     response_string: myval,
                     pre_bug_step_id: stepData.sid})
       .then(stepfetch => {
-        returnStatusCheck(stepfetch, props.history,
+        returnStatusCheck(stepfetch, history,
           (mydata) => {
               console.log(mydata);
               setEvaluatingStep(false);
@@ -100,7 +102,8 @@ const Step = (props) => {
     setEvalText(null);
     setPromptText("");
     setRespButtons(null);
-    props.navfunction({newLoc: "map"});
+    history.push(`/${urlBase}/walk/map`);
+    // props.navfunction({newLoc: "map"});
   }
 
   const retryAction = () => {
@@ -110,7 +113,7 @@ const Step = (props) => {
     setRespButtons(null);
     getPromptData({location: props.myroute, repeat: true})
     .then(stepfetch => {
-      returnStatusCheck(stepfetch, props.history,
+      returnStatusCheck(stepfetch, history,
         (mydata) => {
             setStepData(mydata);
             setPromptText(mydata.prompt_text);
@@ -126,11 +129,12 @@ const Step = (props) => {
     setEvalText(null);
     getPromptData({location: props.myroute})
     .then(stepfetch => {
-      returnStatusCheck(stepfetch, props.history,
+      returnStatusCheck(stepfetch, history,
         (mydata) => {
             setStepData(mydata);
             setPromptText(mydata.prompt_text);
             setRespButtons(mydata.response_buttons);
+            history.push(`/${urlBase}/walk/${props.myroute}/${mydata.sid}`);
         },
         dispatch)
     });
@@ -305,4 +309,4 @@ const Step = (props) => {
   )
 }
 
-export default withRouter(Step);
+export default Step;

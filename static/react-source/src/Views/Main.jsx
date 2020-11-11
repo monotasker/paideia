@@ -141,7 +141,7 @@ library.add(
 
 const myroutes = [
   {path: "/" + urlBase + "(/static/react-source/dist/index.html|)", exact: true, Component: Home},
-  {path: "/" + urlBase + "/walk/:walkPage", exact: false, Component: Walk},
+  {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false, Component: Walk},
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
   {path: "/" + urlBase + "/profile", exact: false, Component: Profile},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
@@ -191,7 +191,10 @@ const MainPage = () => {
     >
       <Switch>
         <PrivateRoute exact={false} path="/walk/:walkPage" >
-          <Walk />
+          <React.Fragment>
+            <Walk />
+            <Tools />
+          </React.Fragment>
         </PrivateRoute>
       {myroutes.map(({ path, exact, Component }) => (
         <Route key={path} exact={exact} path={path}>
@@ -204,14 +207,16 @@ const MainPage = () => {
               timeout={300}
               unmountOnExit
             >
+              <React.Fragment>
               <Component />
+              <Tools />
+              </React.Fragment>
             </CSSTransition>
           )}
         </Route>
       )
       )}
       </Switch>
-      <Tools />
     </Col>
   )
 }

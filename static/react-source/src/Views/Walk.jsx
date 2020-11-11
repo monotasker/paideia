@@ -1,20 +1,26 @@
 import React, { useState, useContext } from "react";
 import { Row, Spinner } from "react-bootstrap";
 import { CSSTransition } from "react-transition-group";
-import { withRouter } from "react-router";
+import { useParams,
+         useHistory
+} from "react-router-dom";
 
 import SvgMap from "./SvgMap";
 import Step from "./Step";
 import { getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import { returnStatusCheck } from "../Services/authService";
+import { urlBase } from "../variables";
 
 
 const Walk = (props) => {
+    const { walkPage, walkStep } = useParams();
+    console.log("walkPage");
+    console.log(walkPage);
+    const history = useHistory();
+
     const { user, dispatch } = useContext(UserContext);
-    const [ currentPage, setCurrentPage ] = useState(props.location.search || "map");
-    const [mapIn, setMapIn] = useState(true);
-    const [stepIn, setStepIn] = useState(false);
+    const [ currentPage, setCurrentPage ] = useState(walkPage || "map");
     const [stepData, setStepData] = useState(false);
 
     const goToLocation = async ({newLoc=null, retrying=false}) => {
@@ -25,22 +31,18 @@ const Walk = (props) => {
           returnStatusCheck(stepfetch, props.history,
             (mydata) => {
                 setStepData(mydata);
-                setStepIn(true);
-                setMapIn(false);
+                history.push(`/${urlBase}/walk/${newLoc}/${mydata.sid}`)
             },
             dispatch
           )
         });
-      } else {
-        setStepIn(false);
-        setMapIn(true);
       }
     };
 
     return (
       <Row className="walk-container" >
         <CSSTransition
-          in={ mapIn }
+          in={ walkPage=="map" }
           classNames="svgMapPane"
           timeout={{
             appear: 2000,
@@ -57,7 +59,7 @@ const Walk = (props) => {
         </CSSTransition>
 
         <CSSTransition
-          in={ stepIn }
+          in={ walkPage!="map" }
           classNames="stepPane"
           timeout={0}
           appear={true}
@@ -75,4 +77,4 @@ const Walk = (props) => {
     )
 }
 
-export default withRouter(Walk);
+export default Walk;
