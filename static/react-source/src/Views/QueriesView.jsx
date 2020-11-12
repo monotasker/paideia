@@ -544,13 +544,10 @@ const QueriesView = () => {
 
     const location = useLocation();
     const urlParams = useParams();
-    console.log("urlParams is");
-    console.log(urlParams);
     const pathArray = location.pathname.split('/');
-    console.log(pathArray);
-    const [onStep, setOnStep] = useState(pathArray[2] == "walk" && !["map", undefined].includes(urlParams.walkPage) && !!user.currentStep);
-    console.log("onStep is");
-    console.log(onStep);
+    const [onStep, setOnStep] = useState(pathArray[2] == "walk" &&
+      !["map", undefined].includes(urlParams.walkPage) &&
+      !!user.currentStep);
 
     const [singleStep, setSingleStep] = useState(!onStep ? false : true)
     const [nonStep, setNonStep] = useState(true)
@@ -570,7 +567,9 @@ const QueriesView = () => {
     useEffect(() => {
       console.log("effect params");
       console.log(urlParams);
-      let amOnStep = pathArray[2] == "walk" && !["map", undefined].includes(urlParams.walkPage) && !!user.currentStep;
+      let amOnStep = pathArray[2] == "walk" &&
+                      !["map", undefined].includes(urlParams.walkPage) &&
+                      !!user.currentStep;
       setOnStep(amOnStep);
       if (!nonStep) {
         !!amOnStep ? setScopeSingleStep() : setScopeAllSteps();

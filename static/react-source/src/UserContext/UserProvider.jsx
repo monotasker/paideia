@@ -30,12 +30,16 @@ let userDefaults = {
   currentScore: ls.getItem('currentScore') || null,
   currentLogID: parseInt(ls.getItem('currentLogID')) || null,
   currentBadgeSet: parseInt(ls.getItem('currentBadgeSet')) || null,
-  badgeLevels: JSON.parse(ls.getItem('badgeLevels')) || null,
-  calendar: JSON.parse(ls.getItem('calendar')) || null,
+  badgeLevels: ls.getItem('badgeLevels') != "undefined" &&
+    JSON.parse(ls.getItem('badgeLevels')) || null,
+  calendar: ls.getItem('calendar') != "undefined" &&
+    JSON.parse(ls.getItem('calendar')) || null,
   dailyQuota: parseInt(ls.getItem('dailyQuota')) || null,
   weeklyQuota: parseInt(ls.getItem('weeklyQuota')) || null,
-  classInfo: JSON.parse(ls.getItem('classInfo')) || null,
-  instructing: ls.getItem('instructing') != "undefined" && JSON.parse(ls.getItem('instructing')) || null
+  classInfo: ls.getItem('classInfo') != "undefined" &&
+    JSON.parse(ls.getItem('classInfo')) || null,
+  instructing: ls.getItem('instructing') != "undefined" &&
+    JSON.parse(ls.getItem('instructing')) || null
 }
 
 
