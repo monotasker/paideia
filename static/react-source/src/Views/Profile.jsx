@@ -1,18 +1,19 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  Row,
   Col,
-  Tabs,
-  Tab,
   Badge,
-  Spinner,
+  Button,
+  Form,
+  InputGroup,
   OverlayTrigger,
   Popover,
   PopoverTitle,
   PopoverContent,
-  InputGroup,
-  Form,
-  Button
+  Row,
+  Spinner,
+  Tab,
+  Table,
+  Tabs
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { useHistory } from "react-router-dom";
@@ -31,7 +32,7 @@ const UpdateNotice = ({status}) => {
   )
 }
 
-const BadgeTerm = ({title, description, lessons}) => {
+const BadgeTerm = ({title, description, lessons, data}) => {
   const history = useHistory();
   return(
     <OverlayTrigger placement="auto"
@@ -54,6 +55,22 @@ const BadgeTerm = ({title, description, lessons}) => {
               </li>
               )}
             </ul>
+            <Table>
+                <tbody>
+                  <tr>
+                    <td>Recent average score</td>
+                    <td>{data.avg_score}</td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+            </Table>
           </PopoverContent>
         </Popover>
       }
@@ -254,9 +271,12 @@ const Profile = (props) => {
                 title={<React.Fragment><Badge variant="primary">{badgeLevels[blevel.index].length}</Badge> {blevel.title}</React.Fragment>}
               >
                 <span className="level-explanation">{blevel.text}. (Click a badge for details.)</span>
-                {badgeLevels[blevel.index].length != 0 && badgeLevels[blevel.index].map(b =>
-                  <BadgeTerm key={b[0]} title={b[0]} description={b[2]} lessons={b[3]} />
+                {badgeLevels[blevel.index].length != 0 && badgeLevels[blevel.index].map(b => {
+                  const bData = badgeTableData.find(o => o.tag == b[1]);
+                  return (
+                    <BadgeTerm key={b[0]} title={b[0]} description={b[2]} lessons={b[3]} data={bData} />
                   )
+                  })
                 }
               </Tab>
             )
