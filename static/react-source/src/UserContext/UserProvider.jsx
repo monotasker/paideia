@@ -36,15 +36,15 @@ let userDefaults = {
     JSON.parse(ls.getItem('calendar')) || null,
   dailyQuota: parseInt(ls.getItem('dailyQuota')) || null,
   weeklyQuota: parseInt(ls.getItem('weeklyQuota')) || null,
-  badgeTableData: ls.getItem('badgeTableData') != "unefined" &&
+  badgeTableData: ls.getItem('badgeTableData') != "undefined" &&
     JSON.parse(ls.getItem("badgeTableData")) || null,
-  answerCounts: ls.getItem('badgeTableData') != "unefined" &&
+  answerCounts: ls.getItem('answerCounts') != "undefined" &&
     JSON.parse(ls.getItem('answerCounts')) || null,
-  badgeSetDict: ls.getItem('badgeTableData') != "unefined" &&
+  badgeSetDict: ls.getItem('badgeSetDict') != "undefined" &&
     JSON.parse(ls.getItem('badgeSetDict')) || null,
-  badgeSetMilestones: ls.getItem('badgeTableData') != "unefined" &&
+  badgeSetMilestones: ls.getItem('badgeSetMilestones') != "undefined" &&
     JSON.parse(ls.getItem('badgeSetMilestones')) || null,
-  chart1Data: ls.getItem('badgeTableData') != "unefined" &&
+  chart1Data: ls.getItem('chart1Data') != "undefined" &&
     JSON.parse(ls.getItem('chart1Data')) || null,
   classInfo: ls.getItem('classInfo') != "undefined" &&
     JSON.parse(ls.getItem('classInfo')) || null,
