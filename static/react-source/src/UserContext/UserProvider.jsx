@@ -36,6 +36,16 @@ let userDefaults = {
     JSON.parse(ls.getItem('calendar')) || null,
   dailyQuota: parseInt(ls.getItem('dailyQuota')) || null,
   weeklyQuota: parseInt(ls.getItem('weeklyQuota')) || null,
+  badgeTableData: ls.getItem('badgeTableData') != "unefined" &&
+    JSON.parse(ls.getItem("badgeTableData")) || null,
+  answerCounts: ls.getItem('badgeTableData') != "unefined" &&
+    JSON.parse(ls.getItem('answerCounts')) || null,
+  badgeSetDict: ls.getItem('badgeTableData') != "unefined" &&
+    JSON.parse(ls.getItem('badgeSetDict')) || null,
+  badgeSetMilestones: ls.getItem('badgeTableData') != "unefined" &&
+    JSON.parse(ls.getItem('badgeSetMilestones')) || null,
+  chart1Data: ls.getItem('badgeTableData') != "unefined" &&
+    JSON.parse(ls.getItem('chart1Data')) || null,
   classInfo: ls.getItem('classInfo') != "undefined" &&
     JSON.parse(ls.getItem('classInfo')) || null,
   instructing: ls.getItem('instructing') != "undefined" &&
@@ -167,10 +177,20 @@ function userReducer(state, action) {
       ls.setItem('currentBadgeSet', action.payload.currentBadgeSet);
       ls.setItem('badgeLevels', JSON.stringify(action.payload.badgeLevels));
       ls.setItem('calendar', JSON.stringify(action.payload.calendar));
+      ls.setItem('badgeTableData', JSON.stringify(action.payload.badgeTableData));
+      ls.setItem('answerCounts', JSON.stringify(action.payload.answerCounts));
+      ls.setItem('badgeSetDict', JSON.stringify(action.payload.badgeSetDict));
+      ls.setItem('badgeSetMilestones', JSON.stringify(action.payload.badgeSetMilestones));
+      ls.setItem('chart1Data', JSON.stringify(action.payload.chart1Data));
       return {...state,
         currentBadgeSet: action.payload.currentBadgeSet,
         badgeLevels: action.payload.badgeLevels,
-        calendar: action.payload.calendar
+        calendar: action.payload.calendar,
+        badgeTableData: action.payload.badgeTableData,
+        answerCounts: action.payload.answerCounts,
+        badgeSetDict: action.payload.badgeSetDict,
+        badgeSetMilestones: action.payload.badgeSetMilestones,
+        chart1Data: action.payload.chart1Data,
       }
     }
     case 'updateCalendarInfo': {

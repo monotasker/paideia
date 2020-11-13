@@ -64,6 +64,14 @@ const getProfileInfo = async ({forSelf=false,
     currentBadgeSet: jsonData.max_set,
     badgeLevels: jsonData.badge_levels,
     calendar: jsonData.cal,
+    badgeTableData: jsonData.badge_table_data,
+    answerCounts: jsonData.answer_counts,
+    badgeSetDict: jsonData.badge_set_dict,
+    badgeSetMilestones: jsonData.badge_set_milestones,
+    chart1Data: jsonData.chart1_data,
+    endDate: jsonData.end_date,
+    startingSet: jsonData.starting_set,
+    targetSet: jsonData.targetSet,
     status_code: mystatus
   }
   if ( !!forSelf ) {

@@ -18,6 +18,7 @@ import { LinkContainer } from "react-router-bootstrap";
 import { useHistory } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { urlBase } from "../variables";
 import { returnStatusCheck, getProfileInfo } from "../Services/authService";
 import { UserContext } from "../UserContext/UserProvider";
 import Calendar from "../Components/Calendar";
@@ -45,7 +46,7 @@ const BadgeTerm = ({title, description, lessons}) => {
             <ul>
               {lessons.length != 0 && lessons.map(lesson =>
               <li key={lesson[0]}>
-                <LinkContainer to={`/videos/${lesson[0]}`}>
+                <LinkContainer to={`/${urlBase}/videos/${lesson[0]}`}>
                   <a className="lessonlink" >
                     <FontAwesomeIcon icon="video" />{lesson[1]}
                   </a>
@@ -87,6 +88,16 @@ const Profile = (props) => {
     !!viewingSelf ? user.badgeLevels : null);
   const [ calendarData, setCalendarData ] = useState(
     !!viewingSelf ? user.calendar : null);
+  const [ badgeTableData, setBadgeTableData ] = useState(
+    !!viewingSelf ? user.badgeTableData : null);
+  const [ answerCounts, setAnswerCounts ] = useState(
+    !!viewingSelf ? user.answerCounts : null);
+  const [ badgeSetDict, setBadgeSetDict ] = useState(
+    !!viewingSelf ? user.badgeSetDict : null);
+  const [ badgeSetMilestones, setBadgeSetMilestones ] = useState(
+    !!viewingSelf ? user.badgeSetMilestones : null);
+  const [ chart1Data, setChart1Data ] = useState(
+    !!viewingSelf ? user.chart1Data : null);
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
   console.log(user.classInfo);
@@ -108,6 +119,11 @@ const Profile = (props) => {
           setCurrentBadgeSet(info.currentBadgeSet);
           setBadgeLevels(info.badgeLevels);
           setCalendarData(info.calendar);
+          setBadgeTableData(info.badgeTableData);
+          setAnswerCounts(info.answerCounts);
+          setBadgeSetDict(info.badgeSetDict);
+          setBadgeSetMilestones(info.badgeSetMilestones);
+          setChart1Data(info.chart1Data);
           setUpdating(false);
         },
         dispatch
