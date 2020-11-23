@@ -18,4 +18,13 @@ const readableDateAndTime = myString => {
   return output;
 }
 
-export { readableDateAndTime }
+const withinOneDay = myString => {
+  const theDate = moment.utc(myString);
+  const now = moment.utc();
+  const dayAgo = now.subtract(1, "days");
+  return theDate.isSameOrAfter(dayAgo);
+}
+
+export { readableDateAndTime,
+         withinOneDay
+       }

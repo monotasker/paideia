@@ -14,6 +14,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowsAltH,
+  faBalanceScale,
   faBolt,
   faBug,
   faCaretDown,
@@ -30,6 +31,7 @@ import {
   faEye,
   faEyeSlash,
   faFilter,
+  faFlag,
   faFont,
   faGlobeAmericas,
   faHardHat,
@@ -57,6 +59,7 @@ import {
   faSpinner,
   faThumbsUp,
   faThumbtack,
+  faTimesCircle,
   faTrashAlt,
   faUser,
   faUserCircle,
@@ -86,6 +89,7 @@ import { checkLogin, updateUserInfo } from '../Services/authService';
 
 library.add(
   faArrowsAltH,
+  faBalanceScale,
   faBolt,
   faBug,
   faCaretDown,
@@ -102,6 +106,7 @@ library.add(
   faEye,
   faEyeSlash,
   faFilter,
+  faFlag,
   faFont,
   faGlobeAmericas,
   faHardHat,
@@ -130,6 +135,7 @@ library.add(
   faTrashAlt,
   faThumbsUp,
   faThumbtack,
+  faTimesCircle,
   faUser,
   faUserCircle,
   faUsers,
