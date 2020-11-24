@@ -1,21 +1,29 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Route,
-  Redirect
+  Redirect,
+  useHistory
 } from 'react-router-dom';
 import { UserContext } from '../UserContext/UserProvider';
+import { urlBase } from '../variables';
 import { checkLogin } from '../Services/authService';
 
-const PrivateRoute = ({ component: Component, ...rest }) => {
+
+const PrivateRoute = ({ ...options }) => {
   const { user, dispatch } = useContext(UserContext);
-  const [ loggedIn, setLoggedIn ] = useState(checkLogin(user, dispatch));
+  const [ loggedIn, setLoggedIn ] = useState(user.userLoggedIn);
+  let history = useHistory();
+
+  useEffect(() => {
+    if (!loggedIn) { history.push(`/${urlBase}/login`); }
+  }, [loggedIn, user.userLoggedIn]);
+
+  useEffect(() => {
+    setLoggedIn(checkLogin(user, dispatch));
+  });
 
   return(
-    <Route {...rest} render={(props) => (
-      loggedIn === true
-        ? <Component {...props} />
-        : <Redirect to='/login' />
-    )} />
+    <Route {...options} />
   )
 }
 

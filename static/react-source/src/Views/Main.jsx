@@ -146,16 +146,18 @@ library.add(
 
 
 const myroutes = [
-  {path: "/" + urlBase + "(/static/react-source/dist/index.html|)", exact: true, Component: Home},
-  {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false, Component: Walk},
+  {path: "/" + urlBase + "(/static/react-source/dist/index.html||/home)", exact: true, Component: Home},
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
-  {path: "/" + urlBase + "/profile", exact: false, Component: Profile},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
   {path: "/" + urlBase + "/admin/:adminPage", exact: false, Component: Admin},
   {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},
   {path: "/" + urlBase + "/login", exact: false, Component: Login}
 ]
 
+const myPrivateRoutes = [
+  {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false, Component: Walk},
+  {path: "/" + urlBase + "/profile", exact: false, Component: Profile},
+]
 
 const MainPage = () => {
   const [ myheight, setMyheight ] = useState(null);
@@ -180,12 +182,26 @@ const MainPage = () => {
       style={{height: myheight}}
     >
       <Switch>
-        <PrivateRoute exact={false} path="/walk/:walkPage" >
-          <React.Fragment>
-            <Walk />
-            <Tools />
-          </React.Fragment>
+      {myPrivateRoutes.map(({ path, exact, Component }) => (
+        <PrivateRoute key={path} exact={exact} path={path} >
+          {( { match } ) => (
+          <CSSTransition
+            classNames="content-view"
+            key={path}
+            in={match != null}
+            appear={true}
+            timeout={300}
+            unmountOnExit
+          >
+            <React.Fragment>
+              <Component />
+              <Tools />
+            </React.Fragment>
+          </CSSTransition>
+          )}
         </PrivateRoute>
+      )
+      )}
       {myroutes.map(({ path, exact, Component }) => (
         <Route key={path} exact={exact} path={path}>
           {( { match } ) => (
@@ -198,8 +214,8 @@ const MainPage = () => {
               unmountOnExit
             >
               <React.Fragment>
-              <Component />
-              <Tools />
+                <Component />
+                <Tools />
               </React.Fragment>
             </CSSTransition>
           )}
