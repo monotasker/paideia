@@ -1552,11 +1552,21 @@ def get_current_class(uid, now, myclass=None):
         myclasses = db((db.class_membership.name == uid) &
                        (db.class_membership.class_section == db.classes.id)
                        ).select()
-        myclasses = myclasses.find(lambda row:
-                                   row.classes.start_date is not None)
-        myclasses = myclasses.find(lambda row: (row.classes.start_date < now)
-                                   and (row.classes.end_date > now))
+        print('********************')
+        pprint(myclasses[-1])
+        print(now)
+        print(type(now))
+        print(datetime.datetime(2020, 1, 1, 8, 49, 16) > now)
+        print(datetime.datetime(2020, 4, 27, 8, 50) < now)
+        myclasses = myclasses.find(lambda row: (row.classes.start_date is not
+                                                None) and
+                                   (row.classes.start_date < now) and
+                                   (row.classes.end_date > now)
+                                   )
+        pprint(myclasses)
         myc = myclasses.first()
+    print('+++++++++++++++++++')
+    pprint(myc)
     return myc
 
 

@@ -141,21 +141,29 @@ def _fetch_userdata(raw_user, vars):
 
         current_class = get_current_class(user['id'], datetime.datetime.utcnow())
         if current_class:
-            user['daily_quota'] = current_class['paths_per_day']
-            user['weekly_quota'] = current_class['paths_per_week']
-            user['class_info'] = {k: v for k, v in current_class.items()
-                                    if k in ['institution', 'academic_year',
-                                            'term', 'course_section',
-                                            'start_date',
-                                            'end_date', 'paths_per_day',
-                                            'a_target', 'a_cap', 'b_target',
-                                            'b_cap', 'c_target', 'c_cap',
-                                            'd_target', 'd_cap', 'f_target']
-                                    }
-            my_instructor = db.auth_user(current_class['instructor'])
-            user['class_info']['instructor'] == {'first_name': my_instructor['first_name'],
-                                                 'last_name': my_instructor['last_name'],
-                                                 'id': current_class['instructor']}
+            user['daily_quota'] = current_class['classes']['paths_per_day']
+            user['weekly_quota'] = current_class['classes']['days_per_week']
+            user['class_info'] = {k: v for k, v in
+                                  current_class['classes'].items()
+                                  if k in ['institution', 'academic_year',
+                                           'term', 'course_section',
+                                           'start_date',
+                                           'end_date', 'paths_per_day',
+                                           'days_per_week',
+                                           'a_target', 'a_cap', 'b_target',
+                                           'b_cap', 'c_target', 'c_cap',
+                                           'd_target', 'd_cap', 'f_target']
+                                  }
+            my_instructor = db.auth_user(current_class['classes']['instructor'])
+            user['class_info']['instructor'] = {'first_name':
+                                                my_instructor['first_name'],
+                                                'last_name':
+                                                my_instructor['last_name'],
+                                                'id':
+                                                my_instructor['id']}
+            user['class_info']['starting_set'] = \
+                current_class['class_membership']['starting_set'] \
+                if user['class_info']['starting_set'] is not None else 1
         else:
             user['daily_quota'] = 20
             user['weekly_quota'] = 5
@@ -1000,6 +1008,7 @@ def get_profile_info():
 
         # get user's current course
         myc = get_current_class(user.id, datetime.datetime.utcnow())
+        # FIXME: UserProvider should be updated here with class info if new
 
         # tab1
 
@@ -1011,6 +1020,7 @@ def get_profile_info():
         badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
 
         start_date, fmt_start, end_date, fmt_end = None, None, None, None
+        # FIXME: Below fails if targets aren't set on class
         if myc:
             start_date, fmt_start, end_date, fmt_end, \
                 prevend, fmt_prevend = get_term_bounds(

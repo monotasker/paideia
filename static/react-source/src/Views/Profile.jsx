@@ -72,7 +72,7 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
             {data.curlev!=1 && data.revlev == 1 &&
               <span className="badge-promotion-tip">This badge is due for some review to keep it fresh.</span>
             }
-            <Table>
+            <Table borderless hover size="sm">
                 <tbody>
                   <tr>
                     <td>Recent average score</td>
@@ -163,6 +163,7 @@ const Profile = (props) => {
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
   console.log(user.classInfo);
+  console.log(Object.keys(user.classInfo));
 
 
   useEffect(() => {
@@ -225,7 +226,7 @@ const Profile = (props) => {
             weeklyQuota={weeklyQuota}
           />
         }
-        <InputGroup className="profile-classinfo-targets-daily">
+        <InputGroup className="profile-calendar-targets-daily">
             <InputGroup.Prepend>
               <InputGroup.Text id="daytarget-label">Daily target</InputGroup.Text>
             </InputGroup.Prepend>
@@ -238,7 +239,7 @@ const Profile = (props) => {
               <InputGroup.Text id="basic-addon2">paths per day</InputGroup.Text>
             </InputGroup.Append>
         </InputGroup>
-        <InputGroup className="profile-classinfo-targets-weekly">
+        <InputGroup className="profile-calendar-targets-weekly">
             <InputGroup.Prepend>
               <InputGroup.Text id="weektarget-label">Weekly target</InputGroup.Text>
             </InputGroup.Prepend>
@@ -259,8 +260,46 @@ const Profile = (props) => {
         <UpdateNotice status={updating} />
         {user.classInfo === null ?
          <Spinner animation="grow" variant="secondary" />
-         : (Object.keys(user.classInfo) > 0 ?
-              user.classInfo.institution
+         : (Object.keys(user.classInfo).length > 0 ?
+              <Table className="profile-classinfo-content">
+                <tbody>
+                  <tr><td colSpan="2">
+                    <span className="profile-classinfo-institution">{user.classInfo.institution}</span>,
+                    <span className="profile-classinfo-section">
+                    {user.classInfo.course_section}</span>,
+                    <span className="profile-classinfo-term">
+                    {user.classInfo.term} {user.classInfo.academic_year}
+                    </span>
+                  </td></tr>
+                  <tr>
+                    <td colSpan="2">start: {user.classInfo.start_date}, end: {user.classInfo.end_date}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="2">Minimum participation requirements:
+                      <ul>
+                        <li>At least {user.classInfo.paths_per_day} paths each day</li>
+                        <li>On at least {user.classInfo.days_per_week} different days</li>
+                      </ul>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>A</td>
+                    <td>badge set {Math.min(user.classInfo.a_cap, user.classInfo.a_target + user.classInfo.starting_set)}</td>
+                  </tr>
+                  <tr>
+                    <td>B</td>
+                    <td>badge set {Math.min(user.classInfo.b_cap, user.classInfo.b_target + user.classInfo.starting_set)}</td>
+                  </tr>
+                  <tr>
+                    <td>C</td>
+                    <td>badge set {Math.min(user.classInfo.c_cap, user.classInfo.c_target + user.classInfo.starting_set)}</td>
+                  </tr>
+                  <tr>
+                    <td>D</td>
+                    <td>badge set {Math.min(user.classInfo.d_cap, user.classInfo.d_target + user.classInfo.starting_set)}</td>
+                  </tr>
+                </tbody>
+              </Table>
             : <React.Fragment>
                 <div className="profile-classinfo-signup">
                 You're not currently part of a class group in Paideia. If you have a class enrollment code, you can enter it here to join the class group.
