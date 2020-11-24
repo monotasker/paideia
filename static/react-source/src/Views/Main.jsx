@@ -85,7 +85,7 @@ import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
-import { checkLogin, updateUserInfo } from '../Services/authService';
+import { checkLogin } from '../Services/authService';
 
 library.add(
   faArrowsAltH,
@@ -172,24 +172,8 @@ const MainPage = () => {
   });
 
   useEffect(() => {
-    checkLogin()
-    .then(mydata => {
-      if ( !!user.userLoggedIn && !!mydata.logged_in ) {
-        console.log('logged in both');
-
-        if ( user.userId != mydata.user ) {
-          throw new Error("local user doesn't match server login")
-        }
-      } else if ( !user.userLoggedIn && !!mydata.logged_in ) {
-        console.log('logged in server only');
-        updateUserInfo(dispatch);
-      } else if ( (!!user.userID || !!user.userLoggedIn) && !mydata.logged_in ) {
-        console.log('logged in local only');
-        dispatch({type: 'deactivateUser'});
-      }
-    });
-    console.log(user);
-  }, []);
+    checkLogin(user, dispatch);
+  });
 
   return (
     <Col className="content"

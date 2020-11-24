@@ -20,13 +20,30 @@ const logout = async () => {
   return await response.json()
 }
 
-const checkLogin = async () => {
+const checkLogin = async (user, dispatch) => {
   let response = await fetch('/paideia/api/check_login', {
       method: "GET",
       cache: "no-cache",
       mode: "same-origin",
-  })
-  return await response.json()
+  });
+  const jsonData = await response.json();
+
+  console.log('=========================================');
+  console.log('CHECKING LOGIN');
+
+  if ( !!user.userLoggedIn && !!jsonData.logged_in ) {
+    console.log('logged in both');
+
+    if ( user.userId != mydata.user ) {
+      throw new Error("local user doesn't match server login")
+    }
+  } else if ( !user.userLoggedIn && !!mydata.logged_in ) {
+    console.log('logged in server only');
+    updateUserInfo(dispatch);
+  } else if ( (!!user.userID || !!user.userLoggedIn) && !mydata.logged_in ) {
+    console.log('logged in local only');
+    dispatch({type: 'deactivateUser'});
+  }
 }
 
 const updateUserInfo = async (dispatch) => {

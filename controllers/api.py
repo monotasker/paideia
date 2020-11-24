@@ -163,7 +163,8 @@ def _fetch_userdata(raw_user, vars):
                                                 my_instructor['id']}
             user['class_info']['starting_set'] = \
                 current_class['class_membership']['starting_set'] \
-                if user['class_info']['starting_set'] is not None else 1
+                if user['class_info'] is not None and \
+                current_class['class_membership']['starting_set'] is not None else 1
         else:
             user['daily_quota'] = 20
             user['weekly_quota'] = 5
