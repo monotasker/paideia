@@ -30,20 +30,25 @@ const checkLogin = async (user, dispatch) => {
 
   console.log('=========================================');
   console.log('CHECKING LOGIN');
+  let myVal = true;
 
   if ( !!user.userLoggedIn && !!jsonData.logged_in ) {
     console.log('logged in both');
 
     if ( user.userId != mydata.user ) {
-      throw new Error("local user doesn't match server login")
+      myVal = false;
+      throw new Error("local user doesn't match server login");
     }
   } else if ( !user.userLoggedIn && !!mydata.logged_in ) {
     console.log('logged in server only');
     updateUserInfo(dispatch);
+
   } else if ( (!!user.userID || !!user.userLoggedIn) && !mydata.logged_in ) {
     console.log('logged in local only');
     dispatch({type: 'deactivateUser'});
+    myVal = false;
   }
+  return myVal;
 }
 
 const updateUserInfo = async (dispatch) => {

@@ -1,15 +1,18 @@
 import React, { useContext } from 'react';
 import {
-  Route, 
+  Route,
   Redirect
 } from 'react-router-dom';
 import { UserContext } from '../UserContext/UserProvider';
+import { checkLogin } from '../Services/authService';
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
   const { user, dispatch } = useContext(UserContext);
+  const [ loggedIn, setLoggedIn ] = useState(checkLogin(user, dispatch));
+
   return(
     <Route {...rest} render={(props) => (
-      user.userLoggedIn === true
+      loggedIn === true
         ? <Component {...props} />
         : <Redirect to='/login' />
     )} />
