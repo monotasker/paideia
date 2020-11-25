@@ -162,9 +162,6 @@ const Profile = (props) => {
     !!viewingSelf ? user.chart1Data : null);
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
-  console.log(user.classInfo);
-  console.log(Object.keys(user.classInfo));
-
 
   useEffect(() => {
     window.setTimeout(2000);

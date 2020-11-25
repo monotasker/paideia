@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useContext } from 'react';
-import ReactDOM from 'react-dom';
 import {
   Row,
   Col,
@@ -7,7 +6,8 @@ import {
 import {
   Switch,
   Route,
-  BrowserRouter
+  BrowserRouter,
+  useLocation
 } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -69,7 +69,6 @@ import {
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 
-// import './Main.css';
 import './Main.scss';
 
 import { urlBase } from "../variables";
@@ -149,14 +148,14 @@ const myroutes = [
   {path: "/" + urlBase + "(/static/react-source/dist/index.html||/home)", exact: true, Component: Home},
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
-  {path: "/" + urlBase + "/admin/:adminPage", exact: false, Component: Admin},
-  {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},
   {path: "/" + urlBase + "/login", exact: false, Component: Login}
 ]
 
 const myPrivateRoutes = [
   {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false, Component: Walk},
   {path: "/" + urlBase + "/profile", exact: false, Component: Profile},
+  {path: "/" + urlBase + "/admin/:adminPage", exact: false, Component: Admin},
+  {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},
 ]
 
 const MainPage = () => {
@@ -174,8 +173,10 @@ const MainPage = () => {
   });
 
   useEffect(() => {
+    console.log('=================================');
+    console.log('Checking login in Main');
     checkLogin(user, dispatch);
-  });
+  }, []);
 
   return (
     <Col className="content"
