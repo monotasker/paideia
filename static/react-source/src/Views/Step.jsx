@@ -36,6 +36,14 @@ const Step = (props) => {
   const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
+  console.log('STEPDATA IS (in Step)');
+  console.log(stepData);
+
+  useEffect(() => {
+    setStepData(props.stepdata);
+    setPromptText(props.stepdata.prompt_text);
+    setRespButtons(props.stepdata.response_buttons);
+  }, [props.stepdata]);
 
   useEffect(() => {
     dispatch({type: 'setCurrentLoc', payload: props.myroute});
