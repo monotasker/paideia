@@ -72,7 +72,8 @@ def get_prompt():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def evaluate_answer():
@@ -103,7 +104,8 @@ def evaluate_answer():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def _fetch_userdata(raw_user, vars):
@@ -193,8 +195,9 @@ def get_login():
     auth = current.auth
     session = current.session
     try:
+
         mylogin = auth.login_bare(request.vars['email'],
-                                  request.vars['password'])
+                                request.vars['password'])
         user = {k:v for k, v in mylogin.items() if k in
                 ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
         pprint(user)
@@ -203,7 +206,11 @@ def get_login():
             if 'set_review' in session.keys() else None
         return json(full_user, default=my_custom_json)
     except Exception as e:
-        return json({'error': e})
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized',
+                     'reason': 'Login failed',
+                     'error': format_exc(e)})
 
 
 def get_userdata():
@@ -212,14 +219,17 @@ def get_userdata():
     """
     auth = current.auth
     session = current.session
-    try:
+    if auth.is_logged_in():
         user = db.auth_user(auth.user_id).as_dict()
         full_user = _fetch_userdata(user, request.vars)
         full_user['review_set'] = session.set_review \
             if 'set_review' in session.keys() else None
         return json(full_user, default=my_custom_json)
-    except Exception as e:
-        return json({'error': e})
+    else:
+        response = current.response
+        response.status = 401
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def do_logout():
@@ -572,7 +582,8 @@ def add_query_post():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def update_query_post():
@@ -633,7 +644,8 @@ def update_query_post():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def add_post_comment():
@@ -674,7 +686,8 @@ def add_post_comment():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def update_post_comment():
@@ -729,7 +742,8 @@ def update_post_comment():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def log_new_query():
@@ -805,7 +819,8 @@ def log_new_query():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def update_query():
@@ -857,7 +872,8 @@ def update_query():
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def get_vocabulary():
@@ -1076,7 +1092,8 @@ def get_profile_info():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
     return json({'the_name': name,
             'user_id': user.id,
@@ -1255,7 +1272,8 @@ def get_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'Not logged in'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
     try:
         assert (auth.has_membership('administrators') or
@@ -1266,7 +1284,8 @@ def get_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'Insufficient privileges'})
+        return json({'status': 'unauthorized',
+                     'reason': 'Insufficient privileges'})
 
 
     mycourse = {k: v for k, v in course_rec.items() if k in [

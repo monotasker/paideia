@@ -1,5 +1,6 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import { urlBase } from '../variables';
 
 const login = async (formdata) => {
   let response = await fetch('/paideia/api/get_login', {
@@ -136,7 +137,7 @@ function returnStatusCheck(mydata, history, action, reducer,
   } else if ( mydata.status_code === 401 ) {
     if ( mydata.reason == "Not logged in" ) {
       reducer({type: 'deactivateUser', payload: null});
-      history.push("/login");
+      history.push(`/${urlBase}/login`);
     } else if ( mydata.reason == "Insufficient privileges" ) {
       if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
         otherActions.insufficientPrivilegesAction(mydata);
