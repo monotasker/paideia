@@ -261,8 +261,9 @@ const Step = (props) => {
               )}
               { stepData.audio != null &&
                 <AudioPlayer
-                  mp3Source="http://techslides.com/demos/samples/sample.mp3"
-                  oggSource="http://techslides.com/demos/samples/sample.ogg"
+                  m4aSource={stepData.audio.media_supplied == "m4a" ? stepData.audio.audio_args_for_js.m4a : null}
+                  mp3Source={!!stepData.audio.mp3 ? stepData.audio.mp3 : null}
+                  ogaSource={stepData.audio.ogg  ? stepData.audio.ogg : null}
                 />
               }
             </div>

@@ -44,16 +44,16 @@ const AudioPlayer = (props) => {
         onClick={clickAction}
         >
           <TransitionGroup>
-            <CSSTransition 
+            <CSSTransition
               key={`audio-button-${myComponents[playing][0]}`}
               classNames="cross-fade"
               timeout={500}
             >
                 <FontAwesomeIcon
                 icon={myComponents[playing][1]}
-                className={`${myComponents[playing][0]}-circle cross-fade 
+                className={`${myComponents[playing][0]}-circle cross-fade
                             ${myComponents[playing][2]}`}
-                size="2x" 
+                size="2x"
                 />
             </CSSTransition>
             </TransitionGroup>
@@ -65,7 +65,8 @@ const AudioPlayer = (props) => {
         onCanPlayThrough={clickAction}
         >
             <source src={props.mp3Source} type="audio/mpeg" />
-            <source src={props.oggSource} type="audio/ogg" />
+            <source src={props.m4aSource} type="audio/mp4" />
+            <source src={props.ogaSource} type="audio/ogg" />
         </audio>
     </span>
   )
