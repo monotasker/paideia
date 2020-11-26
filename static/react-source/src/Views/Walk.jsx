@@ -13,7 +13,7 @@ import { returnStatusCheck } from "../Services/authService";
 import { urlBase } from "../variables";
 
 
-const Walk = (props) => {
+const Walk = () => {
     const { walkPage, walkStep } = useParams();
     console.log("walkPage");
     console.log(walkPage);
@@ -32,7 +32,7 @@ const Walk = (props) => {
         const myStep = !!walkStep ? walkStep : null;
         getPromptData({location: walkPage, repeat: false, step: myStep})
         .then(stepfetch => {
-          returnStatusCheck(stepfetch, props.history,
+          returnStatusCheck(stepfetch, history,
             (mydata) => {
                 setStepData(mydata);
             },
@@ -47,7 +47,7 @@ const Walk = (props) => {
       if ( newLoc != "map" ) {
         getPromptData({location: newLoc, repeat: retrying})
         .then(stepfetch => {
-          returnStatusCheck(stepfetch, props.history,
+          returnStatusCheck(stepfetch, history,
             (mydata) => {
                 setStepData(mydata);
                 history.push(`/${urlBase}/walk/${newLoc}/${mydata.sid}`)
