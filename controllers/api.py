@@ -55,6 +55,7 @@ def get_prompt():
         myloc = request.vars.loc
         new_user = request.vars.new_user
         stepargs = {'path': None,
+                    'step': None,
                     'response_string': None,
                     'set_blocks': None,
                     'repeat': False

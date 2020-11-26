@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Row, Spinner } from "react-bootstrap";
 import { CSSTransition } from "react-transition-group";
 import { useParams,
@@ -22,6 +22,25 @@ const Walk = (props) => {
     const { user, dispatch } = useContext(UserContext);
     const [ currentPage, setCurrentPage ] = useState(walkPage || "map");
     const [stepData, setStepData] = useState(false);
+    console.log("STEPDATA IS");
+    console.log(stepData);
+
+    useEffect(() => {
+      if ( currentPage != "map" ) {
+        console.log("###############");
+        console.log("setting step on Walk refresh");
+        const myStep = !!walkStep ? walkStep : null;
+        getPromptData({location: walkPage, repeat: false, step: myStep})
+        .then(stepfetch => {
+          returnStatusCheck(stepfetch, props.history,
+            (mydata) => {
+                setStepData(mydata);
+            },
+            dispatch
+          )
+        });
+      }
+    }, []);
 
     const goToLocation = async ({newLoc=null, retrying=false}) => {
       setCurrentPage(newLoc);
