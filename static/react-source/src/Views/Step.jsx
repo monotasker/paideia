@@ -259,7 +259,7 @@ const Step = (props) => {
                   alt={stepData.widget_img.description}
                 />
               )}
-              { !!stepData.audio &&
+              { stepData.audio != null &&
                 <AudioPlayer
                   mp3Source="http://techslides.com/demos/samples/sample.mp3"
                   oggSource="http://techslides.com/demos/samples/sample.ogg"
