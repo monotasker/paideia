@@ -5,7 +5,8 @@ import {
     Button,
     Form,
     OverlayTrigger,
-    Tooltip
+    Tooltip,
+    Badge
 } from "react-bootstrap";
 import { useHistory } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
@@ -258,10 +259,12 @@ const Step = (props) => {
                   alt={stepData.widget_img.description}
                 />
               )}
-              <AudioPlayer
-                mp3Source="http://techslides.com/demos/samples/sample.mp3"
-                oggSource="http://techslides.com/demos/samples/sample.ogg"
-              />
+              { !!stepData.audio &&
+                <AudioPlayer
+                  mp3Source="http://techslides.com/demos/samples/sample.mp3"
+                  oggSource="http://techslides.com/demos/samples/sample.ogg"
+                />
+              }
             </div>
           </CSSTransition>
           <CSSTransition
@@ -301,6 +304,12 @@ const Step = (props) => {
               </div>
             )}
               <div className="user-info">
+                {!!user.reviewSet &&
+                  <Badge className="review-warning" variant="warning">
+                    <FontAwesomeIcon icon="history" />
+                    Reviewing just badge set {user.reviewSet}
+                  </Badge>
+                }
                 <span className="current-count">
                   {!responded ? "This will make " : "You have finished "}
                   {`${stepData.completed_count} paths today`}
