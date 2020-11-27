@@ -5,10 +5,11 @@ import {
     Button,
     Form,
     OverlayTrigger,
+    Popover,
     Tooltip,
     Badge
 } from "react-bootstrap";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import marked from "marked";
@@ -39,6 +40,7 @@ const Step = (props) => {
   const [ responded, setResponded ] = useState(false);
   console.log('STEPDATA IS (in Step)');
   console.log(stepData);
+  console.log(stepData.audio);
 
   useEffect(() => {
     setStepData(props.stepdata);
@@ -261,10 +263,31 @@ const Step = (props) => {
               )}
               { stepData.audio != null &&
                 <AudioPlayer
-                  m4aSource={stepData.audio.media_supplied == "m4a" ? stepData.audio.audio_args_for_js.m4a : null}
-                  mp3Source={!!stepData.audio.mp3 ? stepData.audio.mp3 : null}
-                  ogaSource={stepData.audio.ogg  ? stepData.audio.ogg : null}
+                  m4aSource={`${stepData.download_path}/${stepData.audio.m4a}`}
+                  mp3Source={`${stepData.download_path}/${stepData.audio.mp3}`}
+                  ogaSource={`${stepData.download_path}/${stepData.audio.oga}`}
                 />
+              }
+              { !!stepData.slidedecks &&
+                <OverlayTrigger placement="top" trigger="click" rootClose
+                  overlay={
+                    <Popover id="tooltip-videos">
+                      <Popover.Title>Related lessons</Popover.Title>
+                      <Popover.Content>
+                        <ul>
+                          {Object.entries(stepData.slidedecks).map(([id, label]) =>
+                            <li key={label}>
+                              <Link to={`/${urlBase}/videos/${id}`}>{label}</Link>
+                            </li>
+                          )}
+                        </ul>
+                      </Popover.Content>
+                    </Popover>
+                }>
+                  <a className='instruction-icon'>
+                    <FontAwesomeIcon  icon="video" />
+                  </a>
+                </OverlayTrigger>
               }
             </div>
           </CSSTransition>

@@ -64,9 +64,9 @@ const AudioPlayer = (props) => {
         onEnded={clickAction}
         onCanPlayThrough={clickAction}
         >
-            <source src={props.mp3Source} type="audio/mpeg" />
-            <source src={props.m4aSource} type="audio/mp4" />
-            <source src={props.ogaSource} type="audio/ogg" />
+          {!!props.mp3Source && <source src={props.mp3Source} type="audio/mpeg" />}
+          {!!props.m4aSource && <source src={props.m4aSource} type="audio/mp4" />}
+          {!!props.ogaSource && <source src={props.ogaSource} type="audio/ogg" />}
         </audio>
     </span>
   )

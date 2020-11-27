@@ -140,7 +140,7 @@ class Walk(object):
         '''
         Initialize User object.
 
-        The new User object is returned and is also assigned to the "user" 
+        The new User object is returned and is also assigned to the "user"
         attribute of the current class instance.
 
         All keyword arguments are optional and used only for testing.
@@ -271,7 +271,7 @@ class Walk(object):
             if debug: print('Walk::ask: path chosen is', p.get_id())
             if (not p):
                 # no paths for this location for this category
-                break  
+                break
             user.active_cat = category
             user.new_content = new_content
 
@@ -316,7 +316,7 @@ class Walk(object):
 
             # deactivate step from the role of prompt provider
             # shift it to the role of reply provider
-            # NOTE: if the next request has no answer string, and ask is 
+            # NOTE: if the next request has no answer string, and ask is
             # run again directly, this reply provider will be ignored.
             p.end_prompt(s.get_id())  # send id to tell whether a block step
 
@@ -800,11 +800,11 @@ class Walk(object):
                 'prev_npc': user.prev_npc,
                 'past_quota': user.past_quota,
                 'viewed_slides': user.viewed_slides,
-                'reported_badges': user.reported_badges, 
+                'reported_badges': user.reported_badges,
                 'reported_promotions': user.reported_promotions,
-                'repeating': user.repeating, 
-                'new_content': user.new_content, 
-                'active_cat': user.active_cat, 
+                'repeating': user.repeating,
+                'new_content': user.new_content,
+                'active_cat': user.active_cat,
                 'quota': user.quota
             }
             print('storing************************')
@@ -1201,30 +1201,11 @@ class Step(object):
                 if not aud_row['clip_m4a']:
                     break
                 audio = {'title': aud_row['title'],
-                         'mp3': aud_row['clip'],
-                         'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg']
+                         'download_path': "/paideia/default/download.load/",
+                         'm4a': aud_row['clip_M4A'] if aud_row['clip_M4A'] else None,
+                         'mp3': aud_row['clip'] if aud_row['clip'] else None,
+                         'oga': aud_row['clip_ogg'] if aud_row['clip_ogg']
                          else None}
-                audio_args_for_js = {'title': ''}
-                media_supplied = ""
-                if aud_row['clip_m4a']:
-                    audio_args_for_js['m4a'] = "/paideia/default/download." \
-                        "load/{}".format(aud_row['clip_m4a'])
-                    media_supplied = "m4a"
-                """
-                only doing m4a for now
-                if aud_row['clip']:
-                    audio_args_for_js['mp3'] = "/paideia/default/" \
-                        "download.load/" + aud_row['clip']
-                    if media_supplied: media_supplied += ",mp3"
-                    else:media_supplied = "mp3"
-                if aud_row['clip_ogg']:
-                    audio_args_for_js['ogg'] = "/paideia/default/" \
-                        "download.load/" + aud_row['clip_ogg']
-                    if media_supplied: media_supplied += ",ogg"
-                    else:media_supplied = "ogg"
-                """
-                audio['audio_args_for_js'] = str(audio_args_for_js)
-                audio['media_supplied'] = media_supplied
                 return audio
         else:
             return None
@@ -1799,7 +1780,7 @@ class StepEvaluator(object):
                 #  TODO: Vary the replies
             else:
                 score = 0
-                replies = ["That's not it. Try again!\n", 
+                replies = ["That's not it. Try again!\n",
                            "Hm. Give it another try!\n",
                            "Good effort, but that's not right. Try again!\n"]
                 r_index = randrange(0, len(replies))
@@ -1901,12 +1882,12 @@ class Path(object):
                          step_for_prompt, step_for_reply):
         """
         Restore a path to a particular point in the progress through its steps.
-        
+
         :param list remaining_steps: A list of ints representing the ids of
                         steps that should remain uncompleted in the restored
                         state.
-        :param int step_for_reply: The id of the step that should be assigned 
-                        to self.step_for_reply if the restored state is mid-way 
+        :param int step_for_reply: The id of the step that should be assigned
+                        to self.step_for_reply if the restored state is mid-way
                         through completing a step.
         """
         print('restore_position: steps are', [s.get_id() for s in self.steps])
@@ -2198,7 +2179,7 @@ class PathChooser(object):
                 if debug:
                     print('PathChooser::_paths_by_cateogry: using taglist',
                           taglist)
-                deactivated = [row['id'] for row in 
+                deactivated = [row['id'] for row in
                                db(db.steps.status == 2
                                   ).iterselect(db.steps.id)
                                ]
@@ -2543,16 +2524,16 @@ class User(object):
                             condition.
         :attr list tag_records: A list of dictionaries, each representing a
                             db.tag_records row. Each dictionary has the keys
-                            'tag' (int), tlast_right: (datetime), tlast_wrong 
-                            (datetime), times_right (float), 
+                            'tag' (int), tlast_right: (datetime), tlast_wrong
+                            (datetime), times_right (float),
                             times_wrong (float).
         :attr dict tag_progress: A dictionary representing the user's single
                             db.tag_progress record. Includes the keys 'cat1' (list), 'rev1' (list), 'cat2' (list), 'rev2' (list),
-                            'cat3' (list), 'rev3' (list), 'cat4' (list), 
-                            'rev4' (list), 'latest_new' (int), 
+                            'cat3' (list), 'rev3' (list), 'cat4' (list),
+                            'rev4' (list), 'latest_new' (int),
                             'cat1_choices' (int), 'all_choices' (int).
         :attr dict old_categories: Keys are 'cat1', 'cat2', 'cat3', 'cat4'.
-        :attr dict promoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4' 
+        :attr dict promoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4'
         :attr dict demoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4'
         :attr dict new_tags: Keys are 'rev1', 'rev2', 'rev3', 'rev4'
         :attr dict completed_paths: A dictionary with the keys "latest" and
@@ -2580,7 +2561,7 @@ class User(object):
         :attr bool reported_promotions: A True/False flag indicating whether
                             the user
         :attr bool repeating: A True/False flag indicating whether
-                            the user is currently repeating a step for which 
+                            the user is currently repeating a step for which
                             they gave an incorrect answer.
         :attr bool new_content:
         :attr int active_cat: An integer representing the category of tags from
@@ -2604,8 +2585,8 @@ class User(object):
             self.completed_paths = {'latest': None, 'paths': {}}
             self.cats_counter = 0  # timing re-cat in get_categories()
             self.old_categories = None
-            if not self.tag_records: 
-                tag_records = db(db.tag_records.name == self.user_id).select() 
+            if not self.tag_records:
+                tag_records = db(db.tag_records.name == self.user_id).select()
                 self.tag_records = tag_records.as_list()
             if not self.tag_progress:
                 try:
@@ -2618,7 +2599,7 @@ class User(object):
                     self.tag_progress = db(db.tag_progress.name == self.user_id
                                            ).select().first().as_dict()
             # FIXME: return don't set in method?
-            self._set_user_rank(self.tag_progress, 1)  
+            self._set_user_rank(self.tag_progress, 1)
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
 
             if debug: print('Q')
@@ -2660,9 +2641,9 @@ class User(object):
                 for k in ['completed_paths', 'old_categories', 'promoted',
                         'demoted', 'new_tags']:
                     setattr(self, k, json.loads(sd[k]))
-                for k in ['cats_counter', 'rank', 
+                for k in ['cats_counter', 'rank',
                         'session_start', 'prev_loc', 'prev_npc', 'past_quota',
-                        'viewed_slides', 'reported_badges', 'reported_promotions', 'reviewing', 
+                        'viewed_slides', 'reported_badges', 'reported_promotions', 'reviewing',
                         'repeating', 'new_content', 'active_cat', 'quota']:
                     if k in list(sd.keys()):
                         setattr(self, k, sd[k])
@@ -2674,7 +2655,7 @@ class User(object):
                 for condition, kwargs in json.loads(sd['blocks']).items():
                     print(sd['blocks'])
                     print('got blocks===================================')
-                    print(condition) 
+                    print(condition)
                     print(kwargs)
                     self.set_block(condition, kwargs=kwargs)
                 if debug: print('B')
@@ -2682,7 +2663,7 @@ class User(object):
                 if not tag_records:
                     try:
                         rec_ids = json.loads(sd['tag_records'])
-                        self.tag_records = db(db.tag_records.id.belongs(rec_ids) 
+                        self.tag_records = db(db.tag_records.id.belongs(rec_ids)
                                             ).select().as_list()
                     except ValueError:
                         traceback.print_exc()
@@ -2692,7 +2673,7 @@ class User(object):
                 if not tag_progress:
                     self.tag_progress = json.loads(sd['tag_progress'])
                 if debug: print('G')
-                assert not self.is_stale()  
+                assert not self.is_stale()
                 if debug: print('H')
             except (TypeError, AttributeError, AssertionError):  # one of the JSON fields is None
                 traceback.print_exc()
@@ -2961,7 +2942,7 @@ class User(object):
         """
         if not self.loc:
             self.loc = Location(localias)
-        return self.loc 
+        return self.loc
 
     # @profile
     def _make_path_choice(self, loc, set_review=None):
