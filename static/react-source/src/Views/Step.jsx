@@ -323,8 +323,8 @@ const Step = (props) => {
             { user.userRoles.includes('administrators') && (
               <div className="admin-info">
                 <span className="step-id">step {stepData['sid']},</span>&nbsp;
-                <span className="path-id">path {stepData['pid']}</span>&nbsp;
-                <span className="selection-level">level {stepData.category}</span>&nbsp;
+                <span className="path-id">path {stepData['pid']},</span>&nbsp;
+                <span className="selection-level"> chosen from selection level {stepData.category}</span>&nbsp;
               </div>
             )}
               <div className="user-info">
@@ -335,8 +335,10 @@ const Step = (props) => {
                   </Badge>
                 }
                 <span className="current-count">
-                  {!responded ? "This will make " : "You have finished "}
-                  {`${stepData.completed_count} paths today`}
+                  {!responded ? `This will make` : `You have finished`}
+                  {` ${stepData.completed_count + 1} path`}
+                  {stepData.completed_count + 1 > 1 && "s"}
+                  {" today"}
                 </span>
               </div>
               <span className="new-indicator">

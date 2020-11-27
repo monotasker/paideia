@@ -36,8 +36,7 @@ const UpdateNotice = ({status}) => {
 const BadgeTerm = ({title, description, lessons, data, level}) => {
   const history = useHistory();
   return(
-    <OverlayTrigger placement="auto"
-      trigger="click"
+    <OverlayTrigger placement="auto" trigger="click" rootClose
       overlay={
         <Popover id={`tooltip-${title}`}>
           <PopoverTitle>
