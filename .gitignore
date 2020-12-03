@@ -8,6 +8,8 @@ private/*
 errors/*
 sessions/*
 databases/migration_to_postgresql/*
+databases/*.table
+databases/sql.log
 -MiniBufExplorer-
 .ropeproject/*
 __Tagbar__.*

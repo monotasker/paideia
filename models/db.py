@@ -7,9 +7,11 @@ Paideia web-app.
 
 Third-party python packages required for this app:
     - pytz
-    - pyicu (icu)
+    - pyicu (icu -- need to install c library via apt first)
     - kitchen
     - python-dateutil (dateutil, six)
+    - memory_profiler
+    - pytest
 """
 
 import logging
