@@ -376,6 +376,7 @@ class Stats(object):
         Always returns a float, since scores are floats between 0 and 1.
         """
         db = current.db
+        debug = 0
         mylogids = []
         for r in logs.values():
             # print('avg:', r)
@@ -389,7 +390,7 @@ class Stats(object):
             avg_score = round(avg_score, 2)
         except ZeroDivisionError:  # if tag not tried at all since startdt
             avg_score = 0.0
-        print(avg_score)
+        if debug: print(avg_score)
         return avg_score
 
     def _get_logs_for_tag(self, tag_id, recent_start):
@@ -512,23 +513,17 @@ class Stats(object):
 
         '''
         debug = 0
-        if debug: print('A')
         db = current.db if not db else db
 
         # get bounds for today and yesterday
         now = self.utcnow if not now else now
         offset = get_offset(self.user)
         start_date = self.utcnow.date() if not now else now.date()
-        if debug: print('start_date', start_date)
         daystart = datetime.datetime.combine(start_date,
                                              datetime.time(0, 0, 0, 0))
         daystart = daystart - offset
-        if debug: print('daystart', daystart)
         recent_start = (daystart - datetime.timedelta(days=4))
-        if debug: print('recent_start', recent_start)
         yest_start = (daystart - datetime.timedelta(days=1))
-
-        if debug: print('B')
 
         tag_records = db((db.tag_records.name == self.user_id) &
                          (db.tag_records.tag.belongs(self.tags))
@@ -544,7 +539,6 @@ class Stats(object):
                     tag_records[idx][alt] = row[k]
                     del tag_records[idx][k]
 
-        if debug: print('C')
 
         # FIXME:
         # mydel = db(db.weekly_user_stats.name == self.user_id).delete()
@@ -563,10 +557,7 @@ class Stats(object):
             # Count attempt log rows for recent attempts (today, yesterday,
             # and within last 5 days)
             # log fields used below are dt_attempted, score
-            if debug: print('E')
-            if debug: print(t['tag'])
             tagstats = self._get_logs_for_tag(t['tag'], recent_start)
-            pprint(tagstats)
 
             try:
                 todaylogs = tagstats[daystart + offset]
@@ -604,7 +595,6 @@ class Stats(object):
             except AttributeError:
                 pass
 
-            if debug: print('G')
             # get time deltas since last right and wrong
             for i in ['r', 'w']:
                 try:
@@ -623,7 +613,6 @@ class Stats(object):
                 strf = '%b %e' if t[i].year == now.year else '%b %e, %Y'
                 tag_records[idx][i] = (t[i], t[i].strftime(strf))
 
-            if debug: print('H')
             # add user's historic maximum and current review levels for tag
             try:
                 tag_records[idx]['curlev'] = [l for l, tgs in
@@ -642,7 +631,6 @@ class Stats(object):
                 traceback.print_exc(5)
                 tag_records[idx]['revlev'] = 0
 
-            if debug: print('I')
             # round total right and wrong attempt counts to closest int for
             # readability
             for i in ['right', 'wrong']:
@@ -818,6 +806,7 @@ class Stats(object):
                                 dependency injection in testing.
         """
         db = current.db
+        debug = 0
         now = now if now else self.utcnow
         offset = get_offset(self.user)
         if most_recent_row:
@@ -880,7 +869,7 @@ class Stats(object):
                         if days[7] < now:  # week is finished, write to db
                             myrow = db.weekly_user_stats.insert(**weekdict)
                             db.commit()
-                            print('inserting row', myrow)
+                            if debug: print('inserting row', myrow)
                         # only return if
                         if year >= recent_year and week >= recent_week:
                             return_list.append(weekdict)
@@ -994,8 +983,12 @@ class Stats(object):
         The returned data is a list of lists, each of which represents one calendar week (starting on Sunday). Within each week list, each day is represented by a 2-member tuple. The first member of the tuple is the datetime.date object for that day. The second member is a list of attempt log ids attempted by the current user on that date (adjusted for their time zone).
 
         '''
+        debug = 1
+
         month = datetime.date.today().month if not month else int(month)
+        if debug: print("MONTH", month)
         year = datetime.date.today().year if not year else int(year)
+        if debug: print("YEAR", year)
         monthlists = calendar.Calendar(firstweekday=6
                                        ).monthdatescalendar(year, month)
         first = monthlists[0][0]
@@ -1015,6 +1008,7 @@ class Stats(object):
                     monthlists[i][daynum] = (day, flatrangelogs[day])
                 else:
                     monthlists[i][daynum] = (day, [])
+        if debug: pprint(monthlists[-1])
 
         return {"year": year,
                 "month": month,
@@ -1139,7 +1133,6 @@ class Stats(object):
                            'ids': ids
                            })
 
-        print('G')
         return counts
 
     def get_tag_counts_over_time(self, start, end, uid=None):
@@ -1543,6 +1536,7 @@ def compute_letter_grade(uid, myprog, startset, classrow):
 
 
 def get_current_class(uid, now, myclass=None):
+    debug = 0
     db = current.db
     if myclass:
         myc = db((db.class_membership.name == uid) &
@@ -1552,21 +1546,21 @@ def get_current_class(uid, now, myclass=None):
         myclasses = db((db.class_membership.name == uid) &
                        (db.class_membership.class_section == db.classes.id)
                        ).select()
-        print('********************')
-        pprint(myclasses[-1])
-        print(now)
-        print(type(now))
-        print(datetime.datetime(2020, 1, 1, 8, 49, 16) > now)
-        print(datetime.datetime(2020, 4, 27, 8, 50) < now)
+        if debug: print('********************')
+        if debug: pprint(myclasses[-1])
+        if debug: print(now)
+        if debug: print(type(now))
+        if debug: print(datetime.datetime(2020, 1, 1, 8, 49, 16) > now)
+        if debug: print(datetime.datetime(2020, 4, 27, 8, 50) < now)
         myclasses = myclasses.find(lambda row: (row.classes.start_date is not
                                                 None) and
                                    (row.classes.start_date < now) and
                                    (row.classes.end_date > now)
                                    )
-        pprint(myclasses)
+        if debug: pprint(myclasses)
         myc = myclasses.first()
-    print('+++++++++++++++++++')
-    pprint(myc)
+    if debug: print('+++++++++++++++++++')
+    if debug: pprint(myc)
     return myc
 
 
