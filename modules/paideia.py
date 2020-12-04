@@ -21,7 +21,6 @@ from inspect import getargvalues, stack
 from itertools import chain
 import json
 from memory_profiler import profile
-from memprof import *
 import os
 from paideia_utils import GreekNormalizer
 import pickle
