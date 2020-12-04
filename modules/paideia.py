@@ -26,7 +26,7 @@ from paideia_utils import GreekNormalizer
 import pickle
 from plugin_utils import flatten, ErrorReport, deep_getsizeof
 from pprint import pprint
-from pympler import muppy, summary
+# from pympler import muppy, summary
 from pytz import timezone
 from random import randint, randrange
 import re
