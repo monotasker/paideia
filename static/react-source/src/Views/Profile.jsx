@@ -126,6 +126,53 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
   )
 }
 
+const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
+                          userId, dailyQuota, weeklyQuota}) => {
+  return (
+      <Col className="profile-calendar" >
+        <h3>My Activity</h3>
+        <UpdateNotice status={updating} />
+        {calendarData &&
+          <Calendar year={calYear} month={calMonth}
+            user={userId} monthData={calendarData.data}
+            dailyQuota={dailyQuota}
+            weeklyQuota={weeklyQuota}
+          />
+        }
+        {/*  TODO: Implement this user-set system of targets
+        <InputGroup className="profile-calendar-targets-daily">
+            <InputGroup.Prepend>
+              <InputGroup.Text id="daytarget-label">Daily target</InputGroup.Text>
+            </InputGroup.Prepend>
+            <Form.Control
+              placeholder={dailyQuota}
+              aria-label="paths completed per day"
+              aria-describedby="daytarget-label"
+            />
+            <InputGroup.Append>
+              <InputGroup.Text id="basic-addon2">paths per day</InputGroup.Text>
+            </InputGroup.Append>
+        </InputGroup>
+        <InputGroup className="profile-calendar-targets-weekly">
+            <InputGroup.Prepend>
+              <InputGroup.Text id="weektarget-label">Weekly target</InputGroup.Text>
+            </InputGroup.Prepend>
+            <Form.Control
+              placeholder={weeklyQuota}
+              aria-label="days meeting the daily target per week"
+              aria-describedby="weektarget-label"
+            />
+            <InputGroup.Append>
+              <InputGroup.Text id="basic-addon2">days meeting that target each week</InputGroup.Text>
+            </InputGroup.Append>
+        </InputGroup>
+        <span>Note that if you are enrolled in a course you can't lower your targets below the minimum set by your instructor.</span>
+
+        */}
+      </Col>
+    )
+}
+
 const Profile = (props) => {
   const myDate = new Date();
   const { user, dispatch } = useContext(UserContext);
@@ -212,44 +259,15 @@ const Profile = (props) => {
         <span className="profile-timezone"><FontAwesomeIcon icon="globe-americas" />{userTimezone}</span>
       </Col>
 
-      <Col className="profile-calendar" xs={12} lg={4}>
-        <h3>My Activity</h3>
-        <UpdateNotice status={updating} />
-        {calendarData &&
-          <Calendar year={calYear} month={calMonth}
-            user={userId} monthData={calendarData.data}
-            dailyQuota={dailyQuota}
-            weeklyQuota={weeklyQuota}
-          />
-        }
-        <InputGroup className="profile-calendar-targets-daily">
-            <InputGroup.Prepend>
-              <InputGroup.Text id="daytarget-label">Daily target</InputGroup.Text>
-            </InputGroup.Prepend>
-            <Form.Control
-              placeholder={dailyQuota}
-              aria-label="paths completed per day"
-              aria-describedby="daytarget-label"
-            />
-            <InputGroup.Append>
-              <InputGroup.Text id="basic-addon2">paths per day</InputGroup.Text>
-            </InputGroup.Append>
-        </InputGroup>
-        <InputGroup className="profile-calendar-targets-weekly">
-            <InputGroup.Prepend>
-              <InputGroup.Text id="weektarget-label">Weekly target</InputGroup.Text>
-            </InputGroup.Prepend>
-            <Form.Control
-              placeholder={weeklyQuota}
-              aria-label="days meeting the daily target per week"
-              aria-describedby="weektarget-label"
-            />
-            <InputGroup.Append>
-              <InputGroup.Text id="basic-addon2">days meeting that target each week</InputGroup.Text>
-            </InputGroup.Append>
-        </InputGroup>
-        <span>Note that if you are enrolled in a course you can't lower your targets below the minimum set by your instructor.</span>
-      </Col>
+      <ProfileCalendar xs={12} lg={4}
+        updating={updating}
+        calendarData={calendarData}
+        calYear={calYear}
+        calMonth={calMonth}
+        userId={userId}
+        dailyQuota={dailyQuota}
+        weeklyQuota={weeklyQuota}
+      />
 
       <Col className="profile-classinfo">
         <h3>My Class Group</h3>
