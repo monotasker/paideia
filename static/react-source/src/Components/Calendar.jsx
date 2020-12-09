@@ -56,8 +56,6 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
       newYr = yr + 1;
     }
 
-    console.log(`from ${mn} to ${newMn}`);
-
     getCalendarMonth({userId: userID,
                       year: newYr,
                       month: newMn + 1})
