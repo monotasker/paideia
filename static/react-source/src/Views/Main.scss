@@ -1089,6 +1089,9 @@ h3                                      {font-family: $sans-fonts;
             a                    {cursor: pointer;
                                   margin: 0 2rem;
                                   color: $pallette2;
+                &.disabled       {opacity: 50%;
+                                  cursor: not-allowed;
+                }
             }
         }
         .day-of-week,

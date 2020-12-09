@@ -128,8 +128,10 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
 
 const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
                           userId, dailyQuota, weeklyQuota}) => {
+  console.log('reloading calendar component');
+  console.log(calendarData.data[1][3]);
   return (
-      <Col className="profile-calendar" >
+      <Col className="profile-calendar" xs={xs} lg={lg}>
         <h3>My Activity</h3>
         <UpdateNotice status={updating} />
         {calendarData &&
@@ -137,6 +139,7 @@ const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
             user={userId} monthData={calendarData.data}
             dailyQuota={dailyQuota}
             weeklyQuota={weeklyQuota}
+            parentUpdating={updating}
           />
         }
         {/*  TODO: Implement this user-set system of targets
@@ -208,6 +211,9 @@ const Profile = (props) => {
     !!viewingSelf ? user.chart1Data : null);
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
+
+  console.log('calendarData');
+  console.log(calendarData.data[1][3]);
 
   useEffect(() => {
     window.setTimeout(2000);

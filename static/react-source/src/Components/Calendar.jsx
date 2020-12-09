@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import moment from "moment";
 import { Spinner } from "react-bootstrap";
@@ -6,7 +6,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { getCalendarMonth } from "../Services/authService";
 
-const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
+const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
+                   parentUpdating}) => {
   /* Note that month is 0-indexed, but that the api call for calendar
   updates expects a 1-indexed month number. */
   const [ userID, setUserID ] = useState(user);
@@ -17,6 +18,16 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
   const [ updating, setUpdating ] = useState(false);
   const [ onCurrentMonth, setOnCurrentMonth ] = useState(
     ( myYear === year && myMonth === month ) ? true : false );
+
+  console.log(`parentUpdating ${parentUpdating}`);
+
+  useEffect(() => {
+    setMyMonthData(monthData);
+  }, [monthData]);
+
+  useEffect(() => {
+    setOnCurrentMonth(( myYear === year && myMonth === month ) ? true : false);
+  }, [myYear, year, month, myMonth]);
 
   const makeDayNum = datestring => {
       let myString = datestring.slice(-2);
@@ -40,10 +51,12 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
     if ( newMn < 0 ) {
       newMn = 11;
       newYr = yr - 1;
-    } else if ( newMn > 10 ) {
+    } else if ( newMn > 11 ) {
       newMn = 0;
       newYr = yr + 1;
     }
+
+    console.log(`from ${mn} to ${newMn}`);
 
     getCalendarMonth({userId: userID,
                       year: newYr,
@@ -67,19 +80,24 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
     }
   );
 
+  console.log(`onCurrentMonth ${onCurrentMonth}`);
+
   return (
     <React.Fragment>
     <div className="calendar">
       <div className="month-indicator">
-        <a onClick={() => changeMonthAction(myYear, myMonth, "back")}>
-          <FontAwesomeIcon icon="chevron-left" />
-        </a>
+        {!parentUpdating ? <a onClick={() => changeMonthAction(myYear, myMonth, "back")}> <FontAwesomeIcon icon="chevron-left" /> </a> :
+         <Spinner animation="grow" />
+        }
         {myMonthName} {myYear}
-        <a onClick={() => changeMonthAction(myYear, myMonth, "ahead")}
-         className={onCurrentMonth ? "disabled" : ""}
-        >
-          <FontAwesomeIcon icon="chevron-right" />
-        </a>
+        {!parentUpdating ?
+          <a onClick={!!onCurrentMonth ? null : () => changeMonthAction(myYear, myMonth, "ahead")}
+            className={!!onCurrentMonth ? "disabled" : ""}
+          >
+              <FontAwesomeIcon icon="chevron-right" />
+          </a> :
+          <Spinner animation="grow" />
+        }
       </div>
       <div className="day-of-week">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d =>
@@ -94,7 +112,9 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota}) => {
                 {wk.map(d =>
                   <div key={`${wk}-${d}`} className={`${isCurrentMonth(d[0])} ${d[1].length >= dailyQuota ? "success" : ""}`}>
                       <span className="datenum">{makeDayNum(d[0])}</span>
-                      <span className="countnum">{d[1].length > 0 ? d[1].length : ""}</span>
+                      <span className="countnum">
+                        {d[1].length > 0 ? d[1].length : ""}
+                      </span>
                   </div>
                 )}
                  <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
