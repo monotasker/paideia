@@ -91,19 +91,19 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
 const Videos = (props) => {
 
   const { lessonParam } = useParams();
-  // console.log(lessonParam);
+  console.log(`lessonParam: ${lessonParam}`);
 
   const { user, dispatch } = useContext(UserContext);
   const [lessons, setLessons ] = useState([]);
-  // console.log(lessons);
+  console.log(`lessons.length: ${lessons.length}`);
 
   const [activeLessonId, setActiveLessonId] = useState(
-    (!!lessonParam && lessons.length != 0) ? lessons.filter(l => l.lesson_position == lessonParam)[0].id
+    (!!lessonParam && lessons.length !== 0) ? lessons.filter(l => l.lesson_position === lessonParam)[0].id
   : null);
-  console.log(activeLessonId);
+  console.log(`activeLessonId: ${activeLessonId}`);
 
   const activeLessonSrc = !!activeLessonId ?
-    lessons.filter(l => l.id == activeLessonId)[0].video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
+    lessons.filter(l => l.id === activeLessonId)[0].video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
   : null ;
 
   const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : user.currentBadgeSet);
@@ -117,7 +117,7 @@ const Videos = (props) => {
         mydata.filter(l => l.lesson_position == parseInt(lessonParam))[0].id : null
       );
     });
-  }, []);
+  }, [lessonParam]);
 
   useEffect( () => {
     if (!!loaded) {
@@ -140,7 +140,7 @@ const Videos = (props) => {
           <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
             className="lessonlist"
           >
-            { lessons.length != 0 &&
+            { lessons.length !== 0 &&
             <LessonList
               defaultSet={defaultSet}
               lessons={lessons}
@@ -183,6 +183,7 @@ const Videos = (props) => {
                       <Spinner animation="grow" variant="secondary" />
                     </div>
                     <iframe
+                      title={`lesson display: lesson ${activeLessonId}`}
                       src={activeLessonSrc}
                       frameBorder="0"
                       onLoad={() => setLoaded(true)}

@@ -211,7 +211,7 @@ def get_login():
         response.status = 401
         return json({'status': 'unauthorized',
                      'reason': 'Login failed',
-                     'error': format_exc(e)})
+                     'error': format_exc()})
 
 
 def get_userdata():
