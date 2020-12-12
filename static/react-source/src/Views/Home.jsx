@@ -5,6 +5,7 @@ import {
   Button,
   Card
 } from "react-bootstrap";
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamationTriangle,
@@ -16,6 +17,7 @@ import imgHowDoesItWork from "../Images/info_How_Does_It_Work.svg";
 import imgKnownBugs from "../Images/info_Known_Bugs_and_Issue.svg";
 import imgHowDoIType from "../Images/info_How_Do_I_Type_Greek.svg";
 import imgWhatDoINeed from "../Images/info_What_Do_I_Need.svg";
+import { urlBase } from "../variables";
 
 const modalContent = [
   {img: imgWhatDoINeed,
@@ -49,12 +51,14 @@ const Home = () => {
         <div className="maria-bubble d-md-block">
           <h1>Welcome to Paideia!</h1>
           <p className='index-openmessage'>
-            {openmessage}            
+            {openmessage}
           </p>
-          <Button variant="success">
-            <FontAwesomeIcon icon={ faSignInAlt } />
-            Explore
-          </Button>
+            <Button variant="success"
+              as={Link} to={`/${urlBase}/walk/map`}
+            >
+              <FontAwesomeIcon icon={ faSignInAlt } />
+              Explore
+            </Button>
         </div>
       </Col>
     </Row>
