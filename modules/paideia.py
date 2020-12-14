@@ -1201,7 +1201,7 @@ class Step(object):
                     break
                 audio = {'title': aud_row['title'],
                          'download_path': "/paideia/default/download.load/",
-                         'm4a': aud_row['clip_M4A'] if aud_row['clip_M4A'] else None,
+                         'm4a': aud_row['clip_m4a'] if aud_row['clip_m4a'] else None,
                          'mp3': aud_row['clip'] if aud_row['clip'] else None,
                          'oga': aud_row['clip_ogg'] if aud_row['clip_ogg']
                          else None}
