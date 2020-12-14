@@ -34,7 +34,8 @@ const UpdateNotice = ({status}) => {
 }
 
 const BadgeTerm = ({title, description, lessons, data, level}) => {
-  const history = useHistory();
+  console.log(`title: ${title}`);
+  console.log(data);
   return(
     <OverlayTrigger placement="auto" trigger="click" rootClose
       overlay={
@@ -46,7 +47,7 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
           <PopoverContent>
             {`for ${description}`}
             <ul>
-              {lessons.length != 0 && lessons.map(lesson =>
+              {lessons.length !== 0 && lessons.map(lesson =>
               <li key={lesson[0]}>
                 <LinkContainer to={`/${urlBase}/videos/${lesson[0]}`}>
                   <a className="lessonlink" >
@@ -56,65 +57,70 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
               </li>
               )}
             </ul>
-            {data.curlev==1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
+            {!!data && data.curlev==1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
               <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
             }
-            {data.curlev==1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
+            {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
               <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.tright} more right attempts with this badge to have it promoted.</span>
             }
-            {data.curlev==1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
+            {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
               <span className="badge-promotion-tip">You've done great in the past. Just complete a right attempt again now to have it promoted.</span>
             }
-            {data.curlev==1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
+            {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
               <span className="badge-promotion-tip">You've done great job so far. You just can't begin and promote a badge within the same day. Keep it up and this badge should be promoted tomorrow!</span>
             }
-            {data.curlev!=1 && data.revlev == 1 &&
+            {!!data && data.curlev!==1 && data.revlev === 1 &&
               <span className="badge-promotion-tip">This badge is due for some review to keep it fresh.</span>
             }
-            <Table borderless hover size="sm">
-                <tbody>
-                  <tr>
-                    <td>Recent average score</td>
-                    {data.curlev==1 && data.avg_score >= 0.8 ?
-                      <td className="target-reached">{data.avg_score}<FontAwesomeIcon icon="check-circle" /></td>
-                      :
-                      <td>{data.avg_score}</td>
-                    }
-                  </tr>
-                  <tr>
-                    <td><FontAwesomeIcon icon="check-circle" />Total right attempts</td>
-
-                    {data.curlev==1 && data.tright >= 20 ?
-                      <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
-                      :
-                      <td>{data.tright}</td>
-                    }
-                  </tr>
-                  <tr>
-                    <td><FontAwesomeIcon icon="times-circle" />Total wrong attempts</td>
-                    <td>{data.twrong}</td>
-                  </tr>
-                  <tr>
-                    <td><FontAwesomeIcon icon="balance-scale" />Right attempts per wrong attempt</td>
-                    <td>{data.rw_ratio}</td>
-                  </tr>
-                  <tr>
-                    <td><FontAwesomeIcon icon="clock" />Days since last right</td>
-                    <td>{Math.floor(data.delta_r / (3600*24))}</td>
-                  </tr>
-                  <tr>
-                    <td><FontAwesomeIcon icon="clock" />Days since last wrong</td>
-                    <td>{Math.floor(data.delta_w / (3600*24))}</td>
-                  </tr>
-                  {[data.cat1_reached, data.cat2_reached, data.cat3_reached, data.cat4_reached].map((a, idx) => !!a && !!a[0] &&
-                    <tr key={`promdate_${data.tag}_cat${idx + 1}`}>
-                      <td><FontAwesomeIcon icon="flag" />
-                        Reached {["beginner", "apprentice", "journeyman", "master"][idx]} level</td>
-                      <td>{a[1]}</td>
+            {!!data ? (
+              <Table borderless hover size="sm">
+                  <tbody>
+                    <tr>
+                      <td>Recent average score</td>
+                      {data.curlev===1 && data.avg_score >= 0.8 ?
+                        <td className="target-reached">{data.avg_score}<FontAwesomeIcon icon="check-circle" /></td>
+                        :
+                        <td>{data.avg_score}</td>
+                      }
                     </tr>
-                  )}
-                </tbody>
-            </Table>
+                    <tr>
+                      <td><FontAwesomeIcon icon="check-circle" />Total right attempts</td>
+
+                      {data.curlev===1 && data.tright >= 20 ?
+                        <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
+                        :
+                        <td>{data.tright}</td>
+                      }
+                    </tr>
+                    <tr>
+                      <td><FontAwesomeIcon icon="times-circle" />Total wrong attempts</td>
+                      <td>{data.twrong}</td>
+                    </tr>
+                    <tr>
+                      <td><FontAwesomeIcon icon="balance-scale" />Right attempts per wrong attempt</td>
+                      <td>{data.rw_ratio}</td>
+                    </tr>
+                    <tr>
+                      <td><FontAwesomeIcon icon="clock" />Days since last right</td>
+                      <td>{Math.floor(data.delta_r / (3600*24))}</td>
+                    </tr>
+                    <tr>
+                      <td><FontAwesomeIcon icon="clock" />Days since last wrong</td>
+                      <td>{Math.floor(data.delta_w / (3600*24))}</td>
+                    </tr>
+                    {[data.cat1_reached, data.cat2_reached, data.cat3_reached, data.cat4_reached].map((a, idx) => !!a && !!a[0] &&
+                      <tr key={`promdate_${data.tag}_cat${idx + 1}`}>
+                        <td><FontAwesomeIcon icon="flag" />
+                          Reached {["beginner", "apprentice", "journeyman", "master"][idx]} level</td>
+                        <td>{a[1]}</td>
+                      </tr>
+                    )}
+                  </tbody>
+              </Table>
+            )
+              :
+              <span>Couldn't find badge data!</span>
+            }
           </PopoverContent>
         </Popover>
       }
