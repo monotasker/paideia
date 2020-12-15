@@ -717,10 +717,17 @@ class Stats(object):
         badge_levels = {}
         for k, v in list(bl_ids.items()):
             level = int(k[3:])
+            print("level ", level, "=====================")
             badgelist = []
             if v:
                 for tag in v:
+                    print("tag ", tag)
+                    if tag in [79, 80, 81]:
+                        break
+                        # FIXME: Hack to handle tag_progress including utility
+                        # tags that have no badges
                     mybadge = db.badges(db.badges.tag == tag)
+                    print(mybadge)
                     badge_name = mybadge.badge_name if mybadge \
                         else 'tag id: {}'.format(tag)
                     mylessons = [(l.lesson_position, l.title) for l in
@@ -728,7 +735,6 @@ class Stats(object):
                                     ).select()
                                  ]
                     badgelist.append((badge_name, tag, mybadge['description'], mylessons))
-                    # FIXME: Some users finding mybadge is None
             badge_levels[level] = badgelist
 
         rl_ids = {k: v for k, v in list(bls.items()) if k[:3] == 'rev'}
