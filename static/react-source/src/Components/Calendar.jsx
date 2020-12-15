@@ -15,6 +15,8 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
   const [ myMonth, setMyMonth ] = useState(month);
   const [ myMonthName, setMyMonthName ] = useState(moment.months(myMonth));
   const [ myMonthData, setMyMonthData ] = useState(monthData);
+  const [ myDailyQuota, setMyDailyQuota ] = useState(!!dailyQuota ? dailyQuota : 20);
+  const [ myWeeklyQuota, setMyWeeklyQuota ] = useState(!!weeklyQuota ? weeklyQuota : 5);
   const [ updating, setUpdating ] = useState(false);
   const [ onCurrentMonth, setOnCurrentMonth ] = useState(
     ( myYear === year && myMonth === month ) ? true : false );
@@ -70,10 +72,10 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
 
   const weekCounts = myMonthData.map((wk) => {
     const count = wk.reduce((total, day) => {
-                    total += day[1].length >= dailyQuota ? 1 : 0;
+                    total += day[1].length >= myDailyQuota ? 1 : 0;
                     return total
                  }, 0);
-    const success = count >= weeklyQuota ? true : false;
+    const success = count >= myWeeklyQuota ? true : false;
     return([count, success])
     }
   );
@@ -108,7 +110,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
               return (
                 <React.Fragment key={wk}>
                 {wk.map(d =>
-                  <div key={`${wk}-${d}`} className={`${isCurrentMonth(d[0])} ${d[1].length >= dailyQuota ? "success" : ""}`}>
+                  <div key={`${wk}-${d}`} className={`${isCurrentMonth(d[0])} ${d[1].length >= myDailyQuota ? "success" : ""}`}>
                       <span className="datenum">{makeDayNum(d[0])}</span>
                       <span className="countnum">
                         {d[1].length > 0 ? d[1].length : ""}
@@ -124,7 +126,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
           ) : <Spinner animation="grow" />}
       </div>
     </div>
-    <span className="calendar-target-message">My target is at least {dailyQuota} paths per day, {weeklyQuota} days per week.</span>
+    <span className="calendar-target-message">My target is at least {myDailyQuota} paths per day, {myWeeklyQuota} days per week.</span>
     </React.Fragment>
   )
 }

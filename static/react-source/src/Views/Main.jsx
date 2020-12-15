@@ -153,7 +153,7 @@ const myroutes = [
 
 const myPrivateRoutes = [
   {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false, Component: Walk},
-  {path: "/" + urlBase + "/profile", exact: false, Component: Profile},
+  {path: "/" + urlBase + "/profile/:userId?", exact: false, Component: Profile},
   {path: "/" + urlBase + "/admin/:adminPage", exact: false, Component: Admin},
   {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},
 ]

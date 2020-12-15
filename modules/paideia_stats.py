@@ -135,7 +135,10 @@ class Stats(object):
         """
         Return the specified user's name as a single string, last name first.
         """
-        return self.name
+        return {"namestring": self.name,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name
+                }
 
     def store_stats(self, statsdict, lastdt):
         '''
@@ -725,6 +728,7 @@ class Stats(object):
                                     ).select()
                                  ]
                     badgelist.append((badge_name, tag, mybadge['description'], mylessons))
+                    # FIXME: Some users finding mybadge is None
             badge_levels[level] = badgelist
 
         rl_ids = {k: v for k, v in list(bls.items()) if k[:3] == 'rev'}

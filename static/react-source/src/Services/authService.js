@@ -75,30 +75,39 @@ const getProfileInfo = async ({forSelf=false,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        user: userId,
+        userId: userId,
       })
   })
 
   let mystatus = response.status;
   const jsonData = await response.json();
-  console.log(jsonData);
+  let mydata = jsonData;
+  mydata.status_code = mystatus;
 
-  const mydata = {
-    currentBadgeSet: jsonData.max_set,
-    badgeLevels: jsonData.badge_levels,
-    calendar: jsonData.cal,
-    badgeTableData: jsonData.badge_table_data,
-    answerCounts: jsonData.answer_counts,
-    badgeSetDict: jsonData.badge_set_dict,
-    badgeSetMilestones: jsonData.badge_set_milestones,
-    chart1Data: jsonData.chart1_data,
-    endDate: jsonData.end_date,
-    startingSet: jsonData.starting_set,
-    targetSet: jsonData.targetSet,
-    status_code: mystatus
-  }
-  if ( !!forSelf ) {
-    dispatch({type: 'updateProfileInfo', payload: mydata})
+  if ( mystatus===200 ) {
+    mydata = {
+      firstName: jsonData.the_name.first_name,
+      lastName: jsonData.the_name.last_name,
+      email: jsonData.email,
+      timezone: jsonData.tz,
+      pathsPerDay: jsonData.paths_per_day,
+      daysPerWeek: jsonData.days_per_week,
+      currentBadgeSet: jsonData.max_set,
+      badgeLevels: jsonData.badge_levels,
+      calendar: jsonData.cal,
+      badgeTableData: jsonData.badge_table_data,
+      answerCounts: jsonData.answer_counts,
+      badgeSetDict: jsonData.badge_set_dict,
+      badgeSetMilestones: jsonData.badge_set_milestones,
+      chart1Data: jsonData.chart1_data,
+      endDate: jsonData.end_date,
+      startingSet: jsonData.starting_set,
+      targetSet: jsonData.targetSet,
+      status_code: mystatus
+    }
+    if ( !!forSelf ) {
+      dispatch({type: 'updateProfileInfo', payload: mydata})
+    }
   }
   return mydata
 }
@@ -135,20 +144,23 @@ function returnStatusCheck(mydata, history, action, reducer,
   if ( mydata.status_code === 200 ) {
     action(mydata);
   } else if ( mydata.status_code === 401 ) {
-    if ( mydata.reason == "Not logged in" ) {
+    if ( mydata.reason === "Not logged in" ) {
+      console.log('401: Not logged in');
       reducer({type: 'deactivateUser', payload: null});
       history.push(`/${urlBase}/login`);
-    } else if ( mydata.reason == "Insufficient privileges" ) {
+    } else if ( mydata.reason === "Insufficient privileges" ) {
+      console.log('404: Insufficient privileges');
       if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
         otherActions.insufficientPrivilegesAction(mydata);
       }
     }
   } else if ( mydata.status_code === 404 ) {
+    console.log('404: No such record');
     if ( otherActions.hasOwnProperty("noRecordAction") ) {
       otherActions.noRecordAction(mydata);
     }
   } else {
-    console.log('Problem in returnStatusCheck:');
+    console.log('Uncaught problem in returnStatusCheck:');
     console.log(mydata);
   }
 }

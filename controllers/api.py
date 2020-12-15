@@ -1000,6 +1000,7 @@ def get_profile_info():
     db = current.db
     auth = current.auth
     session = current.session
+    response = current.response
 
     mystudents = db((db.classes.instructor == auth.user_id) &
                     (db.classes.id == db.class_membership.class_section)
@@ -1017,10 +1018,16 @@ def get_profile_info():
                     _is_my_student(auth.user_id, sid))):
                 user = db.auth_user[sid]
             else:
-                raise PermissionError("Current user not authorized to view the "
-                                      "requested student's record")
+                response.status = 401
+                return json({'status': 'unauthorized',
+                             'reason': 'Insufficient privileges'})
         else:
             user = db.auth_user[auth.user_id]
+        # Return proper response code if no user with requested id
+        if not user:
+            response.status = 404
+            return json({'status': 'Not found',
+                         'reason': 'No matching record found'})
 
         stats = Stats(user.id)
 
@@ -1100,6 +1107,8 @@ def get_profile_info():
             'user_id': user.id,
             'tz': tz,
             'email': email,
+            'paths_per_day': myc['classes']['paths_per_day'] if myc else None,
+            'days_per_week': myc['classes']['days_per_week'] if myc else None,
             'starting_set': starting_set,
             'target_set': target_set,
             'end_date': fmt_end,
