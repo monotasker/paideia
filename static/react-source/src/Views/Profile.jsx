@@ -252,8 +252,8 @@ const Profile = (props) => {
           setLastName(info.lastName);
           setUserEmail(info.email);
           setUserTimezone(info.timezone);
-          setDailyQuota(info.pathsPerDay);
-          setWeeklyQuota(info.daysPerWeek);
+          setDailyQuota(!!info.pathsPerDay ? info.pathsPerDay : 20);
+          setWeeklyQuota(!!info.daysPerWeek ? info.daysPerWeek : 5);
           setCurrentBadgeSet(info.currentBadgeSet);
           setBadgeLevels(info.badgeLevels);
           setCalendarData(info.calendar);
