@@ -246,7 +246,6 @@ def do_logout():
     print("about to log out")
     auth = current.auth
     try:
-        print("about to log out")
         mylogout = auth.logout_bare()
         print ("did logout")
         myuser = {k:None for k in ['email', 'first_name', 'last_name',
@@ -404,7 +403,6 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
     queries = []
     if nonstep is True:
         #  requesting general queries not tied to a step
-        print('*****NONSTEP')
         queries = db((db.bugs.step == None) &
                      (db.bugs.user_name == db.auth_user.id) &
                      ((db.bugs.deleted == False) | (db.bugs.deleted == None))
@@ -433,15 +431,11 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                                  orderby=~db.bugs[orderby]
                                  )
 
-    print('****** nonstep is', nonstep)
-    print('***** found', len(queries))
 
     if unanswered:
         queries = Rows([r for r in queries if
                    not db(db.bug_posts.on_bug==r['bugs']['id']).count() > 0])
-        print('****** unanswered', len(queries))
     queries = queries.as_list()
-    print('***** list is', len(queries))
     queries = _add_posts_to_queries(queries)
 
 
@@ -569,7 +563,6 @@ def add_query_post():
             bug_id=request.vars['query_id'],
             **data
             )
-        pprint(post_result)
         user_rec = db(db.auth_user.id==post_result['new_post']['poster']
                       ).select(db.auth_user.id,
                                db.auth_user.first_name,
@@ -674,7 +667,6 @@ def add_post_comment():
             post_id=request.vars['post_id'],
             **data
             )
-        pprint(result)
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
                       ).select(db.auth_user.id,
                                db.auth_user.first_name,
@@ -811,7 +803,6 @@ def log_new_query():
                                     db.auth_user.first_name,
                                     db.auth_user.last_name
                                     ).as_list()
-        print('got', len(myqueries), '++++++++++++++++++++++++++++++++++')
         myqueries = _add_posts_to_queries(myqueries)
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
@@ -839,8 +830,6 @@ def update_query():
     """
     vbs = False
 
-    pprint(request.vars)
-
     uid = request.vars['user_id']
 
     if (auth.is_logged_in() and
@@ -855,8 +844,6 @@ def update_query():
                     if k in ['user_comment', 'public', 'deleted',
                              'pinned', 'popularity', 'helpfulness']
                     and v is not None}
-        print('Updating----------------------------------')
-        pprint(new_data)
 
         result = Bug.update_bug(request.vars["query_id"], new_data)
         user_rec = db(db.auth_user.id==db.bugs(result['id']).user_name
@@ -1186,10 +1173,10 @@ def update_course_data():
     course_id = request.vars.course_id
 
     try:
-        print('updating course', request.vars.course_id)
+        # print('updating course', request.vars.course_id)
         course_rec = db.classes(request.vars.course_id)
-        print('old data:')
-        print(course_rec)
+        # print('old data:')
+        # print(course_rec)
     except AttributeError:
         print(format_exc(5))
         response = current.response

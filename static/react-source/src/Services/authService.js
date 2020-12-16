@@ -123,7 +123,7 @@ const getCalendarMonth = async ({userId=null,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        user: userId,
+        user_id: userId,
         year: year,
         month: month
       })

@@ -15,8 +15,8 @@ import {
   Table,
   Tabs
 } from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
-import { useHistory, useParams } from "react-router-dom";
+// import { LinkContainer } from "react-router-bootstrap";
+import { useParams, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { urlBase } from "../variables";
@@ -47,15 +47,16 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
             <ul>
               {lessons.length !== 0 && lessons.map(lesson =>
               <li key={lesson[0]}>
-                <LinkContainer to={`/${urlBase}/videos/${lesson[0]}`}>
-                  <a className="lessonlink" >
+                <Button to={`/${urlBase}/videos/${lesson[0]}`}
+                  className="lessonlink"
+                  as={Link}
+                >
                     <FontAwesomeIcon icon="video" />{lesson[1]}
-                  </a>
-                </LinkContainer>
+                </Button>
               </li>
               )}
             </ul>
-            {!!data && data.curlev==1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
+            {!!data && data.curlev===1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
               <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
             }
             {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
@@ -181,7 +182,7 @@ const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
 const Profile = (props) => {
   const myDate = new Date();
 
-  const userIdParam = useParams().userId;
+  const userIdParam = parseInt(useParams().userId);
   console.log('userIdParam');
   console.log(userIdParam);
   const { user, dispatch } = useContext(UserContext);
