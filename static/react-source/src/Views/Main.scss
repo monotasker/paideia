@@ -1308,15 +1308,25 @@ h3                                      {font-family: $sans-fonts;
                                                padding-bottom: 0;
                                                background-color: $blueDark;
                                                border: 0;
+
+                        &:focus,
+                        &:hover,
+                        &:active,
+                        &:visited     {background-color: darken($blueDark, 10%);
+                        }
                         &:first-child         {border-radius: 0;
                         }
                         .btn                  {text-align: left;
                                                padding-left: 0;
                                                padding-right: 0;
                             &.btn-link        {color: #fff;
+                                &:focus,
                                 &:hover,
                                 &:active,
-                                &:visited     {text-decoration: none;}
+                                &:visited     {text-decoration: none;
+                                               outline: none;
+                                               box-shadow: none;
+                                }
                             }
                             .lessonLink-grammar   {font-size: $font-size-sm;
                                                    color: desaturate(lighten($blueDark, 30%), 30%);
@@ -1334,7 +1344,8 @@ h3                                      {font-family: $sans-fonts;
                                                border-bottom: 0;
                                                background-color: lighten($pallette2, 10%);
                             .lesson-list-item-pdf   {float: right;
-                                                     color: #701;
+                                                     color: $heading-color;
+                                                     opacity: 50%;
                             }
                             &.active          {background-color: $pallette2;
                                                color: #333;
@@ -1343,8 +1354,13 @@ h3                                      {font-family: $sans-fonts;
                                 }
                             }
                             &:active,
+                            &:focus,
                             &:hover           {border: 0;
                                                background-color: lighten($pallette2, 5%);
+                                .lesson-list-item-pdf   {opacity: 100%;
+                                    &:hover             {color: $danger;
+                                    }
+                                }
                             }
                         }
                     }
