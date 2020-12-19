@@ -19,7 +19,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { UserContext } from "../UserContext/UserProvider";
 import { fetchLessons } from "../Services/stepFetchService";
-import { downloadFile } from "../Services/downloadService";
 import { urlBase } from "../variables";
 
 const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
@@ -86,7 +85,9 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
                       onClick={e => setVideoHandler(e, i.id)}
                     >
                       {i.title}
-                      <a href={`/${urlBase}/api/download/${i.pdf}`}>  {/**onClick={() => { downloadPdf(i.pdf)}} */}
+                      <a className="lesson-list-item-pdf"
+                        href={`/${urlBase}/api/download/${i.pdf}`}
+                      >
                         <FontAwesomeIcon icon="file-pdf" />
                       </a>
 

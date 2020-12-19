@@ -1333,6 +1333,9 @@ h3                                      {font-family: $sans-fonts;
                                                border-top: 0;
                                                border-bottom: 0;
                                                background-color: lighten($pallette2, 10%);
+                            .lesson-list-item-pdf   {float: right;
+                                                     color: #701;
+                            }
                             &.active          {background-color: $pallette2;
                                                color: #333;
                                 &:focus,
