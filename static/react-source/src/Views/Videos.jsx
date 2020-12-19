@@ -1,5 +1,7 @@
-import React, { useState, useContext, useEffect, useLayoutEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useParams,
+         Link
+} from "react-router-dom";
 import {
   Row,
   Col,
@@ -17,6 +19,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { UserContext } from "../UserContext/UserProvider";
 import { fetchLessons } from "../Services/stepFetchService";
+import { downloadFile } from "../Services/downloadService";
+import { urlBase } from "../variables";
 
 const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
   const setnums = lessons.map(
@@ -54,6 +58,13 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
     }
   }, [lessons]);
 
+  const downloadPdf = (filename) => {
+    downloadFile({ filename: filename })
+    .then(info => {
+        console.log(info);
+    });
+  }
+
   return  (
     <Accordion defaultActiveKey={!!defaultSet ? defaultSet : 0}>
       { !!sets && sets.map(myset =>
@@ -75,6 +86,9 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
                       onClick={e => setVideoHandler(e, i.id)}
                     >
                       {i.title}
+                      <a href={`/${urlBase}/api/download/${i.pdf}`}>  {/**onClick={() => { downloadPdf(i.pdf)}} */}
+                        <FontAwesomeIcon icon="file-pdf" />
+                      </a>
 
                     </ListGroup.Item>
                 )}
@@ -96,6 +110,7 @@ const Videos = (props) => {
   const { user, dispatch } = useContext(UserContext);
   const [lessons, setLessons ] = useState([]);
   console.log(`lessons.length: ${lessons.length}`);
+  console.log(lessons);
 
   const [activeLessonId, setActiveLessonId] = useState(
     (!!lessonParam && lessons.length !== 0) ? lessons.filter(l => l.lesson_position === lessonParam)[0].id

@@ -3,7 +3,9 @@
 from copy import copy
 import datetime
 from traceback import format_exc
+from gluon.contrib.generics import pdf_from_html
 from gluon.serializers import json
+import os
 from pprint import pprint
 from paideia import Walk
 from paideia_utils import GreekNormalizer
@@ -19,6 +21,18 @@ if 0:
     response = current.response
     request = current.request
     db = current.db
+
+
+def download():
+    """
+    allows downloading of uploaded files
+
+    expects the request variable "filename"
+    """
+    db = current.db
+    mystream = response.download(request, db)
+
+    return mystream
 
 
 def get_prompt():
