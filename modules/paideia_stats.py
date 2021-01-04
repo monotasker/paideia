@@ -1547,30 +1547,32 @@ def compute_letter_grade(uid, myprog, startset, classrow):
 def get_current_class(uid, now, myclass=None):
     debug = 0
     db = current.db
+    myreturn = None
+    myrow = None
     if myclass:
-        myc = db((db.class_membership.name == uid) &
-                 (db.class_membership.class_section == myclass)
-                 ).select().first()
+        myrow = db((db.class_membership.name == uid) &
+                   (db.class_membership.class_section == myclass)
+                   ).select().first().as_dict()
     else:
         myclasses = db((db.class_membership.name == uid) &
                        (db.class_membership.class_section == db.classes.id)
                        ).select()
-        if debug: print('********************')
-        if debug: pprint(myclasses[-1])
-        if debug: print(now)
-        if debug: print(type(now))
-        if debug: print(datetime.datetime(2020, 1, 1, 8, 49, 16) > now)
-        if debug: print(datetime.datetime(2020, 4, 27, 8, 50) < now)
         myclasses = myclasses.find(lambda row: (row.classes.start_date is not
                                                 None) and
                                    (row.classes.start_date < now) and
                                    (row.classes.end_date > now)
                                    )
-        if debug: pprint(myclasses)
-        myc = myclasses.first()
-    if debug: print('+++++++++++++++++++')
-    if debug: pprint(myc)
-    return myc
+        myrow = myclasses.first()
+    if myrow:
+        myc = myrow.as_dict()
+        myreturn = myc
+
+        myprof = db.auth_user(myc['classes']['instructor'])
+        myreturn['classes']['instructor'] = {'first_name': myprof['first_name'],
+                                             'last_name': myprof['last_name'],
+                                             'id': myprof['id']}
+
+    return myreturn
 
 
 def make_classlist(member_sel, users, start_date, end_date, target, classrow):

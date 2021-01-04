@@ -23,7 +23,9 @@ import { urlBase } from "../variables";
 import { returnStatusCheck, getProfileInfo } from "../Services/authService";
 import { UserContext } from "../UserContext/UserProvider";
 import Calendar from "../Components/Calendar";
-import { withinOneDay } from "../Services/dateTimeService";
+import { withinOneDay,
+         readableDate
+       } from "../Services/dateTimeService";
 
 const UpdateNotice = ({status}) => {
   return (status ? <span className="update-msg">
@@ -186,6 +188,8 @@ const Profile = (props) => {
   console.log('userIdParam');
   console.log(userIdParam);
   const { user, dispatch } = useContext(UserContext);
+  console.log('User in Profie ++++++++++++++');
+  console.log(user);
 
   const [ updating, setUpdating ] = useState(true);
   const [ authorized, setAuthorized ] = useState(true);
@@ -222,6 +226,8 @@ const Profile = (props) => {
     !!viewingSelf ? user.badgeSetMilestones : null);
   const [ chart1Data, setChart1Data ] = useState(
     !!viewingSelf ? user.chart1Data : null);
+  const [ classInfo, setClassInfo ] = useState(
+    !!viewingSelf ? user.classInfo : null);
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
 
@@ -263,7 +269,9 @@ const Profile = (props) => {
           setBadgeSetDict(info.badgeSetDict);
           setBadgeSetMilestones(info.badgeSetMilestones);
           setChart1Data(info.chart1Data);
+          setClassInfo(info.classInfo);
           setUpdating(false);
+          /* FIXME: update course data in provider if viewing self and changed */
         },
         dispatch,
         {insufficientPrivilegesAction: insufficientPrivilegesAction,
@@ -312,45 +320,62 @@ const Profile = (props) => {
         <Col className="profile-classinfo">
           <h3>My Class Group</h3>
           <UpdateNotice status={updating} />
-          {user.classInfo === null ?
+          {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
+          {classInfo === null ?
           <Spinner animation="grow" variant="secondary" />
-          : (Object.keys(user.classInfo).length > 0 ?
+          : (Object.keys(classInfo).length > 0 ?
                 <Table className="profile-classinfo-content">
                   <tbody>
                     <tr><td colSpan="2">
-                      <span className="profile-classinfo-institution">{user.classInfo.institution}</span>,
+                      <span className="profile-classinfo-institution">{classInfo.institution}</span>,&nbsp;
                       <span className="profile-classinfo-section">
-                      {user.classInfo.course_section}</span>,
+                      {classInfo.course_section}</span>,&nbsp;
                       <span className="profile-classinfo-term">
-                      {user.classInfo.term} {user.classInfo.academic_year}
+                      {classInfo.term} {classInfo.academic_year}
                       </span>
                     </td></tr>
                     <tr>
-                      <td colSpan="2">start: {user.classInfo.start_date}, end: {user.classInfo.end_date}</td>
+                      <td colSpan="2">course start:&nbsp;
+                      {readableDate(!!classInfo.custom_start_date ? classInfo.custom_start_date : classInfo.start_date)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan="2">course end:&nbsp;
+                      {readableDate(!!classInfo.custom_end_date ? classInfo.custom_end_date : classInfo.end_date)}</td>
                     </tr>
                     <tr>
                       <td colSpan="2">Minimum participation requirements:
                         <ul>
-                          <li>At least {user.classInfo.paths_per_day} paths each day</li>
-                          <li>On at least {user.classInfo.days_per_week} different days</li>
+                          <li>At least {classInfo.paths_per_day} paths each day</li>
+                          <li>On at least {classInfo.days_per_week} different days</li>
                         </ul>
                       </td>
                     </tr>
                     <tr>
+                      <td colSpan="2">I began the course at badge set {classInfo.starting_set}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan="2">I will finish with an...</td>
+                    </tr>
+                    <tr>
                       <td>A</td>
-                      <td>badge set {Math.min(user.classInfo.a_cap, user.classInfo.a_target + user.classInfo.starting_set)}</td>
+                      <td>if I have begun badge set {Math.min(classInfo.a_cap, (classInfo.a_target + parseInt(classInfo.starting_set)))}</td>
                     </tr>
                     <tr>
                       <td>B</td>
-                      <td>badge set {Math.min(user.classInfo.b_cap, user.classInfo.b_target + user.classInfo.starting_set)}</td>
+                      <td>if I have begun badge set {Math.min(classInfo.b_cap, classInfo.b_target + parseInt(classInfo.starting_set))}</td>
                     </tr>
                     <tr>
                       <td>C</td>
-                      <td>badge set {Math.min(user.classInfo.c_cap, user.classInfo.c_target + user.classInfo.starting_set)}</td>
+                      <td>if I have begun badge set {Math.min(classInfo.c_cap, classInfo.c_target + parseInt(classInfo.starting_set))}</td>
                     </tr>
                     <tr>
                       <td>D</td>
-                      <td>badge set {Math.min(user.classInfo.d_cap, user.classInfo.d_target + user.classInfo.starting_set)}</td>
+                      <td>if I have begun badge set {Math.min(classInfo.d_cap, classInfo.d_target + parseInt(classInfo.starting_set))}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan="2">by the end of this course</td>
                     </tr>
                   </tbody>
                 </Table>
@@ -390,9 +415,25 @@ const Profile = (props) => {
               )}
             </div>
             <div className={`profile-progress-bar badge-set-${scaleBadgeSet}`}>
-              {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n =>
-                <div key={n} className="profile-progress-unit">{n}
-                </div>
+              {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n => {return(
+                !!badgeSetMilestones && badgeSetMilestones.find(o => o.badge_set === n) ?
+                  <OverlayTrigger key={`progress-bar-set-${n}`} placement="auto" trigger="click" rootClose
+                    overlay={
+                      <Popover id={`tooltip-${n}`}>
+                        <PopoverTitle>Badge Set {n}</PopoverTitle>
+                        <PopoverContent>
+                          {`Reached on ${readableDate(badgeSetMilestones.find(o => o.badge_set === n).my_date)}`}
+                        </PopoverContent>
+                      </Popover>
+                    }
+                  >
+                    <div key={n} className="profile-progress-unit">{n}
+                    </div>
+                  </OverlayTrigger>
+                :
+                  <div key={n} className="profile-progress-unit">{n}
+                  </div>
+                )}
               )}
             </div>
           </div>

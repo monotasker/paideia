@@ -102,7 +102,7 @@ const getProfileInfo = async ({forSelf=false,
       chart1Data: jsonData.chart1_data,
       endDate: jsonData.end_date,
       startingSet: jsonData.starting_set,
-      targetSet: jsonData.targetSet,
+      classInfo: jsonData.class_info,
       status_code: mystatus
     }
     if ( !!forSelf ) {

@@ -18,6 +18,24 @@ const readableDateAndTime = myString => {
   return output;
 }
 
+const readableDate = myString => {
+  const theDate = moment.utc(myString);
+  const now = moment.utc();
+  let output = "";
+  if ( theDate.isSame(now, 'day') ) {
+    output = theDate.local().format("[today]");
+  } else if ( theDate.isSame(now.subtract(1, 'days'), 'day') ) {
+    output = theDate.local().format("[yesterday]");
+  } else if ( theDate.isSame(now, 'week') ) {
+    output = theDate.local().format("ddd ");
+  } else if ( theDate.isSame(now, 'year') ) {
+    output = theDate.local().format("MMM ");
+  } else if ( !!myString && myString !== "" ) {
+    output = theDate.local().format("MMM Do YYYY");
+  }
+  return output;
+}
+
 const withinOneDay = myString => {
   const theDate = moment.utc(myString);
   const now = moment.utc();
@@ -26,5 +44,6 @@ const withinOneDay = myString => {
 }
 
 export { readableDateAndTime,
+         readableDate,
          withinOneDay
        }

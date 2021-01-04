@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from copy import copy
 import datetime
-from traceback import format_exc
+from traceback import format_exc, print_exc
 from gluon.contrib.generics import pdf_from_html
 from gluon.serializers import json
 import os
@@ -123,6 +123,50 @@ def evaluate_answer():
                      'reason': 'Not logged in'})
 
 
+def _fetch_current_coursedata(uid, mydatetime):
+    """
+    Private function called by _fetch_userdata and get_profile_info
+
+    """
+    current_class = get_current_class(uid, mydatetime)
+    course = {}
+    if current_class:
+        course['daily_quota'] = current_class['classes']['paths_per_day']
+        course['weekly_quota'] = current_class['classes']['days_per_week']
+        course['class_info'] = {k: v for k, v in
+                                current_class['classes'].items()
+                                if k in ['institution', 'academic_year',
+                                        'term', 'course_section',
+                                        'start_date',
+                                        'end_date', 'paths_per_day',
+                                        'days_per_week', 'instructor',
+                                        'a_target', 'a_cap', 'b_target',
+                                        'b_cap', 'c_target', 'c_cap',
+                                        'd_target', 'd_cap', 'f_target']
+                                }
+        abs_startdt = course['class_info']['start_date']
+
+        if current_class['class_membership']['custom_start'] is not None:
+            course['class_info']['custom_start_date'] = \
+                current_class['class_membership']['custom_start']
+            abs_startdt = course['class_info']['custom_start_date']
+
+        course['class_info']['custom_end_date'] = \
+            current_class['class_membership']['custom_end']
+
+        mystartset = current_class['class_membership']['starting_set']
+        if mystartset is None:
+            mystartset = get_set_at_date(uid, abs_startdt)
+        course['class_info']['starting_set'] = mystartset
+
+    else:
+        course['daily_quota'] = 20
+        course['weekly_quota'] = 5
+        course['class_info'] = {}
+
+    return course
+
+
 def _fetch_userdata(raw_user, vars):
     """
     Private function called by get_login and get_userdata
@@ -156,36 +200,9 @@ def _fetch_userdata(raw_user, vars):
             else:
                 user['instructing'] = None
 
-        current_class = get_current_class(user['id'], datetime.datetime.utcnow())
-        if current_class:
-            user['daily_quota'] = current_class['classes']['paths_per_day']
-            user['weekly_quota'] = current_class['classes']['days_per_week']
-            user['class_info'] = {k: v for k, v in
-                                  current_class['classes'].items()
-                                  if k in ['institution', 'academic_year',
-                                           'term', 'course_section',
-                                           'start_date',
-                                           'end_date', 'paths_per_day',
-                                           'days_per_week',
-                                           'a_target', 'a_cap', 'b_target',
-                                           'b_cap', 'c_target', 'c_cap',
-                                           'd_target', 'd_cap', 'f_target']
-                                  }
-            my_instructor = db.auth_user(current_class['classes']['instructor'])
-            user['class_info']['instructor'] = {'first_name':
-                                                my_instructor['first_name'],
-                                                'last_name':
-                                                my_instructor['last_name'],
-                                                'id':
-                                                my_instructor['id']}
-            user['class_info']['starting_set'] = \
-                current_class['class_membership']['starting_set'] \
-                if user['class_info'] is not None and \
-                current_class['class_membership']['starting_set'] is not None else 1
-        else:
-            user['daily_quota'] = 20
-            user['weekly_quota'] = 5
-            user['class_info'] = {}
+        user.update(**_fetch_current_coursedata(user['id'],
+                                                datetime.datetime.utcnow())
+                    )
 
         user['current_badge_set'] = db(
             db.tag_progress.name == user['id']
@@ -221,6 +238,7 @@ def get_login():
             if 'set_review' in session.keys() else None
         return json(full_user, default=my_custom_json)
     except Exception as e:
+        print_exc()
         response = current.response
         response.status = 401
         return json({'status': 'unauthorized',
@@ -995,7 +1013,9 @@ def get_profile_info():
             chart1_data(dict):          dictionary of data to build stats chart
                                             in view (from get_chart1_data)
             reviewing_set():            session.set_review,
-            badge_set_dict():           badge_set_dict
+            badge_set_dict():           badge_set_dict,
+            class_info:                 dict of course information if user is
+                                            currently enrolled in a course
     """
     debug = False
     db = current.db
@@ -1033,7 +1053,11 @@ def get_profile_info():
         stats = Stats(user.id)
 
         # get user's current course
-        myc = get_current_class(user.id, datetime.datetime.utcnow())
+        myc = _fetch_current_coursedata(user.id, datetime.datetime.utcnow())
+        print('myc=============')
+        print(myc)
+        if myc['class_info']:
+            starting_set = myc['class_info']['starting_set']
         # FIXME: UserProvider should be updated here with class info if new
 
         # tab1
@@ -1044,34 +1068,6 @@ def get_profile_info():
         max_set = stats.get_max()
         badge_levels = stats.get_badge_levels()
         badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
-
-        start_date, fmt_start, end_date, fmt_end = None, None, None, None
-        # FIXME: Below fails if targets aren't set on class
-        if myc:
-            start_date, fmt_start, end_date, fmt_end, \
-                prevend, fmt_prevend = get_term_bounds(
-                    myc.class_membership.as_dict(),
-                    myc.classes.start_date,
-                    myc.classes.end_date)
-            try:
-                starting_set = int(myc.class_membership.starting_set)
-            except (ValueError, TypeError):
-                starting_set = None
-            if not starting_set:
-                starting_set = get_set_at_date(user.id, start_date)
-            goal = myc.classes.a_target
-
-            if myc.class_membership.custom_a_cap:  # allow personal targets
-                target_set = myc.class_membership.custom_a_cap
-            else:  # default to class target/cap
-                cap = myc.classes.a_cap
-                target_set = starting_set + goal
-                if cap and target_set > cap:
-                    target_set = cap
-        else:
-            starting_set = None
-            goal = None
-            target_set = None
 
         # tab2
         mycal = stats.monthcal()
@@ -1108,11 +1104,10 @@ def get_profile_info():
             'user_id': user.id,
             'tz': tz,
             'email': email,
-            'paths_per_day': myc['classes']['paths_per_day'] if myc else None,
-            'days_per_week': myc['classes']['days_per_week'] if myc else None,
-            'starting_set': starting_set,
-            'target_set': target_set,
-            'end_date': fmt_end,
+            'paths_per_day': myc['daily_quota'] if myc else None,
+            'days_per_week': myc['weekly_quota'] if myc else None,
+            'starting_set': myc['class_info']['starting_set']
+                if myc['class_info'] else None,
             'cal': mycal,
             'max_set': max_set,
             'badge_levels': badge_levels,
@@ -1121,7 +1116,8 @@ def get_profile_info():
             'answer_counts': answer_counts,
             'chart1_data': chart1_data,
             'reviewing_set': session.set_review,
-            'badge_set_dict': badge_set_dict
+            'badge_set_dict': badge_set_dict,
+            'class_info': myc['class_info'] if myc['class_info'] else None
             },
             default=my_custom_json)
 
