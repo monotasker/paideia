@@ -321,9 +321,9 @@ const Profile = (props) => {
           <h3>My Class Group</h3>
           <UpdateNotice status={updating} />
           {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
-          {classInfo === null ?
-          <Spinner animation="grow" variant="secondary" />
-          : (Object.keys(classInfo).length > 0 ?
+          {!!updating ?
+            <Spinner animation="grow" variant="secondary" />
+            : (classInfo !== null && Object.keys(classInfo).length > 0 ?
                 <Table className="profile-classinfo-content">
                   <tbody>
                     <tr><td colSpan="2">
