@@ -408,6 +408,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
     offset_start = pagesize * page
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
+                    db.bugs.user_name,
                     db.bugs.step,
                     db.bugs.in_path,
                     db.bugs.prompt,
@@ -497,6 +498,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                                 )
     myclasses_queries = []
     external_queries = copy(queries_recs)
+    member_queries = copy(queries_recs)
     for myclass in myclasses:
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
@@ -505,7 +507,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                             ))
 
         member_queries = list(filter(lambda x: x['auth_user']['id'] in members,
-                                     queries_recs))
+                                     member_queries))
         external_queries = list(filter(lambda x: x['auth_user']['id']
                                        not in members + [userid], external_queries))
         if member_queries:
@@ -522,12 +524,19 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
     if auth.has_membership('instructors') or \
             auth.has_membership('administrators'):
         mycourses = db(db.classes.instructor == userid
-                       ).iterselect(orderby=~db.classes.start_date)
+                       ).select(orderby=~db.classes.start_date)
+        print('found {} courses'.format(len(mycourses)))
         for course in mycourses:
-            students = db(db.class_membership.class_section == course.id
-                         ).iterselect(db.class_membership.name)
-            student_queries = list(filter(lambda x: x['auth_user']['id']
-                                          in students, queries_recs))
+            students = [s['name'] for s in
+                        db(db.class_membership.class_section == course.id
+                           ).select(db.class_membership.name).as_list()]
+            print('found {} students'.format(len(students)))
+            print(students)
+            student_queries = copy(queries_recs)
+            student_queries = [s for s in student_queries
+                               if s['auth_user']['id'] in students]
+            print([s['auth_user']['id'] for s in student_queries])
+            print('found {} student queries'.format(len(student_queries)))
             mycourses_queries.append({'id': course.id,
                                       'institution': course.institution,
                                       'year': course.academic_year,

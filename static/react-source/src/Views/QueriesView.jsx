@@ -73,7 +73,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   let myHelp = Array.isArray(helpfulness) ? helpfulness : [];
   return(
     <div className={`control-row control-row-${level}`}>
-      {level !== "comment" ?
+      {( level !== "comment" && !!showAdderValue ) ?
         <AdderButton level={level}
           showAdderValue={showAdderValue}
           showAdderAction={showAdderAction}
@@ -293,8 +293,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
   console.log(`query ${uid}`);
-  console.log(`admin? ${viewingAsAdmin}`);
-  console.log(`instructing? ${viewingAsInstructor}`);
+  console.log(`logged in? ${user.userLoggedIn}`);
   const iconSize = level == "query" ? "3x" : "1x";
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
                               opId: opId, queryId: queryId},
@@ -423,9 +422,9 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     opId={opId}
                     level={level}
                     classId={classId}
-                    icon={level == "comment" ? null : childLevel}
-                    showAdderValue={level == "comment" ? null : showAdder}
-                    showAdderAction={level == "comment" ? null : setShowAdder}
+                    icon={level==="comment" ? null : childLevel}
+                    showAdderValue={(level==="comment" || !user.userLoggedIn) ? null : showAdder}
+                    showAdderAction={(level==="comment" || !user.userLoggedIn) ? null : setShowAdder}
                     showEditorAction={showEditingForm}
                     updateAction={updateThisAction[level]}
                     defaultUpdateArgs={updateArgs[level]}
@@ -436,8 +435,6 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     pinned={pinned}
                     popularity={popularity}
                     helpfulness={helpfulness}
-                    userRoles={user.userRoles}
-                    instructing={user.instructing}
                   />
                 </div>
               }
@@ -446,7 +443,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </Col>
           </Row>
 
-          {level != "comment" &&
+          {level !== "comment" && !!user.userLoggedIn &&
             <span className={`${level}-display-add-child display-add-child`}>
               {/* <a className="label"
                 onClick={() => setShowAdder(!showAdder)}
@@ -866,6 +863,9 @@ const QueriesView = () => {
         setClassQueries(queryfetch.class_queries.map(
           c => _formatClassData(c)
         ));
+        setStudentsQueries(queryfetch.course_queries.map(
+          s => _formatClassData(s)
+        ));
         setOtherQueries(queryfetch.other_queries.slice(0, 20).map(
           q => _formatQueryData(q)
         ));
@@ -1025,6 +1025,8 @@ const QueriesView = () => {
     console.log(classQueries);
     console.log("user queries");
     console.log(userQueries);
+    console.log("student queries");
+    console.log(studentsQueries);
     console.log("other queries");
     console.log(otherQueries);
     const myScopes = [
@@ -1053,6 +1055,7 @@ const QueriesView = () => {
             <FontAwesomeIcon icon="user" />Me
             <Badge variant="success">{userQueries ? userQueries.length : "0"}</Badge>
           </Button>
+          {!!user.userLoggedIn && !!user.classInfo &&
           <Button
             className={`queries-view-changer ${viewScope == 'class' ? "in" : "out"}`}
             variant="outline-secondary"
@@ -1061,14 +1064,17 @@ const QueriesView = () => {
             <FontAwesomeIcon icon="users" />Classmates
             <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
           </Button>
-          <Button
-            className={`queries-view-changer ${viewScope == 'students' ? "in" : "out"}`}
-            variant="outline-secondary"
-            onClick={() => setViewScope('students')}
-          >
-            <FontAwesomeIcon icon="users" />Students
-            <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
-          </Button>
+          }
+          {!!user.userRoles.some(v => ["instructors", "administrators"].includes(v)) &&
+            <Button
+              className={`queries-view-changer ${viewScope == 'students' ? "in" : "out"}`}
+              variant="outline-secondary"
+              onClick={() => setViewScope('students')}
+            >
+              <FontAwesomeIcon icon="users" />Students
+              <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
+            </Button>
+          }
           <Button
             className={`queries-view-changer ${viewScope == 'public' ? "in" : "out"}`}
             variant="outline-secondary"
@@ -1089,7 +1095,8 @@ const QueriesView = () => {
             unmountOnExit={true}
           >
             <div className="queries-view-pane">
-              {scope === 'user' ?
+              {scope==='user' ? (
+                !!user.userLoggedIn ?
                 <NewQueryForm
                   answer={user.currentAnswer}
                   score={user.currentScore}
@@ -1097,6 +1104,10 @@ const QueriesView = () => {
                   nonStep={nonStep}
                   singleStep={singleStep}
                 />
+                : <span className="queries-view-login-message">
+                  Log in to ask a question or offer a comment.
+                </span>
+              )
               : ''}
               <DisplayTable
                 queries={list}
