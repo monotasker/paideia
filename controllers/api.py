@@ -433,53 +433,60 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                     # FIXME:  re-add db.bugs.hidden here and in model,
 
     queries = []
+
+    if unanswered:
+        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
+        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
+        print("filtering for unanswered")
+        print("raw unanswered finds {} of {} rows".format(
+            db(unanswered_term).count(),
+            db(db.bugs.id > 0).count()
+            ))
+    else:
+        unanswered_term = True
+
     if nonstep is True:
         #  requesting general queries not tied to a step
         queries = db((db.bugs.step == None) &
                      (db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                    ).select(*table_fields,
-                                 limitby=(offset_start, offset_end),
-                                 orderby=~db.bugs[orderby]
-                                 )
-        for r in queries:
-            print(db(db.bug_posts.on_bug==r['bugs']['id']).count() > 0)
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                     (unanswered_term)
+                    )
     elif stepid > 0 & nonstep==False:
         #  requesting queries on specified step
         queries = db((db.bugs.step == stepid) &
                      (db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                    ).select(*table_fields,
-                                 limitby=(offset_start, offset_end),
-                                 orderby=~db.bugs[orderby]
-                                 )
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                     (unanswered_term)
+                     )
     elif stepid==0 & nonstep==False:
         #  requesting queries on all steps
         queries = db((db.bugs.step != None) &
                      (db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None))
-                    ).select(*table_fields,
-                                 limitby=(offset_start, offset_end),
-                                 orderby=~db.bugs[orderby]
-                                 )
-
-
-    if unanswered:
-        queries = Rows([r for r in queries if
-                   not db(db.bug_posts.on_bug==r['bugs']['id']).count() > 0])
-    queries = queries.as_list()
-    queries = _add_posts_to_queries(queries)
+                     ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                     (unanswered_term)
+                     )
+    queries_rows = queries.select(*table_fields,
+                                  limitby=(offset_start, offset_end),
+                                  orderby=~db.bugs[orderby]
+                                  )
+    queries_recs = queries_rows.as_list()
+    print("in _fetch_queries===============================")
+    print("got {} query rows".format(len(queries_recs)))
+    queries_recs = _add_posts_to_queries(queries_recs)
 
 
     #  collect queries posted by current user
 
     if userid > 0:
-        user_queries = [q for q in queries if q['auth_user']['id'] == userid]
+        user_queries = [q for q in queries_recs
+                        if q['auth_user']['id'] == userid]
 
     else:
         user_queries = []
 
     #  collect queries posted by user's class members
+    #  and queries posted by those outside the user's classes
 
     myclasses = db((db.class_membership.name == userid) &
                    (db.class_membership.class_section == db.classes.id)
@@ -489,7 +496,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                                 db.classes.course_section, orderby=~db.classes.start_date
                                 )
     myclasses_queries = []
-    external_queries = copy(queries)
+    external_queries = copy(queries_recs)
     for myclass in myclasses:
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
@@ -498,7 +505,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                             ))
 
         member_queries = list(filter(lambda x: x['auth_user']['id'] in members,
-                                     queries))
+                                     queries_recs))
         external_queries = list(filter(lambda x: x['auth_user']['id']
                                        not in members + [userid], external_queries))
         if member_queries:
@@ -520,7 +527,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
             students = db(db.class_membership.class_section == course.id
                          ).iterselect(db.class_membership.name)
             student_queries = list(filter(lambda x: x['auth_user']['id']
-                                          in students, queries))
+                                          in students, queries_recs))
             mycourses_queries.append({'id': course.id,
                                       'institution': course.institution,
                                       'year': course.academic_year,
