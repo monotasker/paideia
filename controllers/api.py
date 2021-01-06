@@ -478,7 +478,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
 
     #  collect queries posted by current user
 
-    if userid > 0:
+    if userid and userid > 0:
         user_queries = [q for q in queries_recs
                         if q['auth_user']['id'] == userid]
 

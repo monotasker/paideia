@@ -18,7 +18,7 @@ import marked from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { UserContext } from "../UserContext/UserProvider";
+import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { getQueries,
          addQuery,
          updateQuery,
@@ -63,7 +63,7 @@ const AdderButton = ({level, showAdderValue, showAdderAction, label, icon}) => {
 }
 
 const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
-                     showAdderAction=None,
+                     showAdderAction=null,
                      showEditorAction, updateAction, defaultUpdateArgs,
                      userRoles, instructing, showPublic,
                      flagged, pinned, popularity, helpfulness
@@ -94,7 +94,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
         <Button variant="outline-secondary"
           onClick={e =>
             updateAction({...defaultUpdateArgs,
-                              deleted: true, event: e})
+                          deleted: true, event: e})
           }
         >
           <FontAwesomeIcon icon="trash-alt" />
@@ -267,13 +267,16 @@ const AddChildForm = ({level, classId, queryId, replyId=null,
 }
 
 const DisplayRow = ({level, newReplyAction, newCommentAction,
-                     updateReplyAction, updateCommentAction, updateQueryAction, queryId, opId, opNameFirst, opNameLast, opRole,
+                     updateReplyAction, updateCommentAction, updateQueryAction,
+                     viewingAsAdmin, viewingAsInstructor,
+                     queryId, opId, opNameFirst, opNameLast, opRole,
                      dateSubmitted, dateUpdated, opText,
                      hidden, showPublic, flagged, deleted,
                      popularity, helpfulness, pinned,
                      classId=null, replyId=null, commentId=null,
                      queryStatus=null, opResponseText=null, stepPrompt=null,
                      queryStep=null, queryPath=null,
+                     score=null, originalScore=null,
                      children=null, threadIndex=0
                     }) => {
   const myRoles = !!opRole && opRole != null ?
@@ -289,6 +292,9 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const uid = [classId, queryId, replyId, commentId].join('_');
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
+  console.log(`query ${uid}`);
+  console.log(`admin? ${viewingAsAdmin}`);
+  console.log(`instructing? ${viewingAsInstructor}`);
   const iconSize = level == "query" ? "3x" : "1x";
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
                               opId: opId, queryId: queryId},
@@ -317,7 +323,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           <span className={`${level}-display-op-name display-op-name`}>
             {`${opNameFirst} ${opNameLast}`}
           </span><br />
-          {level != "comment" ?
+          {level!=="comment" ?
             <FontAwesomeIcon icon="user-circle" size={iconSize} /> : ""
           }
           {!!opRole && opRole.map(r =>
@@ -341,17 +347,26 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </span>
             : ""
           }
-          {user.userId == opId ?
+          {user.userId===opId ?
            <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
               {!!isPublic ? "Visible to public" : "Hidden from public"}
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
            </a> :
-           <span className={`${level}-display-op-public display-op-public`} >
+           <span className={`${level}-display-op-status display-op-status`} >
               {!!isPublic ? "Visible to public" : "Hidden from public"}
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
            </span>
+          }
+          {level==="query" &&
+           (user.userId===opId || !!viewingAsAdmin || !!viewingAsInstructor) &&
+            <div className={`${level}-display-op-privateinfo display-op-privateinfo`}>
+              Only you and your instructor can see this box
+              <span className={`${level}-display-op-points display-op-points`}>
+                counted as {score}/1.0 {!!originalScore ? `(originally ${originalScore})`: ""}
+              </span>
+            </div>
           }
         </Col>
         <Col xs={9} className={`${level}-display-body-wrapper display-body-wrapper`}>
@@ -479,7 +494,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 
 const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
-                       updateCommentAction}) => {
+                       updateCommentAction, viewingAsAdmin}) => {
+  const { user, dispatch } = useContext(UserContext);
   if (!!queries && !!queries[0] && !queries[0].section) {
     return (<ul>
               {queries.map(
@@ -490,6 +506,8 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction={newCommentAction}
                        updateReplyAction={updateReplyAction}
                        updateCommentAction={updateCommentAction}
+                       viewingAsAdmin={viewingAsAdmin}
+                       viewingAsInstructor={false}
                        classId={null}
                        {...q}
                      />
@@ -515,6 +533,8 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                            newCommentAction={newCommentAction}
                            updateReplyAction={updateReplyAction}
                            updateCommentAction={updateCommentAction}
+                           viewingAsAdmin={viewingAsAdmin}
+                           viewingAsInstructor={!!user.instructing && user.instructing.find(c => c.id === classId)}
                            classId={classId}
                            {...q}
                          />
@@ -553,6 +573,8 @@ const QueriesView = () => {
     const [nonStep, setNonStep] = useState(true)
     const [viewScope, setViewScope] = useState('public');
     const [filterUnanswered, setFilterUnanswered] = useState(false);
+    const [viewingAsAdmin, setViewingAsAdmin ] = useState(
+      user.userRoles.includes("administrators"));
 
     const setScopeSingleStep = () => {
       setNonStep(false);
@@ -644,7 +666,9 @@ const QueriesView = () => {
           helpfulness: 0,
           showPublic: true,
           threadIndex: 0,
-          children: []
+          children: [],
+          score: q.bugs.score,
+          originalScore: q.bugs.adjusted_score
         });
       }
       let myPrompt = q.bugs.prompt;
@@ -673,6 +697,8 @@ const QueriesView = () => {
                popularity: q.bugs.popularity,
                queryStep: q.bugs.step,
                queryPath: q.bugs.in_path,
+               score: q.bugs.score,
+               originalScore: q.bugs.adjusted_score
               }
       )
     }
@@ -1079,6 +1105,7 @@ const QueriesView = () => {
                 updateReplyAction={updateReplyAction}
                 newCommentAction={newCommentAction}
                 updateCommentAction={updateCommentAction}
+                viewingAsAdmin={viewingAsAdmin}
               />
             </div>
           </CSSTransition>
