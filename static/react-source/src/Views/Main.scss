@@ -716,6 +716,10 @@ h3                                      {font-family: $sans-fonts;
                 }
             }
         }
+        .display-add-child            {
+            textarea                  {width: 98%;
+            }
+        }
         .display-children             {
             .display-op               {position: relative;
                                        text-align: right;
