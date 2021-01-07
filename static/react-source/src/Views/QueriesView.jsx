@@ -877,8 +877,7 @@ const QueriesView = () => {
               [user.currentStep, onStep, singleStep, nonStep, filterUnanswered]);
 
     const newQueryAction = (myComment, showPublic) => {
-      event.preventDefault();
-      const myscore = !!user.currentScore && user.currentScore != 'null' ?
+      const myscore = !!user.currentScore && user.currentScore!=='null' ?
         user.currentScore : null;
       addQuery({step_id: user.currentStep,
                 path_id: user.currentPath,
@@ -1048,7 +1047,7 @@ const QueriesView = () => {
       <React.Fragment>
         <div className="queries-view-changer-wrapper">
           <Button
-            className={`queries-view-changer ${viewScope == 'user' ? "in" : "out"}`}
+            className={`queries-view-changer ${viewScope==='user' ? "in" : "out"}`}
             variant="outline-secondary"
             onClick={() => setViewScope('user')}
           >
@@ -1057,7 +1056,7 @@ const QueriesView = () => {
           </Button>
           {!!user.userLoggedIn && !!user.classInfo &&
           <Button
-            className={`queries-view-changer ${viewScope == 'class' ? "in" : "out"}`}
+            className={`queries-view-changer ${viewScope==='class' ? "in" : "out"}`}
             variant="outline-secondary"
             onClick={() => setViewScope('class')}
           >
@@ -1067,16 +1066,16 @@ const QueriesView = () => {
           }
           {!!user.userRoles.some(v => ["instructors", "administrators"].includes(v)) &&
             <Button
-              className={`queries-view-changer ${viewScope == 'students' ? "in" : "out"}`}
+              className={`queries-view-changer ${viewScope==='students' ? "in" : "out"}`}
               variant="outline-secondary"
               onClick={() => setViewScope('students')}
             >
               <FontAwesomeIcon icon="users" />Students
-              <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
+              <Badge variant="success">{classQueries ? studentsQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
             </Button>
           }
           <Button
-            className={`queries-view-changer ${viewScope == 'public' ? "in" : "out"}`}
+            className={`queries-view-changer ${viewScope==='public' ? "in" : "out"}`}
             variant="outline-secondary"
             onClick={() => setViewScope('public')}
           >
