@@ -66,14 +66,15 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
                      showAdderAction=null,
                      showEditorAction, updateAction, defaultUpdateArgs,
                      userRoles, instructing, showPublic,
-                     flagged, pinned, popularity, helpfulness
+                     flagged, pinned, popularity, helpfulness, userLoggedIn
                     }) => {
   const labelLevel = level === "query" ? "reply" : "comment";
   let myPop = Array.isArray(popularity) ? popularity : [];
   let myHelp = Array.isArray(helpfulness) ? helpfulness : [];
+  console.log(`logged in (control): ${userLoggedIn}`);
   return(
     <div className={`control-row control-row-${level}`}>
-      {( level !== "comment" && !!showAdderValue ) ?
+      {( level !== "comment" && !!userLoggedIn ) ?
         <AdderButton level={level}
           showAdderValue={showAdderValue}
           showAdderAction={showAdderAction}
@@ -81,7 +82,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
           icon={icon}
         />
         :
-        ""
+        <span className={`control-row-login-msg`}>Log in to add your {labelLevel}</span>
       }
       {userId === opId &&
         <Button variant="outline-secondary"
@@ -294,6 +295,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const childLevel = levels[levels.indexOf(level) + 1];
   console.log(`query ${uid}`);
   console.log(`logged in? ${user.userLoggedIn}`);
+  console.log(`logged in? ${user.userLoggedIn}`);
   const iconSize = level == "query" ? "3x" : "1x";
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
                               opId: opId, queryId: queryId},
@@ -423,7 +425,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     level={level}
                     classId={classId}
                     icon={level==="comment" ? null : childLevel}
-                    showAdderValue={(level==="comment" || !user.userLoggedIn) ? null : showAdder}
+                    showAdderValue={level==="comment" ? null : showAdder}
                     showAdderAction={(level==="comment" || !user.userLoggedIn) ? null : setShowAdder}
                     showEditorAction={showEditingForm}
                     updateAction={updateThisAction[level]}
@@ -435,6 +437,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     pinned={pinned}
                     popularity={popularity}
                     helpfulness={helpfulness}
+                    userLoggedIn={user.userLoggedIn}
                   />
                 </div>
               }
