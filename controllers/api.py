@@ -904,10 +904,8 @@ def update_query():
         if vbs: pprint(result['adjusted_score'])
 
         if (int(result['bug_status']) in [1, 2, 6] and
-                not (abs(result['score'] - 1) <= 0.999999999) and
-                not (request.vars['score'] == None or
-                     result['adjusted_score'] == None)
-                 ):
+                request.vars['score'] != None and
+                not (abs(result['score'] - 1) <= 0.999999999)):
             if vbs: print('undoing bug++++++')
             undone = trigger_bug_undo(**{k: v for k, v in result.items()
                                         if k in ['step',
