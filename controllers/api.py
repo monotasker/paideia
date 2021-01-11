@@ -525,18 +525,18 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
             auth.has_membership('administrators'):
         mycourses = db(db.classes.instructor == userid
                        ).select(orderby=~db.classes.start_date)
-        print('found {} courses'.format(len(mycourses)))
+        # print('found {} courses'.format(len(mycourses)))
         for course in mycourses:
             students = [s['name'] for s in
                         db(db.class_membership.class_section == course.id
                            ).select(db.class_membership.name).as_list()]
-            print('found {} students'.format(len(students)))
-            print(students)
+            # print('found {} students'.format(len(students)))
+            # print(students)
             student_queries = copy(queries_recs)
             student_queries = [s for s in student_queries
                                if s['auth_user']['id'] in students]
-            print([s['auth_user']['id'] for s in student_queries])
-            print('found {} student queries'.format(len(student_queries)))
+            # print([s['auth_user']['id'] for s in student_queries])
+            # print('found {} student queries'.format(len(student_queries)))
             mycourses_queries.append({'id': course.id,
                                       'institution': course.institution,
                                       'year': course.academic_year,
@@ -876,24 +876,58 @@ def update_query():
     A value of None for a parameter indicates that no update is requested. A value of False is a negative boolean value to be updated.
     ...
     """
-    vbs = False
+    vbs = True
 
     uid = request.vars['user_id']
 
     if (auth.is_logged_in() and
         (auth.user_id == uid
          or auth.has_membership('administrators')
-         or auth.has_membership('instructors')
-         and _is_my_student(auth.user_id, uid)
+         or (auth.has_membership('instructors')
+             and _is_my_student(auth.user_id, uid))
          )
     ):
         if vbs: print('api::update_query_post: vars are', request.vars)
         new_data = {k: v for k, v in request.vars.items()
                     if k in ['user_comment', 'public', 'deleted',
-                             'pinned', 'popularity', 'helpfulness']
+                             'pinned', 'popularity', 'helpfulness',
+                             'bug_status']
                     and v is not None}
+        if request.vars['score'] is not None:
+            new_data['adjusted_score'] = copy(request.vars['score'])
+        if vbs: print('submitting===================')
+        if vbs: pprint(new_data)
 
         result = Bug.update_bug(request.vars["query_id"], new_data)
+        if vbs: print('result:')
+        if vbs: pprint(result['score'])
+        if vbs: pprint(result['adjusted_score'])
+
+        if (int(result['bug_status']) in [1, 2, 6] and
+                not (abs(result['score'] - 1) <= 0.999999999) and
+                not (request.vars['score'] == None or
+                     result['adjusted_score'] == None)
+                 ):
+            if vbs: print('undoing bug++++++')
+            undone = trigger_bug_undo(**{k: v for k, v in result.items()
+                                        if k in ['step',
+                                                'in_path',
+                                                'map_location',
+                                                'id',
+                                                'log_id',
+                                                'score',
+                                                'adjusted_score',
+                                                'bug_status',
+                                                'user_name',
+                                                'admin_comment',
+                                                'user_comment',
+                                                'user_response'
+                                                ]}
+                                    )
+            if vbs: pprint(undone)
+        else:
+            if vbs: print('not undoing anything++++++')
+
         user_rec = db(db.auth_user.id==db.bugs(result['id']).user_name
                     ).select(db.auth_user.id,
                              db.auth_user.first_name,

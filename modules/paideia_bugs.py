@@ -121,8 +121,8 @@ class Bug(object):
                         if newscore >= right_threshold:
                             seclist = tr2.secondary_right
                             seclist.extend(newdates)
-                        tr2.update_record(**{'secondary_right': seclist})
-                        db.commit()
+                            tr2.update_record(**{'secondary_right': seclist})
+                            db.commit()
                     for tr in myrecs:
                         if newscore >= right_threshold:
                             # print '\ntrying to update tag_record {}'.format(tr.id)
@@ -153,17 +153,17 @@ class Bug(object):
                                     updates['tlast_wrong'] = max(odates)
                             # print 'done with tag record', tr.id
 
-                        # correct counts for times right and wrong
-                        rightsum = sum(scoredif for l in new_logs_right)
-                        updates['times_right'] = tr.times_right + rightsum
-                        updates['times_wrong'] = tr.times_wrong - rightsum
-                        if updates['times_wrong'] < 0:
-                            updates['times_wrong'] = 0
-                        # print 'updates: ', updates
-                        # commit the updates to db
-                        updated_list.append(tr.id)
-                        tr.update_record(**updates)
-                        db.commit()
+                            # correct counts for times right and wrong
+                            rightsum = sum(scoredif for l in new_logs_right)
+                            updates['times_right'] = tr.times_right + rightsum
+                            updates['times_wrong'] = tr.times_wrong - rightsum
+                            if updates['times_wrong'] < 0:
+                                updates['times_wrong'] = 0
+                            # print 'updates: ', updates
+                            # commit the updates to db
+                            updated_list.append(tr.id)
+                            tr.update_record(**updates)
+                            db.commit()
 
                 else:  # user has no wrong logs to be changed
                     print('user has no wrong logs to be changed')
@@ -183,58 +183,70 @@ class Bug(object):
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
+        vbs = True
+        if vbs: print("in Bug.undo*****************")
+        if vbs: print("score", score)
+        if vbs: print("adjusted_score", adjusted_score)
+        if vbs: print("status", bugstatus)
         db = current.db
         response = current.response
         message = ''
         newscore = adjusted_score if adjusted_score != None else 1.0
-        comments = {'confirmed': 'You\'re right. There was a problem with the '
-                                 'evaluation of your answer. We\'ll work on fixing '
-                                 'it. When the problem is resolved this report '
-                                 'will be marked "fixed" and we will adjust any '
-                                 'other affected step attempts in your record. '
-                                 'Thanks for helping to make Paideia even better.',
-                    'fixed': 'The problem with this step has now been fixed and '
-                             'any negative affects on your performance record '
-                             'have been reversed. Thanks again for your help.'
-                    }
-        admin_comment = comment if comment else comments[bugstatus]
+        #  FIXME: this automated commenting doesn't work with new query replies
+        # comments = {'confirmed': 'You\'re right. There was a problem with the '
+        #                          'evaluation of your answer. We\'ll work on fixing '
+        #                          'it. When the problem is resolved this report '
+        #                          'will be marked "fixed" and we will adjust any '
+        #                          'other affected step attempts in your record. '
+        #                          'Thanks for helping to make Paideia even better.',
+        #             'fixed': 'The problem with this step has now been fixed and '
+        #                      'any negative affects on your performance record '
+        #                      'have been reversed. Thanks again for your help.'
+        #             }
+        # admin_comment = comment if comment else comments[bugstatus]
 
-        # Find all equivalent bug reports
-        thisuser_bug_query = db((db.bugs.step == self.step_id) &
+
+        statusid = db(db.bug_status.status_label == bugstatus
+                      ).select().first().id
+        newvals = {'adjusted_score': newscore,
+                   'bug_status': statusid}
+                #  FIXME: no longer works 'admin_comment': comment,
+
+        if bugstatus == "allowance_given":
+            bugrows = db.bugs(bug_id)
+            bugrows.update_record(**newvals)
+        else:
+            # Find all equivalent bug reports
+            thisuser_bug_query = db((db.bugs.step == self.step_id) &
+                                    (db.bugs.in_path == self.path_id) &
+                                    (db.bugs.user_response == user_response) &
+                                    (db.bugs.user_name == int(user_id)) &
+                                    (db.bugs.score != newscore))
+            general_bug_query = db((db.bugs.step == self.step_id) &
                                 (db.bugs.in_path == self.path_id) &
                                 (db.bugs.user_response == user_response) &
-                                (db.bugs.user_name == int(user_id)) &
                                 (db.bugs.score != newscore))
-        general_bug_query = db((db.bugs.step == self.step_id) &
-                               (db.bugs.in_path == self.path_id) &
-                               (db.bugs.user_response == user_response) &
-                               (db.bugs.user_comment == user_comment) &
-                               (db.bugs.score != newscore))
-        general_bugrows = general_bug_query.select()
-        user_bugrows = thisuser_bug_query.select()
-        bugrows = general_bugrows & user_bugrows
+            general_bugrows = general_bug_query.select()
+            user_bugrows = thisuser_bug_query.select()
+            bugrows = general_bugrows & user_bugrows
+            thisuser_bug_query.update(**newvals)
+            general_bug_query.update(**newvals)
 
         # Update those bug reports with the new values
-        statusid = db(db.bug_status.status_label == bugstatus).select().first().id
-        newvals = {'adjusted_score': newscore,
-                   'admin_comment': comment,
-                   'bug_status': statusid}
-        thisuser_bug_query.update(**newvals)
-        general_bug_query.update(**newvals)
         bugusers = list(set([b.user_name for b in bugrows]))
         message += "\nUpdated {} bug reports for {} users. ".format(len(bugrows),
                                                                   len(bugusers))
         # don't adjust records if no score change
-        if score < adjusted_score and abs(score - adjusted_score) > 0.0000009:
+        if score < newscore and abs(score - newscore) > 0.0000009:
             # Find and fix affected attempt log rows
             logrows, message = self._fix_attempt_logs(bugrows, newscore,
                                                       message, bug_id)
 
             # Find and fix tag_records for affected users
-            scoredif = adjusted_score - score
+            scoredif = newscore - score
             recids, message = self._fix_tag_records(bugusers, logrows,
                                                     message, bug_id, scoredif,
-                                                    adjusted_score)
+                                                    newscore)
 
         # print message
         return message
@@ -323,6 +335,10 @@ class Bug(object):
         '''
         db = current.db
         new_content['modified_on'] = datetime.datetime.utcnow()
+
+        if new_content['adjusted_score'] > 1.0:
+            new_content['adjusted_score'] = 1.0
+
         try:
             myrow = db.bugs(log_id)
             myrow.update_record(**new_content)
@@ -437,10 +453,11 @@ class Bug(object):
                 newly inserted or updated post.
 
         """
-
+        vbs = False
         db = current.db
         request = current.request
-        print(request.vars)
+        if vbs: print('in paideia_bugs::record_bug_post')
+        if vbs: print(request.vars)
         mybug = db(db.bugs.id == bug_id).select().first()
         bug_posts = mybug['posts'] if mybug['posts'] else []
         newdata = {k:v for k, v in {"post_body": post_body,
@@ -480,12 +497,14 @@ class Bug(object):
 def trigger_bug_undo(*args, **kwargs):
     """
     """
+    vbs = True
     db = current.db
     mystatus = db(db.bug_status.id == kwargs['bug_status']).select().first()
     result = "No records reversed."
 
-    pprint(kwargs)
-    pprint(args)
+    if vbs: print("in paideia_bugs.trigger_bug_undo:")
+    if vbs: pprint(kwargs)
+    if vbs: pprint(args)
     if mystatus['status_label'] in ['fixed', 'confirmed', 'allowance_given']:
         # print 'undoing bug!'
         # print 'args'
@@ -498,8 +517,8 @@ def trigger_bug_undo(*args, **kwargs):
         bug_id = kwargs['id']
         log_id = kwargs['log_id']
         score = kwargs['score']
-        # below needed to avoid error updating non-existent log entry
-        adjusted_score = kwargs['adjusted_score'] if kwargs['log_id'] else 0
+        adjusted_score = kwargs['adjusted_score'] \
+            if not (kwargs['adjusted_score'] > 1.0) else 1.0
         bugstatus = mystatus['status_label']
         user_id = kwargs['user_name']
         comment = kwargs['admin_comment']

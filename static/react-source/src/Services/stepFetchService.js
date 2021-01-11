@@ -131,7 +131,9 @@ const updateQuery = async({query_id=null,
                            flagged=null,
                            pinned=null,
                            helpfulness=null,
-                           popularity=null
+                           popularity=null,
+                           score=null,
+                           queryStatus=null,
                           }) => {
   let response = await fetch('/paideia/api/update_query', {
       method: "POST",
@@ -149,7 +151,9 @@ const updateQuery = async({query_id=null,
         flagged: flagged,
         pinned: pinned,
         helpfulness: helpfulness,
-        popularity: popularity
+        popularity: popularity,
+        score: score,
+        bug_status: queryStatus
       })
   })
   let mystatus = response.status;

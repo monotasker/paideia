@@ -4,6 +4,7 @@ import { Badge,
          Col,
          Collapse,
          Form,
+         FormControl,
          OverlayTrigger,
          Row,
          Spinner,
@@ -144,30 +145,57 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   )
 }
 
-const UpdateForm = ({level, idArgs, opId, updateAction, currentText,
-                     setEditingAction
+const UpdateForm = ({level, idArgs, opId, updateAction, updateField="opText",
+                     currentText, setEditingAction,
+                     autosize=true, optionList=null,
+                     submitButton=true
                     }) => {
-  const [myText, setMyText] = useState(currentText);
+  const [myText, setMyText] = useState();
   const idString = Object.values(idArgs).join("-");
+  const FormComponent = !!autosize ? TextareaAutosize : FormControl;
+  const [changing, setChanging] = useState(false);
   const sendUpdate = e => {
     e.preventDefault();
-    updateAction({...idArgs, opId: opId, opText: myText});
+    updateAction({...idArgs, opId: opId,
+      [updateField]: updateField==="score" ? parseFloat(myText) : myText});
+    console.log(`firing with myText: ${myText}`);
     setEditingAction(false);
   }
+  useEffect(() => {
+    if ( !!optionList && !!myText ) {
+      console.log(`myText: ${myText}`);
+      sendUpdate(new Event('dummy'));
+    }
+  }, [myText]);
+
   return (
-    <Form id={`update-${level}-form-${idString}`}
+    <Form id={`update-${level}-${updateField}-form-${idString}`}
       className={`update-${level}-form update-form`}
     >
-        <Form.Group controlId={`update${level}Textarea-${idString}`}>
-          <TextareaAutosize
-            defaultValue={currentText}
+        <Form.Group controlId={`update-${level}-${updateField}-input-${idString}`}>
+          <FormComponent
+            as={!autosize ? (!!optionList ? "select" : "input") : undefined }
+            defaultValue={!optionList ? currentText : undefined }
             onChange={e => setMyText(e.target.value)}
-          />
+            onSubmit={sendUpdate}
+          >
+            {!!optionList ?
+              optionList.map((label, index) =>
+                <option value={index}
+                  selected={index===parseInt(currentText) ? "selected" : false}
+                >
+                  {label.replace("_", " ")}
+                </option>)
+              : null
+            }
+          </FormComponent>
         </Form.Group>
-        <Button variant="primary"
-          type="submit"
-          onClick={e => sendUpdate(e)}
-        >Update {level}</Button>
+        {!!submitButton &&
+          <Button variant="primary"
+            type="submit"
+            onClick={e => sendUpdate(e)}
+          >Update {level}</Button>
+        }
     </Form>
   )
 }
@@ -188,7 +216,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
     </Button>
     <Collapse in={showForm}>
       <Form
-        onSubmit={() => action(queryText, showPublic)}
+        onSubmit={(event) => action(queryText, showPublic, event)}
       >
         {(!nonStep && !!singleStep) &&
           <Form.Group controlId="newQueryFormAnswer">
@@ -277,7 +305,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      classId=null, replyId=null, commentId=null,
                      queryStatus=null, opResponseText=null, stepPrompt=null,
                      queryStep=null, queryPath=null,
-                     score=null, originalScore=null,
+                     score=null, adjustedScore=null,
                      children=null, threadIndex=0
                     }) => {
   const myRoles = !!opRole && opRole != null ?
@@ -286,6 +314,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
   const [ isPublic, setIsPublic ] = useState(showPublic);
+  const [ activeScore, setActiveScore ] =
+    useState(adjustedScore!=null ? adjustedScore : score)
   const showEditingForm = (e) => {
     e.preventDefault();
     setEditing(true);
@@ -294,9 +324,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
   console.log(`query ${uid}`);
-  console.log(`logged in? ${user.userLoggedIn}`);
-  console.log(`logged in? ${user.userLoggedIn}`);
-  const iconSize = level == "query" ? "3x" : "1x";
+  console.log(`score: ${score}`);
+  console.log(`adjusted_score: ${adjustedScore}`);
+  const iconSize = level==="query" ? "3x" : "1x";
+  const queryStatusList = ["", "confirmed",	"fixed",	"not_a_bug",
+                           "duplicate",	"awaiting review",	"allowance_given",
+                           "question_answered"];
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
                               opId: opId, queryId: queryId},
                       reply: {opId: opId, replyId: replyId,
@@ -340,14 +373,6 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </span><br />
             </React.Fragment>
           }
-          {!!queryStatus ?
-            <span className={`${level}-display-op-status display-op-status`}>{
-              ["", "confirmed",	"fixed",	"not_a_bug",
-              "duplicate",	"awaiting review",	"allowance_given",
-              "question_answered"][queryStatus].replace("_", " ")}
-            </span>
-            : ""
-          }
           {user.userId===opId ?
            <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
               {!!isPublic ? "Visible to public" : "Hidden from public"}
@@ -360,13 +385,48 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 size="1x" />
            </span>
           }
+          {!!queryStatus ? (
+            (!!viewingAsAdmin || !!viewingAsInstructor) ?
+              <UpdateForm level={level}
+                idArgs={updateArgs[level]}
+                updateAction={updateThisAction[level]}
+                updateField="queryStatus"
+                currentText={DOMPurify.sanitize(queryStatus)}
+                setEditingAction={setEditing}
+                autosize={false}
+                optionList={queryStatusList}
+                submitButton={false}
+              />
+            : <span className={`${level}-display-op-status display-op-status`}>{
+                queryStatusList[queryStatus].replace("_", " ")}
+              </span>
+            )
+            : ""
+          }
           {level==="query" &&
            (user.userId===opId || !!viewingAsAdmin || !!viewingAsInstructor) &&
+            score !== null &&
             <div className={`${level}-display-op-privateinfo display-op-privateinfo`}>
+              {(!!viewingAsAdmin || !!viewingAsInstructor) ?
+                <span className={`${level}-display-op-points display-op-points`}>
+                  Given
+                  <UpdateForm level={level}
+                    idArgs={updateArgs[level]}
+                    updateAction={updateThisAction[level]}
+                    updateField="score"
+                    currentText={!activeScore==="0" ? DOMPurify.sanitize(activeScore) : activeScore}
+                    setEditingAction={setEditing}
+                    autosize={false}
+                    // submitButton={false}
+                  />
+                  {!!adjustedScore && `(originally ${score})`}
+                </span>
+              :
+                <span className={`${level}-display-op-points display-op-points`}>
+                  given {!!adjustedScore ? `${adjustedScore}/1.0 (originally ${score})`: `${score}/1.0`}
+                </span>
+              }
               Only you and your instructor can see this box
-              <span className={`${level}-display-op-points display-op-points`}>
-                counted as {score}/1.0 {!!originalScore ? `(originally ${originalScore})`: ""}
-              </span>
             </div>
           }
         </Col>
@@ -668,7 +728,7 @@ const QueriesView = () => {
           threadIndex: 0,
           children: [],
           score: q.bugs.score,
-          originalScore: q.bugs.adjusted_score
+          adjustedScore: q.bugs.adjusted_score
         });
       }
       let myPrompt = q.bugs.prompt;
@@ -698,7 +758,7 @@ const QueriesView = () => {
                queryStep: q.bugs.step,
                queryPath: q.bugs.in_path,
                score: q.bugs.score,
-               originalScore: q.bugs.adjusted_score
+               adjustedScore: q.bugs.adjusted_score
               }
       )
     }
@@ -879,9 +939,12 @@ const QueriesView = () => {
     useEffect(() => fetchAction(),
               [user.currentStep, onStep, singleStep, nonStep, filterUnanswered]);
 
-    const newQueryAction = (myComment, showPublic) => {
-      const myscore = !!user.currentScore && user.currentScore!=='null' ?
+    const newQueryAction = (myComment, showPublic, event) => {
+      event.preventDefault();
+      console.log(`myscore: ${user.currentScore}`);
+      const myscore = !['null', undefined].includes(user.currentScore) ?
         user.currentScore : null;
+      console.log(`myscore: ${myscore}`);
       addQuery({step_id: user.currentStep,
                 path_id: user.currentPath,
                 user_id: user.userId,
@@ -937,22 +1000,26 @@ const QueriesView = () => {
                                 pinned=null,
                                 popularity=null,
                                 helpfulness=null,
-                                deleted=null
+                                deleted=null,
+                                score=null,
+                                queryStatus=null
                                 // hidden=null,
                                }) => {
       // console.log('updating query------------');
       // console.log(helpfulness);
       updateQuery({user_id: opId,
-                       query_id: queryId,
-                       query_text: opText,
-                       show_public: showPublic,
-                      //  hidden: hidden,
-                       flagged: flagged,
-                       pinned: pinned,
-                       popularity: popularity,
-                       helpfulness: helpfulness,
-                       deleted: deleted
-                       })
+                   query_id: queryId,
+                   query_text: opText,
+                   show_public: showPublic,
+                   //  hidden: hidden,
+                   flagged: flagged,
+                   pinned: pinned,
+                   popularity: popularity,
+                   helpfulness: helpfulness,
+                   deleted: deleted,
+                   score: score,
+                   queryStatus: queryStatus
+                   })
       .then(myresponse => {
         _updateQueryInState(myresponse, myScopes);
       });
