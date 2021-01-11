@@ -336,7 +336,8 @@ class Bug(object):
         db = current.db
         new_content['modified_on'] = datetime.datetime.utcnow()
 
-        if new_content['adjusted_score'] > 1.0:
+        if 'adjusted_score' in new_content.keys() \
+                and new_content['adjusted_score'] > 1.0:
             new_content['adjusted_score'] = 1.0
 
         try:
