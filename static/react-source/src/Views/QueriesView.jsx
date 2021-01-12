@@ -640,6 +640,7 @@ const QueriesView = () => {
     const [filterUnanswered, setFilterUnanswered] = useState(false);
     const [viewingAsAdmin, setViewingAsAdmin ] = useState(
       user.userRoles.includes("administrators"));
+    console.log(`****${singleStep} ${nonStep} ${onStep}`);
 
     const setScopeSingleStep = () => {
       setNonStep(false);
@@ -1170,14 +1171,21 @@ const QueriesView = () => {
           >
             <div className="queries-view-pane">
               {scope==='user' ? (
-                !!user.userLoggedIn ?
-                <NewQueryForm
-                  answer={user.currentAnswer}
-                  score={user.currentScore}
-                  action={newQueryAction}
-                  nonStep={nonStep}
-                  singleStep={singleStep}
-                />
+                !!user.userLoggedIn ? (
+                  (nonStep===false && singleStep===false) ?
+                    <div>
+                      <p>{"Asking a question that's not about a specific path or step? Select 'General' at top."}</p>
+                      <p>To ask about a specific step you must be attempting that step when you submit your question.</p>
+                    </div>
+                  :
+                    <NewQueryForm
+                      answer={user.currentAnswer}
+                      score={user.currentScore}
+                      action={newQueryAction}
+                      nonStep={nonStep}
+                      singleStep={singleStep}
+                    />
+                )
                 : <span className="queries-view-login-message">
                   Log in to ask a question or offer a comment.
                 </span>

@@ -7,11 +7,10 @@ import {
     Row,
     Col,
     Table,
-    Form,
-    P
+    Form
 } from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
+import { urlBase } from "../variables";
 
 const CaseEndings = () => (
     <React.Fragment>
@@ -133,7 +132,7 @@ const CaseEndings = () => (
             </tr>
             </tbody>
         </Table>
-        <p>The full set of case endings is introduced for the first time in lesson 8.1, "The Dative Case"</p>
+        <p>The full set of case endings is introduced for the first time in <Link to={`/${urlBase}/videos/81`}>lesson 8.1, "The Dative Case"</Link></p>
     </React.Fragment>
 
 )
@@ -181,7 +180,7 @@ const SquareOfStops = () => (
                 </tr>
             </tbody>
         </Table>
-        <p>Discussed in lesson 10.1, "The Aorist Tense"</p>
+        <p>Discussed in <Link to={`/${urlBase}/videos/101`}>lesson 10.1, "The Aorist Tense"</Link></p>
     </React.Fragment>
 )
 
@@ -257,7 +256,7 @@ const VowelContractions = () => {
                 </tbody>
             </Table>
             <p>
-                Discussed in lesson 5.2, "The Real Stems of 3rd Declension Nouns" and in <LinkContainer to="/videos/73"><a>lesson 7.3, "Contract Verbs"</a></LinkContainer>
+                Discussed in <Link to={`/${urlBase}/videos/52`}>lesson 5.2, "The Real Stems of 3rd Declension Nouns"</Link> and in <Link to={`/${urlBase}/videos/73`}>lesson 7.3, "Contract Verbs"</Link>
             </p>
         </React.Fragment>
     )
