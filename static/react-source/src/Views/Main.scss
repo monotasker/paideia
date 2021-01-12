@@ -1403,9 +1403,10 @@ h3                                      {font-family: $sans-fonts;
                                                background-color: #fff;
                                                opacity: 1;
                                                z-index: 10;
+                                               transition: opacity 500ms;
                         @include center-content-both();
                         &.iframe-loaded       {opacity: 0;
-                                               transition: all 500ms;
+                                               transition: opacity 500ms;
                         }
                         &.mask-done           {display: none;
                         }

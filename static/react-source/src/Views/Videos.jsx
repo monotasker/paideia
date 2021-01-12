@@ -104,42 +104,44 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
 
 
 const Videos = (props) => {
-
   const { lessonParam } = useParams();
-  console.log(`lessonParam: ${lessonParam}`);
-
   const { user, dispatch } = useContext(UserContext);
   const [lessons, setLessons ] = useState([]);
-  console.log(`lessons.length: ${lessons.length}`);
-  console.log(lessons);
-
+  // console.log(`lessons.length: ${lessons.length}`);
+  // console.log(lessons);
   const [activeLessonId, setActiveLessonId] = useState(
-    (!!lessonParam && lessons.length !== 0) ? lessons.filter(l => l.lesson_position === lessonParam)[0].id
+    (!!lessonParam && lessons.length !== 0) ? lessons.find(l => l.lesson_position === parseInt(lessonParam)).id
   : null);
-  console.log(`activeLessonId: ${activeLessonId}`);
+  // console.log(`activeLessonId: ${activeLessonId}`);
 
   const activeLessonSrc = !!activeLessonId ?
-    lessons.filter(l => l.id === activeLessonId)[0].video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
+    lessons.find(l => l.id===activeLessonId).video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
   : null ;
 
   const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : user.currentBadgeSet);
-  const [loaded, setLoaded] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect( () => {
     fetchLessons()
     .then(mydata => {
       setLessons(mydata);
       setActiveLessonId(!!lessonParam ?
-        mydata.filter(l => l.lesson_position == parseInt(lessonParam))[0].id : null
+        mydata.find(l => l.lesson_position===parseInt(lessonParam)).id : null
       );
+      setLoaded(true);
     });
   }, [lessonParam]);
 
   useEffect( () => {
     if (!!loaded) {
-      let $mask = document.getElementsByClassName("iframe-mask")[0];
-      $mask.classList.add("iframe-loaded");
-      window.setTimeout($mask.classList.add("mask-done"), 700);
+      console.log("video loaded!");
+      // let $mask = document.getElementsByClassName("iframe-mask")[0];
+      window.setTimeout(() => {
+        let $mask = document.getElementsByClassName("iframe-mask")[0];
+        console.log($mask);
+        $mask.classList.add("iframe-loaded");
+        window.setTimeout(() => $mask.classList.add("mask-done"), 200);
+      }, 1500);
     }
   }, [loaded])
 
