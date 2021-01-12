@@ -479,6 +479,11 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                       <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
                     </span>
                   }
+                  {!!queryStep && (!!viewingAsAdmin || !!viewingAsInstructor) &&
+                    <span className={`${level}-display-query-step dispay-query-step`}>
+                      <FontAwesomeIcon icon="shoe-prints" size="sm" />for step {queryStep} in path {queryPath}
+                    </span>
+                  }
                   <ControlRow
                     userId={user.userId}
                     opId={opId}
