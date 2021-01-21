@@ -8,12 +8,14 @@ import {
   Col
 } from "react-bootstrap";
 import { withRouter } from 'react-router';
+import { useHistory } from 'react-router-dom';
 
 import { login, formatLoginData } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 
 const Login = (props) => {
   const { user, dispatch } = useContext(UserContext);
+  const history = useHistory();
 
   const getLogin = (event) => {
     console.log('getting login');
@@ -36,10 +38,10 @@ const Login = (props) => {
   return(
     <Row className="login-component content-view justify-content-sm-center">
       <Col xs sm={4}>
-        { user.userLoggedIn == true &&
-          history.back()
+        { user.userLoggedIn === true &&
+          history.goBack()
         }
-        { user.userLoggedIn == false && (
+        { user.userLoggedIn === false && (
           <React.Fragment>
           <h2 className="text-center">How About Logging In?</h2>
           <Form onSubmit={getLogin} role="form">
@@ -75,4 +77,4 @@ const Login = (props) => {
   );
 }
 
-export default withRouter(Login);
+export default Login;

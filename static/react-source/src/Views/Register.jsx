@@ -9,7 +9,8 @@ import {
   Row,
   Col
 } from "react-bootstrap";
-import { withRouter, useHistory } from 'react-router';
+import { withRouter } from 'react-router';
+import { useHistory } from 'react-router-dom';
 import moment from 'moment';
 import 'moment-timezone';
 
@@ -19,9 +20,11 @@ import { recaptchaKey } from '../variables';
 
 
 
-const Register = () => {
+const Register = (props) => {
   const { user, dispatch } = useContext(UserContext);
-  const history = useHistory();
+  const myhistory = useHistory();
+  console.log(myhistory);
+  console.log(history);
   const [ myFirstName, setMyFirstName ] = useState();
   const [ myLastName, setMyLastName ] = useState();
   const [ myTimeZone, setMyTimeZone ] = useState("America/Toronto");
@@ -95,7 +98,7 @@ const Register = () => {
     <Row className="register-component content-view justify-content-sm-center">
       <Col xs sm={4}>
         { user.userLoggedIn === true &&
-          history.back()
+          myhistory.goBack()
         }
         { user.userLoggedIn === false && (
           <React.Fragment>
@@ -188,4 +191,4 @@ const Register = () => {
   );
 }
 
-export default withRouter(Register);
+export default Register;
