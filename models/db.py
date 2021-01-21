@@ -236,12 +236,12 @@ auth.messages.reset_password = 'Click on the link http://' \
 # enable recaptcha anti-spam for selected actions
 # -------------------------------------------------------------
 
-mycaptcha = Recaptcha2(request, keydata['captcha_public_key'],
-                       keydata['captcha_private_key'])
-auth.settings.login_captcha = None
-auth.settings.register_captcha = mycaptcha
-auth.settings.retrieve_username_captcha = mycaptcha
-auth.settings.retrieve_password_captcha = mycaptcha
+# mycaptcha = Recaptcha2(request, keydata['captcha_public_key'],
+#                        keydata['captcha_private_key'])
+# auth.settings.login_captcha = None
+# auth.settings.register_captcha = mycaptcha
+# auth.settings.retrieve_username_captcha = mycaptcha
+# auth.settings.retrieve_password_captcha = mycaptcha
 
 # -------------------------------------------------------------
 # crud settings

@@ -2,6 +2,30 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 import { urlBase } from '../variables';
 
+const register = async ({theToken,
+                         theFirstName,
+                         theLastName,
+                         theTimeZone,
+                         theEmail,
+                         thePassword
+                         }) => {
+  let formdata = new FormData();
+  formdata.append("my_first_name", theFirstName);
+  formdata.append("my_last_name", theLastName);
+  formdata.append("my_time_zone", theTimeZone);
+  formdata.append("my_email", theEmail);
+  formdata.append("my_password", thePassword);
+  formdata.append("my_token", theToken);
+
+  let response = await fetch('/paideia/api/get_registration', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      body: formdata
+  })
+  return await response.json()
+}
+
 const login = async (formdata) => {
   let response = await fetch('/paideia/api/get_login', {
       method: "POST",
@@ -186,6 +210,7 @@ const formatLoginData = (data) => {
 }
 
 export {
+  register,
   login,
   logout,
   checkLogin,

@@ -79,6 +79,7 @@ import TopNavbar from "../Components/TopNavbar";
 import Tools from "../Components/Tools";
 import Home from "./Home";
 import Login from "./Login";
+import Register from "./Register";
 import Walk from "./Walk";
 import Profile from "./Profile";
 import Videos from "./Videos";
@@ -152,7 +153,8 @@ const myroutes = [
   {path: "/" + urlBase + "(/static/react-source/dist/index.html||/home)", exact: true, Component: Home},
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
-  {path: "/" + urlBase + "/login", exact: false, Component: Login}
+  {path: "/" + urlBase + "/login", exact: false, Component: Login},
+  {path: "/" + urlBase + "/register", exact: false, Component: Register}
 ]
 
 const myPrivateRoutes = [

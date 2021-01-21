@@ -3,8 +3,9 @@
 from copy import copy
 import datetime
 from traceback import format_exc, print_exc
-from gluon.contrib.generics import pdf_from_html
-from gluon.serializers import json
+# from gluon.contrib.generics import pdf_from_html
+from gluon.serializers import json as json_serializer
+import json
 import os
 from pprint import pprint
 from paideia import Walk
@@ -12,7 +13,9 @@ from paideia_utils import GreekNormalizer
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
-from pydal.objects import Rows
+# from pydal.objects import Rows
+
+from gluon._compat import urllib2, urlencode, urlopen, to_bytes, to_native
 
 if 0:
     from gluon import Auth, Response, Request, Current
@@ -83,11 +86,11 @@ def get_prompt():
         else:
             stepargs['set_review'] = False
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
-        return json(resp)
+        return json_serializer(resp)
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -115,11 +118,11 @@ def evaluate_answer():
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
         resp['eval_text'] = copy(resp['prompt_text'])
         resp['prompt_text'] == None
-        return json(resp)
+        return json_serializer(resp)
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -215,6 +218,60 @@ def _fetch_userdata(raw_user, vars):
     return user
 
 
+def get_registration():
+    """
+    """
+    debug=False
+    if debug: print("in api: registering new user***************")
+    request = current.request
+    auth = current.auth
+    token = request.vars['my_token']
+
+    keydata = {}
+    with open('applications/paideia/private/app.keys', 'r') as keyfile:
+        for line in keyfile:
+            k, v = line.split()
+            keydata[k] = v
+    params = urlencode({
+        'secret': keydata['captcha_private_key'],
+        'response': token
+    }).encode('utf-8')
+    recap_request = urllib2.Request(
+        url="https://www.google.com/recaptcha/api/siteverify",
+        data=to_bytes(params),
+        headers={'Content-type': 'application/x-www-form-urlencoded',
+                 'User-agent': 'reCAPTCHA Python'})
+    httpresp = urlopen(recap_request)
+    content = httpresp.read()
+    httpresp.close()
+    response_dict = json.loads(to_native(content))
+    if debug: pprint(response_dict)
+
+    if response_dict["success"] == True and response_dict["score"] > 0.5:
+        try:
+            pprint(request.vars)
+            response_data = auth.register_bare(email=request.vars["my_email"],
+                password=request.vars["my_password"],
+                first_name=request.vars["my_first_name"],
+                last_name=request.vars["my_last_name"],
+                time_zone=request.vars["my_time_zone"],
+                )
+            return json_serializer(response_data)
+        except Exception:
+            print_exc()
+            response = current.response
+            response.status = 500
+            return json_serializer({'status': 'internal server error',
+                        'reason': 'Unknown error in function get_registration',
+                        'error': format_exc()})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Recaptcha failed',
+                     'error': format_exc()})
+
+
 def get_login():
     """
     API method to log a user in with web2py's authentication system.
@@ -241,7 +298,7 @@ def get_login():
         print_exc()
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Login failed',
                      'error': format_exc()})
 
@@ -257,11 +314,11 @@ def get_userdata():
         full_user = _fetch_userdata(user, request.vars)
         full_user['review_set'] = session.set_review \
             if 'set_review' in session.keys() else None
-        return json(full_user, default=my_custom_json)
+        return json_serializer(full_user, default=my_custom_json)
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -282,10 +339,10 @@ def do_logout():
         print ("did logout")
         myuser = {k:None for k in ['email', 'first_name', 'last_name',
                                    'hide_read_queries', 'id', 'time_zone']}
-        return json(myuser)
+        return json_serializer(myuser)
     except Exception as e:
         print(e)
-        return json({'error': e})
+        return json_serializer({'error': e})
 
 
 def check_login():
@@ -299,7 +356,7 @@ def check_login():
     if auth.is_logged_in():
         my_login['logged_in'] = True
         my_login['user'] = auth.user_id
-    return json(my_login)
+    return json_serializer(my_login)
 
 
 def _add_posts_to_queries(queries):
@@ -577,7 +634,7 @@ def get_queries():
                              page=request.vars['page'],
                              orderby=request.vars['orderby']
                              )
-    return json(queries)
+    return json_serializer(queries)
 
 
 def add_query_post():
@@ -619,12 +676,12 @@ def add_query_post():
         full_rec = {'auth_user': user_rec,
                     'bug_posts': post_result['new_post'],
                     'comments': []}
-        return json({'post_list': post_result['bug_post_list'],
+        return json_serializer({'post_list': post_result['bug_post_list'],
                      'new_post': full_rec})
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -681,12 +738,12 @@ def update_query_post():
                     'bug_posts': result['new_post'],
                     'comments': mycomments}
 
-        return json({'post_list': result['bug_post_list'],
+        return json_serializer({'post_list': result['bug_post_list'],
                      'new_post': full_rec})
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -722,12 +779,12 @@ def add_post_comment():
                                ).first().as_dict()
         full_rec = {'auth_user': user_rec,
                     'bug_post_comments': result['new_comment']}
-        return json({'comment_list': result['post_comment_list'],
+        return json_serializer({'comment_list': result['post_comment_list'],
                      'new_comment': full_rec})
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -778,12 +835,12 @@ def update_post_comment():
                     'bug_post_comments': result['new_comment'],
                     }
 
-        return json({'comment_list': result['post_comment_list'],
+        return json_serializer({'comment_list': result['post_comment_list'],
                      'new_comment': full_rec})
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -855,11 +912,11 @@ def log_new_query():
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
 
-        return json(myqueries)
+        return json_serializer(myqueries)
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -936,11 +993,11 @@ def update_query():
                     'bugs': result,
                     }
         full_rec = _add_posts_to_queries([full_rec])[0]
-        return json(full_rec)
+        return json_serializer(full_rec)
     else:
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -987,7 +1044,7 @@ def get_vocabulary():
                  }
         mylemmas.append(myrow)
 
-    return json({'total_count': len(mylemmas),
+    return json_serializer({'total_count': len(mylemmas),
                  'mylemmas': mylemmas})
 
 
@@ -1006,7 +1063,7 @@ def get_lessons():
         mybadges = db(db.badges.tag.belongs(l['lesson_tags'])).select()
         l['badges'] = mybadges.as_list()
 
-    return json(lessons)
+    return json_serializer(lessons)
 
 
 def set_review_mode():
@@ -1022,7 +1079,7 @@ def set_review_mode():
         myset = None
     session.set_review = myset
 
-    return json({'review_set': session.set_review})
+    return json_serializer({'review_set': session.set_review})
 
 
 def get_profile_info():
@@ -1088,14 +1145,14 @@ def get_profile_info():
                 user = db.auth_user[sid]
             else:
                 response.status = 401
-                return json({'status': 'unauthorized',
+                return json_serializer({'status': 'unauthorized',
                              'reason': 'Insufficient privileges'})
         else:
             user = db.auth_user[auth.user_id]
         # Return proper response code if no user with requested id
         if not user:
             response.status = 404
-            return json({'status': 'Not found',
+            return json_serializer({'status': 'Not found',
                          'reason': 'No matching record found'})
 
         stats = Stats(user.id)
@@ -1145,10 +1202,10 @@ def get_profile_info():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
-    return json({'the_name': name,
+    return json_serializer({'the_name': name,
             'user_id': user.id,
             'tz': tz,
             'email': email,
@@ -1186,7 +1243,7 @@ def get_calendar_month():
     stats = Stats(request.vars.user_id)
     calendar = stats.monthcal(year=request.vars.year,
                               month=request.vars.month)
-    return json(calendar, default=my_custom_json)
+    return json_serializer(calendar, default=my_custom_json)
 
 
 def update_course_membership_data():
@@ -1239,7 +1296,7 @@ def update_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 404
-        return json({'status': 'No such record'})
+        return json_serializer({'status': 'No such record'})
 
     try:
         assert auth.is_logged_in()
@@ -1247,7 +1304,7 @@ def update_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'Not logged in'})
+        return json_serializer({'status': 'Not logged in'})
 
     try:
         assert (auth.has_membership('administrators') or
@@ -1258,12 +1315,12 @@ def update_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'Insufficient privileges'})
+        return json_serializer({'status': 'Insufficient privileges'})
 
     myresult = db(db.classes.id == course_id).update(**mydata)
     assert myresult == 1
 
-    return json({"update_count": myresult}, default=my_custom_json)
+    return json_serializer({"update_count": myresult}, default=my_custom_json)
 
 
 def get_course_data():
@@ -1319,7 +1376,7 @@ def get_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 404
-        return json({'status': 'No such record'})
+        return json_serializer({'status': 'No such record'})
 
     try:
         assert auth.is_logged_in()
@@ -1327,7 +1384,7 @@ def get_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
     try:
@@ -1339,7 +1396,7 @@ def get_course_data():
         print(format_exc(5))
         response = current.response
         response.status = 401
-        return json({'status': 'unauthorized',
+        return json_serializer({'status': 'unauthorized',
                      'reason': 'Insufficient privileges'})
 
 
@@ -1373,7 +1430,7 @@ def get_course_data():
     ]
     mycourse['members'] = members
 
-    return json(mycourse, default=my_custom_json)
+    return json_serializer(mycourse, default=my_custom_json)
 
 
 def _is_my_student(user, student):

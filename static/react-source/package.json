@@ -15,6 +15,7 @@
     "jquery": "^3.5.1",
     "marked": "^1.2.5",
     "moment": "^2.29.1",
+    "moment-timezone": "^0.5.32",
     "popper.js": "^1.16.1",
     "query-string": "^6.13.7",
     "react": "^17.0.1",
