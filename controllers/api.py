@@ -293,7 +293,7 @@ def get_login():
         full_user = _fetch_userdata(user, request.vars)
         full_user['review_set'] = session.set_review \
             if 'set_review' in session.keys() else None
-        return json(full_user, default=my_custom_json)
+        return json_serializer(full_user, default=my_custom_json)
     except Exception as e:
         print_exc()
         response = current.response
