@@ -7,8 +7,9 @@ import {
   Row,
   Col
 } from "react-bootstrap";
-import { withRouter } from 'react-router';
-import { useHistory } from 'react-router-dom';
+import { useHistory,
+         Link
+       } from 'react-router-dom';
 
 import { login, formatLoginData } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
@@ -70,6 +71,13 @@ const Login = (props) => {
             </Form.Group>
             <Button variant="primary" type="submit">Log in</Button>
           </Form>
+          <div className="login-register-message">
+          Don't have an account yet?
+          <Button as={Link}
+            to={`register`}
+            variant="outline-success"
+          >Create an account</Button>
+          </div>
           </React.Fragment>
         )}
       </Col>

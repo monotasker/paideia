@@ -256,6 +256,9 @@ def get_registration():
                 last_name=request.vars["my_last_name"],
                 time_zone=request.vars["my_time_zone"],
                 )
+            response_data = response_data.as_dict()
+            response_data = {k: v for k, v in response_data.items()
+                             if k != "password"}
             return json_serializer(response_data)
         except Exception:
             print_exc()

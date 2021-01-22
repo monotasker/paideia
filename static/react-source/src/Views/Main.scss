@@ -1662,3 +1662,25 @@ h3                                      {font-family: $sans-fonts;
     }
   }
 }
+
+// Login form
+
+
+// Registration form
+
+.register-component                             {
+    form                                        {margin-top: 1rem;
+        .form-group.row                         {padding-bottom: 1rem;
+            div:nth-child(2)                   {padding-left: 0;
+                                                 padding-right: 0;
+            }
+        }
+    }
+    .register-login-message                     {
+        span                                    {position: relative;
+                                                 top: 0.15rem;
+        }
+        .btn                                    {margin-left: 2rem;
+        }
+    }
+}

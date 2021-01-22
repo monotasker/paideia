@@ -95,7 +95,10 @@ const TopNavbar = () => {
                   <NavLink title="Log out" path="/" icon="sign-out-alt"
                     onClick={doLogout} displayAt="lg" />
                 </React.Fragment>
-               : <NavLink title="Log in" path="/login" icon="sign-in-alt" displayAt="sm" />
+               : <React.Fragment>
+                  <NavLink title="Log in" path="/login" icon="sign-in-alt" displayAt="sm" />
+                  <NavLink title="Sign up" path="/register" icon="sign-in-alt" displayAt="sm" />
+                </React.Fragment>
               }
             </Nav>
           </Navbar.Collapse>
