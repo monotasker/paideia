@@ -1665,6 +1665,19 @@ h3                                      {font-family: $sans-fonts;
 
 // Login form
 
+.login-component                                {
+    form                                        {margin-top: 1rem;
+                                                 margin-bottom: 1rem;
+    }
+    .login-register-message                     {
+       span                                     {position: relative;
+                                                 top: 0.15rem;
+       }
+       .btn                                     {margin-left: 2rem;
+
+       }
+    }
+}
 
 // Registration form
 

@@ -97,7 +97,7 @@ const TopNavbar = () => {
                 </React.Fragment>
                : <React.Fragment>
                   <NavLink title="Log in" path="/login" icon="sign-in-alt" displayAt="sm" />
-                  <NavLink title="Sign up" path="/register" icon="sign-in-alt" displayAt="sm" />
+                  <NavLink title="Sign up" path="/register" icon="user-plus" displayAt="sm" />
                 </React.Fragment>
               }
             </Nav>

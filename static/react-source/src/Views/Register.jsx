@@ -81,18 +81,14 @@ const Register = () => {
                       thePassword: myPassword
                       })
             .then( userdata => {
-                console.log("initializing new user----------");
-                console.log(userdata);
                 returnStatusCheck(userdata, myhistory,
                   (mydata) => {
                       if ( mydata.id != null ) {
-                        console.log(`registration succeeded****`);
                         setEmailAlreadyExists(false);
                         setInadequatePassword(false);
                         setRegistrationFailed(false);
                         myhistory.push('login?just_registered=true');
                       } else {
-                        console.log(`registration failed****`);
                         setRegistrationFailed(true);
                       }
                   },

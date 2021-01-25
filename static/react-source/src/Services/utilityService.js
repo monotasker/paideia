@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 
 // load scripts dynamically as needed by a component
 const loadScriptByURL = (id, url, callback) => {
@@ -17,4 +18,11 @@ const loadScriptByURL = (id, url, callback) => {
     if (isScriptExist && callback) callback();
 }
 
-export {loadScriptByURL}
+const useQuery = () => {
+  return new URLSearchParams(useLocation().search);
+}
+
+export {
+    loadScriptByURL,
+    useQuery
+}

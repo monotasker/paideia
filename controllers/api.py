@@ -233,10 +233,8 @@ def get_registration():
     first_name = request.vars['my_first_name'].strip()
     last_name = request.vars['my_last_name'].strip()
 
-    str_pat = re.compile('^[a-zA-Z0-9\s\-\/]+$')
+    str_pat = re.compile('^[a-zA-Z0-9\s\-\/_]+$')
     email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
-    print("checking email pattern")
-    print(re.search(email_pat, email))
     missing = {k: v for k, v in request.vars.items() if
                k not in ["my_token", "my_password"] and
                ((v in ["undefined", None, ""])
@@ -256,9 +254,6 @@ def get_registration():
     password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
                      "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
     password_pat = re.compile(password_regex)
-    print("checking email pattern")
-    print(password)
-    print(re.search(password_pat, password))
     if re.search(password_pat, password) is None:
         response.status = 400
         return json_serializer({'status': 'bad request',
