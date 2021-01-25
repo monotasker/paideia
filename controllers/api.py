@@ -275,7 +275,7 @@ def get_registration():
                 k, v = line.split()
                 keydata[k] = v
         params = urlencode({
-            'secret': keydata['captcha_private_key'],
+            'secret': keydata['captcha3_private_key'],
             'response': token
         }).encode('utf-8')
         recap_request = urllib2.Request(
