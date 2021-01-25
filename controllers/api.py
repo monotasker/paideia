@@ -235,9 +235,10 @@ def get_registration():
 
     str_pat = re.compile('^[a-zA-Z0-9\s\-\/]+$')
     email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    print("checking email pattern")
     print(re.search(email_pat, email))
     missing = {k: v for k, v in request.vars.items() if
-               k != "my_token" and
+               k not in ["my_token", "my_password"] and
                ((v in ["undefined", None, ""])
                 or (k!="my_email" and not re.search(str_pat, v.strip()))
                 or (k=="my_email" and not re.search(email_pat, v.strip()))
@@ -248,12 +249,17 @@ def get_registration():
                     'reason': 'Missing request data',
                     'error': missing})
 
-    password_regex = ("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"
-                      "(?=.*[!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~])"
-                      "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]"
-                      "{8,20}$")
-    pat = re.compile(password_regex)
-    if re.search(pat, password_regex) is False:
+    # TODO: consider this regex that requires special characters:
+    # password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
+        # "(?=.*[!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~])"\
+        # "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
+    password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
+                     "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
+    password_pat = re.compile(password_regex)
+    print("checking email pattern")
+    print(password)
+    print(re.search(password_pat, password))
+    if re.search(password_pat, password) is None:
         response.status = 400
         return json_serializer({'status': 'bad request',
                     'reason': 'Password is not strong enough',
@@ -290,7 +296,6 @@ def get_registration():
 
         if response_dict["success"] == True and response_dict["score"] > 0.5:
             try:
-                pprint(request.vars)
                 response_data = auth.register_bare(email=email,
                                                    password=password,
                                                    first_name=first_name,
