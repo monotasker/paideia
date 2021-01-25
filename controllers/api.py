@@ -13,6 +13,7 @@ from paideia_utils import GreekNormalizer
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
+import re
 # from pydal.objects import Rows
 
 from gluon._compat import urllib2, urlencode, urlopen, to_bytes, to_native
@@ -207,9 +208,9 @@ def _fetch_userdata(raw_user, vars):
                                                 datetime.datetime.utcnow())
                     )
 
-        user['current_badge_set'] = db(
-            db.tag_progress.name == user['id']
-            ).select().first().latest_new
+        my_progress = db(db.tag_progress.name == user['id']
+                             ).select().first()
+        user['current_badge_set'] = my_progress.latest_new if my_progress else 0
 
     except AttributeError:  # if login response was False and has no items
         print(format_exc())
@@ -222,57 +223,96 @@ def get_registration():
     """
     """
     debug=False
-    if debug: print("in api: registering new user***************")
     request = current.request
     auth = current.auth
-    token = request.vars['my_token']
+    response = current.response
+    token = request.vars['my_token'].strip()
+    email = request.vars['my_email'].strip()
+    password = request.vars['my_password'].strip()
+    tz = request.vars['my_time_zone'].strip()
+    first_name = request.vars['my_first_name'].strip()
+    last_name = request.vars['my_last_name'].strip()
 
-    keydata = {}
-    with open('applications/paideia/private/app.keys', 'r') as keyfile:
-        for line in keyfile:
-            k, v = line.split()
-            keydata[k] = v
-    params = urlencode({
-        'secret': keydata['captcha_private_key'],
-        'response': token
-    }).encode('utf-8')
-    recap_request = urllib2.Request(
-        url="https://www.google.com/recaptcha/api/siteverify",
-        data=to_bytes(params),
-        headers={'Content-type': 'application/x-www-form-urlencoded',
-                 'User-agent': 'reCAPTCHA Python'})
-    httpresp = urlopen(recap_request)
-    content = httpresp.read()
-    httpresp.close()
-    response_dict = json.loads(to_native(content))
-    if debug: pprint(response_dict)
+    str_pat = re.compile('^[a-zA-Z0-9\s\-\/]+$')
+    email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    print(re.search(email_pat, email))
+    missing = {k: v for k, v in request.vars.items() if
+               k != "my_token" and
+               ((v in ["undefined", None, ""])
+                or (k!="my_email" and not re.search(str_pat, v.strip()))
+                or (k=="my_email" and not re.search(email_pat, v.strip()))
+                )}
+    if missing and len(missing.keys()) > 0:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'Missing request data',
+                    'error': missing})
 
-    if response_dict["success"] == True and response_dict["score"] > 0.5:
-        try:
-            pprint(request.vars)
-            response_data = auth.register_bare(email=request.vars["my_email"],
-                password=request.vars["my_password"],
-                first_name=request.vars["my_first_name"],
-                last_name=request.vars["my_last_name"],
-                time_zone=request.vars["my_time_zone"],
-                )
-            response_data = response_data.as_dict()
-            response_data = {k: v for k, v in response_data.items()
-                             if k != "password"}
-            return json_serializer(response_data)
-        except Exception:
-            print_exc()
-            response = current.response
-            response.status = 500
-            return json_serializer({'status': 'internal server error',
-                        'reason': 'Unknown error in function get_registration',
-                        'error': format_exc()})
+    password_regex = ("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"
+                      "(?=.*[!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~])"
+                      "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]"
+                      "{8,20}$")
+    pat = re.compile(password_regex)
+    if re.search(pat, password_regex) is False:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'Password is not strong enough',
+                    'error': None})
+
+    existing_user_count = db(db.auth_user.email==email).count()
+    if existing_user_count>0:
+        response.status = 409
+        return json_serializer({'status': 'conflict',
+                    'reason': 'User with this email exists',
+                    'error': None})
     else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Recaptcha failed',
-                     'error': format_exc()})
+        if debug: print("in api: registering new user***************")
+
+        keydata = {}
+        with open('applications/paideia/private/app.keys', 'r') as keyfile:
+            for line in keyfile:
+                k, v = line.split()
+                keydata[k] = v
+        params = urlencode({
+            'secret': keydata['captcha_private_key'],
+            'response': token
+        }).encode('utf-8')
+        recap_request = urllib2.Request(
+            url="https://www.google.com/recaptcha/api/siteverify",
+            data=to_bytes(params),
+            headers={'Content-type': 'application/x-www-form-urlencoded',
+                    'User-agent': 'reCAPTCHA Python'})
+        httpresp = urlopen(recap_request)
+        content = httpresp.read()
+        httpresp.close()
+        response_dict = json.loads(to_native(content))
+        if debug: pprint(response_dict)
+
+        if response_dict["success"] == True and response_dict["score"] > 0.5:
+            try:
+                pprint(request.vars)
+                response_data = auth.register_bare(email=email,
+                                                   password=password,
+                                                   first_name=first_name,
+                                                   last_name=last_name,
+                                                   time_zone=tz,
+                                                   )
+                response_data = response_data.as_dict()
+                response_data = {k: v for k, v in response_data.items()
+                                if k in ["email", "first_name",
+                                         "last_name", "id"]}
+                return json_serializer(response_data)
+            except Exception:
+                print_exc()
+                response.status = 500
+                return json_serializer({'status': 'internal server error',
+                            'reason': 'Unknown error in function get_registration',
+                            'error': format_exc()})
+        else:
+            response.status = 401
+            return json_serializer({'status': 'unauthorized',
+                        'reason': 'Recaptcha failed',
+                        'error': None})
 
 
 def get_login():

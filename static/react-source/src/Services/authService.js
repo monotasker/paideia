@@ -23,7 +23,12 @@ const register = async ({theToken,
       mode: "same-origin",
       body: formdata
   })
-  return await response.json()
+
+  let mystatus = response.status;
+  const jsonData = await response.json();
+  let mydata = jsonData;
+  mydata.status_code = mystatus;
+  return mydata;
 }
 
 const login = async (formdata) => {
@@ -33,7 +38,11 @@ const login = async (formdata) => {
       mode: "same-origin",
       body: formdata
   })
-  return await response.json()
+  let mystatus = response.status;
+  const jsonData = await response.json();
+  let mydata = jsonData;
+  mydata.status_code = mystatus;
+  return mydata;
 }
 
 const logout = async () => {
@@ -42,7 +51,11 @@ const logout = async () => {
       cache: "no-cache",
       mode: "same-origin"
   })
-  return await response.json()
+  let mystatus = response.status;
+  const jsonData = await response.json();
+  let mydata = jsonData;
+  mydata.status_code = mystatus;
+  return mydata;
 }
 
 const checkLogin = async (user, dispatch) => {
@@ -167,6 +180,11 @@ function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
   if ( mydata.status_code === 200 ) {
     action(mydata);
+  } else if ( mydata.status_code === 400 ) {
+    console.log('400: Bad request');
+    if ( otherActions.hasOwnProperty("badRequestAction") ) {
+      otherActions.badRequestAction(mydata);
+    }
   } else if ( mydata.status_code === 401 ) {
     if ( mydata.reason === "Not logged in" ) {
       console.log('401: Not logged in');
@@ -182,6 +200,17 @@ function returnStatusCheck(mydata, history, action, reducer,
     console.log('404: No such record');
     if ( otherActions.hasOwnProperty("noRecordAction") ) {
       otherActions.noRecordAction(mydata);
+    }
+  } else if ( mydata.status_code === 409 ) {
+    console.log('409: Conflict');
+    if ( otherActions.hasOwnProperty("dataConflictAction") ) {
+      console.log('taking conflict action');
+      otherActions.dataConflictAction(mydata);
+    }
+  } else if ( mydata.status_code === 500 ) {
+    console.log('500: Internal server error');
+    if ( otherActions.hasOwnProperty("serverErrorAction") ) {
+      otherActions.serverErrorAction(mydata);
     }
   } else {
     console.log('Uncaught problem in returnStatusCheck:');
