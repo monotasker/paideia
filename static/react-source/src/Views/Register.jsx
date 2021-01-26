@@ -37,7 +37,6 @@ const Register = () => {
   const [ registrationFailed, setRegistrationFailed ] = useState(false);
   const [ inadequatePassword, setInadequatePassword ] = useState(false);
   const [ missingData, setMissingData ] = useState([]);
-  // FIXME: Values above are undefined if autocompleted. Problem?
 
   useEffect(() => {
     loadScriptByURL("recaptcha-key",
@@ -45,7 +44,7 @@ const Register = () => {
             console.log("Recaptcha Script loaded!");
         }
     );
-  });
+  }, []);
 
   const registerServerErrorAction = () => {
     console.log("Something went wrong on the server end");
@@ -69,39 +68,59 @@ const Register = () => {
     }
   }
 
+  const fetchRegistration = token => {
+    // handle autofilled data that doesn't trigger onChange state update
+    let subs = {}
+    const myVals = {firstName: [myFirstName, setMyFirstName],
+                    lastName: [myLastName, setMyLastName],
+                    timeZone: [myTimeZone, setMyTimeZone],
+                    email: [myEmail, setMyEmail],
+                    password: [myPassword, setMyPassword]
+                    }
+    for (const n of Object.keys(myVals)) {
+      let myval = document.getElementById("registrationForm").elements[n].value;
+      if ( !myVals[n][0] && !!myval ) {
+        myVals[n][1](myval);
+        subs[n] = myval;
+      }
+    }
+    register({theToken: token,
+              theFirstName: !subs.firstName ? myFirstName : subs.firstName,
+              theLastName: !subs.lastName ? myLastName : subs.lastName,
+              theTimeZone: !subs.timeZone ? myTimeZone : subs.timeZone,
+              theEmail: !subs.email ? myEmail : subs.email,
+              thePassword: myPassword
+              })
+    .then( userdata => {
+        returnStatusCheck(userdata, myhistory,
+          (mydata) => {
+              if ( mydata.id != null ) {
+                myhistory.push('login?just_registered=true');
+              } else {
+                setRegistrationFailed(true);
+              }
+          },
+          dispatch,
+          {serverErrorAction: registerServerErrorAction,
+          dataConflictAction: registerDataConflictAction,
+          badRequestAction: registerBadRequestAction
+          })
+    })
+  }
+
   const getRegistration = (event) => {
     event.preventDefault();
+    // document.getElementById("registrationForm").elements["firstName"].onChange();
     setEmailAlreadyExists(false);
     setInadequatePassword(false);
     setRegistrationFailed(false);
+    setMissingData([]);
 
     window.grecaptcha.ready(() => {
         window.grecaptcha.execute(recaptchaKey, { action: 'register' })
         .then(token => {
-            register({theToken: token,
-                      theFirstName: myFirstName,
-                      theLastName: myLastName,
-                      theTimeZone: myTimeZone,
-                      theEmail: myEmail,
-                      thePassword: myPassword
-                      })
-            .then( userdata => {
-                returnStatusCheck(userdata, myhistory,
-                  (mydata) => {
-                      if ( mydata.id != null ) {
-                        myhistory.push('login?just_registered=true');
-                      } else {
-                        setRegistrationFailed(true);
-                      }
-                  },
-                  dispatch,
-                  {serverErrorAction: registerServerErrorAction,
-                   dataConflictAction: registerDataConflictAction,
-                   badRequestAction: registerBadRequestAction
-                  })
-            })
+            fetchRegistration(token);
         });
-
     });
   }
 
@@ -123,7 +142,11 @@ const Register = () => {
     <Row className="register-component content-view justify-content-sm-center">
       <Col sm={8} lg={6} xl={4}>
         { user.userLoggedIn === true &&
-          myhistory.goBack()
+          (myhistory.length <= 3 ?
+            myhistory.push('profile')
+            :
+            myhistory.goBack()
+          )
         }
         { user.userLoggedIn === false && (
           <React.Fragment>
@@ -151,8 +174,8 @@ const Register = () => {
             </Alert>
           }
           <Form
-            // onSubmit={getRegistration}
             role="form"
+            id="registrationForm"
           >
             <Form.Group as={Row} controlId="registerFirstName">
               <Form.Label column sm={5}>
@@ -232,12 +255,13 @@ const Register = () => {
               </Form.Label>
               <Col sm={7}>
                 <Typeahead
-                  id="timezone"
+                  id="registerTimeZone"
                   labelKey="tz"
+                  inputProps={{name: "timeZone"}}
                   placeholder="Choose a time zone"
                   onChange={selected => setFieldValue(selected, "my_time_zone")}
                   options={moment.tz.names()}
-                  // selected={myTimeZone}
+                  defaultInputValue={!Array.isArray(myTimeZone) ? myTimeZone : myTimeZone[0]}
                 />
               </Col>
               {(!!missingData && missingData.includes("my_last_name")) ?

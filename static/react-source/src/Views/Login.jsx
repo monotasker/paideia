@@ -36,7 +36,6 @@ const Login = () => {
   const [ missing, setMissing ] = useState([]);
   const [ loginFailed, setLoginFailed ] = useState(false);
   const [ serverProblem, setServerProblem ] = useState(false);
-  console.log(`login failed? ${loginFailed}`);
 
   useEffect(() => {
     loadScriptByURL("recaptcha-key",
@@ -44,7 +43,7 @@ const Login = () => {
             console.log("Recaptcha Script loaded!");
         }
     );
-  });
+  }, []);
 
   const serverErrorAction = (data) => {
     console.log("server error");
