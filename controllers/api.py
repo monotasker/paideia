@@ -275,7 +275,7 @@ def get_registration():
                 k, v = line.split()
                 keydata[k] = v
         params = urlencode({
-            'secret': keydata['captcha_private_key'],
+            'secret': keydata['captcha3_private_key'],
             'response': token
         }).encode('utf-8')
         recap_request = urllib2.Request(
@@ -324,26 +324,81 @@ def get_login():
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
+    debug=True
+    request = current.request
     auth = current.auth
     session = current.session
-    try:
+    response = current.response
+    token = request.vars['token'].strip()
+    email = request.vars['email'].strip()
+    password = request.vars['password'].strip()
 
-        mylogin = auth.login_bare(request.vars['email'],
-                                request.vars['password'])
-        user = {k:v for k, v in mylogin.items() if k in
-                ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
-        pprint(user)
-        full_user = _fetch_userdata(user, request.vars)
-        full_user['review_set'] = session.set_review \
-            if 'set_review' in session.keys() else None
-        return json_serializer(full_user, default=my_custom_json)
-    except Exception as e:
-        print_exc()
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Login failed',
-                     'error': format_exc()})
+    email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    password_pat = re.compile("^[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{4,50}$")
+
+    missing = {k: v for k, v in request.vars.items() if
+               k!="token" and
+               ((v in ["undefined", None, ""])
+                or (k=="password" and not re.search(password_pat, password))
+                or (k=="my_email" and not re.search(email_pat, email))
+                )
+               }
+    if missing and len(missing.keys()) > 0:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'Missing request data',
+                    'error': missing})
+
+    try:
+        keydata = {}
+        with open('applications/paideia/private/app.keys', 'r') as keyfile:
+            for line in keyfile:
+                k, v = line.split()
+                keydata[k] = v
+        params = urlencode({
+            'secret': keydata['captcha3_private_key'],
+            'response': token
+        }).encode('utf-8')
+        recap_request = urllib2.Request(
+            url="https://www.google.com/recaptcha/api/siteverify",
+            data=to_bytes(params),
+            headers={'Content-type': 'application/x-www-form-urlencoded',
+                    'User-agent': 'reCAPTCHA Python'})
+        httpresp = urlopen(recap_request)
+        content = httpresp.read()
+        httpresp.close()
+        response_dict = json.loads(to_native(content))
+        if debug: pprint(response_dict)
+
+        if response_dict["success"] == True and response_dict["score"] > 0.5:
+            mylogin = auth.login_bare(request.vars['email'],
+                                    request.vars['password'])
+            if debug: print('mylogin********')
+            if debug: print(mylogin)
+            if mylogin == False:
+                response.status = 401
+                return json_serializer({'status': 'unauthorized',
+                            'reason': 'Login failed',
+                            'error': 'Did not recognize email-password combination'})
+            else:
+                user = {k:v for k, v in mylogin.items() if k in
+                        ['email', 'first_name', 'last_name', 'hide_read_queries', 'id', 'time_zone']}
+                full_user = _fetch_userdata(user, request.vars)
+                full_user['review_set'] = session.set_review \
+                    if 'set_review' in session.keys() else None
+                response.status = 200
+                return json_serializer(full_user, default=my_custom_json)
+
+        else:
+            response.status = 500
+            return json_serializer({'status': 'internal server error',
+                        'reason': 'Unknown error in function get_registration',
+                        'error': "failed recaptcha check: {}".format(response_dict["score"])})
+    except Exception:
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                    'reason': 'Unknown error in function get_registration',
+                    'error': format_exc()})
 
 
 def get_userdata():

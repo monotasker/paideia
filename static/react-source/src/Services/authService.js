@@ -31,7 +31,11 @@ const register = async ({theToken,
   return mydata;
 }
 
-const login = async (formdata) => {
+const login = async ({token, email, password}) => {
+  let formdata = new FormData();
+  formdata.append("email", email);
+  formdata.append("password", password);
+  formdata.append("token", token);
   let response = await fetch('/paideia/api/get_login', {
       method: "POST",
       cache: "no-cache",
@@ -188,13 +192,20 @@ function returnStatusCheck(mydata, history, action, reducer,
   } else if ( mydata.status_code === 401 ) {
     if ( mydata.reason === "Not logged in" ) {
       console.log('401: Not logged in');
-      reducer({type: 'deactivateUser', payload: null});
-      history.push(`/${urlBase}/login`);
+      if ( otherActions.hasOwnProperty("unauthorizedAction")) {
+        otherActions.unauthorizedAction(mydata);
+      } else {
+        reducer({type: 'deactivateUser', payload: null});
+        history.push(`login`);
+      }
     } else if ( mydata.reason === "Insufficient privileges" ) {
       console.log('404: Insufficient privileges');
       if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
         otherActions.insufficientPrivilegesAction(mydata);
       }
+    } else if ( mydata.reason === "Login failed" ) {
+      console.log('401: Login failed');
+      otherActions.unauthorizedAction(mydata);
     }
   } else if ( mydata.status_code === 404 ) {
     console.log('404: No such record');

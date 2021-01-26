@@ -10,6 +10,8 @@ import {
   Col,
   Alert
 } from "react-bootstrap";
+import { Typeahead } from 'react-bootstrap-typeahead';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useHistory,
          Link
        } from 'react-router-dom';
@@ -69,9 +71,12 @@ const Register = () => {
 
   const getRegistration = (event) => {
     event.preventDefault();
+    setEmailAlreadyExists(false);
+    setInadequatePassword(false);
+    setRegistrationFailed(false);
 
     window.grecaptcha.ready(() => {
-        window.grecaptcha.execute(recaptchaKey, { action: 'submit' })
+        window.grecaptcha.execute(recaptchaKey, { action: 'register' })
         .then(token => {
             register({theToken: token,
                       theFirstName: myFirstName,
@@ -84,9 +89,6 @@ const Register = () => {
                 returnStatusCheck(userdata, myhistory,
                   (mydata) => {
                       if ( mydata.id != null ) {
-                        setEmailAlreadyExists(false);
-                        setInadequatePassword(false);
-                        setRegistrationFailed(false);
                         myhistory.push('login?just_registered=true');
                       } else {
                         setRegistrationFailed(true);
@@ -127,15 +129,25 @@ const Register = () => {
           <React.Fragment>
           <h2 className="text-center">Create an account here!</h2>
           {!!registrationFailed &&
-            <Alert variant="danger">
-              Sorry, something went wrong with your registration. But if you contact the administrators they can help to resolve the problem.
-              {/* FIXME: Add link to contact form here. */}
+            <Alert variant="danger" className="row error-message">
+              <Col xs="auto">
+                <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
+              </Col>
+              <Col xs="10">
+                 Sorry, something went wrong with your registration. But if you contact the administrators they can help to resolve the problem.
+                {/* FIXME: Add link to contact form here. */}
+              </Col>
             </Alert>
           }
           {!!missingData && missingData.length > 0 &&
-            <Alert variant="danger">
-              Sorry, you didn't fill in all of the fields. Fill in the missing information and try again.
+            <Alert variant="danger" className="row error-message">
+              <Col xs="auto">
+                <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
+              </Col>
+              <Col xs="10">
+               Sorry, you didn't fill in all of the fields. Fill in the missing information and try again.
               {/* FIXME: Add link to contact form here. */}
+              </Col>
             </Alert>
           }
           <Form
@@ -156,7 +168,7 @@ const Register = () => {
               </Col>
               {!!missingData && missingData.includes("my_first_name") &&
                 <Alert variant="danger" className="col col-sm-12">
-                  You need to provide a first name.
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a first name.
                 </Alert>
               }
             </Form.Group>
@@ -174,7 +186,7 @@ const Register = () => {
               </Col>
               {!!missingData && missingData.includes("my_last_name") &&
                 <Alert variant="danger" className="col col-sm-12">
-                  You need to provide a last name.
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a last name.
                 </Alert>
               }
             </Form.Group>
@@ -193,12 +205,17 @@ const Register = () => {
               </Col>
               {(!!missingData && missingData.includes("my_email")) ?
                 <Alert variant="danger" className="col col-sm-12">
-                  You need to provide your email address.
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide your email address.
                 </Alert>
                 :
                 (!!emailAlreadyExists ?
-                  <Alert variant="danger" className="col col-sm-12">
-                    A user with that email already exists. Try logging in <Link to="login">here</Link>. If you can't remember your password you can recover it from the login screen.
+                  <Alert variant="danger" className="row error-message">
+                    <Col xs="auto">
+                      <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+                    </Col>
+                    <Col xs="10">
+                      A user with that email already exists. Try logging in <Link to="login">here</Link>. If you can't remember your password you can recover it from the login screen.
+                    </Col>
                   </Alert>
                   :
                   <Form.Text className="text-muted col col-sm-12">
@@ -214,21 +231,18 @@ const Register = () => {
                 Your Time Zone
               </Form.Label>
               <Col sm={7}>
-                <Form.Control as="select"
-                  defaultValue={myTimeZone}
-                  // value={myTimeZone}
-                  onChange={e => setFieldValue(e.target.value, "my_time_zone")}
-                >
-                  {moment.tz.names().map(tz => <option
-                      key={tz}
-                      value={tz}
-                    >{tz}</option>
-                  )}
-                </Form.Control>
+                <Typeahead
+                  id="timezone"
+                  labelKey="tz"
+                  placeholder="Choose a time zone"
+                  onChange={selected => setFieldValue(selected, "my_time_zone")}
+                  options={moment.tz.names()}
+                  // selected={myTimeZone}
+                />
               </Col>
               {(!!missingData && missingData.includes("my_last_name")) ?
                   <Alert variant="danger" className="col col-sm-12">
-                    You need to provide a valid time zone.
+                    <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid time zone.
                   </Alert>
                 :
                   <Form.Text className="text-muted col col-xs col-sm-12">
@@ -249,16 +263,22 @@ const Register = () => {
                   onChange={e => setFieldValue(e.target.value, "my_password")}
                 />
               </Col>
-              <Form.Text className="text-muted col col-xs col-sm-12">
-                {(!!missingData && missingData.includes("my_password")) ?
-                    <Alert variant="danger" className="col col-sm-12">
-                      You need to provide a password.
+              {(!!missingData && missingData.includes("my_password")) ?
+                  <Alert variant="danger" className="col col-sm-12">
+                    <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a password.
+                  </Alert>
+                  :
+                  (!!inadequatePassword &&
+                    <Alert variant="danger" className="row error-message">
+                      <Col xs="auto">
+                        <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
+                      <Col xs="10">
+                        The password you chose isn't strong enough. Try a different password.
+                      </Col>
                     </Alert>
-                    :
-                    (!!inadequatePassword &&
-                      <Alert variant="danger">The password you chose isn't strong enough. Try a different password.</Alert>
-                    )
-                }
+                  )
+              }
+              <Form.Text className="text-muted col col-xs col-sm-12">
                 Your password must be at least 8 characters long. It must also include at least one upper case character and one number. Consider also including a special character (like #, &, !, etc.) and making it longer (up to 20 characters).
               </Form.Text>
             </Form.Group>
@@ -270,7 +290,7 @@ const Register = () => {
                     type="submit"
                     onClick={getRegistration}
                 >
-                  Create account
+                  <FontAwesomeIcon icon="user-plus" /> Create account
                 </Button>
               </Col>
             </Form.Group>
@@ -281,7 +301,8 @@ const Register = () => {
             <span>Already have an account?</span>
             <Button as={Link} to={`login`}
               variant="outline-success"
-            >Log in
+            >
+              <FontAwesomeIcon icon="sign-in-alt" /> Log in
             </Button>
           </Alert>
           </React.Fragment>

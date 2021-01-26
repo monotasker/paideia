@@ -1666,6 +1666,12 @@ h3                                      {font-family: $sans-fonts;
 // Login form
 
 .login-component                                {
+    .alert.error-message                        {flex-wrap: nowrap;
+                                                 align-items: center;
+        &> div                                  {padding-left:0;
+                                                 padding-right: 1rem;
+        }
+    }
     form                                        {margin-top: 1rem;
                                                  margin-bottom: 1rem;
     }
@@ -1687,6 +1693,12 @@ h3                                      {font-family: $sans-fonts;
             div:nth-child(2)                   {padding-left: 0;
                                                  padding-right: 0;
             }
+        }
+    }
+    .alert.error-message                        {flex-wrap: nowrap;
+                                                 align-items: center;
+        &> div                                  {padding-left:0;
+                                                 padding-right: 1rem;
         }
     }
     .register-login-message                     {
