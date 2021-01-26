@@ -1,5 +1,7 @@
 import React, {
-  useContext
+  useContext,
+  useState,
+  useEffect
 } from "react";
 import {
   Form,
@@ -11,45 +13,102 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   useHistory,
-  Link,
-  useLocation
+  Link
 } from 'react-router-dom';
 
-import { login, formatLoginData } from '../Services/authService';
+import {
+  login,
+  formatLoginData,
+  returnStatusCheck
+} from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from '../Services/utilityService';
+import { recaptchaKey } from '../variables';
+import { loadScriptByURL } from '../Services/utilityService';
 
 
 const Login = () => {
-  const useQuery = () => {
-    return new URLSearchParams(useLocation().search);
-  }
   const { user, dispatch } = useContext(UserContext);
   const history = useHistory();
   const queryParams = useQuery();
-  console.log(`query:`);
-  console.log(queryParams.get("just_registered"));
+  const [ email, setEmail ] = useState();
+  const [ password, setPassword ] = useState();
+  const [ missing, setMissing ] = useState([]);
+  const [ loginFailed, setLoginFailed ] = useState(false);
+  const [ serverProblem, setServerProblem ] = useState(false);
+
+  useEffect(() => {
+    loadScriptByURL("recaptcha-key",
+        `https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`, function () {
+            console.log("Recaptcha Script loaded!");
+        }
+    );
+  }, []);
+
+  const serverErrorAction = (data) => {
+    console.log("server error");
+    console.log(data);
+    setServerProblem(true);
+  }
+  const unauthorizedAction = () => {
+    console.log("unauthorized");
+    setLoginFailed(true);
+  }
+  const badRequestAction = (data) => {
+    console.log("bad request: missing...");
+    console.log(data.error);
+    setMissing(Object.keys(data.error));
+    setLoginFailed(false);
+  }
+
+  const setFieldValue = (val, fieldName) => {
+    const fields = {email: setEmail, password: setPassword}
+    fields[fieldName](val);
+    const index = missing.indexOf(fieldName);
+    if (index > -1) {
+      missing.splice(index, 1);
+    }
+  }
 
   const getLogin = (event) => {
-    let formdata = new FormData(event.target);
     event.preventDefault();
 
-    login(formdata)
-    .then( userdata => {
-      if ( userdata.id != null ) {
-        dispatch({
-          type: 'initializeUser',
-          payload: formatLoginData(userdata)
-        })
-      } else {
-        console.log(`login failed`);
-      }
-    })
+    window.grecaptcha.ready(() => {
+        window.grecaptcha.execute(recaptchaKey, { action: 'login' })
+        .then(token => {
+            login({token: token,
+                   email: email,
+                   password: password
+                  })
+            .then( userdata => {
+                console.log("checking status");
+                returnStatusCheck(userdata, history,
+                  (mydata) => {
+                      if ( mydata.id != null ) {
+                        setLoginFailed(false);
+                        setServerProblem(false);
+                        dispatch({
+                          type: 'initializeUser',
+                          payload: formatLoginData(mydata)
+                        })
+                      } else {
+                        setServerProblem(true);
+                        console.log(`login failed`);
+                      }
+                  },
+                  dispatch,
+                  {serverErrorAction: serverErrorAction,
+                   unauthorizedAction: unauthorizedAction,
+                   badRequestAction: badRequestAction
+                  })
+            })
+        });
+    });
   }
 
   return(
     <Row className="login-component content-view justify-content-sm-center">
-      <Col xs sm={6} lg={4}>
+      <Col xs sm={8} lg={6}>
         { user.userLoggedIn === true &&
           history.goBack()
         }
@@ -59,6 +118,16 @@ const Login = () => {
           {queryParams.get("just_registered")==="true" &&
             <Alert variant="success">
               Now you can log in using the email and password that you just used to create your account!
+            </Alert>
+          }
+          {missing.length > 0 &&
+            <Alert variant="danger" className="error-message row">
+              <Col xs="auto">
+                <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+              </Col>
+              <Col xs="10">
+                Some information was missing! Fill in the required fields and try again.
+              </Col>
             </Alert>
           }
           <Form onSubmit={getLogin} role="form">
@@ -71,8 +140,13 @@ const Login = () => {
                 name="email"
                 placeholder="Enter your email address"
                 autoComplete="email"
+                onChange={e => setFieldValue(e.target.value, "email")}
               />
-              {/* <Form.Text className="text-muted">Your email address acts as your username</Form.Text> */}
+              {missing.length > 0 && missing.includes("email") &&
+                <Alert variant="danger" className="error-message">
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your email address.
+                </Alert>
+              }
             </Form.Group>
             <Form.Group controlId="loginPassword">
               <Form.Label>
@@ -83,21 +157,51 @@ const Login = () => {
                 name="password"
                 autoComplete="current-password"
                 placeholder="Password"
+                onChange={e => setFieldValue(e.target.value, "password")}
               />
+              {missing.length > 0 && missing.includes("password") &&
+                <Alert variant="danger" className="error-message">
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your password.
+                </Alert>
+              }
             </Form.Group>
-            <Button variant="primary" type="submit">
+            <Button variant="primary"
+              type="submit"
+            >
               <FontAwesomeIcon icon="sign-in-alt" /> Log in
             </Button>
           </Form>
-          <Alert variant="success" className="login-register-message">
-            <span>Don't have an account yet?</span>
-            <Button as={Link}
-              to={`register`}
-              variant="outline-success"
-            >
-              <FontAwesomeIcon icon="user-plus" /> Sign up!
-            </Button>
-          </Alert>
+          {!!loginFailed &&
+            <Alert variant="danger" className="error-message row">
+              <Col xs="auto">
+                <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
+              </Col>
+              <Col xs="10">
+                Sorry, we didn't recognize that combination of email and password. Check your information and try again.
+              </Col>
+            </Alert>
+          }
+          {!!serverProblem &&
+            <Alert variant="danger" className="error-message row">
+              <Col xs="auto">
+                <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
+              </Col>
+              <Col xs="10">
+                Sorry, something went wrong on our end. Please contact the app administrators and we'll help solve the problem.
+              </Col>
+            </Alert>
+          }
+          {queryParams.get("just_registered")!=="true" &&
+            <Alert variant="success" className="login-register-message">
+              <span>Don't have an account?</span>
+              <Button as={Link}
+                to={`register`}
+                variant="outline-success"
+              >
+                <FontAwesomeIcon icon="user-plus" /> Sign up!
+              </Button>
+            </Alert>
+          }
           </React.Fragment>
         )}
       </Col>
