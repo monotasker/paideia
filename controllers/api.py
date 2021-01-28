@@ -14,6 +14,7 @@ from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
 import re
+import time
 # from pydal.objects import Rows
 
 from gluon._compat import urllib2, urlencode, urlopen, to_bytes, to_native
@@ -217,6 +218,167 @@ def _fetch_userdata(raw_user, vars):
         user = {'id': None}
 
     return user
+
+def do_password_reset():
+    """
+    Actually allow a user to reset their password after email link followed.
+    """
+    request = current.request
+
+    key = request.vars['key']
+    token = request.vars['token']
+    new_password_A = request.vars['password_a']
+    new_password_B = request.vars['password_b']
+
+    missing = {k: v for k, v in request.vars.items() if
+               k in ['key', 'password_a', 'password_b']
+               and v in [None, "null", "undefined", ""]}
+    if missing and len(missing.keys()) > 0:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'Missing request data',
+                    'error': missing})
+    if new_password_A != new_password_B:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'New passwords do not match',
+                    'error': None})
+
+    keydata = {}
+    with open('applications/paideia/private/app.keys', 'r') as keyfile:
+        for line in keyfile:
+            k, v = line.split()
+            keydata[k] = v
+    params = urlencode({
+        'secret': keydata['captcha3_private_key'],
+        'response': token
+    }).encode('utf-8')
+    recap_request = urllib2.Request(
+        url="https://www.google.com/recaptcha/api/siteverify",
+        data=to_bytes(params),
+        headers={'Content-type': 'application/x-www-form-urlencoded',
+                'User-agent': 'reCAPTCHA Python'})
+    httpresp = urlopen(recap_request)
+    content = httpresp.read()
+    httpresp.close()
+    response_dict = json.loads(to_native(content))
+
+    if response_dict["success"] == True and response_dict["score"] > 0.5:
+        try:
+            t0 = int(key.split('-')[0])
+            if time.time() - t0 > 60 * 60 * 24:
+                response.status = 400
+                return json_serializer({'status': 'bad request',
+                                        'reason': 'Password reset key was bad',
+                                        'error': None})
+            user = db(db.auth_user.reset_password_key==key).select().first()
+            if not user:
+                response.status = 400
+                return json_serializer({'status': 'bad request',
+                            'reason': 'User does not exist',
+                            'error': None})
+            rkey = user.registration_key
+            if rkey in ('pending', 'disabled', 'blocked') or (rkey or '').startswith('pending'):
+                response.status = 401
+                return json_serializer({'status': 'unauthorized',
+                                        'reason': 'Action already pending',
+                                        'error': "Registration pending"})
+            user.update_record(**{'password': str(new_password_B),
+                                'registration_key': '',
+                                'reset_password_key': ''})
+            return json_serializer({'status': 'success',
+                                    'reason': 'Password reset successfully'})
+
+        except Exception:
+            print_exc()
+            response.status = 500
+            return json_serializer({'status': 'internal server error',
+                        'reason': 'Unknown error in function start_password_reset',
+                        'error': format_exc()})
+    else:
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                    'reason': 'Recaptcha failed',
+                    'error': None})
+
+def start_password_reset():
+    """
+    Initiate a password reset by sending user an email with a link.
+    """
+    auth = current.auth
+    table_user = auth.table_user()
+    email = request.vars['email']
+    token = request.vars['token']
+
+    table_user.email.requires = [
+        IS_EMAIL(error_message=auth.messages.invalid_email),
+        IS_IN_DB(auth.db, table_user.email,
+                    error_message=auth.messages.invalid_email)]
+    if not auth.settings.email_case_sensitive:
+        table_user.email.requires.insert(0, IS_LOWER())
+
+    if email in [None, "null", "undefined", ""]:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'Missing request data',
+                    'error': {'email': email}})
+
+    user = db(db.auth_user.email==email).select().first()
+    if not user:
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'User does not exist',
+                    'error': None})
+
+    keydata = {}
+    with open('applications/paideia/private/app.keys', 'r') as keyfile:
+        for line in keyfile:
+            k, v = line.split()
+            keydata[k] = v
+    params = urlencode({
+        'secret': keydata['captcha3_private_key'],
+        'response': token
+    }).encode('utf-8')
+    recap_request = urllib2.Request(
+        url="https://www.google.com/recaptcha/api/siteverify",
+        data=to_bytes(params),
+        headers={'Content-type': 'application/x-www-form-urlencoded',
+                'User-agent': 'reCAPTCHA Python'})
+    httpresp = urlopen(recap_request)
+    content = httpresp.read()
+    httpresp.close()
+    response_dict = json.loads(to_native(content))
+
+    if response_dict["success"] == True and response_dict["score"] > 0.5:
+        try:
+            key = user.registration_key
+
+            if key in ('pending', 'disabled', 'blocked') or (key or '').startswith('pending'):
+                response.status = 401
+                return json_serializer({'status': 'unauthorized',
+                            'reason': 'Action already pending',
+                            'error': None})
+
+            if auth.email_reset_password(user):
+                return json_serializer({'status': 'success',
+                            'reason': 'Reset email sent'})
+            else:
+                response.status = 500
+                return json_serializer({'status': 'internal server error',
+                            'reason': 'Could not send reset email',
+                            'error': None})
+
+        except Exception:
+            print_exc()
+            response.status = 500
+            return json_serializer({'status': 'internal server error',
+                        'reason': 'Unknown error in function start_password_reset',
+                        'error': format_exc()})
+    else:
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                    'reason': 'Recaptcha failed',
+                    'error': None})
 
 
 def get_registration():
