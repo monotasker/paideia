@@ -1,6 +1,51 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import { urlBase } from '../variables';
+
+const startPasswordReset = async ({email,
+                                   token,
+                                  }) => {
+  let formdata = new FormData();
+  formdata.append("email", email);
+  formdata.append("token", token);
+
+  let response = await fetch('/paideia/api/start_password_reset', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      body: formdata
+  })
+
+  let mystatus = response.status;
+  const jsonData = await response.json();
+  let mydata = jsonData;
+  mydata.status_code = mystatus;
+  return mydata;
+}
+
+const doPasswordReset = async ({key,
+                                token,
+                                passwordA,
+                                passwordB
+                                }) => {
+  let formdata = new FormData();
+  formdata.append("key", key);
+  formdata.append("token", token);
+  formdata.append("new_password_A", passwordA);
+  formdata.append("new_password_B", passwordB);
+
+  let response = await fetch('/paideia/api/do_password_reset', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      body: formdata
+  })
+
+  let mystatus = response.status;
+  const jsonData = await response.json();
+  let mydata = jsonData;
+  mydata.status_code = mystatus;
+  return mydata;
+}
 
 const register = async ({theToken,
                          theFirstName,
@@ -250,6 +295,8 @@ const formatLoginData = (data) => {
 }
 
 export {
+  startPasswordReset,
+  doPasswordReset,
   register,
   login,
   logout,

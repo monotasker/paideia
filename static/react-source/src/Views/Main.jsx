@@ -89,6 +89,7 @@ import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { checkLogin } from '../Services/authService';
+import ResetPassword from './ResetPassword';
 
 library.add(
   faArrowsAltH,
@@ -156,7 +157,8 @@ const myroutes = [
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
   {path: "/" + urlBase + "/login", exact: false, Component: Login},
-  {path: "/" + urlBase + "/register", exact: false, Component: Register}
+  {path: "/" + urlBase + "/register", exact: false, Component: Register},
+  {path: "/" + urlBase + "/reset_password", exact: false, Component: ResetPassword}
 ]
 
 const myPrivateRoutes = [

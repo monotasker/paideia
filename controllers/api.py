@@ -5,6 +5,7 @@ import datetime
 from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
 from gluon.serializers import json as json_serializer
+from gluon.utils import web2py_uuid
 import json
 import os
 from pprint import pprint
@@ -224,6 +225,7 @@ def do_password_reset():
     Actually allow a user to reset their password after email link followed.
     """
     request = current.request
+    response = current.response
 
     key = request.vars['key']
     token = request.vars['token']
@@ -301,27 +303,57 @@ def do_password_reset():
                     'reason': 'Recaptcha failed',
                     'error': None})
 
+
+def my_email_reset_password(auth, user):
+    """
+    Duplicates gluon.tools.email_reset_password to allow proper url format
+    """
+    reset_password_key = str(int(time.time())) + '-' + web2py_uuid()
+    link = auth.url(auth.settings.function,
+                    args=('reset_password',), vars={'key': reset_password_key},
+                    scheme=True)
+    # strip out unnecessary controller/function from url
+    regex = '/api/start_password_reset'
+    link = re.sub(regex, "", link)
+
+    d = dict(user)
+    d.update(dict(key=reset_password_key, link=link))
+    if auth.settings.mailer and auth.settings.mailer.send(
+        to=user.email,
+        subject=auth.messages.reset_password_subject,
+            message=auth.messages.reset_password % d):
+        user.update_record(reset_password_key=reset_password_key)
+        return True
+    return False
+
 def start_password_reset():
     """
     Initiate a password reset by sending user an email with a link.
     """
     auth = current.auth
-    table_user = auth.table_user()
+    auth.settings.function = ""
+    auth.settings.controller = ""
+    auth.messages.reset_password = ("<html><p>Greetings from the people at "
+        "<a href='https://learngreek.ca/paideia'>Paideia</a>! Someone asked " "to reset the account password for this email address. "
+        "If this was you, click on the link below and enter your "
+        "new password in the form there.</p>"
+        "<p>Reset password link: %(link)s</p> "
+        "<p>All the best,</p>"
+        "<p>The Paideia people</p></html>")
+    auth.messages.reset_password_subject = "Password reset requested for Paideia"
+    response = current.response
     email = request.vars['email']
     token = request.vars['token']
 
-    table_user.email.requires = [
-        IS_EMAIL(error_message=auth.messages.invalid_email),
-        IS_IN_DB(auth.db, table_user.email,
-                    error_message=auth.messages.invalid_email)]
-    if not auth.settings.email_case_sensitive:
-        table_user.email.requires.insert(0, IS_LOWER())
-
-    if email in [None, "null", "undefined", ""]:
+    email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    if email in [None, "null", "undefined", ""] \
+            or not re.search(email_pat, email.strip()):
         response.status = 400
         return json_serializer({'status': 'bad request',
                     'reason': 'Missing request data',
                     'error': {'email': email}})
+    else:
+        email=email.strip()
 
     user = db(db.auth_user.email==email).select().first()
     if not user:
@@ -359,9 +391,10 @@ def start_password_reset():
                             'reason': 'Action already pending',
                             'error': None})
 
-            if auth.email_reset_password(user):
+            if my_email_reset_password(auth, user):
                 return json_serializer({'status': 'success',
-                            'reason': 'Reset email sent'})
+                            'reason': 'Reset email sent',
+                            'email': email})
             else:
                 response.status = 500
                 return json_serializer({'status': 'internal server error',
