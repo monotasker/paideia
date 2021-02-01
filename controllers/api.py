@@ -220,6 +220,18 @@ def _fetch_userdata(raw_user, vars):
 
     return user
 
+
+def _check_password_strength(password):
+    # TODO: consider this regex that requires special characters:
+    # password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
+        # "(?=.*[!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~])"\
+        # "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
+    password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
+                     "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
+    password_pat = re.compile(password_regex)
+    return re.search(password_pat, password)
+
+
 def do_password_reset():
     """
     Actually allow a user to reset their password after email link followed.
@@ -229,8 +241,12 @@ def do_password_reset():
 
     key = request.vars['key']
     token = request.vars['token']
-    new_password_A = request.vars['password_a']
-    new_password_B = request.vars['password_b']
+    new_password_A = request.vars['new_password_A']
+    new_password_B = request.vars['new_password_B']
+
+    print ('new passwords')
+    print(new_password_A)
+    print(new_password_B)
 
     missing = {k: v for k, v in request.vars.items() if
                k in ['key', 'password_a', 'password_b']
@@ -244,6 +260,11 @@ def do_password_reset():
         response.status = 400
         return json_serializer({'status': 'bad request',
                     'reason': 'New passwords do not match',
+                    'error': None})
+    if not _check_password_strength(new_password_A):
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': 'Password is not strong enough',
                     'error': None})
 
     keydata = {}
@@ -442,14 +463,7 @@ def get_registration():
                     'reason': 'Missing request data',
                     'error': missing})
 
-    # TODO: consider this regex that requires special characters:
-    # password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
-        # "(?=.*[!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~])"\
-        # "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
-    password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
-                     "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
-    password_pat = re.compile(password_regex)
-    if re.search(password_pat, password) is None:
+    if not _check_password_strength(password):
         response.status = 400
         return json_serializer({'status': 'bad request',
                     'reason': 'Password is not strong enough',

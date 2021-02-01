@@ -32,6 +32,7 @@ const doPasswordReset = async ({key,
   formdata.append("token", token);
   formdata.append("new_password_A", passwordA);
   formdata.append("new_password_B", passwordB);
+  console.log(`4 ${passwordA}`);
 
   let response = await fetch('/paideia/api/do_password_reset', {
       method: "POST",

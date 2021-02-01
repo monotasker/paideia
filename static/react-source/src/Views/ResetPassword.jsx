@@ -1,6 +1,5 @@
 import React, {
   useContext,
-  useEffect,
   useState
 } from "react";
 import {
@@ -15,13 +14,59 @@ import { useHistory,
          Link
 } from 'react-router-dom';
 
-import { recaptchaKey } from '../variables';
 import { returnStatusCheck,
   startPasswordReset,
   doPasswordReset
 } from '../Services/authService';
-import { loadScriptByURL, useQuery } from '../Services/utilityService';
+import { useQuery, withRecaptcha } from '../Services/utilityService';
 import { UserContext } from '../UserContext/UserProvider';
+import { propTypes } from "react-bootstrap/esm/Image";
+
+const sendMyRequest = ({formId,
+                        fieldSet={},
+                        requestAction,
+                        requestArgs,
+                        history,
+                        dispatch,
+                        successCallback,
+                        otherCallbacks={},
+                        setInProgressAction,
+                        setSuccessAction,
+                       }
+                      ) => {
+    // *fieldSet* is object with form field names as keys
+    //     values are [corresponding state object, corresponding state setter]
+    //
+    // *requestArgs* is object with expected named arguments for the
+    //    request action
+    // *otherCallbacks* is object with the following expected optional keys:
+    //    serverErrorAction, badRequestAction,
+    //    dataConflictAction, unauthorizedAction
+    //    values are functions to serve as callbacks in case of matching
+    //    responseStatus
+    setInProgressAction(true);
+    // handle autocompleted form fields that aren't picked up by React state
+    let subs = null;
+    Object.keys(fieldSet).forEach(key => {
+      let myval = document.getElementById(formId).elements[key].value;
+      if ( !fieldSet[key][0] && !!myval ) {
+        fieldSet[key][1](myval);
+        subs[key] = myval;
+      }
+    })
+
+    requestAction()
+    .then( respdata => {
+        returnStatusCheck(respdata, history,
+          (mydata) => {
+            successCallback(mydata);
+            setSuccessAction(true);
+            setInProgressAction(false);
+          },
+          dispatch,
+          otherCallbacks)
+    })
+}
 
 const StartResetForm = ({submitAction}) => {
   const myhistory = useHistory();
@@ -169,7 +214,9 @@ const StartResetForm = ({submitAction}) => {
   );
 }
 
-const CompleteResetForm = ({myKey, submitAction}) => {
+const CompleteResetForm = ({resetKey, submitAction}) => {
+  const myhistory = useHistory();
+  const { user, dispatch } = useContext(UserContext);
   const [ passwordA, setPasswordA ] = useState();
   const [ passwordB, setPasswordB ] = useState();
   const [ passwordAMissing, setPasswordAMissing ] = useState(false);
@@ -177,6 +224,7 @@ const CompleteResetForm = ({myKey, submitAction}) => {
   const [ inadequatePassword, setInadequatePassword ] = useState(false);
   const [ passwordsDontMatch, setPasswordsDontMatch ] = useState(false);
   const [ resetFailed, setResetFailed ] = useState(false);
+  const [ resetSucceeded, setResetSucceeded ] = useState(false);
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
   const serverErrorAction = (data) => {
@@ -196,8 +244,44 @@ const CompleteResetForm = ({myKey, submitAction}) => {
     }
   }
 
-  const changePassword = () => {
+  const submitPasswordChange = token => {
+    // handle autofilled data that doesn't trigger onChange state update
+    setRequestInProgress(true);
+    console.log(`1 ${passwordA}`);
+    let myvalA = document.getElementById("complete-pass-reset-form").elements['passwordA'].value;
+    let myvalB = document.getElementById("complete-pass-reset-form").elements['passwordB'].value;
+    let subs = {};
+    if ( !passwordA && !!myvalA ) {
+      setPasswordA(myvalA);
+      subs.passwordA = myvalA;
+    }
+    if ( !passwordB && !!myvalB ) {
+      setPasswordB(myvalB);
+      subs.passwordB = myvalB;
+    }
+    console.log(`2 ${myvalA}`);
+    console.log(`3 ${subs.passwordA}`);
 
+    doPasswordReset({key: resetKey,
+                     token: token,
+                     passwordA: (!subs['passwordA'] ? passwordA : subs['passwordA']),
+                     passwordB: (!subs['passwordB'] ? passwordB : subs['passwordB'])
+                    })
+    .then( respdata => {
+        returnStatusCheck(respdata, myhistory,
+          (respdata) => {
+            setResetSucceeded(true);
+            setRequestInProgress(false);
+          },
+          dispatch,
+          {serverErrorAction: serverErrorAction,
+           badRequestAction: badRequestAction
+          })
+    })
+  }
+
+  const changePassword = (event) => {
+    submitAction(event, submitPasswordChange);
   }
 
   const updatePasswordAField = (val) => {
@@ -295,34 +379,16 @@ const CompleteResetForm = ({myKey, submitAction}) => {
 
 const ResetPassword = () => {
   const queryParams = useQuery();
-
-  const submitAction = (event, myAction) => {
-    event.preventDefault();
-    window.grecaptcha.ready(() => {
-        window.grecaptcha.execute(recaptchaKey, { action: 'register' })
-        .then(token => {
-            myAction(token);
-        });
-    });
-  }
-
-  useEffect(() => {
-    loadScriptByURL("recaptcha-key",
-        `https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`, function () {
-            console.log("Recaptcha Script loaded!");
-        }
-    );
-  }, []);
+  const StartForm = withRecaptcha(StartResetForm);
+  const CompleteForm = withRecaptcha(CompleteResetForm);
 
   return(
     <Row className="login-component content-view justify-content-sm-center">
       <Col xs sm={8} lg={6}>
         {!!queryParams.get("key") ?
-          <CompleteResetForm myKey={queryParams.get("key")}
-            submitAction={submitAction}
-          />
+          <CompleteForm resetKey={queryParams.get("key")} />
           :
-          <StartResetForm submitAction={submitAction} />
+          <StartForm />
         }
       </Col>
     </Row>
