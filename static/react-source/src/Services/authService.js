@@ -32,7 +32,6 @@ const doPasswordReset = async ({key,
   formdata.append("token", token);
   formdata.append("new_password_A", passwordA);
   formdata.append("new_password_B", passwordB);
-  console.log(`4 ${passwordA}`);
 
   let response = await fetch('/paideia/api/do_password_reset', {
       method: "POST",
@@ -42,8 +41,14 @@ const doPasswordReset = async ({key,
   })
 
   let mystatus = response.status;
-  const jsonData = await response.json();
-  let mydata = jsonData;
+  let mydata;
+  try {
+    mydata = await response.json();
+  } catch(err) {
+    mydata = {status: "internal server error",
+              reason: "Unknown error in function do_password_reset",
+              error: err.message}
+  }
   mydata.status_code = mystatus;
   return mydata;
 }
@@ -245,13 +250,16 @@ function returnStatusCheck(mydata, history, action, reducer,
         history.push(`login`);
       }
     } else if ( mydata.reason === "Insufficient privileges" ) {
-      console.log('404: Insufficient privileges');
+      console.log('401: Insufficient privileges');
       if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
         otherActions.insufficientPrivilegesAction(mydata);
       }
     } else if ( mydata.reason === "Login failed" ) {
       console.log('401: Login failed');
       otherActions.unauthorizedAction(mydata);
+    } else if ( mydata.reason === "Action blocked") {
+      console.log('401: Action blocked');
+      otherActions.actionBlockedAction(mydata);
     }
   } else if ( mydata.status_code === 404 ) {
     console.log('404: No such record');

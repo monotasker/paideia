@@ -120,6 +120,11 @@ const Login = () => {
               Now you can log in using the email and password that you just used to create your account!
             </Alert>
           }
+          {queryParams.get("just_reset_password")==="true" &&
+            <Alert variant="success">
+              Now you can log in using your new password!
+            </Alert>
+          }
           {missing.length > 0 &&
             <Alert variant="danger" className="error-message row">
               <Col xs="auto">
@@ -177,7 +182,8 @@ const Login = () => {
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
               </Col>
               <Col xs="10">
-                Sorry, we didn't recognize that combination of email and password. Check your information and try again.
+                Sorry, we didn't recognize that combination of email and password. Check your information and try again. <br/><br/>
+                If you can't remember your password, you can <Link to="reset_password">request a password reset</Link>.
               </Col>
             </Alert>
           }
@@ -192,6 +198,8 @@ const Login = () => {
             </Alert>
           }
           {queryParams.get("just_registered")!=="true" &&
+           queryParams.get("just_reset_password")!=="true" &&
+           <React.Fragment>
             <Alert variant="success" className="login-register-message">
               <span>Don't have an account?</span>
               <Button as={Link}
@@ -201,6 +209,10 @@ const Login = () => {
                 <FontAwesomeIcon icon="user-plus" /> Sign up!
               </Button>
             </Alert>
+            <Alert variant="primary" className="login-reset-message">
+              Don't remember your password? You can <Link to="reset_password">request a password reset</Link>.
+            </Alert>
+          </React.Fragment>
           }
           </React.Fragment>
         )}

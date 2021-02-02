@@ -3,11 +3,12 @@ import React, {
   useState
 } from "react";
 import {
-  Form,
+  Alert,
   Button,
-  Row,
   Col,
-  Alert
+  Collapse,
+  Form,
+  Row
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useHistory,
@@ -223,31 +224,65 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
   const [ passwordBMissing, setPasswordBMissing ] = useState(false);
   const [ inadequatePassword, setInadequatePassword ] = useState(false);
   const [ passwordsDontMatch, setPasswordsDontMatch ] = useState(false);
+  const [ recaptchaFailed, setRecaptchaFailed ] = useState(false);
+  const [ expiredResetKey, setExpiredResetKey ] = useState(false);
+  const [ noSuchUser, setNoSuchUser ] = useState(false);
+  const [ resetBlocked, setResetBlocked ] = useState(false);
   const [ resetFailed, setResetFailed ] = useState(false);
   const [ resetSucceeded, setResetSucceeded ] = useState(false);
   const [ requestInProgress, setRequestInProgress ] = useState(false);
+  const [ errorDetails, setErrorDetails ] = useState(null);
+  const [ showErrorDetails, setShowErrorDetails ] = useState(false);
 
   const serverErrorAction = (data) => {
+    setRequestInProgress(false);
     setResetFailed(true);
+    setErrorDetails(data.error)
   }
 
   const badRequestAction = (data) => {
+    setRequestInProgress(false);
     if ( data.reason==="New passwords do not match" ) {
       setPasswordsDontMatch(true);
     } else if ( data.reason==="Missing request data" ) {
-      if ( Object.keys(data.error).includes("password_a") ) {
+      if ( Object.keys(data.error).includes("new_password_A") ) {
          setPasswordAMissing(true)}
-      if ( Object.keys(data.error).includes("password_b") ) {
+      if ( Object.keys(data.error).includes("new_password_B") ) {
          setPasswordBMissing(true)}
-    } else if ( data.reason==="Password inadequate") {
+    } else if ( data.reason==="Password is not strong enough") {
       setInadequatePassword(true);
+    } else if ( data.reason==="Password reset key was bad") {
+      setExpiredResetKey(true);
+    } else if ( data.reason==="User does not exist") {
+      setNoSuchUser(true);
+    } else {
+      setResetFailed(true);
+    }
+  }
+
+  const unauthorizedAction = (data) => {
+    setRequestInProgress(false);
+    if (data.reason==='Recaptcha failed') {
+      setRecaptchaFailed(true);
+    } else {
+      setResetFailed(true);
+      setErrorDetails(data.error);
+    }
+  }
+
+  const actionBlockedAction = (data) => {
+    setRequestInProgress(false);
+    if ( data.reason === 'Action blocked' ) {
+      setResetBlocked(true);
+    } else {
+      setResetFailed(true);
+      setErrorDetails(data.error);
     }
   }
 
   const submitPasswordChange = token => {
     // handle autofilled data that doesn't trigger onChange state update
     setRequestInProgress(true);
-    console.log(`1 ${passwordA}`);
     let myvalA = document.getElementById("complete-pass-reset-form").elements['passwordA'].value;
     let myvalB = document.getElementById("complete-pass-reset-form").elements['passwordB'].value;
     let subs = {};
@@ -259,8 +294,6 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
       setPasswordB(myvalB);
       subs.passwordB = myvalB;
     }
-    console.log(`2 ${myvalA}`);
-    console.log(`3 ${subs.passwordA}`);
 
     doPasswordReset({key: resetKey,
                      token: token,
@@ -268,14 +301,26 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                      passwordB: (!subs['passwordB'] ? passwordB : subs['passwordB'])
                     })
     .then( respdata => {
+        setInadequatePassword(false);
+        setResetFailed(false);
+        setResetSucceeded(false);
+        setPasswordAMissing(false);
+        setPasswordBMissing(false);
+        setPasswordsDontMatch(false);
+        setNoSuchUser(false);
+        setExpiredResetKey(false);
+        setResetBlocked(false);
         returnStatusCheck(respdata, myhistory,
           (respdata) => {
             setResetSucceeded(true);
             setRequestInProgress(false);
+            myhistory.push('login?just_reset_password=true');
           },
           dispatch,
           {serverErrorAction: serverErrorAction,
-           badRequestAction: badRequestAction
+           badRequestAction: badRequestAction,
+           unauthorizedAction: unauthorizedAction,
+           actionBlockedAction: actionBlockedAction
           })
     })
   }
@@ -296,13 +341,16 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
 
   return (
     <React.Fragment>
+      { user.userLoggedIn === true &&
+        myhistory.goBack()
+      }
       <h2 className="text-center">Set Your New Password</h2>
       <Form role="form"
         id="complete-pass-reset-form"
       >
         <Form.Group as={Row} controlId="doPassResetPasswordA">
           <Form.Label column sm={5}>
-            Enter your new password
+            New password
           </Form.Label>
           <Col sm={7}>
             <Form.Control
@@ -316,14 +364,14 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
         </Form.Group>
         <Form.Group as={Row} controlId="doPassResetPasswordB">
           <Form.Label column sm={5}>
-            Enter the same password again
+            Confirm password
           </Form.Label>
           <Col sm={7}>
             <Form.Control
               type="password"
               name="passwordB"
               autoComplete="new-password"
-              placeholder="Enter a new password"
+              placeholder="Re-type the new password"
               onChange={e => updatePasswordBField(e.target.value)}
             />
           </Col>
@@ -354,6 +402,61 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
+          {!!expiredResetKey &&
+              <Alert variant="danger" className="row error-message">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
+                <Col xs="10">
+                  Sorry, the reset link you're using has expired. <Link to="reset_password">Click here</Link> to request a fresh one.
+                </Col>
+              </Alert>
+          }
+          {!!recaptchaFailed &&
+              <Alert variant="danger" className="row error-message">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
+                <Col xs="10">
+                  Sorry, the system thinks you might not be a human. If you are one, try refreshing the page and submitting the form again. Or <Link to="reset_password">click here</Link> to request a fresh reset link.
+                </Col>
+              </Alert>
+          }
+          {!!noSuchUser &&
+              <Alert variant="danger" className="row error-message">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
+                <Col xs="10">
+                  Sorry, we can't find a user that matches this password reset link. That could be because the link has already been used to reset your password once. <br/><br/>
+                  <Link to="reset_password">Click here</Link> to request a fresh reset link. If that still doesn't work, contact the Paideia team and we'll help solve the problem.
+                </Col>
+              </Alert>
+          }
+          {!!resetBlocked &&
+              <Alert variant="danger" className="row error-message">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+                </Col>
+                <Col xs="10">
+                  Sorry, the system won't allow us to reset your password right now. This could be because a reset is already in progress. Try again in a few minutes. If that still doesn't work, contact the Paideia team and we'll help solve the problem.
+                </Col>
+              </Alert>
+          }
+          {!!resetFailed &&
+              <Alert variant="danger" className="row error-message">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
+                <Col xs="10">
+                  Sorry, something went wrong on our end and we weren't able to reset your password. But if you contact the Paideia team we'll help to resolve the problem.<br/>
+                  {/* FIXME: add contact form link here */}
+                  <Button variant="link"
+                    onClick={() => setShowErrorDetails(!showErrorDetails)}>
+                      <FontAwesomeIcon icon="bug" size="sm" />show error details
+                  </Button>
+                  <Collapse in={showErrorDetails}>
+                    <div>{errorDetails}</div>
+                  </Collapse>
+                </Col>
+              </Alert>
+          }
           <Form.Text className="text-muted col col-xs col-sm-12">
             Your password must be at least 8 characters long. It must also include at least one upper case character and one number. Consider also including a special character (like #, &, !, etc.) and making it longer (up to 20 characters).
           </Form.Text>
@@ -363,11 +466,12 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
           </Col>
           <Col className="register-submit-col">
             <Button variant="primary"
+                name="resetSubmitButton"
                 type="submit"
                 onClick={changePassword}
                 disabled={!!requestInProgress ? true : false}
             >
-              <FontAwesomeIcon icon="user-plus" /> Create account
+              <FontAwesomeIcon icon="key" /> Set new password &nbsp;
             </Button>
           </Col>
         </Form.Group>
@@ -383,7 +487,7 @@ const ResetPassword = () => {
   const CompleteForm = withRecaptcha(CompleteResetForm);
 
   return(
-    <Row className="login-component content-view justify-content-sm-center">
+    <Row className="reset-password-component content-view justify-content-sm-center">
       <Col xs sm={8} lg={6}>
         {!!queryParams.get("key") ?
           <CompleteForm resetKey={queryParams.get("key")} />

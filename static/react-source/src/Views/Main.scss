@@ -181,6 +181,21 @@ h3                                      {font-family: $sans-fonts;
                                          color: $heading-color;
 }
 
+// allow vertically centred left-hand icons in error messages
+.alert.error-message                    {flex-wrap: nowrap;
+                                         align-items: center;
+    &> div                              {padding-left:0;
+                                         padding-right: 1rem;
+    }
+}
+
+// forms ----------------------------------------------------
+
+form                                    {margin-bottom: 1rem;
+                                         margin-top: 1rem;
+}
+
+
 //-- basic layout -------------------------------------------
 .Main                                   {margin-left: 0;
                                          margin-right: 0;
@@ -1666,15 +1681,6 @@ h3                                      {font-family: $sans-fonts;
 // Login form
 
 .login-component                                {
-    .alert.error-message                        {flex-wrap: nowrap;
-                                                 align-items: center;
-        &> div                                  {padding-left:0;
-                                                 padding-right: 1rem;
-        }
-    }
-    form                                        {margin-top: 1rem;
-                                                 margin-bottom: 1rem;
-    }
     .login-register-message                     {
        span                                     {position: relative;
                                                  top: 0.15rem;
@@ -1688,17 +1694,11 @@ h3                                      {font-family: $sans-fonts;
 // Registration form
 
 .register-component                             {
-    form                                        {margin-top: 1rem;
+    form                                        {
         .form-group.row                         {padding-bottom: 1rem;
             div:nth-child(2)                   {padding-left: 0;
                                                  padding-right: 0;
             }
-        }
-    }
-    .alert.error-message                        {flex-wrap: nowrap;
-                                                 align-items: center;
-        &> div                                  {padding-left:0;
-                                                 padding-right: 1rem;
         }
     }
     .register-login-message                     {
@@ -1707,5 +1707,21 @@ h3                                      {font-family: $sans-fonts;
         }
         .btn                                    {margin-left: 2rem;
         }
+    }
+}
+
+// Reset password form
+
+.reset-password-component                       {
+    form                                        {
+        .row:first-child                        {padding-bottom: 1rem;
+        }
+        .form-text                              {margin-bottom: 1rem;
+        }
+    }
+    .btn-link                                   {padding: 0;
+                                                 vertical-align: baseline;
+    }
+    .alert.error-message                        {margin-top: 1rem;
     }
 }

@@ -244,12 +244,9 @@ def do_password_reset():
     new_password_A = request.vars['new_password_A']
     new_password_B = request.vars['new_password_B']
 
-    print ('new passwords')
-    print(new_password_A)
-    print(new_password_B)
 
     missing = {k: v for k, v in request.vars.items() if
-               k in ['key', 'password_a', 'password_b']
+               k in ['key', 'new_password_A', 'new_password_B']
                and v in [None, "null", "undefined", ""]}
     if missing and len(missing.keys()) > 0:
         response.status = 400
@@ -288,6 +285,7 @@ def do_password_reset():
 
     if response_dict["success"] == True and response_dict["score"] > 0.5:
         try:
+
             t0 = int(key.split('-')[0])
             if time.time() - t0 > 60 * 60 * 24:
                 response.status = 400
@@ -304,9 +302,12 @@ def do_password_reset():
             if rkey in ('pending', 'disabled', 'blocked') or (rkey or '').startswith('pending'):
                 response.status = 401
                 return json_serializer({'status': 'unauthorized',
-                                        'reason': 'Action already pending',
-                                        'error': "Registration pending"})
-            user.update_record(**{'password': str(new_password_B),
+                                        'reason': 'Action blocked',
+                                        'error': "Reset blocked or pending"})
+            print('USER=========================')
+            pprint(user)
+            encrypted_password = db.auth_user.password.validate(new_password_B)[0]
+            user.update_record(**{'password': encrypted_password,
                                 'registration_key': '',
                                 'reset_password_key': ''})
             return json_serializer({'status': 'success',
@@ -316,7 +317,7 @@ def do_password_reset():
             print_exc()
             response.status = 500
             return json_serializer({'status': 'internal server error',
-                        'reason': 'Unknown error in function start_password_reset',
+                        'reason': 'Unknown error in function do_password_reset',
                         'error': format_exc()})
     else:
         response.status = 401
@@ -580,8 +581,7 @@ def get_login():
         if debug: pprint(response_dict)
 
         if response_dict["success"] == True and response_dict["score"] > 0.5:
-            mylogin = auth.login_bare(request.vars['email'],
-                                    request.vars['password'])
+            mylogin = auth.login_bare(email, password)
             if debug: print('mylogin********')
             if debug: print(mylogin)
             if mylogin == False:
