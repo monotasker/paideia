@@ -17,9 +17,10 @@ import { useHistory,
 
 import {
   startPasswordReset,
-  doPasswordReset
+  doPasswordReset,
+  withRecaptcha
 } from '../Services/authService';
-import { useQuery, withRecaptcha } from '../Services/utilityService';
+import { useQuery} from '../Services/utilityService';
 import { UserContext } from '../UserContext/UserProvider';
 import { sendFormRequest } from '../Services/formsService';
 
@@ -53,21 +54,22 @@ const StartResetForm = ({submitAction}) => {
   }
 
   const submitPasswordResetRequest = (event) => {
-    event.preventDefault();
-    submitAction(
-       sendFormRequest({formId: "start-pass-reset-form",
-                      fieldSet: {email: [email, setEmail]},
-                      requestAction: startPasswordReset,
-                      extraArgs: ["token"],
-                      history: myhistory,
-                      dispatch: dispatch,
-                      successCallback: successAction,
-                      otherCallbacks: {serverErrorAction: serverErrorAction,
-                                       badRequestAction: badRequestAction
-                                      },
-                      setInProgressAction: setRequestInProgress
-                     })
-    );
+    console.log(`requesting for ${email}`);
+    submitAction(event,
+        (token) => {sendFormRequest(token, {formId: "start-pass-reset-form",
+                        fieldSet: {email: [email, setEmail]},
+                        requestAction: startPasswordReset,
+                        extraArgs: ["token"],
+                        history: myhistory,
+                        dispatch: dispatch,
+                        successCallback: successAction,
+                        otherCallbacks: {serverErrorAction: serverErrorAction,
+                                        badRequestAction: badRequestAction
+                                        },
+                        setInProgressAction: setRequestInProgress
+                      })
+                    }
+    )
   }
 
   const setEmailValue = (val) => {
@@ -182,13 +184,11 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
   const [ showErrorDetails, setShowErrorDetails ] = useState(false);
 
   const serverErrorAction = (data) => {
-    setRequestInProgress(false);
     setResetFailed(true);
     setErrorDetails(data.error)
   }
 
   const badRequestAction = (data) => {
-    setRequestInProgress(false);
     if ( data.reason==="New passwords do not match" ) {
       setPasswordsDontMatch(true);
     } else if ( data.reason==="Missing request data" ) {
@@ -208,7 +208,6 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
   }
 
   const unauthorizedAction = (data) => {
-    setRequestInProgress(false);
     if (data.reason==='Recaptcha failed') {
       setRecaptchaFailed(true);
     } else {
@@ -218,7 +217,6 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
   }
 
   const actionBlockedAction = (data) => {
-    setRequestInProgress(false);
     if ( data.reason === 'Action blocked' ) {
       setResetBlocked(true);
     } else {
@@ -228,6 +226,11 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
   }
 
   const successAction = (data) => {
+    setResetSucceeded(true);
+    myhistory.push('login?just_reset_password=true');
+  }
+
+  const changePassword = (event) => {
     setInadequatePassword(false);
     setResetFailed(false);
     setResetSucceeded(false);
@@ -237,14 +240,9 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
     setNoSuchUser(false);
     setExpiredResetKey(false);
     setResetBlocked(false);
-
-    setResetSucceeded(true);
-    myhistory.push('login?just_reset_password=true');
-  }
-
-  const changePassword = (event) => {
-    submitAction(
-      sendFormRequest({formId: "complete-pass-reset-form",
+    submitAction(event,
+      (token) => {sendFormRequest(token,
+                     {formId: "complete-pass-reset-form",
                       fieldSet: {passwordA: [passwordA, setPasswordA],
                                  passwordB: [passwordB, setPasswordB],
                                  resetKey: [resetKey, null]
@@ -261,6 +259,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                                       },
                       setInProgressAction: setRequestInProgress
                     })
+                  }
     );
   }
 
@@ -430,8 +429,8 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
 
 const ResetPassword = () => {
   const queryParams = useQuery();
-  const StartForm = withRecaptcha(StartResetForm);
-  const CompleteForm = withRecaptcha(CompleteResetForm);
+  const CompleteForm = withRecaptcha(CompleteResetForm, "completePasswordReset");
+  const StartForm = withRecaptcha(StartResetForm, "startPasswordReset");
 
   return(
     <Row className="reset-password-component content-view justify-content-sm-center">

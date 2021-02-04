@@ -19,13 +19,13 @@ import moment from 'moment';
 import 'moment-timezone';
 
 import { register,
-         returnStatusCheck
+         returnStatusCheck,
+         withRecaptcha
        } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
-import { recaptchaKey } from '../variables';
-import { loadScriptByURL } from '../Services/utilityService';
+import { sendFormRequest } from "../Services/formsService";
 
-const Register = () => {
+const Register = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const myhistory = useHistory();
   const [ myFirstName, setMyFirstName ] = useState();
@@ -37,14 +37,7 @@ const Register = () => {
   const [ registrationFailed, setRegistrationFailed ] = useState(false);
   const [ inadequatePassword, setInadequatePassword ] = useState(false);
   const [ missingData, setMissingData ] = useState([]);
-
-  useEffect(() => {
-    loadScriptByURL("recaptcha-key",
-        `https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`, function () {
-            console.log("Recaptcha Script loaded!");
-        }
-    );
-  }, []);
+  const [ requestInProgress, setRequestInProgress ] = useState(false);
 
   const registerServerErrorAction = () => {
     console.log("Something went wrong on the server end");
@@ -58,70 +51,44 @@ const Register = () => {
 
   const registerBadRequestAction = (mydata) => {
     if ( mydata.reason==="Password is not strong enough" ) {
-      console.log("Password is not strong enough");
       setInadequatePassword(true);
     } else if ( mydata.reason==="Missing request data" ) {
-      console.log("Missing request data");
       let missingObj = mydata.error;
-      console.log(missingObj);
       setMissingData(Object.keys(missingObj));
     }
   }
 
-  const fetchRegistration = token => {
-    // handle autofilled data that doesn't trigger onChange state update
-    let subs = {}
-    const myVals = {firstName: [myFirstName, setMyFirstName],
-                    lastName: [myLastName, setMyLastName],
-                    timeZone: [myTimeZone, setMyTimeZone],
-                    email: [myEmail, setMyEmail],
-                    password: [myPassword, setMyPassword]
-                    }
-    for (const n of Object.keys(myVals)) {
-      let myval = document.getElementById("registrationForm").elements[n].value;
-      if ( !myVals[n][0] && !!myval ) {
-        myVals[n][1](myval);
-        subs[n] = myval;
-      }
-    }
-    register({theToken: token,
-              theFirstName: !subs.firstName ? myFirstName : subs.firstName,
-              theLastName: !subs.lastName ? myLastName : subs.lastName,
-              theTimeZone: !subs.timeZone ? myTimeZone : subs.timeZone,
-              theEmail: !subs.email ? myEmail : subs.email,
-              thePassword: myPassword
-              })
-    .then( userdata => {
-        returnStatusCheck(userdata, myhistory,
-          (mydata) => {
-              if ( mydata.id != null ) {
-                myhistory.push('login?just_registered=true');
-              } else {
-                setRegistrationFailed(true);
-              }
-          },
-          dispatch,
-          {serverErrorAction: registerServerErrorAction,
-          dataConflictAction: registerDataConflictAction,
-          badRequestAction: registerBadRequestAction
-          })
-    })
+  const successAction = (data) => {
+      myhistory.push('login?just_registered=true');
   }
 
   const getRegistration = (event) => {
-    event.preventDefault();
-    // document.getElementById("registrationForm").elements["firstName"].onChange();
     setEmailAlreadyExists(false);
     setInadequatePassword(false);
     setRegistrationFailed(false);
     setMissingData([]);
 
-    window.grecaptcha.ready(() => {
-        window.grecaptcha.execute(recaptchaKey, { action: 'register' })
-        .then(token => {
-            fetchRegistration(token);
-        });
-    });
+    submitAction(event,
+      token => sendFormRequest(token, {
+        formId: 'registrationForm',
+        fieldSet: {lastName: [myLastName, setMyLastName],
+                   firstName: [myFirstName, setMyFirstName],
+                   email: [myEmail, setMyEmail],
+                   timeZone: [myTimeZone, setMyTimeZone],
+                   password: [myPassword, setMyPassword]
+        },
+        requestAction: register,
+        extraArgs: ["token"],
+        history: myhistory,
+        dispatch: dispatch,
+        successCallback: successAction,
+        otherCallbacks: {serverErrorAction: registerServerErrorAction,
+          dataConflictAction: registerDataConflictAction,
+          badRequestAction: registerBadRequestAction
+          },
+        setInProgressAction: setRequestInProgress
+      })
+    );
   }
 
   const setFieldValue = (val, fieldName) => {
@@ -313,6 +280,7 @@ const Register = () => {
                 <Button variant="primary"
                     type="submit"
                     onClick={getRegistration}
+                    disabled={!!requestInProgress ? true : false }
                 >
                   <FontAwesomeIcon icon="user-plus" /> Create account
                 </Button>
@@ -336,4 +304,4 @@ const Register = () => {
   );
 }
 
-export default Register;
+export default withRecaptcha(Register);

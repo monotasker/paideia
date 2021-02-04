@@ -1,7 +1,6 @@
 import React, {
   useContext,
-  useState,
-  useEffect
+  useState
 } from "react";
 import {
   Form,
@@ -19,17 +18,13 @@ import {
 import {
   login,
   formatLoginData,
-  returnStatusCheck
+  withRecaptcha
 } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from '../Services/utilityService';
-import { recaptchaKey } from '../variables';
-import { loadScriptByURL } from '../Services/utilityService';
-import { withRecaptcha } from '../Services/utilityService';
 import { sendFormRequest } from "../Services/formsService";
 
-
-const Login = ({submitAction}) => {
+const LoginInner = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const history = useHistory();
   const queryParams = useQuery();
@@ -75,9 +70,8 @@ const Login = ({submitAction}) => {
   }
 
   const getLogin = (event) => {
-    event.preventDefault();
-    submitAction(
-      sendFormRequest({
+    submitAction(event,
+      token => sendFormRequest(token, {
         formId: 'login-form',
         fieldSet: {email: [email, setEmail],
                    password: [password, setPassword]
@@ -200,6 +194,7 @@ const Login = ({submitAction}) => {
               <Button as={Link}
                 to={`register`}
                 variant="outline-success"
+                disabled={!!requestInProgress ? true : false }
               >
                 <FontAwesomeIcon icon="user-plus" /> Sign up!
               </Button>
@@ -216,4 +211,6 @@ const Login = ({submitAction}) => {
   );
 }
 
-export default withRecaptcha(Login);
+const Login = withRecaptcha(LoginInner);
+
+export default Login;

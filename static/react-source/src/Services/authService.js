@@ -1,9 +1,13 @@
+import React, { useEffect } from 'react';
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import { recaptchaKey } from "../variables";
+import { loadScriptByURL } from "../Services/utilityService";
 
 const startPasswordReset = async ({email,
                                    token,
                                   }) => {
+  console.log(`email: ${email}`);
   let formdata = new FormData();
   formdata.append("email", email);
   formdata.append("token", token);
@@ -53,20 +57,20 @@ const doPasswordReset = async ({resetKey,
   return mydata;
 }
 
-const register = async ({theToken,
-                         theFirstName,
-                         theLastName,
-                         theTimeZone,
-                         theEmail,
-                         thePassword
+const register = async ({token,
+                         firstName,
+                         lastName,
+                         timeZone,
+                         email,
+                         password
                          }) => {
   let formdata = new FormData();
-  formdata.append("my_first_name", theFirstName);
-  formdata.append("my_last_name", theLastName);
-  formdata.append("my_time_zone", theTimeZone);
-  formdata.append("my_email", theEmail);
-  formdata.append("my_password", thePassword);
-  formdata.append("my_token", theToken);
+  formdata.append("my_first_name", firstName);
+  formdata.append("my_last_name", lastName);
+  formdata.append("my_time_zone", timeZone);
+  formdata.append("my_email", email);
+  formdata.append("my_password", password);
+  formdata.append("my_token", token);
 
   let response = await fetch('/paideia/api/get_registration', {
       method: "POST",
@@ -303,6 +307,67 @@ const formatLoginData = (data) => {
   }
 }
 
+/**
+ * React HOC that provides recaptcha integration to the wrapped component
+ *
+ * The wrapped component is provided with a `submitAction` prop.
+ * Any call to a server action wrapped with submitAction() will be
+ * protected by recaptcha v3 and will receive the extra `token` argument
+ * to pass on to the server call.
+ *
+ *
+ * @component
+ * @param {JSX.Element} Component the component to be decorated
+ * @param {object} props this component's properties
+ * @param {string} props.rkey a valid recaptcha v. 3 site key
+ * @param {function} props.actionName a function making a server request that
+ *                                    will be protected by recaptcha
+ * @returns {JSX.Element} A react component with an extra `submitAction`
+ *                        prop
+ */
+const withRecaptcha = (Component, actionName) => ({rkey=recaptchaKey,
+                                                   ...throughProps}) => {
+  useEffect(() => {
+    loadScriptByURL("recaptcha-key",
+        `https://www.google.com/recaptcha/api.js?render=${rkey}`, function () {
+            console.log("Recaptcha Script loaded!");
+        }
+    );
+  }, []);
+
+  const submitAction = (event, myAction) => {
+    event.preventDefault();
+    window.grecaptcha.ready(() => {
+        window.grecaptcha.execute(rkey, { action: actionName })
+        .then(token => { myAction(token); });
+    });
+  }
+
+  return (
+    <Component submitAction={submitAction} {...throughProps} />
+  )
+}
+
+const useRecaptcha = (actionName, requestFunction) => {
+  console.log(actionName);
+  console.log(requestFunction);
+  const rkey = recaptchaKey
+  useEffect(() => {
+    loadScriptByURL("recaptcha-key",
+        `https://www.google.com/recaptcha/api.js?render=${rkey}`, function () {
+            console.log("Recaptcha Script loaded!");
+        }
+    );
+  }, []);
+
+  return () => {
+    window.grecaptcha.ready(() => {
+        window.grecaptcha.execute(rkey, { action: actionName })
+        .then(token => { requestFunction(token); });
+    });
+  }
+}
+
 export {
   startPasswordReset,
   doPasswordReset,
@@ -314,5 +379,7 @@ export {
   getProfileInfo,
   getCalendarMonth,
   returnStatusCheck,
-  formatLoginData
+  formatLoginData,
+  useRecaptcha,
+  withRecaptcha
 }

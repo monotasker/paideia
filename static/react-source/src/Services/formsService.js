@@ -39,7 +39,7 @@ import { returnStatusCheck } from '../Services/authService';
 
 const sendFormRequest = (token,
                        {formId,
-                        fieldSet={},
+                        fieldSet,
                         requestAction,
                         extraArgs,
                         history,
@@ -61,17 +61,16 @@ const sendFormRequest = (token,
         requestArgs[key] = fieldSet[key][0]
       }
     })
-
-    if ( "token" in Object.keys(requestArgs) ) {
+    if ( extraArgs.includes("token") ) {
       requestArgs.token = token;
     }
 
-    requestAction()
+    requestAction(requestArgs)
     .then( respdata => {
+        setInProgressAction(false);
         returnStatusCheck(respdata, history,
           (mydata) => {
             successCallback(mydata);
-            setInProgressAction(false);
           },
           dispatch,
           otherCallbacks)
