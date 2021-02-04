@@ -21,47 +21,78 @@ import { returnStatusCheck,
 } from '../Services/authService';
 import { useQuery, withRecaptcha } from '../Services/utilityService';
 import { UserContext } from '../UserContext/UserProvider';
-import { propTypes } from "react-bootstrap/esm/Image";
 
-const sendMyRequest = ({formId,
+/**
+ * Abstracted function to handle the server request on submission of a form
+ *
+ * This is designed to
+ *    - check for autocompleted form data that wasn't picked up in state
+ *        variables, inserting it where necessary
+ *    - add to the request any expected extra arguments from HOCs
+ *    - check the return status of the request and fire the appropriate callback
+ *    - signal back to the calling component when the request is finished
+ *
+ * @param {Event} event   passed through from the form submission
+ * @param {string} authentication   token supplied by HOC like useRecaptcha
+ *    when it wraps the calling function
+ * @param {Object} param2  an object holding the other named parameters,
+ *    i.e. the ones not being passed through from a HOC
+ * @param {string}  param2.formId   the id of the submitting form
+ * @param {Object}  param2.fieldSet object with form field names as keys
+ *    values are [corresponding state object, corresponding state setter]
+ *    note that these names must also be the argument names for the
+ *    requestAction function call
+ * @param {Function}  param2.requestAction  the function being called to make
+ *    the server request
+ * @param {list}  param2.extraArgs  list of names (strings) of extra arguments
+ *    to pass through to the requestAction, usually supplied by HOC
+ * @param {string}  param2.history  history object to be used by
+ *    returnStatusCheck for some automatic redirections
+ * @param {string}  param2.dispatch dispatch function for the user context, to
+ *    be used by returnStatusCheck for some automatic login/logout
+ * @param {string}  param2.formId
+ * @param {string}  param2.formId  optional object holding callbacks to fire in
+ *    case of various response status conditions. The keys may be:
+ *      serverErrorAction, badRequestAction,
+ *      dataConflictAction, unauthorizedAction
+ *    values are functions to serve as callbacks in case of matching
+ *    response status
+ */
+
+const sendFormRequest = (event, token,
+                       {formId,
                         fieldSet={},
                         requestAction,
-                        requestArgs,
+                        extraArgs,
                         history,
                         dispatch,
                         successCallback,
                         otherCallbacks={},
-                        setInProgressAction,
-                        setSuccessAction,
+                        setInProgressAction
                        }
                       ) => {
-    // *fieldSet* is object with form field names as keys
-    //     values are [corresponding state object, corresponding state setter]
-    //
-    // *requestArgs* is object with expected named arguments for the
-    //    request action
-    // *otherCallbacks* is object with the following expected optional keys:
-    //    serverErrorAction, badRequestAction,
-    //    dataConflictAction, unauthorizedAction
-    //    values are functions to serve as callbacks in case of matching
-    //    responseStatus
     setInProgressAction(true);
     // handle autocompleted form fields that aren't picked up by React state
-    let subs = null;
+    let requestArgs = {};
     Object.keys(fieldSet).forEach(key => {
       let myval = document.getElementById(formId).elements[key].value;
       if ( !fieldSet[key][0] && !!myval ) {
         fieldSet[key][1](myval);
-        subs[key] = myval;
+        requestArgs[key] = myval;
+      } else {
+        requestArgs[key] = fieldSet[key][0]
       }
     })
+
+    if ( "token" in Object.keys(requestArgs) ) {
+      requestArgs.token = token;
+    }
 
     requestAction()
     .then( respdata => {
         returnStatusCheck(respdata, history,
           (mydata) => {
             successCallback(mydata);
-            setSuccessAction(true);
             setInProgressAction(false);
           },
           dispatch,
@@ -93,34 +124,26 @@ const StartResetForm = ({submitAction}) => {
     }
   }
 
-  const requestResetEmail = token => {
-    // handle autofilled data that doesn't trigger onChange state update
-    setRequestInProgress(true);
-    let myval = document.getElementById("start-pass-reset-form").elements['email'].value;
-    let subEmail = null;
-    if ( !email && !!myval ) {
-      setEmail(myval);
-      subEmail = myval;
-    }
-
-    startPasswordReset({token: token,
-                        email: !subEmail ? email : subEmail}
-                      )
-    .then( respdata => {
-        returnStatusCheck(respdata, myhistory,
-          (mydata) => {
-            setResetSucceeded(true);
-            setRequestInProgress(false);
-          },
-          dispatch,
-          {serverErrorAction: serverErrorAction,
-           badRequestAction: badRequestAction
-          })
-    })
+  const successAction = (mydata) => {
+    setResetSucceeded(true);
+    setRequestInProgress(false);
   }
 
   const submitPasswordResetRequest = (event) => {
-    submitAction(event, requestResetEmail);
+    submitAction(event,
+       sendFormRequest({formId: "start-pass-reset-form",
+                      fieldSet: {email: [email, setEmail]},
+                      requestAction: startPasswordReset,
+                      extraArgs: ["token"],
+                      history: myhistory,
+                      dispatch: dispatch,
+                      successCallback: successAction,
+                      otherCallbacks: {serverErrorAction: serverErrorAction,
+                                       badRequestAction: badRequestAction
+                                      },
+                      setInProgressAction: setRequestInProgress
+                     })
+    );
   }
 
   const setEmailValue = (val) => {

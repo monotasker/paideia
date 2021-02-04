@@ -109,8 +109,13 @@ const Login = () => {
   return(
     <Row className="login-component content-view justify-content-sm-center">
       <Col xs sm={8} lg={6}>
-        { user.userLoggedIn === true &&
-          history.goBack()
+        { user.userLoggedIn === true && (
+            ( queryParams.get("just_reset_password")==="true" ||
+              queryParams.get("just_registered")==="true" ) ?
+              history.push('home')
+              :
+              history.goBack()
+          )
         }
         { user.userLoggedIn === false && (
           <React.Fragment>
