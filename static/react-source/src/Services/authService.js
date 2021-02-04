@@ -22,13 +22,13 @@ const startPasswordReset = async ({email,
   return mydata;
 }
 
-const doPasswordReset = async ({key,
+const doPasswordReset = async ({resetKey,
                                 token,
                                 passwordA,
                                 passwordB
                                 }) => {
   let formdata = new FormData();
-  formdata.append("key", key);
+  formdata.append("key", resetKey);
   formdata.append("token", token);
   formdata.append("new_password_A", passwordA);
   formdata.append("new_password_B", passwordB);

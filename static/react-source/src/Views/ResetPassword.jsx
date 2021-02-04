@@ -15,90 +15,14 @@ import { useHistory,
          Link
 } from 'react-router-dom';
 
-import { returnStatusCheck,
+import {
   startPasswordReset,
   doPasswordReset
 } from '../Services/authService';
 import { useQuery, withRecaptcha } from '../Services/utilityService';
 import { UserContext } from '../UserContext/UserProvider';
+import { sendFormRequest } from '../Services/formsService';
 
-/**
- * Abstracted function to handle the server request on submission of a form
- *
- * This is designed to
- *    - check for autocompleted form data that wasn't picked up in state
- *        variables, inserting it where necessary
- *    - add to the request any expected extra arguments from HOCs
- *    - check the return status of the request and fire the appropriate callback
- *    - signal back to the calling component when the request is finished
- *
- * @param {Event} event   passed through from the form submission
- * @param {string} authentication   token supplied by HOC like useRecaptcha
- *    when it wraps the calling function
- * @param {Object} param2  an object holding the other named parameters,
- *    i.e. the ones not being passed through from a HOC
- * @param {string}  param2.formId   the id of the submitting form
- * @param {Object}  param2.fieldSet object with form field names as keys
- *    values are [corresponding state object, corresponding state setter]
- *    note that these names must also be the argument names for the
- *    requestAction function call
- * @param {Function}  param2.requestAction  the function being called to make
- *    the server request
- * @param {list}  param2.extraArgs  list of names (strings) of extra arguments
- *    to pass through to the requestAction, usually supplied by HOC
- * @param {string}  param2.history  history object to be used by
- *    returnStatusCheck for some automatic redirections
- * @param {string}  param2.dispatch dispatch function for the user context, to
- *    be used by returnStatusCheck for some automatic login/logout
- * @param {string}  param2.formId
- * @param {string}  param2.formId  optional object holding callbacks to fire in
- *    case of various response status conditions. The keys may be:
- *      serverErrorAction, badRequestAction,
- *      dataConflictAction, unauthorizedAction
- *    values are functions to serve as callbacks in case of matching
- *    response status
- */
-
-const sendFormRequest = (event, token,
-                       {formId,
-                        fieldSet={},
-                        requestAction,
-                        extraArgs,
-                        history,
-                        dispatch,
-                        successCallback,
-                        otherCallbacks={},
-                        setInProgressAction
-                       }
-                      ) => {
-    setInProgressAction(true);
-    // handle autocompleted form fields that aren't picked up by React state
-    let requestArgs = {};
-    Object.keys(fieldSet).forEach(key => {
-      let myval = document.getElementById(formId).elements[key].value;
-      if ( !fieldSet[key][0] && !!myval ) {
-        fieldSet[key][1](myval);
-        requestArgs[key] = myval;
-      } else {
-        requestArgs[key] = fieldSet[key][0]
-      }
-    })
-
-    if ( "token" in Object.keys(requestArgs) ) {
-      requestArgs.token = token;
-    }
-
-    requestAction()
-    .then( respdata => {
-        returnStatusCheck(respdata, history,
-          (mydata) => {
-            successCallback(mydata);
-            setInProgressAction(false);
-          },
-          dispatch,
-          otherCallbacks)
-    })
-}
 
 const StartResetForm = ({submitAction}) => {
   const myhistory = useHistory();
@@ -126,11 +50,11 @@ const StartResetForm = ({submitAction}) => {
 
   const successAction = (mydata) => {
     setResetSucceeded(true);
-    setRequestInProgress(false);
   }
 
   const submitPasswordResetRequest = (event) => {
-    submitAction(event,
+    event.preventDefault();
+    submitAction(
        sendFormRequest({formId: "start-pass-reset-form",
                       fieldSet: {email: [email, setEmail]},
                       requestAction: startPasswordReset,
@@ -303,53 +227,41 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
     }
   }
 
-  const submitPasswordChange = token => {
-    // handle autofilled data that doesn't trigger onChange state update
-    setRequestInProgress(true);
-    let myvalA = document.getElementById("complete-pass-reset-form").elements['passwordA'].value;
-    let myvalB = document.getElementById("complete-pass-reset-form").elements['passwordB'].value;
-    let subs = {};
-    if ( !passwordA && !!myvalA ) {
-      setPasswordA(myvalA);
-      subs.passwordA = myvalA;
-    }
-    if ( !passwordB && !!myvalB ) {
-      setPasswordB(myvalB);
-      subs.passwordB = myvalB;
-    }
+  const successAction = (data) => {
+    setInadequatePassword(false);
+    setResetFailed(false);
+    setResetSucceeded(false);
+    setPasswordAMissing(false);
+    setPasswordBMissing(false);
+    setPasswordsDontMatch(false);
+    setNoSuchUser(false);
+    setExpiredResetKey(false);
+    setResetBlocked(false);
 
-    doPasswordReset({key: resetKey,
-                     token: token,
-                     passwordA: (!subs['passwordA'] ? passwordA : subs['passwordA']),
-                     passwordB: (!subs['passwordB'] ? passwordB : subs['passwordB'])
-                    })
-    .then( respdata => {
-        setInadequatePassword(false);
-        setResetFailed(false);
-        setResetSucceeded(false);
-        setPasswordAMissing(false);
-        setPasswordBMissing(false);
-        setPasswordsDontMatch(false);
-        setNoSuchUser(false);
-        setExpiredResetKey(false);
-        setResetBlocked(false);
-        returnStatusCheck(respdata, myhistory,
-          (respdata) => {
-            setResetSucceeded(true);
-            setRequestInProgress(false);
-            myhistory.push('login?just_reset_password=true');
-          },
-          dispatch,
-          {serverErrorAction: serverErrorAction,
-           badRequestAction: badRequestAction,
-           unauthorizedAction: unauthorizedAction,
-           actionBlockedAction: actionBlockedAction
-          })
-    })
+    setResetSucceeded(true);
+    myhistory.push('login?just_reset_password=true');
   }
 
   const changePassword = (event) => {
-    submitAction(event, submitPasswordChange);
+    submitAction(
+      sendFormRequest({formId: "complete-pass-reset-form",
+                      fieldSet: {passwordA: [passwordA, setPasswordA],
+                                 passwordB: [passwordB, setPasswordB],
+                                 resetKey: [resetKey, null]
+                                },
+                      requestAction: doPasswordReset,
+                      extraArgs: ["token"],
+                      history: myhistory,
+                      dispatch: dispatch,
+                      successCallback: successAction,
+                      otherCallbacks: {serverErrorAction: serverErrorAction,
+                                       badRequestAction: badRequestAction,
+                                       unauthorizedAction: unauthorizedAction,
+                                       actionBlockedAction: actionBlockedAction
+                                      },
+                      setInProgressAction: setRequestInProgress
+                    })
+    );
   }
 
   const updatePasswordAField = (val) => {
@@ -371,6 +283,18 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
       <Form role="form"
         id="complete-pass-reset-form"
       >
+        <Form.Group as={Row} controlId="doPassResetKey" className="hidden-field">
+          <Form.Label column sm={5}>
+            Reset Key
+          </Form.Label>
+          <Col sm={7}>
+            <Form.Control
+              readOnly
+              name="resetKey"
+              value={resetKey}
+            />
+          </Col>
+        </Form.Group>
         <Form.Group as={Row} controlId="doPassResetPasswordA">
           <Form.Label column sm={5}>
             New password

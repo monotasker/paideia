@@ -25,9 +25,11 @@ import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from '../Services/utilityService';
 import { recaptchaKey } from '../variables';
 import { loadScriptByURL } from '../Services/utilityService';
+import { withRecaptcha } from '../Services/utilityService';
+import { sendFormRequest } from "../Services/formsService";
 
 
-const Login = () => {
+const Login = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const history = useHistory();
   const queryParams = useQuery();
@@ -36,29 +38,31 @@ const Login = () => {
   const [ missing, setMissing ] = useState([]);
   const [ loginFailed, setLoginFailed ] = useState(false);
   const [ serverProblem, setServerProblem ] = useState(false);
-
-  useEffect(() => {
-    loadScriptByURL("recaptcha-key",
-        `https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`, function () {
-            console.log("Recaptcha Script loaded!");
-        }
-    );
-  }, []);
+  const [ requestInProgress, setRequestInProgress ] = useState(false);
 
   const serverErrorAction = (data) => {
-    console.log("server error");
-    console.log(data);
     setServerProblem(true);
   }
   const unauthorizedAction = () => {
-    console.log("unauthorized");
     setLoginFailed(true);
   }
   const badRequestAction = (data) => {
-    console.log("bad request: missing...");
-    console.log(data.error);
     setMissing(Object.keys(data.error));
     setLoginFailed(false);
+  }
+
+  const successAction = (data) => {
+    if ( data.id != null ) {
+      setLoginFailed(false);
+      setServerProblem(false);
+      dispatch({
+        type: 'initializeUser',
+        payload: formatLoginData(data)
+      })
+    } else {
+      setServerProblem(true);
+      console.log(`login failed`);
+    }
   }
 
   const setFieldValue = (val, fieldName) => {
@@ -72,38 +76,24 @@ const Login = () => {
 
   const getLogin = (event) => {
     event.preventDefault();
-
-    window.grecaptcha.ready(() => {
-        window.grecaptcha.execute(recaptchaKey, { action: 'login' })
-        .then(token => {
-            login({token: token,
-                   email: email,
-                   password: password
-                  })
-            .then( userdata => {
-                console.log("checking status");
-                returnStatusCheck(userdata, history,
-                  (mydata) => {
-                      if ( mydata.id != null ) {
-                        setLoginFailed(false);
-                        setServerProblem(false);
-                        dispatch({
-                          type: 'initializeUser',
-                          payload: formatLoginData(mydata)
-                        })
-                      } else {
-                        setServerProblem(true);
-                        console.log(`login failed`);
-                      }
-                  },
-                  dispatch,
-                  {serverErrorAction: serverErrorAction,
-                   unauthorizedAction: unauthorizedAction,
-                   badRequestAction: badRequestAction
-                  })
-            })
-        });
-    });
+    submitAction(
+      sendFormRequest({
+        formId: 'login-form',
+        fieldSet: {email: [email, setEmail],
+                   password: [password, setPassword]
+        },
+        requestAction: login,
+        extraArgs: ["token"],
+        history: history,
+        dispatch: dispatch,
+        successCallback: successAction,
+        otherCallbacks: {serverErrorAction: serverErrorAction,
+                         unauthorizedAction: unauthorizedAction,
+                         badRequestAction: badRequestAction
+        },
+        setInProgressAction: setRequestInProgress
+      })
+    );
   }
 
   return(
@@ -140,7 +130,7 @@ const Login = () => {
               </Col>
             </Alert>
           }
-          <Form onSubmit={getLogin} role="form">
+          <Form onSubmit={getLogin} role="form" id="login-form">
             <Form.Group controlId="loginEmail">
               <Form.Label>
                 Email Address
@@ -226,4 +216,4 @@ const Login = () => {
   );
 }
 
-export default Login;
+export default withRecaptcha(Login);
