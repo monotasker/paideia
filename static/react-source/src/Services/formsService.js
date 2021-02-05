@@ -1,3 +1,4 @@
+import React, {useState} from 'react';
 import { returnStatusCheck } from '../Services/authService';
 
 /**
@@ -36,7 +37,6 @@ import { returnStatusCheck } from '../Services/authService';
  *    values are functions to serve as callbacks in case of matching
  *    response status
  */
-
 const sendFormRequest = (token,
                        {formId,
                         fieldSet,
@@ -77,6 +77,35 @@ const sendFormRequest = (token,
     })
 }
 
+/**
+ * React custom hook to provide logic and state variables for handling
+ * various response statuses after a form is submitted
+ */
+const useResponseCallbacks = () => {
+    const [ missing, setMissing ] = useState([]);
+    const [ flags, setFlags ] = useState({unauthorized: false,
+                                          serverError: false,
+                                          badRequest: false,
+                                          success: false
+                                          });
+
+    //** default callback functions for different response states */
+    const myCallbacks = {
+        serverErrorAction: () => { setFlags({...flags, serverError: true}) },
+        unauthorizedAction: () => { setFlags({...flags, unauthorized: true}) },
+        badRequestAction: (data) => {
+          setMissing(Object.keys(data.error));
+          setFlags({...flags, badRequest: false});
+        },
+        successAction: (data) => {
+          setFlags({...flags, success: true});
+        }
+    }
+
+    return {missing, setMissing, flags, setFlags, myCallbacks}
+}
+
 export {
-    sendFormRequest
+    sendFormRequest,
+    useResponseCallbacks
 }

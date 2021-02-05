@@ -22,41 +22,30 @@ import {
 } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from '../Services/utilityService';
-import { sendFormRequest } from "../Services/formsService";
+import {
+  sendFormRequest,
+  useResponseCallbacks
+} from "../Services/formsService";
 
 const LoginInner = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const history = useHistory();
   const queryParams = useQuery();
-  const [ email, setEmail ] = useState();
-  const [ password, setPassword ] = useState();
-  const [ missing, setMissing ] = useState([]);
-  const [ loginFailed, setLoginFailed ] = useState(false);
-  const [ serverProblem, setServerProblem ] = useState(false);
+  const [ email, setEmail ] = useState('');
+  const [ password, setPassword ] = useState('');
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
-  const serverErrorAction = (data) => {
-    setServerProblem(true);
-  }
-  const unauthorizedAction = () => {
-    setLoginFailed(true);
-  }
-  const badRequestAction = (data) => {
-    setMissing(Object.keys(data.error));
-    setLoginFailed(false);
-  }
+  let { missing, setMissing, flags,
+        setFlags, myCallbacks } = useResponseCallbacks();
 
-  const successAction = (data) => {
+  myCallbacks.successAction = (data) => {
     if ( data.id != null ) {
-      setLoginFailed(false);
-      setServerProblem(false);
       dispatch({
         type: 'initializeUser',
         payload: formatLoginData(data)
       })
     } else {
-      setServerProblem(true);
-      console.log(`login failed`);
+      setFlags({...flags, serverError: true});
     }
   }
 
@@ -80,10 +69,10 @@ const LoginInner = ({submitAction}) => {
         extraArgs: ["token"],
         history: history,
         dispatch: dispatch,
-        successCallback: successAction,
-        otherCallbacks: {serverErrorAction: serverErrorAction,
-                         unauthorizedAction: unauthorizedAction,
-                         badRequestAction: badRequestAction
+        successCallback: myCallbacks.successAction,
+        otherCallbacks: {serverErrorAction: myCallbacks.serverErrorAction,
+                         unauthorizedAction: myCallbacks.unauthorizedAction,
+                         badRequestAction: myCallbacks.badRequestAction
         },
         setInProgressAction: setRequestInProgress
       })
@@ -165,7 +154,7 @@ const LoginInner = ({submitAction}) => {
               <FontAwesomeIcon icon="sign-in-alt" /> Log in
             </Button>
           </Form>
-          {!!loginFailed &&
+          {flags.unauthorized===true &&
             <Alert variant="danger" className="error-message row">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
@@ -176,7 +165,7 @@ const LoginInner = ({submitAction}) => {
               </Col>
             </Alert>
           }
-          {!!serverProblem &&
+          {flags.serverError===true &&
             <Alert variant="danger" className="error-message row">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
