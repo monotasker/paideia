@@ -37,7 +37,7 @@ import { returnStatusCheck } from '../Services/authService';
  *    values are functions to serve as callbacks in case of matching
  *    response status
  */
-const sendFormRequest = (token,
+const sendFormRequest = (token, setFields,
                        {formId,
                         fieldSet,
                         requestAction,
@@ -54,11 +54,11 @@ const sendFormRequest = (token,
     let requestArgs = {};
     Object.keys(fieldSet).forEach(key => {
       let myval = document.getElementById(formId).elements[key].value;
-      if ( !fieldSet[key][0] && !!myval ) {
-        fieldSet[key][1](myval);
+      if ( !fieldSet[key] && !!myval ) {
+        setFields(myval, fieldSet[key]);
         requestArgs[key] = myval;
       } else {
-        requestArgs[key] = fieldSet[key][0]
+        requestArgs[key] = fieldSet[key]
       }
     })
     if ( extraArgs.includes("token") ) {
@@ -97,7 +97,7 @@ const useResponseCallbacks = () => {
           setMissing(Object.keys(data.error));
           setFlags({...flags, badRequest: false});
         },
-        successAction: (data) => {
+        successAction: () => {
           setFlags({...flags, success: true});
         }
     }
@@ -105,7 +105,33 @@ const useResponseCallbacks = () => {
     return {missing, setMissing, flags, setFlags, myCallbacks}
 }
 
+/**
+ *  custom hook to manage
+ */
+const useFieldValidation = (missing, setMissing, fieldList) => {
+
+    const [fields, setFields
+          ] = useState(fieldList.reduce(
+            (obj, item) => {
+              return {...obj, [item]: null }
+            }, {})
+            );
+
+    const setFieldValue = (val, fieldName) => {
+      setFields({...fields, fieldName: val});
+      var myMissing = [...missing];
+      const index = myMissing.indexOf(fieldName);
+      if (index > -1) {
+        myMissing.splice(index, 1);
+        setMissing(myMissing);
+      }
+    }
+
+    return({setFieldValue, fields, setFields})
+}
+
 export {
     sendFormRequest,
-    useResponseCallbacks
+    useResponseCallbacks,
+    useFieldValidation
 }

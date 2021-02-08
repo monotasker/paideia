@@ -24,15 +24,14 @@ import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from '../Services/utilityService';
 import {
   sendFormRequest,
-  useResponseCallbacks
+  useResponseCallbacks,
+  useFieldValidation
 } from "../Services/formsService";
 
 const LoginInner = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const history = useHistory();
   const queryParams = useQuery();
-  const [ email, setEmail ] = useState('');
-  const [ password, setPassword ] = useState('');
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
   let { missing, setMissing, flags,
@@ -49,22 +48,15 @@ const LoginInner = ({submitAction}) => {
     }
   }
 
-  const setFieldValue = (val, fieldName) => {
-    const fields = {email: setEmail, password: setPassword}
-    fields[fieldName](val);
-    const index = missing.indexOf(fieldName);
-    if (index > -1) {
-      missing.splice(index, 1);
-    }
-  }
+  const {setFieldValue, fields, setFields
+        } = useFieldValidation(missing, setMissing, ["email", "password"]);
 
-  const getLogin = (event) => {
+  const getLogin = event => {
     submitAction(event,
-      token => sendFormRequest(token, {
+      token => sendFormRequest(token, setFields, {
         formId: 'login-form',
-        fieldSet: {email: [email, setEmail],
-                   password: [password, setPassword]
-        },
+        fieldSet: {email: fields.email,
+                   password: fields.password},
         requestAction: login,
         extraArgs: ["token"],
         history: history,
