@@ -638,6 +638,7 @@ const QueriesView = () => {
     const [nonStep, setNonStep] = useState(true)
     const [viewScope, setViewScope] = useState('public');
     const [filterUnanswered, setFilterUnanswered] = useState(false);
+    const [filterUnread, setFilterUnread] = useState(false);
     const [viewingAsAdmin, setViewingAsAdmin ] = useState(
       user.userRoles.includes("administrators"));
     console.log(`****${singleStep} ${nonStep} ${onStep}`);
@@ -917,6 +918,7 @@ const QueriesView = () => {
       getQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
                   user_id: user.userId,
                   nonstep: nonStep,
+                  unread: filterUnread,
                   unanswered: filterUnanswered,
                   pagesize: 50,
                   page: 0,
@@ -943,7 +945,7 @@ const QueriesView = () => {
     }
 
     useEffect(() => fetchAction(),
-              [user.currentStep, onStep, singleStep, nonStep, filterUnanswered]);
+              [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
 
     const newQueryAction = (myComment, showPublic, event) => {
       event.preventDefault();
@@ -1255,6 +1257,13 @@ const QueriesView = () => {
             <Form.Check type="checkbox" label="Only unanswered questions"
               defaultValue={filterUnanswered}
               onChange={e => setFilterUnanswered(!filterUnanswered)}
+              />
+          </Form.Group>
+
+          <Form.Group controlId={`filterUnreadCheckbox`}>
+            <Form.Check type="checkbox" label="Only unread questions"
+              defaultValue={filterUnread}
+              onChange={e => setFilterUnread(!filterUnread)}
               />
           </Form.Group>
 

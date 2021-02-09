@@ -801,7 +801,8 @@ def _fetch_unread_queries(user_id):
 
 
 def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
-                   pagesize=50, page=0, orderby="date_submitted"):
+                   unanswered=False, pagesize=50, page=0,
+                   orderby="date_submitted"):
     """
     Return a list of student queries from the db.bugs table.
 
@@ -845,16 +846,15 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
     queries = []
     unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
 
-    # if unanswered:
-    #     answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
-    #     unanswered_term = ~(db.bugs.id.belongs(answered_rows))
-    #     if vbs: print("filtering for unanswered")
-    #     if vbs: print("raw unanswered finds {} of {} rows".format(
-    #         db(unanswered_term).count(),
-    #         db(db.bugs.id > 0).count()
-    #         ))
-    # else:
-    #     unanswered_term = True
+    unanswered_term = True
+    if unanswered==True:
+        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
+        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
+        if vbs: print("filtering for unanswered")
+        if vbs: print("raw unanswered finds {} of {} rows".format(
+            db(unanswered_term).count(),
+            db(db.bugs.id > 0).count()
+            ))
 
     step_term = (db.bugs.step == stepid) # queries tied to specified step
     if nonstep==True:  # queries not tied to step
@@ -870,7 +870,8 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
     queries = db((step_term) &
                  (db.bugs.user_name == db.auth_user.id) &
                  ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
-                 (unread_term)
+                 (unread_term) &
+                 (unanswered_term)
                  ).select(*table_fields,
                           limitby=(offset_start, offset_end),
                           orderby=~db.bugs[orderby]
@@ -975,6 +976,7 @@ def get_queries():
                              request.vars['user_id'],
                              nonstep=request.vars['nonstep'],
                              unanswered=request.vars['unanswered'],
+                             unread=request.vars['unread'],
                              pagesize=request.vars['pagesize'],
                              page=request.vars['page'],
                              orderby=request.vars['orderby']
