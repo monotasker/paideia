@@ -1308,6 +1308,58 @@ def update_query():
                      'reason': 'Not logged in'})
 
 
+def mark_read_status():
+    """
+    Api method to mark on user query as read for a single user.
+    This can only be called by a logged-in user to mark their own
+    read status.
+
+    Expects the following required request parameters:
+    user_id (int)
+    query_id (int)
+    read_status (bool)
+    post_level (string) the level of the identified post in the
+        conversation thread hierarchy. This tells us which table
+        to look at to record the item's read status. Allowed
+        values are 'query', 'post', and 'comment'
+    """
+    auth = current.auth
+    db = current.db
+    response = current.response
+    user_id = request['vars']['user_id']
+    post_id = request['vars']['query_id']
+    read_status = request['vars']['read_status']
+    post_level = request['vars']['post_level']
+    db_tables = {'query': db.bugs_read_by_user,
+                 'post': db.posts_read_by_user,
+                 'comment': db.comments_read_by_user}
+
+    if not auth.is_logged_in():
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                                'reason': 'Not logged in',
+                                'error': None})
+    if user_id!=auth.user_id:
+        return json_serializer({'status': 'unauthorized',
+                                'reason': 'Insufficient privileges',
+                                'error': None})
+    try:
+        db_tables[post_level].update_or_insert(user_id=user_id,
+                                            read_item_id=post_id,
+                                            read_status=read_status
+                                            )
+        my_record = db((db_tables[post_level].user_id==user_id) &
+                       (db_tables[post_level].read_item_id==post_id)).select().first()
+        assert my_record
+        return my_record
+    except Exception as e:
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function '
+                                          'mark_read_status',
+                                'error': format_exc()})
+
+
 def get_vocabulary():
     """
     Api method to return the full vocabulary list.

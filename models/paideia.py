@@ -661,6 +661,13 @@ db.bugs.in_path.requires = IS_EMPTY_OR(IS_IN_DB(db, 'paths.id',
 db.bugs.log_id.requires = IS_EMPTY_OR(IS_IN_DB(db, 'attempt_log.id',
                                                db.attempt_log._format))
 
+db.define_table('bugs_read_by_user',
+                Field('user_id', 'reference auth_user', default=auth.user_id),
+                Field('read_item_id', 'reference bugs'),
+                Field('read_status', 'boolean'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=dtnow))
+
 db.define_table('bug_posts',
                 Field('poster', 'reference auth_user', default=auth.user_id),
                 Field('poster_role', 'list:string'),
@@ -680,6 +687,13 @@ db.define_table('bug_posts',
                 Field('modified_on', 'datetime', default=dtnow),
 )
 
+db.define_table('posts_read_by_user',
+                Field('user_id', 'reference auth_user', default=auth.user_id),
+                Field('read_item_id', 'reference bug_posts'),
+                Field('read_status', 'boolean'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=dtnow))
+
 db.define_table('bug_post_comments',
                 Field('commenter', 'reference auth_user', default=auth.user_id),
                 Field('commenter_role', 'list:string'),
@@ -697,6 +711,13 @@ db.define_table('bug_post_comments',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=dtnow),
                 )
+
+db.define_table('comments_read_by_user',
+                Field('user_id', 'reference auth_user', default=auth.user_id),
+                Field('read_item_id', 'reference bug_post_comments'),
+                Field('read_status', 'boolean'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=dtnow))
 
 db.define_table('session_data',
                 Field('name', 'reference auth_user'),  # default=auth.user_id
