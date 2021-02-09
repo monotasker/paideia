@@ -666,7 +666,7 @@ def check_login():
     return json_serializer(my_login)
 
 
-def _add_posts_to_queries(queries):
+def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
@@ -708,6 +708,8 @@ def _add_posts_to_queries(queries):
                         or x['bug_posts']['poster'] == auth.user_id,
                         myposts))
             for i, p in enumerate(myposts):
+                p['unread'] = True if p['bug_posts']['id'] in unread_posts \
+                    else False
                 mycomments = []
                 if p['bug_posts']['comments']:
                     mycomments = db(
@@ -747,6 +749,9 @@ def _add_posts_to_queries(queries):
                                 lambda x: x['bug_post_comments']['public'] is True
                                 or x['bug_post_comments']['commenter'] == auth.user_id,
                                 mycomments))
+                    for c in mycomments:
+                        c['unread'] = True if p['bug_posts']['id'] \
+                            in unread_posts else False
                 myposts[i]['comments'] = mycomments
 
             queries[idx]['posts'] = myposts
@@ -756,7 +761,46 @@ def _add_posts_to_queries(queries):
     return queries
 
 
-def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
+def _fetch_unread_queries(user_id):
+    """
+    Returns queries, posts, and comments for which user has unread items.
+
+    Each is returned as a list of ids. Each list includes items themselves
+    marked as unread, as well as those items with unread children.
+
+    Expects just one required parameter:
+    user_id (int)
+
+    """
+    db = current.db
+    unread_queries = [i['read_item_id'] for i in
+                      db((db.bugs_read_by_user.user_id==user_id) &
+                         (db.bugs_read_by_user.read_status==False)
+                         ).select(db.bugs_read_by_user.read_item_id).as_list()
+                      ]
+    unread_posts = db((db.posts_read_by_user.user_id==user_id) &
+                      (db.posts_read_by_user.read_status==False)
+                      ).select(db.posts_read_by_user.read_item_id,
+                               db.posts_read_by_user.on_bug).as_list()
+    unread_comments = db((db.comments_read_by_user.user_id==user_id) &
+                         (db.comments_read_by_user.read_status==False)
+                         ).select(db.comments_read_by_user.read_item_id,
+                                  db.comments_read_by_user.on_bug,
+                                  db.comments_read_by_user.on_bug_post
+                                  ).as_list()
+    unread_queries.extend(list(set(i['on_bug'] for i in unread_posts
+                                   if i['read_status']==False
+                                   and i['on_bug'] not in unread_queries)))
+    unread_queries.extend(list(set(i['on_bug'] for i in unread_comments
+                           if i['read_status']==False
+                           and i['on_bug'] not in unread_queries)))
+    unread_posts.extend(list(set(i['on_bug_post'] for i in unread_comments
+                           if i['read_status']==False
+                           and i['on_bug_post'] not in unread_posts)))
+    return unread_queries, unread_posts, unread_comments
+
+
+def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                    pagesize=50, page=0, orderby="date_submitted"):
     """
     Return a list of student queries from the db.bugs table.
@@ -769,6 +813,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
 
     pagination, via the "page" parameter, is zero indexed
     """
+    vbs=False
     offset_start = pagesize * page
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
@@ -798,61 +843,54 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unanswered=False,
                     # FIXME:  re-add db.bugs.hidden here and in model,
 
     queries = []
+    unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
 
-    if unanswered:
-        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
-        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
-        print("filtering for unanswered")
-        print("raw unanswered finds {} of {} rows".format(
-            db(unanswered_term).count(),
-            db(db.bugs.id > 0).count()
-            ))
-    else:
-        unanswered_term = True
+    # if unanswered:
+    #     answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
+    #     unanswered_term = ~(db.bugs.id.belongs(answered_rows))
+    #     if vbs: print("filtering for unanswered")
+    #     if vbs: print("raw unanswered finds {} of {} rows".format(
+    #         db(unanswered_term).count(),
+    #         db(db.bugs.id > 0).count()
+    #         ))
+    # else:
+    #     unanswered_term = True
 
-    if nonstep is True:
-        #  requesting general queries not tied to a step
-        queries = db((db.bugs.step == None) &
-                     (db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
-                     (unanswered_term)
-                    )
-    elif stepid > 0 & nonstep==False:
-        #  requesting queries on specified step
-        queries = db((db.bugs.step == stepid) &
-                     (db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
-                     (unanswered_term)
-                     )
-    elif stepid==0 & nonstep==False:
-        #  requesting queries on all steps
-        queries = db((db.bugs.step != None) &
-                     (db.bugs.user_name == db.auth_user.id) &
-                     ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
-                     (unanswered_term)
-                     )
-    queries_rows = queries.select(*table_fields,
-                                  limitby=(offset_start, offset_end),
-                                  orderby=~db.bugs[orderby]
-                                  )
-    queries_recs = queries_rows.as_list()
-    print("in _fetch_queries===============================")
-    print("got {} query rows".format(len(queries_recs)))
-    queries_recs = _add_posts_to_queries(queries_recs)
+    step_term = (db.bugs.step == stepid) # queries tied to specified step
+    if nonstep==True:  # queries not tied to step
+        step_term = (db.bugs.step == None)
+    elif stepid==0:  #  queries on all steps, not just one
+        step_term = (db.bugs.step != None)
 
+    #  requesting queries not marked as read
+    unread_term = True
+    if unread is True:
+        unread_term = ~(db.bugs.id.belongs(unread_queries))
+
+    queries = db((step_term) &
+                 (db.bugs.user_name == db.auth_user.id) &
+                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                 (unread_term)
+                 ).select(*table_fields,
+                          limitby=(offset_start, offset_end),
+                          orderby=~db.bugs[orderby]
+                          )
+    queries_list = queries.as_list()
+    for q in queries_list:
+        q['unread'] = True if q['bugs']['id'] in unread_queries else False
+    if vbs: print("in _fetch_queries===============================")
+    if vbs: print("got {} query rows".format(len(queries_list)))
+    queries_recs = _add_posts_to_queries(queries_list,
+                                         unread_posts, unread_comments)
 
     #  collect queries posted by current user
-
+    user_queries = []
     if userid and userid > 0:
         user_queries = [q for q in queries_recs
                         if q['auth_user']['id'] == userid]
 
-    else:
-        user_queries = []
-
     #  collect queries posted by user's class members
     #  and queries posted by those outside the user's classes
-
     myclasses = db((db.class_membership.name == userid) &
                    (db.class_membership.class_section == db.classes.id)
                    ).iterselect(db.classes.id,
