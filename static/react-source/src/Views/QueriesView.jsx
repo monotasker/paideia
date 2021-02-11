@@ -26,10 +26,11 @@ import { getQueries,
          addQueryReply,
          updateQueryReply,
          addReplyComment,
-         updateReplyComment
+         updateReplyComment,
+         updateReadStatus
  } from "../Services/stepFetchService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { findIndex } from "core-js/es/array";
+// import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
 
 const RoleIcon = ({icon}) => {
@@ -296,12 +297,12 @@ const AddChildForm = ({level, classId, queryId, replyId=null,
 }
 
 const DisplayRow = ({level, newReplyAction, newCommentAction,
-                     updateReplyAction, updateCommentAction, updateQueryAction,
+                     updateReplyAction, updateCommentAction, updateQueryAction, setReadStatusAction,
                      viewingAsAdmin, viewingAsInstructor,
                      queryId, opId, opNameFirst, opNameLast, opRole,
                      dateSubmitted, dateUpdated, opText,
                      hidden, showPublic, flagged, deleted,
-                     popularity, helpfulness, pinned,
+                     popularity, helpfulness, pinned, read,
                      classId=null, replyId=null, commentId=null,
                      queryStatus=null, opResponseText=null, stepPrompt=null,
                      queryStep=null, queryPath=null,
@@ -314,7 +315,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
   const [ isPublic, setIsPublic ] = useState(showPublic);
-  const [ activeScore, setActiveScore ] =
+  const [ activeScore, ] =
     useState(adjustedScore!=null ? adjustedScore : score)
   const showEditingForm = (e) => {
     e.preventDefault();
@@ -349,6 +350,15 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
     updateThisAction[level]({showPublic: !isPublic, ...updateArgs[level]});
     setIsPublic(!isPublic);
   };
+  const toggleRead = () => {
+    let myIds = {query: queryId,
+                 reply: replyId,
+                 comment: commentId}
+    setReadStatusAction({postLevel: level,
+                         postId: myIds[level],
+                         userId: user.userId,
+                         readStatus: !read});
+  }
 
   return (
     <li key={`${uid}-display-row ${level}-display-row ${myRoles}`}>
@@ -467,6 +477,11 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 </div>
                 :
                 <div className={`${level}-display-body-text display-body-text`}>
+                  {!!user.userLoggedIn &&
+                    <Button onClick={toggleRead}>
+                      Mark as {!!read? `unread` : `read`}
+                    </Button>
+                  }
                   <p className={`${level}-display-op-question display-op-question`}
                     dangerouslySetInnerHTML={{
                       __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
@@ -549,6 +564,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               updateReplyAction={updateReplyAction}
               newCommentAction={newCommentAction}
               updateCommentAction={updateCommentAction}
+              setReadStatusAction={setReadStatusAction}
             />)}
           </ul>
 
@@ -559,7 +575,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 
 const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
-                       updateCommentAction, viewingAsAdmin}) => {
+                       updateCommentAction, setReadStatusAction, viewingAsAdmin}) => {
   const { user, dispatch } = useContext(UserContext);
   if (!!queries && !!queries[0] && !queries[0].section) {
     return (<ul>
@@ -571,6 +587,7 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction={newCommentAction}
                        updateReplyAction={updateReplyAction}
                        updateCommentAction={updateCommentAction}
+                       setReadStatusAction={setReadStatusAction}
                        viewingAsAdmin={viewingAsAdmin}
                        viewingAsInstructor={false}
                        classId={null}
@@ -598,6 +615,7 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                            newCommentAction={newCommentAction}
                            updateReplyAction={updateReplyAction}
                            updateCommentAction={updateCommentAction}
+                           setReadStatusAction={setReadStatusAction}
                            viewingAsAdmin={viewingAsAdmin}
                            viewingAsInstructor={!!user.instructing && user.instructing.find(c => c.id === classId)}
                            classId={classId}
@@ -641,7 +659,6 @@ const QueriesView = () => {
     const [filterUnread, setFilterUnread] = useState(false);
     const [viewingAsAdmin, setViewingAsAdmin ] = useState(
       user.userRoles.includes("administrators"));
-    console.log(`****${singleStep} ${nonStep} ${onStep}`);
 
     const setScopeSingleStep = () => {
       setNonStep(false);
@@ -654,8 +671,6 @@ const QueriesView = () => {
     }
 
     useEffect(() => {
-      console.log("effect params");
-      console.log(urlParams);
       let amOnStep = pathArray[2] == "walk" &&
                       !["map", undefined].includes(urlParams.walkPage) &&
                       !!user.currentStep;
@@ -663,7 +678,6 @@ const QueriesView = () => {
       if (!nonStep) {
         !!amOnStep ? setScopeSingleStep() : setScopeAllSteps();
       }
-      console.log("setting onStep");
     }, [location]);
 
     const _formatCommentData = c => {
@@ -684,7 +698,8 @@ const QueriesView = () => {
                popularity: c.bug_post_comments.popularity,
                helpfulness: c.bug_post_comments.helpfulness,
                showPublic: c.bug_post_comments.public,
-               threadIndex: c.bug_post_comments.thread_index
+               threadIndex: c.bug_post_comments.thread_index,
+               read: c.read
               })
     }
 
@@ -707,6 +722,7 @@ const QueriesView = () => {
                helpfulness: 0,
                showPublic: p.bug_posts.public,
                threadIndex: p.bug_posts.thread_index,
+               read: p.read,
                children: formattedComments
               }
       )
@@ -735,7 +751,8 @@ const QueriesView = () => {
           threadIndex: 0,
           children: [],
           score: q.bugs.score,
-          adjustedScore: q.bugs.adjusted_score
+          adjustedScore: q.bugs.adjusted_score,
+          read: false
         });
       }
       let myPrompt = q.bugs.prompt;
@@ -765,7 +782,8 @@ const QueriesView = () => {
                queryStep: q.bugs.step,
                queryPath: q.bugs.in_path,
                score: q.bugs.score,
-               adjustedScore: q.bugs.adjusted_score
+               adjustedScore: q.bugs.adjusted_score,
+               read: q.read
               }
       )
     }
@@ -866,17 +884,12 @@ const QueriesView = () => {
     // if the new comment has deleted: true it is removed
     const _findAndUpdateComment = (mylist, newComment, queryId) => {
       const myReplyId = newComment.bug_post_comments.on_post;
-      console.log(`reply id: ${myReplyId}`);
       const myCommentId = newComment.bug_post_comments.id;
-      console.log(`comment id: ${myCommentId}`);
       const queryIndex = mylist.findIndex(q => q.queryId==queryId);
-      console.log(`queryIndex: ${queryIndex}`);
       if ( queryIndex > -1 ) {
         const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId==myReplyId);
-        console.log(`replyIndex: ${replyIndex}`);
         if ( replyIndex > -1 ) {
           const commIndex = mylist[queryIndex].children[replyIndex].children.findIndex(c => c.commentId==myCommentId);
-          console.log(`commIndex: ${commIndex}`);
           if ( commIndex > -1 ) {
             if ( newComment.bug_post_comments.deleted ) {
               mylist[queryIndex].children[replyIndex].children.splice(commIndex, 1);
@@ -894,8 +907,6 @@ const QueriesView = () => {
     // Non-returning function to properly update state with one comment
     // expects myresponse to have keys "comment_list" and "new_comment"
     const _updateCommentInState = (myresponse, myscopes, queryId) => {
-      console.log(myresponse);
-      console.log(queryId);
       for (let i=0; i < myscopes.length; i++) {
         let qList = [...myscopes[i].list];
         const newComment = myresponse.new_comment;
@@ -906,7 +917,6 @@ const QueriesView = () => {
             return myClass;
           })
         } else if ( qList.length ) {
-          console.log('updating*******************');
           newQList = _findAndUpdateComment(qList, newComment, queryId);
         }
         myScopes[i].action(newQList);
@@ -949,10 +959,8 @@ const QueriesView = () => {
 
     const newQueryAction = (myComment, showPublic, event) => {
       event.preventDefault();
-      console.log(`myscore: ${user.currentScore}`);
       const myscore = !['null', undefined].includes(user.currentScore) ?
         user.currentScore : null;
-      console.log(`myscore: ${myscore}`);
       addQuery({step_id: user.currentStep,
                 path_id: user.currentPath,
                 user_id: user.userId,
@@ -966,6 +974,23 @@ const QueriesView = () => {
         setUserQueries(myresponse.map(
           q => _formatQueryData(q)
         ));
+      });
+    }
+
+    const setReadStatusAction = ({postLevel,
+                                  userId,
+                                  postId,
+                                  readStatus}) => {
+      updateReadStatus({postLevel: postLevel,
+                        userId: userId,
+                        postId: postId,
+                        readStatus: readStatus})
+      .then(myresponse => {
+          if (myresponse.status_code===200) {
+            console.log(myresponse);
+          } else {
+            console.log(myresponse);
+          }
       });
     }
 
@@ -1013,8 +1038,6 @@ const QueriesView = () => {
                                 queryStatus=null
                                 // hidden=null,
                                }) => {
-      // console.log('updating query------------');
-      // console.log(helpfulness);
       updateQuery({user_id: opId,
                    query_id: queryId,
                    query_text: opText,
@@ -1097,7 +1120,7 @@ const QueriesView = () => {
       <Spinner animation="grow" variant="secondary"
         className="align-self-center map-spinner" />
     );
-
+    console.log("in QueriesView----------------------")
     console.log("class queries");
     console.log(classQueries);
     console.log("user queries");
@@ -1171,7 +1194,7 @@ const QueriesView = () => {
             appear={true}
             unmountOnExit={true}
           >
-            <div className="queries-view-pane">
+            <div className="queries-view-pane" key={scope}>
               {scope==='user' ? (
                 !!user.userLoggedIn ? (
                   (nonStep===false && singleStep===false) ?
@@ -1200,6 +1223,7 @@ const QueriesView = () => {
                 updateReplyAction={updateReplyAction}
                 newCommentAction={newCommentAction}
                 updateCommentAction={updateCommentAction}
+                setReadStatusAction={setReadStatusAction}
                 viewingAsAdmin={viewingAsAdmin}
               />
             </div>

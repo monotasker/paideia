@@ -294,6 +294,31 @@ const updateReplyComment = async({user_id=null,
   return response_json;
 }
 
+const updateReadStatus = async({postLevel="",
+                                userId=0,
+                                postId=0,
+                                readStatus=false
+                              }) => {
+  let response = await fetch('/paideia/api/mark_read_status', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        post_id: postId,
+        post_level: postLevel,
+        read_status: readStatus
+      })
+  })
+  let mystatus = response.status;
+  let response_json = await response.json();
+  response_json.status_code = mystatus;
+  return response_json;
+}
+
 const fetchVocabulary = async ({vocab_scope_selector=0}) => {
   let response = await fetch('/paideia/api/get_vocabulary', {
       method: "POST",
@@ -348,6 +373,7 @@ export { getPromptData,
          updateQueryReply,
          addReplyComment,
          updateReplyComment,
+         updateReadStatus,
          fetchVocabulary,
          fetchLessons,
          setServerReviewMode

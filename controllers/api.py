@@ -708,8 +708,8 @@ def _add_posts_to_queries(queries, unread_posts, unread_comments):
                         or x['bug_posts']['poster'] == auth.user_id,
                         myposts))
             for i, p in enumerate(myposts):
-                p['unread'] = True if p['bug_posts']['id'] in unread_posts \
-                    else False
+                p['read'] = False if p['bug_posts']['id'] in unread_posts \
+                    else True
                 mycomments = []
                 if p['bug_posts']['comments']:
                     mycomments = db(
@@ -750,8 +750,8 @@ def _add_posts_to_queries(queries, unread_posts, unread_comments):
                                 or x['bug_post_comments']['commenter'] == auth.user_id,
                                 mycomments))
                     for c in mycomments:
-                        c['unread'] = True if p['bug_posts']['id'] \
-                            in unread_posts else False
+                        c['read'] = False if p['bug_posts']['id'] \
+                            in unread_posts else True
                 myposts[i]['comments'] = mycomments
 
             queries[idx]['posts'] = myposts
@@ -865,7 +865,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
     #  requesting queries not marked as read
     unread_term = True
     if unread is True:
-        unread_term = ~(db.bugs.id.belongs(unread_queries))
+        unread_term = (db.bugs.id.belongs(unread_queries))
 
     queries = db((step_term) &
                  (db.bugs.user_name == db.auth_user.id) &
@@ -878,7 +878,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                           )
     queries_list = queries.as_list()
     for q in queries_list:
-        q['unread'] = True if q['bugs']['id'] in unread_queries else False
+        q['read'] = False if q['bugs']['id'] in unread_queries else True
     if vbs: print("in _fetch_queries===============================")
     if vbs: print("got {} query rows".format(len(queries_list)))
     queries_recs = _add_posts_to_queries(queries_list,
@@ -1255,7 +1255,13 @@ def log_new_query():
                                     db.auth_user.first_name,
                                     db.auth_user.last_name
                                     ).as_list()
-        myqueries = _add_posts_to_queries(myqueries)
+
+        unread_queries, unread_posts, unread_comments = \
+            _fetch_unread_queries(uid)
+        for q in myqueries:
+            q['read'] = False if q['bugs']['id'] in unread_queries else True
+        myqueries = _add_posts_to_queries(myqueries,
+                                          unread_posts, unread_comments)
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
 
@@ -1366,38 +1372,48 @@ def mark_read_status():
     auth = current.auth
     db = current.db
     response = current.response
-    user_id = request['vars']['user_id']
-    post_id = request['vars']['query_id']
-    read_status = request['vars']['read_status']
-    post_level = request['vars']['post_level']
+    request = current.request
+    user_id = request.vars['user_id']
+    post_id = request.vars['post_id']
+    read_status = request.vars['read_status']
+    post_level = request.vars['post_level']
     db_tables = {'query': db.bugs_read_by_user,
                  'post': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
-
-    if not auth.is_logged_in():
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                                'reason': 'Not logged in',
-                                'error': None})
-    if user_id!=auth.user_id:
-        return json_serializer({'status': 'unauthorized',
-                                'reason': 'Insufficient privileges',
-                                'error': None})
     try:
-        db_tables[post_level].update_or_insert(user_id=user_id,
-                                            read_item_id=post_id,
-                                            read_status=read_status
-                                            )
-        my_record = db((db_tables[post_level].user_id==user_id) &
-                       (db_tables[post_level].read_item_id==post_id)).select().first()
-        assert my_record
-        return my_record
-    except Exception as e:
-        response.status = 500
-        return json_serializer({'status': 'internal server error',
-                                'reason': 'Unknown error in function '
-                                          'mark_read_status',
-                                'error': format_exc()})
+        if not auth.is_logged_in():
+            response.status = 401
+            return json_serializer({'status': 'unauthorized',
+                                    'reason': 'Not logged in',
+                                    'error': None})
+        if user_id!=auth.user_id:
+            return json_serializer({'status': 'unauthorized',
+                                    'reason': 'Insufficient privileges',
+                                    'error': None})
+        try:
+            myrow = db_tables[post_level].update_or_insert(
+                (db_tables[post_level].user_id==user_id) &
+                (db_tables[post_level].read_item_id==post_id),
+                read_status=read_status
+                )
+            db.commit()
+            print(myrow)
+            print('read status:', read_status)
+            print('post id:', post_id)
+            my_record = db((db_tables[post_level].user_id==user_id) &
+                        (db_tables[post_level].read_item_id==post_id)).select().first()
+            assert my_record
+            pprint(my_record)
+            return json_serializer({'status': 'success',
+                                    'result': my_record})
+        except:
+            response.status = 500
+            return json_serializer({'status': 'internal server error',
+                                    'reason': 'Unknown error in function '
+                                            'mark_read_status',
+                                    'error': format_exc()})
+    except:
+        print_exc()
 
 
 def get_vocabulary():
