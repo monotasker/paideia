@@ -971,7 +971,9 @@ const QueriesView = () => {
                 user_comment: myComment,
                 show_public: showPublic})
       .then(myresponse => {
-        setUserQueries(myresponse.map(
+        console.log('QueriesView: after newQueryAction======');
+        console.log(myresponse.read_status_updates);
+        setUserQueries(myresponse.queries.map(
           q => _formatQueryData(q)
         ));
       });

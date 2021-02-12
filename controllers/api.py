@@ -1015,6 +1015,42 @@ def add_query_post():
             bug_id=request.vars['query_id'],
             **data
             )
+
+        # subscribe op to notices of updates/replies
+        my_sub = db.posts_read_by_user.insert(user_id=auth.user_id,
+                                    read_item_id=post_result['new_post']['id'],
+                                    read_status=True)
+        print('add_query_post: my_sub')
+        print(my_sub)
+
+        # add subscription to parent bug if none exists
+        parent = post_result['new_post']['on_bug']
+        parent_sub = db.bugs_read_by_user.update_or_insert(
+            (db.bugs_read_by_user.user_id==auth.user_id) &
+            (db.bugs_read_by_user.read_item_id==parent),
+            read_status=False
+        )
+        print('add_query_post: parent_sub')
+        print(parent_sub)
+
+        #  notify instructors
+        instructors = _is_student_of(uid)
+        if instructors:
+            for i in instructors:
+                read_row = db.posts_read_by_user.insert(user_id=i,
+                                                       read_item_id=post_result['new_post']['id'],
+                                                       read_status=False)
+                print('add_query_post: read_row')
+                print(read_row)
+                assert read_row
+        #  notify anyone subscribed to parent bug
+        parent_subscriptions = db((db.bugs_read_by_user.read_item_id==parent) &
+                                  (db.bugs_read_by_user.user_id!=auth.user_id))
+        updated_subscriptions = parent_subscriptions.update(read_status=False)
+        print('add_query_post: updated_subscriptions')
+        print(updated_subscriptions)
+        db.commit()
+
         user_rec = db(db.auth_user.id==post_result['new_post']['poster']
                       ).select(db.auth_user.id,
                                db.auth_user.first_name,
@@ -1066,6 +1102,12 @@ def update_query_post():
             post_id=request.vars['post_id'],
             **new_data
             )
+
+        db.posts_read_by_user.update_or_insert(
+            (db.bugs_read_by_user.read_item_id==result['id']) &
+            (db.bugs_read_by_user.user_id!=auth.user_id),
+            read_status=False)
+        db.commit()
 
         user_rec = db(db.auth_user.id==result['new_post']['poster']
                     ).select(db.auth_user.id,
@@ -1119,6 +1161,36 @@ def add_post_comment():
             post_id=request.vars['post_id'],
             **data
             )
+
+
+        # add subscription to parent bug and post if none exists
+        parent = result['new_comment']['on_post']
+        grandparent = db.bugs[parent].id
+        db.posts_read_by_user.update_or_insert(
+            (db.posts_read_by_user.user_id==auth.user_id) &
+            (db.posts_read_by_user.read_item_id==parent),
+            read_status=False
+        )
+        db.bugs_read_by_user.update_or_insert(
+            (db.bugs_read_by_user.user_id==auth.user_id) &
+            (db.bugs_read_by_user.read_item_id==grandparent),
+            read_status=False
+        )
+
+        #  notify instructors
+        instructors = _is_student_of(uid)
+        if instructors:
+            for i in instructors:
+                read_row = db.comments_read_by_user.insert(user_id=i,
+                                                       read_item_id=result['new_comment']['id'],
+                                                       read_status=False)
+                assert read_row
+        #  notify anyone subscribed to parent bug
+        parent_subscriptions = db((db.bugs_read_by_user.read_item_id==parent) &
+                                  (db.bugs_read_by_user.user_id!=auth.user_id))
+        updated_subscriptions = parent_subscriptions.update(read_status=False)
+        db.commit()
+
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
                       ).select(db.auth_user.id,
                                db.auth_user.first_name,
@@ -1173,6 +1245,12 @@ def update_post_comment():
             **new_data
             )
 
+        db.comments_read_by_user.update_or_insert(
+            (db.bugs_read_by_user.read_item_id==result['id']) &
+            (db.bugs_read_by_user.user_id!=auth.user_id),
+            read_status=False)
+        db.commit()
+
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
                       ).select(db.auth_user.id,
                                db.auth_user.first_name,
@@ -1208,9 +1286,10 @@ def log_new_query():
 
     Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
     """
-    vbs = False
-    uid = request.vars['user_id']
+    vbs = True
+    user_id = request.vars['user_id']
     auth = current.auth
+    db = current.db
 
     if auth.is_logged_in():
         if vbs: print('creating::submit_bug: vars are', request.vars)
@@ -1227,9 +1306,13 @@ def log_new_query():
                            request.vars['public'])
         if vbs: print('creating::submit_bug: logged bug - response is', logged)
 
+        read_status_changes = _flag_conversation_change(user_id, 'query',
+                                                        new_item_id=logged,
+                                                        db=db)
+
         myqueries = db((db.bugs.step == request.vars['step_id']) &
                        (db.bugs.user_name == db.auth_user.id) &
-                       (db.bugs.user_name == uid) &
+                       (db.bugs.user_name == user_id) &
                        ((db.bugs.deleted == False) |
                         (db.bugs.deleted == None))
                        ).iterselect(db.bugs.id,
@@ -1257,7 +1340,7 @@ def log_new_query():
                                     ).as_list()
 
         unread_queries, unread_posts, unread_comments = \
-            _fetch_unread_queries(uid)
+            _fetch_unread_queries(user_id)
         for q in myqueries:
             q['read'] = False if q['bugs']['id'] in unread_queries else True
         myqueries = _add_posts_to_queries(myqueries,
@@ -1265,12 +1348,14 @@ def log_new_query():
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
 
-        return json_serializer(myqueries)
+        return json_serializer({'status': 'success',
+                                'read_status_updates': read_status_changes,
+                                'queries': myqueries})
     else:
         response = current.response
         response.status = 401
         return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
+                                'reason': 'Not logged in'})
 
 
 def update_query():
@@ -1287,6 +1372,7 @@ def update_query():
     ...
     """
     vbs = True
+    response = current.response
 
     uid = request.vars['user_id']
 
@@ -1297,7 +1383,6 @@ def update_query():
              and _is_my_student(auth.user_id, uid))
          )
     ):
-        if vbs: print('api::update_query_post: vars are', request.vars)
         new_data = {k: v for k, v in request.vars.items()
                     if k in ['user_comment', 'public', 'deleted',
                              'pinned', 'popularity', 'helpfulness',
@@ -1305,48 +1390,53 @@ def update_query():
                     and v is not None}
         if request.vars['score'] is not None:
             new_data['adjusted_score'] = copy(request.vars['score'])
-        if vbs: print('submitting===================')
-        if vbs: pprint(new_data)
 
         result = Bug.update_bug(request.vars["query_id"], new_data)
-        if vbs: print('result:')
-        if vbs: pprint(result['score'])
-        if vbs: pprint(result['adjusted_score'])
 
-        if (int(result['bug_status']) in [1, 2, 6] and
-                request.vars['score'] != None and
-                not (abs(result['score'] - 1) <= 0.999999999)):
-            if vbs: print('undoing bug++++++')
-            undone = trigger_bug_undo(**{k: v for k, v in result.items()
-                                        if k in ['step',
-                                                'in_path',
-                                                'map_location',
-                                                'id',
-                                                'log_id',
-                                                'score',
-                                                'adjusted_score',
-                                                'bug_status',
-                                                'user_name',
-                                                'admin_comment',
-                                                'user_comment',
-                                                'user_response'
-                                                ]}
-                                    )
-            if vbs: pprint(undone)
+        if result == 'false':
+            response.status = 500
+            return json_serializer({'status': 'internal server error',
+                                    'reason': 'Could not update bug record'})
         else:
-            if vbs: print('not undoing anything++++++')
+            db.bugs_read_by_user.update_or_insert(
+                (db.bugs_read_by_user.read_item_id==result['id']) &
+                (db.bugs_read_by_user.user_id!=auth.user_id),
+                read_status=False)
+            db.commit()
 
-        user_rec = db(db.auth_user.id==db.bugs(result['id']).user_name
-                    ).select(db.auth_user.id,
-                             db.auth_user.first_name,
-                             db.auth_user.last_name
-                             ).first().as_dict()
+            if (int(result['bug_status']) in [1, 2, 6] and
+                    request.vars['score'] != None and
+                    not (abs(result['score'] - 1) <= 0.999999999)):
+                undone = trigger_bug_undo(**{k: v for k, v in result.items()
+                                            if k in ['step',
+                                                    'in_path',
+                                                    'map_location',
+                                                    'id',
+                                                    'log_id',
+                                                    'score',
+                                                    'adjusted_score',
+                                                    'bug_status',
+                                                    'user_name',
+                                                    'admin_comment',
+                                                    'user_comment',
+                                                    'user_response'
+                                                    ]}
+                                        )
+                if vbs: pprint(undone)
+            else:
+                if vbs: print('not undoing anything++++++')
 
-        full_rec = {'auth_user': user_rec,
-                    'bugs': result,
-                    }
-        full_rec = _add_posts_to_queries([full_rec])[0]
-        return json_serializer(full_rec)
+            user_rec = db(db.auth_user.id==db.bugs(result['id']).user_name
+                        ).select(db.auth_user.id,
+                                db.auth_user.first_name,
+                                db.auth_user.last_name
+                                ).first().as_dict()
+
+            full_rec = {'auth_user': user_rec,
+                        'bugs': result,
+                        }
+            full_rec = _add_posts_to_queries([full_rec])[0]
+            return json_serializer(full_rec)
     else:
         response = current.response
         response.status = 401
@@ -1414,6 +1504,90 @@ def mark_read_status():
                                     'error': format_exc()})
     except:
         print_exc()
+
+
+def _flag_conversation_change(user_id, post_level,
+                              new_item_id=0, edited_item_id=0, db=None):
+    """
+    Handle unread notifications when a query, post, or comment is added/updated.
+
+    When new item is created:
+    - subscribe creator to item, mark read
+    - subscribe creator to parents if they're not already, mark parents read
+    - subscribe creator's instructors to item, mark item unread
+    - subscribe others who are subscribed to parent, mark item and parents unread
+
+    When item is edited:
+    - subscribe editor to item, mark read
+    - mark unread for anyone subscribed to item
+
+    """
+    vbs = True
+    db = current.db if not db else db
+    active_item_id = new_item_id if new_item_id > 0 else edited_item_id
+    if vbs: print('_flag_conversation_change: active_item_id')
+    if vbs: print(active_item_id)
+    db_tables = {'query': db.bugs_read_by_user,
+                 'post': db.posts_read_by_user,
+                 'comment': db.comments_read_by_user}
+
+    def _inner_handle_change(i_user_id, i_active_item_id, i_post_level,
+                             return_obj={}):
+        if vbs: print('_inner_handle_change: i_active_item_id')
+        if vbs: print(i_active_item_id)
+        inner_obj = {}
+        # subscribe op if not already subscribed, mark read
+        op_sub = db_tables[i_post_level].update_or_insert(
+            (db_tables[i_post_level].user_id==i_user_id) &
+            (db_tables[i_post_level].read_item_id==i_active_item_id),
+            user_id=i_user_id,
+            read_item_id=i_active_item_id,
+            read_status=True
+            )
+        print('_handle_conversation_change: op_sub')
+        print(op_sub)
+        inner_obj['op_sub'] = op_sub
+        #  subscribe instructors of op if not already, mark unread
+        instructors = _is_student_of(i_user_id)
+        instructors_subs = []
+        if instructors:
+            for i in instructors:
+                read_row = db_tables[i_post_level].update_or_insert(
+                    (db_tables[i_post_level].user_id==i) &
+                    (db_tables[i_post_level].read_item_id==i_active_item_id),
+                    user_id=i,
+                    read_item_id=i_active_item_id,
+                    read_status=False)
+                print('_handle_conversation_change: instructor', i)
+                print(read_row)
+                instructors_subs.append(read_row)
+        inner_obj['instructors_subs'] = instructors_subs
+
+        #  for others already subscribed, mark unread
+        others_subs = db((db_tables[i_post_level
+                                    ].read_item_id==i_active_item_id) &
+                        (db_tables[i_post_level].user_id!=i_user_id)
+                        ).update(read_status=False)
+        print('_handle_conversation_change: other_subs')
+        print(others_subs)
+        inner_obj['others_subs'] = others_subs
+
+        #  check for parent, execute up recursively
+        if i_post_level != 'query':
+            parent_level = 'query' if i_post_level=='post' else 'post'
+            this_item = db_tables[i_post_level][i_active_item_id]
+            parent_item_id = this_item['on_bug'] if parent_level=='query' \
+                else this_item['on_post']
+            return_obj = _inner_handle_change(i_user_id, parent_item_id, parent_level, return_obj)
+        return_obj[i_post_level] = inner_obj
+
+        return return_obj
+
+    db.commit()
+
+    return_obj = _inner_handle_change(user_id, active_item_id, post_level)
+
+    return return_obj
 
 
 def get_vocabulary():
@@ -1857,3 +2031,16 @@ def _is_my_student(user, student):
                     ).select(db.class_membership.name).as_list()
     mystudent_ids = list(set(s['name'] for s in mystudents))
     return True if student in mystudent_ids else False
+
+
+def _is_student_of(user_id):
+    """
+    Return list of ids for users who are instructors for the given user.
+    """
+    instructors = db((db.class_membership.name==user_id) &
+                     (db.class_membership.class_section==db.classes.id)
+                     ).select(db.classes.instructor).as_list()
+    instructors_flat = [c['instructor'] for c in instructors] \
+        if instructors else []
+
+    return instructors_flat

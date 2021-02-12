@@ -51,8 +51,8 @@ class Bug(object):
             #     argdict['prompt'] = db.steps(self.step_id).prompt
 
             pprint(argdict)
-            db.bugs.insert(**argdict)
-            return True
+            my_id = db.bugs.insert(**argdict)
+            return my_id
         except Exception:
             print(traceback.format_exc(5))
             mail = current.mail
