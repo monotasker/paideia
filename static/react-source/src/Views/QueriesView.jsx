@@ -146,7 +146,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   )
 }
 
-const UpdateForm = ({level, idArgs, opId, updateAction, updateField="opText",
+const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
                      currentText, setEditingAction,
                      autosize=true, optionList=null,
                      submitButton=true
@@ -157,7 +157,7 @@ const UpdateForm = ({level, idArgs, opId, updateAction, updateField="opText",
   const [changing, setChanging] = useState(false);
   const sendUpdate = e => {
     e.preventDefault();
-    updateAction({...idArgs, opId: opId,
+    updateAction({...idArgs,
       [updateField]: updateField==="score" ? parseFloat(myText) : myText});
     console.log(`firing with myText: ${myText}`);
     setEditingAction(false);
@@ -311,6 +311,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     }) => {
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
+  const readClass = read===true ? "read" : (read===false ? "unread" : "");
   const {user, dispatch} = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
@@ -325,6 +326,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
   console.log(`query ${uid}`);
+  console.log(`opId: ${opId}`);
   console.log(`score: ${score}`);
   console.log(`adjusted_score: ${adjustedScore}`);
   const iconSize = level==="query" ? "3x" : "1x";
@@ -332,10 +334,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                            "duplicate",	"awaiting review",	"allowance_given",
                            "question_answered"];
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
-                              opId: opId, queryId: queryId},
-                      reply: {opId: opId, replyId: replyId,
+                              opId: opId, userId: user.userId, queryId: queryId
+                             },
+                      reply: {opId: opId, userId: user.userId, replyId: replyId,
                               queryId: queryId},
-                      comment: {opId: opId, commentId: commentId,
+                      comment: {opId: opId, userId: user.userId,
+                                commentId: commentId,
                                 replyId: replyId, queryId: queryId}
   };
   const updateThisAction = {query: updateQueryAction,
@@ -361,8 +365,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   }
 
   return (
-    <li key={`${uid}-display-row ${level}-display-row ${myRoles}`}>
-      <Row className={`${level}-display-wrapper display-wrapper`} >
+    <li key={`${uid}-display-row`}
+      className={`${level}-display-row`}
+    >
+      <Row className={`${level}-display-wrapper display-wrapper ${readClass} ${myRoles}`} >
         <Col xs={3} className={`${level}-display-op display-op`}>
           <span className={`${level}-display-op-name display-op-name`}>
             {`${opNameFirst} ${opNameLast}`}
@@ -803,10 +809,15 @@ const QueriesView = () => {
     // returns the modified version of the supplied query list
     // if the new query has deleted: true it is removed
     const _findAndUpdateQuery = (mylist, newQuery) => {
-      const myQueryId = newQuery.bugs.id;
-      const queryIndex = mylist.findIndex(q => q.queryId==myQueryId);
+      const myQueryId = !!newQuery.bugs ? newQuery.bugs.id : newQuery.read_item_id;
+      const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
+
       if ( queryIndex > -1 ) {
-        if ( newQuery.bugs.deleted ) {
+        if ( !newQuery.bugs ) {
+          let myQuery = {...mylist[queryIndex]};
+          myQuery.read = newQuery.read_status;
+          mylist[queryIndex] = myQuery;
+        } else if ( newQuery.bugs.deleted ) {
           mylist.splice(queryIndex, 1);
         } else {
           mylist[queryIndex] = _formatQueryData(newQuery);
@@ -989,7 +1000,7 @@ const QueriesView = () => {
                         readStatus: readStatus})
       .then(myresponse => {
           if (myresponse.status_code===200) {
-            console.log(myresponse);
+            _updateQueryInState(myresponse.result, myScopes);
           } else {
             console.log(myresponse);
           }
@@ -1027,7 +1038,7 @@ const QueriesView = () => {
       });
     }
 
-    const updateQueryAction = ({opId=null,
+    const updateQueryAction = ({userId=null,
                                 queryId=null,
                                 opText=null,
                                 showPublic=null,
@@ -1040,7 +1051,7 @@ const QueriesView = () => {
                                 queryStatus=null
                                 // hidden=null,
                                }) => {
-      updateQuery({user_id: opId,
+      updateQuery({user_id: userId,
                    query_id: queryId,
                    query_text: opText,
                    show_public: showPublic,
@@ -1054,11 +1065,11 @@ const QueriesView = () => {
                    queryStatus: queryStatus
                    })
       .then(myresponse => {
-        _updateQueryInState(myresponse, myScopes);
+        _updateQueryInState(myresponse.new_item, myScopes);
       });
     }
 
-    const updateReplyAction = ({opId,
+    const updateReplyAction = ({userId,
                                replyId,
                                queryId,
                                opText=null,
@@ -1071,7 +1082,7 @@ const QueriesView = () => {
                                deleted=null
                               }) => {
 
-      updateQueryReply({user_id: opId,
+      updateQueryReply({user_id: userId,
                        post_id: replyId,
                        query_id: queryId,
                        post_text: opText,
@@ -1088,7 +1099,7 @@ const QueriesView = () => {
       });
     }
 
-    const updateCommentAction = ({opId=null,
+    const updateCommentAction = ({userId=null,
                                   commentId=null,
                                   replyId=null,
                                   queryId=null,
@@ -1101,7 +1112,7 @@ const QueriesView = () => {
                                   helpfulness=null,
                                   deleted=null
                                   }) => {
-      updateReplyComment({user_id: opId,
+      updateReplyComment({user_id: userId,
                          post_id: replyId,
                          comment_id: commentId,
                          comment_text: opText,

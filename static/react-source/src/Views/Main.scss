@@ -676,6 +676,10 @@ form                                    {margin-bottom: 1rem;
         .col-9, .col-10                {padding-left: 0;
         }
         .display-wrapper            {
+            &.read                  {border: #5BA917 solid 1px;
+            }
+            &.unread                  {border: #701 solid 1px;
+            }
             .display-op                {padding-top: 0.5rem;
                 .display-op-name       {font-weight: bold;
                 }

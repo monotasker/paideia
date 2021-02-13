@@ -1374,13 +1374,17 @@ def update_query():
     vbs = True
     response = current.response
 
-    uid = request.vars['user_id']
+    user_id = request.vars['user_id']
+    query_id = request.vars['query_id']
+    score = request.vars['score']
+    adjusted_score = request.vars['adjusted_score']
+    op_id = db.bugs[query_id].user_name
 
     if (auth.is_logged_in() and
-        (auth.user_id == uid
+        (auth.user_id == op_id
          or auth.has_membership('administrators')
          or (auth.has_membership('instructors')
-             and _is_my_student(auth.user_id, uid))
+             and _is_my_student(auth.user_id, user_id))
          )
     ):
         new_data = {k: v for k, v in request.vars.items()
@@ -1388,24 +1392,22 @@ def update_query():
                              'pinned', 'popularity', 'helpfulness',
                              'bug_status']
                     and v is not None}
-        if request.vars['score'] is not None:
-            new_data['adjusted_score'] = copy(request.vars['score'])
+        if score is not None:
+            new_data['adjusted_score'] = copy(score)
 
-        result = Bug.update_bug(request.vars["query_id"], new_data)
+        result = Bug.update_bug(query_id, new_data)
 
         if result == 'false':
             response.status = 500
             return json_serializer({'status': 'internal server error',
                                     'reason': 'Could not update bug record'})
         else:
-            db.bugs_read_by_user.update_or_insert(
-                (db.bugs_read_by_user.read_item_id==result['id']) &
-                (db.bugs_read_by_user.user_id!=auth.user_id),
-                read_status=False)
-            db.commit()
+            read_status_updates = _flag_conversation_change(
+                auth.user_id, 'query', op=op_id,
+                edited_item_id=result['id'], db=db)
 
             if (int(result['bug_status']) in [1, 2, 6] and
-                    request.vars['score'] != None and
+                    score != None and
                     not (abs(result['score'] - 1) <= 0.999999999)):
                 undone = trigger_bug_undo(**{k: v for k, v in result.items()
                                             if k in ['step',
@@ -1426,7 +1428,7 @@ def update_query():
             else:
                 if vbs: print('not undoing anything++++++')
 
-            user_rec = db(db.auth_user.id==db.bugs(result['id']).user_name
+            user_rec = db(db.auth_user.id==result['user_name']
                         ).select(db.auth_user.id,
                                 db.auth_user.first_name,
                                 db.auth_user.last_name
@@ -1435,8 +1437,15 @@ def update_query():
             full_rec = {'auth_user': user_rec,
                         'bugs': result,
                         }
-            full_rec = _add_posts_to_queries([full_rec])[0]
-            return json_serializer(full_rec)
+            unread_queries, unread_posts, unread_comments = \
+                _fetch_unread_queries(user_id)
+            full_rec = _add_posts_to_queries([full_rec],
+                                             unread_posts, unread_comments)[0]
+            full_rec['read'] = read_status_updates['query'
+                                                   ]['op_sub']['read_status']
+            return json_serializer({'status': 'success',
+                                    'new_item': full_rec,
+                                    'read_status_updates': read_status_updates})
     else:
         response = current.response
         response.status = 401
@@ -1470,6 +1479,7 @@ def mark_read_status():
     db_tables = {'query': db.bugs_read_by_user,
                  'post': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
+
     try:
         if not auth.is_logged_in():
             response.status = 401
@@ -1481,19 +1491,22 @@ def mark_read_status():
                                     'reason': 'Insufficient privileges',
                                     'error': None})
         try:
-            myrow = db_tables[post_level].update_or_insert(
+            db_tables[post_level].update_or_insert(
                 (db_tables[post_level].user_id==user_id) &
                 (db_tables[post_level].read_item_id==post_id),
+                user_id=user_id,
+                read_item_id=post_id,
                 read_status=read_status
                 )
             db.commit()
-            print(myrow)
             print('read status:', read_status)
             print('post id:', post_id)
             my_record = db((db_tables[post_level].user_id==user_id) &
-                        (db_tables[post_level].read_item_id==post_id)).select().first()
+                           (db_tables[post_level].read_item_id==post_id)
+                           ).select().first().as_dict()
+            print('my_record:', my_record['id'])
             assert my_record
-            pprint(my_record)
+
             return json_serializer({'status': 'success',
                                     'result': my_record})
         except:
@@ -1506,7 +1519,7 @@ def mark_read_status():
         print_exc()
 
 
-def _flag_conversation_change(user_id, post_level,
+def _flag_conversation_change(user_id, post_level, op=0,
                               new_item_id=0, edited_item_id=0, db=None):
     """
     Handle unread notifications when a query, post, or comment is added/updated.
@@ -1519,6 +1532,7 @@ def _flag_conversation_change(user_id, post_level,
 
     When item is edited:
     - subscribe editor to item, mark read
+    - if editor isn't op, mark as unread for op
     - mark unread for anyone subscribed to item
 
     """
@@ -1537,28 +1551,36 @@ def _flag_conversation_change(user_id, post_level,
         if vbs: print(i_active_item_id)
         inner_obj = {}
         # subscribe op if not already subscribed, mark read
-        op_sub = db_tables[i_post_level].update_or_insert(
+        op_read_status=True if user_id==op else False
+        db_tables[i_post_level].update_or_insert(
             (db_tables[i_post_level].user_id==i_user_id) &
             (db_tables[i_post_level].read_item_id==i_active_item_id),
             user_id=i_user_id,
             read_item_id=i_active_item_id,
-            read_status=True
+            read_status=op_read_status
             )
+        op_sub = db((db_tables[i_post_level].user_id==i_user_id) &
+                    (db_tables[i_post_level].read_item_id==i_active_item_id)
+                    ).select().first()
         print('_handle_conversation_change: op_sub')
-        print(op_sub)
+        print(op_sub.id)
         inner_obj['op_sub'] = op_sub
         #  subscribe instructors of op if not already, mark unread
         instructors = _is_student_of(i_user_id)
         instructors_subs = []
         if instructors:
             for i in instructors:
-                read_row = db_tables[i_post_level].update_or_insert(
+                db_tables[i_post_level].update_or_insert(
                     (db_tables[i_post_level].user_id==i) &
                     (db_tables[i_post_level].read_item_id==i_active_item_id),
                     user_id=i,
                     read_item_id=i_active_item_id,
                     read_status=False)
                 print('_handle_conversation_change: instructor', i)
+                read_row = db((db_tables[i_post_level].user_id==i) &
+                              (db_tables[i_post_level
+                                         ].read_item_id==i_active_item_id)
+                              ).select().first()
                 print(read_row)
                 instructors_subs.append(read_row)
         inner_obj['instructors_subs'] = instructors_subs

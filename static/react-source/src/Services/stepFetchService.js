@@ -125,7 +125,8 @@ const addQuery = async ({step_id=null,
   return response_json
 }
 
-const updateQuery = async({query_id=null,
+const updateQuery = async({user_id=null,
+                           query_id=null,
                            query_text=null,
                            show_public=null,
                           //  hidden=null,
@@ -145,6 +146,7 @@ const updateQuery = async({query_id=null,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        user_id: user_id,
         query_id: query_id,
         user_comment: query_text,
         public: show_public,
