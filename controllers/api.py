@@ -781,22 +781,24 @@ def _fetch_unread_queries(user_id):
     unread_posts = db((db.posts_read_by_user.user_id==user_id) &
                       (db.posts_read_by_user.read_status==False)
                       ).select(db.posts_read_by_user.read_item_id,
+                               db.posts_read_by_user.read_status,
                                db.posts_read_by_user.on_bug).as_list()
     unread_comments = db((db.comments_read_by_user.user_id==user_id) &
                          (db.comments_read_by_user.read_status==False)
                          ).select(db.comments_read_by_user.read_item_id,
+                                  db.posts_read_by_user.read_status,
                                   db.comments_read_by_user.on_bug,
                                   db.comments_read_by_user.on_bug_post
                                   ).as_list()
+    unread_posts.extend(list(set(i['on_bug_post'] for i in unread_comments
+                           if i['read_status']==False
+                           and i['on_bug_post'] not in unread_posts)))
     unread_queries.extend(list(set(i['on_bug'] for i in unread_posts
                                    if i['read_status']==False
                                    and i['on_bug'] not in unread_queries)))
     unread_queries.extend(list(set(i['on_bug'] for i in unread_comments
                            if i['read_status']==False
                            and i['on_bug'] not in unread_queries)))
-    unread_posts.extend(list(set(i['on_bug_post'] for i in unread_comments
-                           if i['read_status']==False
-                           and i['on_bug_post'] not in unread_posts)))
     return unread_queries, unread_posts, unread_comments
 
 
@@ -1017,39 +1019,8 @@ def add_query_post():
             )
 
         # subscribe op to notices of updates/replies
-        my_sub = db.posts_read_by_user.insert(user_id=auth.user_id,
-                                    read_item_id=post_result['new_post']['id'],
-                                    read_status=True)
-        print('add_query_post: my_sub')
-        print(my_sub)
-
-        # add subscription to parent bug if none exists
-        parent = post_result['new_post']['on_bug']
-        parent_sub = db.bugs_read_by_user.update_or_insert(
-            (db.bugs_read_by_user.user_id==auth.user_id) &
-            (db.bugs_read_by_user.read_item_id==parent),
-            read_status=False
-        )
-        print('add_query_post: parent_sub')
-        print(parent_sub)
-
-        #  notify instructors
-        instructors = _is_student_of(uid)
-        if instructors:
-            for i in instructors:
-                read_row = db.posts_read_by_user.insert(user_id=i,
-                                                       read_item_id=post_result['new_post']['id'],
-                                                       read_status=False)
-                print('add_query_post: read_row')
-                print(read_row)
-                assert read_row
-        #  notify anyone subscribed to parent bug
-        parent_subscriptions = db((db.bugs_read_by_user.read_item_id==parent) &
-                                  (db.bugs_read_by_user.user_id!=auth.user_id))
-        updated_subscriptions = parent_subscriptions.update(read_status=False)
-        print('add_query_post: updated_subscriptions')
-        print(updated_subscriptions)
-        db.commit()
+        read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
+            op=auth.user_id, new_item_id=post_result['new_post']['id'], db=db)
 
         user_rec = db(db.auth_user.id==post_result['new_post']['poster']
                       ).select(db.auth_user.id,
@@ -1060,7 +1031,8 @@ def add_query_post():
                     'bug_posts': post_result['new_post'],
                     'comments': []}
         return json_serializer({'post_list': post_result['bug_post_list'],
-                     'new_post': full_rec})
+                     'new_post': full_rec,
+                     'read_status_updates': read_status_updates})
     else:
         response = current.response
         response.status = 401
@@ -1103,11 +1075,10 @@ def update_query_post():
             **new_data
             )
 
-        db.posts_read_by_user.update_or_insert(
-            (db.bugs_read_by_user.read_item_id==result['id']) &
-            (db.bugs_read_by_user.user_id!=auth.user_id),
-            read_status=False)
-        db.commit()
+        read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
+            op=result['new_post']['poster'],
+            new_item_id=result['id'],
+            db=db)
 
         user_rec = db(db.auth_user.id==result['new_post']['poster']
                     ).select(db.auth_user.id,
@@ -1286,7 +1257,7 @@ def log_new_query():
 
     Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
     """
-    vbs = True
+    vbs = False
     user_id = request.vars['user_id']
     auth = current.auth
     db = current.db
@@ -1371,7 +1342,7 @@ def update_query():
     A value of None for a parameter indicates that no update is requested. A value of False is a negative boolean value to be updated.
     ...
     """
-    vbs = True
+    vbs = False
     response = current.response
 
     user_id = request.vars['user_id']
@@ -1477,7 +1448,7 @@ def mark_read_status():
     read_status = request.vars['read_status']
     post_level = request.vars['post_level']
     db_tables = {'query': db.bugs_read_by_user,
-                 'post': db.posts_read_by_user,
+                 'reply': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
 
     try:
@@ -1550,6 +1521,18 @@ def _flag_conversation_change(user_id, post_level, op=0,
         if vbs: print('_inner_handle_change: i_active_item_id')
         if vbs: print(i_active_item_id)
         inner_obj = {}
+
+        extra_fields={}
+        if i_post_level=='reply':
+            extra_fields={'on_bug': db.bug_posts[i_active_item_id].on_bug}
+        if i_post_level=='comment':
+            my_comment = db.bug_post_comments[i_active_item_id]
+            my_post = db.bug_posts[my_comment['on_post']]
+            extra_fields={'on_bug': my_post.on_bug,
+                          'on_bug_post': my_comment['on_post']}
+        if vbs: print('_inner_handle_change: extra_fields')
+        if vbs: print(extra_fields)
+
         # subscribe op if not already subscribed, mark read
         op_read_status=True if user_id==op else False
         db_tables[i_post_level].update_or_insert(
@@ -1557,7 +1540,8 @@ def _flag_conversation_change(user_id, post_level, op=0,
             (db_tables[i_post_level].read_item_id==i_active_item_id),
             user_id=i_user_id,
             read_item_id=i_active_item_id,
-            read_status=op_read_status
+            read_status=op_read_status,
+            **extra_fields
             )
         op_sub = db((db_tables[i_post_level].user_id==i_user_id) &
                     (db_tables[i_post_level].read_item_id==i_active_item_id)
@@ -1575,7 +1559,9 @@ def _flag_conversation_change(user_id, post_level, op=0,
                     (db_tables[i_post_level].read_item_id==i_active_item_id),
                     user_id=i,
                     read_item_id=i_active_item_id,
-                    read_status=False)
+                    read_status=False,
+                    **extra_fields
+                    )
                 print('_handle_conversation_change: instructor', i)
                 read_row = db((db_tables[i_post_level].user_id==i) &
                               (db_tables[i_post_level

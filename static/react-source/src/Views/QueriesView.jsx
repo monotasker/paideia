@@ -171,7 +171,7 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
 
   return (
     <Form id={`update-${level}-${updateField}-form-${idString}`}
-      className={`update-${level}-form update-form`}
+      className={`update-${level}-${updateField}-form update-form`}
     >
         <Form.Group controlId={`update-${level}-${updateField}-input-${idString}`}>
           <FormComponent
@@ -179,6 +179,7 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
             defaultValue={!optionList ? currentText : undefined }
             onChange={e => setMyText(e.target.value)}
             onSubmit={sendUpdate}
+            size="sm"
           >
             {!!optionList ?
               optionList.map((label, index) =>
@@ -391,14 +392,14 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           }
           {user.userId===opId ?
            <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
-              {!!isPublic ? "Visible to public" : "Hidden from public"}
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
+              {!!isPublic ? "public" : "private"}
            </a> :
-           <span className={`${level}-display-op-status display-op-status`} >
-              {!!isPublic ? "Visible to public" : "Hidden from public"}
+           <span className={`${level}-display-op-public display-op-public`} >
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
+              {!!isPublic ? "public" : "private"}
            </span>
           }
           {!!queryStatus ? (
@@ -446,7 +447,9 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </div>
           }
         </Col>
-        <Col xs={9} className={`${level}-display-body-wrapper display-body-wrapper`}>
+        <Col xs={9}
+          className={`${level}-display-body-wrapper ${readClass}  display-body-wrapper`}
+        >
           {!!queryStep &&
             <React.Fragment>
               The step asked...
@@ -484,8 +487,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 :
                 <div className={`${level}-display-body-text display-body-text`}>
                   {!!user.userLoggedIn &&
-                    <Button onClick={toggleRead}>
-                      Mark as {!!read? `unread` : `read`}
+                    <Button onClick={toggleRead}
+                      size="sm" variant="link" className="read-link"
+                    >
+                      <FontAwesomeIcon size="sm"
+                        icon={!!read ? "envelope-open" : "envelope" } />
+                      Mark as {!!read ? `unread` : `read`}
                     </Button>
                   }
                   <p className={`${level}-display-op-question display-op-question`}
@@ -1291,14 +1298,11 @@ const QueriesView = () => {
           </h2>
 
           <Form.Group controlId={`filterUnansweredCheckbox`}>
-            <Form.Check type="checkbox" label="Only unanswered questions"
+            <Form.Check inline type="checkbox" label="Only unanswered"
               defaultValue={filterUnanswered}
               onChange={e => setFilterUnanswered(!filterUnanswered)}
               />
-          </Form.Group>
-
-          <Form.Group controlId={`filterUnreadCheckbox`}>
-            <Form.Check type="checkbox" label="Only unread questions"
+            <Form.Check inline type="checkbox" label="Only unread"
               defaultValue={filterUnread}
               onChange={e => setFilterUnread(!filterUnread)}
               />
