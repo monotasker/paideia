@@ -668,6 +668,7 @@ def check_login():
 
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
+    vbs = True
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
             myposts = db(
@@ -751,7 +752,7 @@ def _add_posts_to_queries(queries, unread_posts, unread_comments):
                                 mycomments))
                     for c in mycomments:
                         c['read'] = False if p['bug_posts']['id'] \
-                            in unread_posts else True
+                            in unread_comments else True
                 myposts[i]['comments'] = mycomments
 
             queries[idx]['posts'] = myposts
@@ -790,15 +791,8 @@ def _fetch_unread_queries(user_id):
                                   db.comments_read_by_user.on_bug,
                                   db.comments_read_by_user.on_bug_post
                                   ).as_list()
-    unread_posts.extend(list(set(i['on_bug_post'] for i in unread_comments
-                           if i['read_status']==False
-                           and i['on_bug_post'] not in unread_posts)))
-    unread_queries.extend(list(set(i['on_bug'] for i in unread_posts
-                                   if i['read_status']==False
-                                   and i['on_bug'] not in unread_queries)))
-    unread_queries.extend(list(set(i['on_bug'] for i in unread_comments
-                           if i['read_status']==False
-                           and i['on_bug'] not in unread_queries)))
+    unread_posts = [p['read_item_id'] for p in unread_posts]
+    unread_comments = [p['read_item_id'] for p in unread_comments]
     return unread_queries, unread_posts, unread_comments
 
 
@@ -816,7 +810,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     pagination, via the "page" parameter, is zero indexed
     """
-    vbs=False
+    vbs=True
     offset_start = pagesize * page
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
@@ -847,6 +841,12 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     queries = []
     unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
+    if vbs: print("api::_fetch_queries: unread_queries")
+    if vbs: print(unread_posts)
+    if vbs: print("api::_fetch_queries: unread_posts")
+    if vbs: print(unread_posts)
+    if vbs: print("api::_fetch_queries: unread_queries")
+    if vbs: print(unread_posts)
 
     unanswered_term = True
     if unanswered==True:
@@ -995,7 +995,7 @@ def add_query_post():
     post_text (str) *required
     public (bool) *required
     """
-    vbs = False
+    vbs = True
 
     uid = request.vars['user_id']
 
@@ -1075,10 +1075,11 @@ def update_query_post():
             **new_data
             )
 
-        read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
-            op=result['new_post']['poster'],
-            new_item_id=result['id'],
-            db=db)
+        if 'deleted' not in new_data.keys():
+            read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
+                op=result['new_post']['poster'],
+                new_item_id=result['new_post']['id'],
+                db=db)
 
         user_rec = db(db.auth_user.id==result['new_post']['poster']
                     ).select(db.auth_user.id,
@@ -1278,6 +1279,7 @@ def log_new_query():
         if vbs: print('creating::submit_bug: logged bug - response is', logged)
 
         read_status_changes = _flag_conversation_change(user_id, 'query',
+                                                        user_id,
                                                         new_item_id=logged,
                                                         db=db)
 
@@ -1507,13 +1509,18 @@ def _flag_conversation_change(user_id, post_level, op=0,
     - mark unread for anyone subscribed to item
 
     """
-    vbs = True
+    vbs = False
     db = current.db if not db else db
     active_item_id = new_item_id if new_item_id > 0 else edited_item_id
     if vbs: print('_flag_conversation_change: active_item_id')
     if vbs: print(active_item_id)
+    if vbs: print('_flag_conversation_change: user_id')
+    if vbs: print(user_id)
+    if vbs: print('_flag_conversation_change: op')
+    if vbs: print(op)
     db_tables = {'query': db.bugs_read_by_user,
                  'post': db.posts_read_by_user,
+                 'reply': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
 
     def _inner_handle_change(i_user_id, i_active_item_id, i_post_level,
@@ -1534,6 +1541,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
         if vbs: print(extra_fields)
 
         # subscribe op if not already subscribed, mark read
+        print('_handle_conversation_change: op_sub')
         op_read_status=True if user_id==op else False
         db_tables[i_post_level].update_or_insert(
             (db_tables[i_post_level].user_id==i_user_id) &
@@ -1543,11 +1551,12 @@ def _flag_conversation_change(user_id, post_level, op=0,
             read_status=op_read_status,
             **extra_fields
             )
+        db.commit()
         op_sub = db((db_tables[i_post_level].user_id==i_user_id) &
                     (db_tables[i_post_level].read_item_id==i_active_item_id)
                     ).select().first()
-        print('_handle_conversation_change: op_sub')
         print(op_sub.id)
+        print(op_sub.read_status)
         inner_obj['op_sub'] = op_sub
         #  subscribe instructors of op if not already, mark unread
         instructors = _is_student_of(i_user_id)
@@ -1569,6 +1578,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
                               ).select().first()
                 print(read_row)
                 instructors_subs.append(read_row)
+                db.commit()
         inner_obj['instructors_subs'] = instructors_subs
 
         #  for others already subscribed, mark unread
@@ -1576,6 +1586,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
                                     ].read_item_id==i_active_item_id) &
                         (db_tables[i_post_level].user_id!=i_user_id)
                         ).update(read_status=False)
+        db.commit()
         print('_handle_conversation_change: other_subs')
         print(others_subs)
         inner_obj['others_subs'] = others_subs
@@ -1591,7 +1602,6 @@ def _flag_conversation_change(user_id, post_level, op=0,
 
         return return_obj
 
-    db.commit()
 
     return_obj = _inner_handle_change(user_id, active_item_id, post_level)
 

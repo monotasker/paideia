@@ -454,11 +454,13 @@ class Bug(object):
                 newly inserted or updated post.
 
         """
-        vbs = False
+        vbs = True
         db = current.db
         request = current.request
         if vbs: print('in paideia_bugs::record_bug_post')
-        if vbs: print(request.vars)
+        if vbs: print('uid:', uid)
+        if vbs: print('post_id:', post_id)
+        if vbs: print('bug_id:', bug_id)
         mybug = db(db.bugs.id == bug_id).select().first()
         bug_posts = mybug['posts'] if mybug['posts'] else []
         newdata = {k:v for k, v in {"post_body": post_body,
@@ -477,7 +479,10 @@ class Bug(object):
                 modified_on=datetime.datetime.utcnow(),
                 **newdata
                 )
+            db.commit()
         else:
+            if vbs: print('paideia_bugs::record_bug_post')
+            if vbs: print('bug_id:', bug_id)
             post_id = db.bug_posts.insert(
                 poster=uid,
                 on_bug=bug_id,
@@ -486,7 +491,11 @@ class Bug(object):
                 )
             bug_posts.append(post_id)
             mybug.update_record(posts=bug_posts)
-        db.commit()
+            db.commit()
+        if vbs: print('paideia_bugs::record_bug_post')
+        if vbs: print('post_id:', post_id)
+        if vbs: print('post_id:', db.bug_posts[post_id].id)
+        if vbs: print('post_on_bug:', db.bug_posts[post_id].on_bug)
 
         newbug = db.bugs(bug_id)
         newpost = db.bug_posts(post_id)

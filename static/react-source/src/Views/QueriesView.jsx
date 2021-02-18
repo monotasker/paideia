@@ -312,6 +312,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     }) => {
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
+  console.log(`DisplayRow: read: ${read}`);
   const readClass = read===true ? "read" : (read===false ? "unread" : "");
   const {user, dispatch} = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
