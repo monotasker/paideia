@@ -810,7 +810,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     pagination, via the "page" parameter, is zero indexed
     """
-    vbs=True
+    vbs=False
     offset_start = pagesize * page
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
@@ -1053,7 +1053,7 @@ def update_query_post():
     deleted (bool)
     hidden (bool)
     """
-    vbs = False
+    vbs = True
 
     uid = request.vars['user_id']
 
@@ -1068,6 +1068,7 @@ def update_query_post():
         new_data = {k: v for k, v in request.vars.items()
                     if k in ['post_body', 'public', 'deleted', 'hidden',
                                 'pinned', 'popularity', 'helpfulness']}
+        if vbs: print('api::update_query_post: new_data')
         result = Bug.record_bug_post(
             uid=uid,
             bug_id=request.vars['query_id'],
@@ -1075,7 +1076,8 @@ def update_query_post():
             **new_data
             )
 
-        if 'deleted' not in new_data.keys():
+        if not new_data['deleted']:
+            if vbs: print('api::update_query_post: flagging read status')
             read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
                 op=result['new_post']['poster'],
                 new_item_id=result['new_post']['id'],
@@ -1509,7 +1511,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
     - mark unread for anyone subscribed to item
 
     """
-    vbs = False
+    vbs = True
     db = current.db if not db else db
     active_item_id = new_item_id if new_item_id > 0 else edited_item_id
     if vbs: print('_flag_conversation_change: active_item_id')
@@ -1527,6 +1529,8 @@ def _flag_conversation_change(user_id, post_level, op=0,
                              return_obj={}):
         if vbs: print('_inner_handle_change: i_active_item_id')
         if vbs: print(i_active_item_id)
+        if vbs: print('_inner_handle_change: i_user_id')
+        if vbs: print(i_user_id)
         inner_obj = {}
 
         extra_fields={}
@@ -1541,7 +1545,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
         if vbs: print(extra_fields)
 
         # subscribe op if not already subscribed, mark read
-        print('_handle_conversation_change: op_sub')
+        if vbs: print('_inner_handle_change: op_sub')
         op_read_status=True if user_id==op else False
         db_tables[i_post_level].update_or_insert(
             (db_tables[i_post_level].user_id==i_user_id) &
@@ -1555,8 +1559,8 @@ def _flag_conversation_change(user_id, post_level, op=0,
         op_sub = db((db_tables[i_post_level].user_id==i_user_id) &
                     (db_tables[i_post_level].read_item_id==i_active_item_id)
                     ).select().first()
-        print(op_sub.id)
-        print(op_sub.read_status)
+        if vbs: print(op_sub.id)
+        if vbs: print(op_sub.read_status)
         inner_obj['op_sub'] = op_sub
         #  subscribe instructors of op if not already, mark unread
         instructors = _is_student_of(i_user_id)
@@ -1571,7 +1575,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
                     read_status=False,
                     **extra_fields
                     )
-                print('_handle_conversation_change: instructor', i)
+                print('_inner_handle_change: instructor', i)
                 read_row = db((db_tables[i_post_level].user_id==i) &
                               (db_tables[i_post_level
                                          ].read_item_id==i_active_item_id)
@@ -1587,16 +1591,25 @@ def _flag_conversation_change(user_id, post_level, op=0,
                         (db_tables[i_post_level].user_id!=i_user_id)
                         ).update(read_status=False)
         db.commit()
-        print('_handle_conversation_change: other_subs')
+        print('_inner_handle_change: other_subs')
         print(others_subs)
         inner_obj['others_subs'] = others_subs
 
         #  check for parent, execute up recursively
         if i_post_level != 'query':
-            parent_level = 'query' if i_post_level=='post' else 'post'
-            this_item = db_tables[i_post_level][i_active_item_id]
+            parent_level = 'query' if i_post_level in ['post', 'reply'] else 'reply'
+            print('_inner_handle_change: parent_level')
+            print(parent_level)
+            print('_inner_handle_change: i_post_level')
+            print(i_post_level)
+            print(db_tables[i_post_level])
+            this_item = db(db_tables[i_post_level
+                                     ].read_item_id==i_active_item_id
+                           ).select().first()
             parent_item_id = this_item['on_bug'] if parent_level=='query' \
                 else this_item['on_post']
+            print('_inner_handle_change: parent_item_id')
+            print(parent_item_id)
             return_obj = _inner_handle_change(i_user_id, parent_item_id, parent_level, return_obj)
         return_obj[i_post_level] = inner_obj
 
