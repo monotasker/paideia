@@ -669,7 +669,7 @@ def check_login():
 
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
-    vbs = True
+    vbs = False
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
             myposts = db(
@@ -1000,7 +1000,7 @@ def add_query_post():
     post_text (str) *required
     public (bool) *required
     """
-    vbs = True
+    vbs = False
 
     uid = request.vars['user_id']
 
@@ -1058,7 +1058,7 @@ def update_query_post():
     deleted (bool)
     hidden (bool)
     """
-    vbs = True
+    vbs = False
 
     uid = request.vars['user_id']
 
@@ -1424,6 +1424,7 @@ def mark_read_status():
         to look at to record the item's read status. Allowed
         values are 'query', 'post', and 'comment'
     """
+    vbs = True
     auth = current.auth
     db = current.db
     response = current.response
@@ -1435,6 +1436,28 @@ def mark_read_status():
     db_tables = {'query': db.bugs_read_by_user,
                  'reply': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
+    if vbs: print('api::mark_read_status')
+
+    def _mark_children_read(i_post_level, i_post_id, i_user_id):
+        if vbs: print('api::mark_read_status::_mark_children_read')
+        if vbs: print(i_post_level, i_post_id, i_user_id)
+        child_level = 'reply' if i_post_level == 'query' else 'comment'
+        parent_item_field = 'on_bug' if i_post_level == 'query' \
+            else 'on_bug_post'
+        item_children_count = db(
+            (db_tables[child_level][parent_item_field]==i_post_id) &
+            (db_tables[child_level].user_id==i_user_id)
+            ).update(read_status=True)
+        if vbs: print('api::mark_read_status::_mark_children_read')
+        if vbs: print('item_children_count', item_children_count)
+        if item_children_count > 0 and child_level=='reply':
+            item_children = [r.read_item_id for r in db(
+                (db_tables[child_level][parent_item_field]==i_post_id) &
+                (db_tables[child_level].user_id==i_user_id)
+                ).select()]
+            if vbs: print('item_children', item_children)
+            for i in item_children:
+                _mark_children_read(child_level, i, i_user_id)
 
     try:
         if not auth.is_logged_in():
@@ -1455,15 +1478,16 @@ def mark_read_status():
                 read_status=read_status
                 )
             db.commit()
-            print('read status:', read_status)
-            print('post id:', post_id)
+            if vbs: print('read status:', read_status)
+            if vbs: print('post id:', post_id)
             my_record = db((db_tables[post_level].user_id==user_id) &
                            (db_tables[post_level].read_item_id==post_id)
                            ).select().first().as_dict()
-            print('my_record:', my_record['id'])
+            if vbs: print('my_record:', my_record['id'])
 
-            # if post_level in ['post', 'reply']:
-            #     parent_sub =
+            if post_level != 'comment' and read_status == True:
+                _mark_children_read(post_level, post_id, user_id)
+
             assert my_record
 
             return json_serializer({'status': 'success',
@@ -1495,7 +1519,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
     - mark unread for anyone subscribed to item
 
     """
-    vbs = True
+    vbs = False
     db = current.db if not db else db
     active_item_id = new_item_id if new_item_id > 0 else edited_item_id
     if vbs: print('_flag_conversation_change: active_item_id')
