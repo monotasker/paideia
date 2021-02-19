@@ -752,9 +752,11 @@ def _add_posts_to_queries(queries, unread_posts, unread_comments):
                                 or x['bug_post_comments']['commenter'] == auth.user_id,
                                 mycomments))
                     for c in mycomments:
-                        c['read'] = False if p['bug_posts']['id'] \
+                        c['read'] = False if c['bug_post_comments']['id'] \
                             in unread_comments else True
                 myposts[i]['comments'] = mycomments
+                pprint('===================================')
+                pprint(mycomments)
 
             queries[idx]['posts'] = myposts
         else:
@@ -1549,6 +1551,8 @@ def _flag_conversation_change(user_id, post_level, op=0,
                             if vbs: print('_subscribe_to_children: added child sub')
                             if vbs: print('id', my_child_sub)
                             new_subs.append(my_child_sub)
+
+                db.commit()
         return_obj[child_level] = {'others_subs': new_subs}
         return return_obj
 
@@ -1624,7 +1628,8 @@ def _flag_conversation_change(user_id, post_level, op=0,
                                     ].read_item_id==i_active_item_id) &
                         (db_tables[i_post_level].user_id!=i_user_id)).select()
         if vbs: print([i.id for i in others_subs_recs])
-        inner_obj['others_subs'] = others_subs
+        inner_obj['others_subs'] = others_subs_recs.as_list() \
+            if len(others_subs_recs) > 0 else []
 
         #  check for parent, execute up recursively
         if i_post_level != 'query':
@@ -1680,13 +1685,18 @@ def _flag_conversation_change(user_id, post_level, op=0,
             if myrow.count() == 0:
                 mydict = {'read_item_id': new_item_id,
                           'user_id': u,
-                          parent_ref_field: parent_item_id
+                          parent_ref_field: parent_item_id,
+                          'read_status': False
                           }
+                if vbs: print('_flag_conversation_change: inserting new child sub')
                 if post_level == 'comment':
                     mydict['on_bug'] = db_tables[parent_level
                                                  ][parent_item_id].on_bug
+                if vbs: print(mydict)
                 newsub = db_tables[post_level].insert(**mydict)
-                return_obj[post_level]['other_subs'].append(newsub)
+                if vbs: print('inserted', db_tables[post_level], newsub)
+                return_obj[post_level]['others_subs'].append(newsub)
+        db.commit()
 
     return return_obj
 
