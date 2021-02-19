@@ -679,30 +679,42 @@ form                                    {margin-bottom: 1rem;
             .display-op                {padding-top: 0.5rem;
                 .display-op-name       {font-weight: bold;
                 }
+                .display-op-avatar     {margin-bottom: 0.25rem;
+                }
                 svg                    {margin-top: 0.25rem;
                 }
                 .display-op-date       {font-size: $font-size-sm
                 }
-                .display-op-status     {font-size: $font-size-sm;
-                                        display: block;
+                .display-op-status     {padding-bottom: 0.5rem;
+                                        padding-right: 0.75rem;
                 }
                 .display-op-public     {font-size: $font-size-sm;
                                         display: block;
+                                        padding-left: 0.4rem;
+                    svg                {position: relative;
+                                        top: 0.05rem;
+                    }
                 }
                 .update-query-queryStatus-form     {margin-top: 0;
                 }
             }
-            .display-body-wrapper       {padding-top: 0;
+            .display-body-wrapper       {padding-top: 1rem;
                 @include react-transition-fade('display-body-wrapper');
                 &.read                  {border: transparent solid 3px;
                 }
                 &.unread                  {border: $success solid 3px;
-                    .read-link          {color: darken($success, 10%);
+                    .read-link          {color: $success;
                     }
                 }
                 .read-link              {position: relative;
                                          left: -1.25rem;
                                          top: -.25rem;
+                                         float: right;
+                                         color: lighten($accent2, 10%);
+                                         font-size: $font-size-sm;
+                }
+                .display-body-text      {padding-top: 1rem;
+
                 }
                 p                       {margin-bottom: 0.5rem;
                 }
@@ -734,6 +746,7 @@ form                                    {margin-bottom: 1rem;
                 }
                 .btn                      {border-color: transparent;
                                            color: lighten($niceGrey, 20%);
+                                           padding-top: 0;
                     &:hover,
                     &:active,
                     &:focus               {color: $niceGrey;
@@ -764,8 +777,8 @@ form                                    {margin-bottom: 1rem;
                                         padding: 0 0 0.5rem 1rem;
                                         position: relative;
                                         margin-bottom: 1rem;
-                                        border: 1px solid lighten($accent2, 55%);
-                &:before                {border-right: 31px solid $accent2;
+                                        border: 3px solid $accent2;
+                &:before                {border-right: 31px solid lighten($accent2, 30%);
                                         border-bottom: 31px solid transparent;
                                         left: -32px;
                                         top: 51px;
@@ -784,6 +797,8 @@ form                                    {margin-bottom: 1rem;
                     }
                     &:after             {border-right: 25px solid lighten($success, 60%);
                     }
+                }
+                &.read                  {border: 3px solid lighten($accent2, 30%);
                 }
                 .query-display-response,
                 .query-display-prompt   {padding: .5rem;

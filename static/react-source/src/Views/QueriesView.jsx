@@ -334,9 +334,30 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   console.log(`score: ${score}`);
   console.log(`adjusted_score: ${adjustedScore}`);
   const iconSize = level==="query" ? "3x" : "1x";
-  const queryStatusList = ["", "confirmed",	"fixed",	"not_a_bug",
-                           "duplicate",	"awaiting review",	"allowance_given",
+  const queryStatusList = ["",
+                           "confirmed",
+                           "fixed",
+                           "not_a_bug",
+                           "duplicate",
+                           "awaiting_review",
+                           "allowance_given",
                            "question_answered"];
+  const queryStatusIcons = {placeholder: "",
+                           confirmed: "exclamation-circle",
+                           fixed: "thumbs-up",
+                           not_a_bug: "circle",
+                           duplicate: "copy",
+                           awaiting_review: "question-circle",
+                           allowance_given: "hand-holding-heart",
+                           question_answered: "check-circle"};
+  const queryStatusVariants = {placeholder: "",
+                               confirmed: "success",
+                               fixed: "success",
+                               not_a_bug: "warning",
+                               duplicate: "warning",
+                               awaiting_review: "secondary",
+                               allowance_given: "warning",
+                               question_answered: "info"};
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
                               opId: opId, userId: user.userId, queryId: queryId
                              },
@@ -378,7 +399,9 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             {`${opNameFirst} ${opNameLast}`}
           </span><br />
           {level!=="comment" ?
-            <FontAwesomeIcon icon="user-circle" size={iconSize} /> : ""
+            <FontAwesomeIcon icon="user-circle" size={iconSize}
+              className="display-op-avatar"
+            /> : ""
           }
           {!!opRole && opRole.map(r =>
             <RoleIcon className={`role-icon ${r}`}
@@ -386,25 +409,13 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             />
           )}
           <br />
-          {level==="query" &&
+          {/* {level==="query" &&
             <React.Fragment>
             <span className={`${level}-display-op-date display-op-date`}>
               {readableDateAndTime(dateSubmitted)}
             </span><br />
             </React.Fragment>
-          }
-          {user.userId===opId ?
-           <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
-              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
-                size="1x" />
-              {!!isPublic ? "public" : "private"}
-           </a> :
-           <span className={`${level}-display-op-public display-op-public`} >
-              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
-                size="1x" />
-              {!!isPublic ? "public" : "private"}
-           </span>
-          }
+          } */}
           {!!queryStatus ? (
             (!!viewingAsAdmin || !!viewingAsInstructor) ?
               <UpdateForm level={level}
@@ -417,11 +428,29 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 optionList={queryStatusList}
                 submitButton={false}
               />
-            : <span className={`${level}-display-op-status display-op-status`}>{
-                queryStatusList[queryStatus].replace("_", " ")}
-              </span>
+            : <Badge pill
+                variant={queryStatusVariants[queryStatusList[queryStatus]]}
+                className={`${level}-display-op-status display-op-status`}
+              >
+                <FontAwesomeIcon size="sm"
+                  icon={queryStatusIcons[queryStatusList[queryStatus]]}
+                />
+              {queryStatusList[queryStatus].replace("_", " ")}
+              </Badge>
             )
             : ""
+          }
+          {user.userId===opId ?
+           <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
+              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                size="1x" />
+              {!!isPublic ? "public" : "private"}
+           </a> :
+           <span className={`${level}-display-op-public display-op-public`} >
+              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                size="1x" />
+              {!!isPublic ? "public" : "private"}
+           </span>
           }
           {level==="query" &&
            (user.userId===opId || !!viewingAsAdmin || !!viewingAsInstructor) &&
@@ -453,6 +482,15 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
         <Col xs={9}
           className={`${level}-display-body-wrapper ${readClass}  display-body-wrapper`}
         >
+          {!!user.userLoggedIn &&
+            <Button onClick={toggleRead}
+              size="sm" variant="link" className="read-link"
+            >
+              <FontAwesomeIcon size="sm"
+                icon={!!read ? "envelope-open" : "envelope" } />
+              Mark as {!!read ? `unread` : `read`}
+            </Button>
+          }
           {!!queryStep &&
             <React.Fragment>
               The step asked...
@@ -489,15 +527,6 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 </div>
                 :
                 <div className={`${level}-display-body-text display-body-text`}>
-                  {!!user.userLoggedIn &&
-                    <Button onClick={toggleRead}
-                      size="sm" variant="link" className="read-link"
-                    >
-                      <FontAwesomeIcon size="sm"
-                        icon={!!read ? "envelope-open" : "envelope" } />
-                      Mark as {!!read ? `unread` : `read`}
-                    </Button>
-                  }
                   <p className={`${level}-display-op-question display-op-question`}
                     dangerouslySetInnerHTML={{
                       __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
