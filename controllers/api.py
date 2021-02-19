@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from copy import copy
 import datetime
+from itertools import permutations
 from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
 from gluon.serializers import json as json_serializer
@@ -774,11 +775,9 @@ def _fetch_unread_queries(user_id):
 
     """
     db = current.db
-    unread_queries = [i['read_item_id'] for i in
-                      db((db.bugs_read_by_user.user_id==user_id) &
+    unread_queries = db((db.bugs_read_by_user.user_id==user_id) &
                          (db.bugs_read_by_user.read_status==False)
                          ).select(db.bugs_read_by_user.read_item_id).as_list()
-                      ]
     unread_posts = db((db.posts_read_by_user.user_id==user_id) &
                       (db.posts_read_by_user.read_status==False)
                       ).select(db.posts_read_by_user.read_item_id,
@@ -787,12 +786,16 @@ def _fetch_unread_queries(user_id):
     unread_comments = db((db.comments_read_by_user.user_id==user_id) &
                          (db.comments_read_by_user.read_status==False)
                          ).select(db.comments_read_by_user.read_item_id,
-                                  db.posts_read_by_user.read_status,
+                                  db.comments_read_by_user.read_status,
                                   db.comments_read_by_user.on_bug,
                                   db.comments_read_by_user.on_bug_post
                                   ).as_list()
-    unread_posts = [p['read_item_id'] for p in unread_posts]
-    unread_comments = [p['read_item_id'] for p in unread_comments]
+    unread_queries = [i['read_item_id'] for i in unread_queries] \
+        if unread_queries else []
+    unread_posts = [p['read_item_id'] for p in unread_posts] \
+        if unread_posts else []
+    unread_comments = [p['read_item_id'] for p in unread_comments] \
+        if unread_comments else []
     return unread_queries, unread_posts, unread_comments
 
 
@@ -1135,35 +1138,12 @@ def add_post_comment():
             post_id=request.vars['post_id'],
             **data
             )
-
-
-        # add subscription to parent bug and post if none exists
-        parent = result['new_comment']['on_post']
-        grandparent = db.bugs[parent].id
-        db.posts_read_by_user.update_or_insert(
-            (db.posts_read_by_user.user_id==auth.user_id) &
-            (db.posts_read_by_user.read_item_id==parent),
-            read_status=False
-        )
-        db.bugs_read_by_user.update_or_insert(
-            (db.bugs_read_by_user.user_id==auth.user_id) &
-            (db.bugs_read_by_user.read_item_id==grandparent),
-            read_status=False
-        )
-
-        #  notify instructors
-        instructors = _is_student_of(uid)
-        if instructors:
-            for i in instructors:
-                read_row = db.comments_read_by_user.insert(user_id=i,
-                                                       read_item_id=result['new_comment']['id'],
-                                                       read_status=False)
-                assert read_row
-        #  notify anyone subscribed to parent bug
-        parent_subscriptions = db((db.bugs_read_by_user.read_item_id==parent) &
-                                  (db.bugs_read_by_user.user_id!=auth.user_id))
-        updated_subscriptions = parent_subscriptions.update(read_status=False)
         db.commit()
+
+        # add subscription and notify those subscribed to ancestors
+        read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
+            op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
+
 
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
                       ).select(db.auth_user.id,
@@ -1218,12 +1198,11 @@ def update_post_comment():
             comment_id=request.vars['comment_id'],
             **new_data
             )
-
-        db.comments_read_by_user.update_or_insert(
-            (db.bugs_read_by_user.read_item_id==result['id']) &
-            (db.bugs_read_by_user.user_id!=auth.user_id),
-            read_status=False)
         db.commit()
+
+        # subscribe op to notices of updates/replies
+        read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
+            op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
 
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
                       ).select(db.auth_user.id,
@@ -1480,6 +1459,9 @@ def mark_read_status():
                            (db_tables[post_level].read_item_id==post_id)
                            ).select().first().as_dict()
             print('my_record:', my_record['id'])
+
+            # if post_level in ['post', 'reply']:
+            #     parent_sub =
             assert my_record
 
             return json_serializer({'status': 'success',
@@ -1521,9 +1503,54 @@ def _flag_conversation_change(user_id, post_level, op=0,
     if vbs: print('_flag_conversation_change: op')
     if vbs: print(op)
     db_tables = {'query': db.bugs_read_by_user,
-                 'post': db.posts_read_by_user,
                  'reply': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
+
+    def _subscribe_to_children(post_level, active_item_id, return_obj):
+        """
+        Find children of active item and
+        """
+        new_subs = []
+        if vbs: print('_subscribe_to_children: finding child items')
+        child_level = 'comment' if post_level in ['post', 'reply'] \
+            else 'reply'
+        if vbs: print('_subscribe_to_children: child level')
+        if vbs: print(child_level)
+        this_item_field = 'on_bug' if child_level in ['post', 'reply'] \
+            else 'on_bug_post'
+        if child_level not in list(return_obj.keys()):
+            if vbs: print('_subscribe_to_children: child level not yet processed')
+            child_items = db(
+                db_tables[child_level
+                            ][this_item_field]==active_item_id).select()
+            child_item_ids = list(set(c.read_item_id for c in child_items))
+            if vbs: print('_subscribe_to_children: child_items ids')
+            if vbs: print(child_item_ids)
+            if child_item_ids:
+                my_sub_users = [i.user_id for i in db(
+                    db_tables[post_level].read_item_id==active_item_id
+                    ).select(db_tables[post_level].user_id)
+                    ]
+                if vbs: print('_subscribe_to_children: my_sub_users')
+                if vbs: print(my_sub_users)
+                for u in my_sub_users:
+                    for c in child_item_ids:
+                        myrows = db(
+                            (db_tables[child_level].read_item_id==c) &
+                            (db_tables[child_level].user_id==u)
+                            ).select()
+                        if len(myrows)==0:
+                            my_child_sub = db_tables[child_level].insert(
+                                **{this_item_field: active_item_id,
+                                'user_id': u,
+                                'read_item_id': c,
+                                'read_status': True
+                                })
+                            if vbs: print('_subscribe_to_children: added child sub')
+                            if vbs: print('id', my_child_sub)
+                            new_subs.append(my_child_sub)
+        return_obj[child_level] = {'others_subs': new_subs}
+        return return_obj
 
     def _inner_handle_change(i_user_id, i_active_item_id, i_post_level,
                              return_obj={}):
@@ -1575,12 +1602,12 @@ def _flag_conversation_change(user_id, post_level, op=0,
                     read_status=False,
                     **extra_fields
                     )
-                print('_inner_handle_change: instructor', i)
+                if vbs: print('_inner_handle_change: instructor', i)
                 read_row = db((db_tables[i_post_level].user_id==i) &
                               (db_tables[i_post_level
                                          ].read_item_id==i_active_item_id)
                               ).select().first()
-                print(read_row)
+                if vbs: print(read_row)
                 instructors_subs.append(read_row)
                 db.commit()
         inner_obj['instructors_subs'] = instructors_subs
@@ -1591,32 +1618,75 @@ def _flag_conversation_change(user_id, post_level, op=0,
                         (db_tables[i_post_level].user_id!=i_user_id)
                         ).update(read_status=False)
         db.commit()
-        print('_inner_handle_change: other_subs')
-        print(others_subs)
+        if vbs: print('_inner_handle_change: other_subs')
+        if vbs: print(others_subs)
+        others_subs_recs = db((db_tables[i_post_level
+                                    ].read_item_id==i_active_item_id) &
+                        (db_tables[i_post_level].user_id!=i_user_id)).select()
+        if vbs: print([i.id for i in others_subs_recs])
         inner_obj['others_subs'] = others_subs
 
         #  check for parent, execute up recursively
         if i_post_level != 'query':
-            parent_level = 'query' if i_post_level in ['post', 'reply'] else 'reply'
-            print('_inner_handle_change: parent_level')
-            print(parent_level)
-            print('_inner_handle_change: i_post_level')
-            print(i_post_level)
-            print(db_tables[i_post_level])
+            i_parent_level = 'query' if i_post_level in ['post', 'reply'] \
+                else 'reply'
+            if vbs: print('_inner_handle_change: parent_level')
+            if vbs: print(i_parent_level)
+            if vbs: print('_inner_handle_change: i_post_level')
+            if vbs: print(i_post_level)
+            if vbs: print(db_tables[i_post_level])
             this_item = db(db_tables[i_post_level
                                      ].read_item_id==i_active_item_id
                            ).select().first()
-            parent_item_id = this_item['on_bug'] if parent_level=='query' \
-                else this_item['on_post']
-            print('_inner_handle_change: parent_item_id')
-            print(parent_item_id)
-            return_obj = _inner_handle_change(i_user_id, parent_item_id, parent_level, return_obj)
+            parent_item_id = this_item['on_bug'] if i_parent_level=='query' \
+                else this_item['on_bug_post']
+            if vbs: print('_inner_handle_change: parent_item_id')
+            if vbs: print(parent_item_id)
+            return_obj[i_post_level] = None
+            return_obj = _inner_handle_change(i_user_id, parent_item_id,
+                                              i_parent_level, return_obj)
+
         return_obj[i_post_level] = inner_obj
 
         return return_obj
 
-
+    # recursively subscribe/set unread for self, instructors, and other subs
     return_obj = _inner_handle_change(user_id, active_item_id, post_level)
+
+    #  check for children, subscribe (set read) anyone subscribed to this item
+    if post_level != 'comment':
+        return_obj = _subscribe_to_children(post_level, active_item_id,
+                                            return_obj)
+
+    # if current item is new, subscribe/set unread anyone subscribed to parent
+    if new_item_id > 0 and post_level != 'query':
+        if vbs: print('_flag_conversation_change: NEW ITEM')
+        if vbs: print('looking for other parent subs')
+        parent_level = 'query' if post_level in ['post', 'reply'] \
+            else 'reply'
+        this_item = db(
+            db_tables[post_level].read_item_id==active_item_id
+            ).select().first()
+        parent_ref_field = 'on_bug' if parent_level=='query' \
+            else 'on_bug_post'
+        parent_item_id = this_item[parent_ref_field]
+        parent_sub_users = [r.user_id for r in
+            db((db_tables[parent_level].read_item_id==parent_item_id) &
+               (db_tables[parent_level].user_id!=user_id)
+               ).select(db_tables[parent_level].user_id)]
+        for u in parent_sub_users:
+            myrow = db((db_tables[post_level].read_item_id==new_item_id) &
+                       (db_tables[post_level].user_id==u))
+            if myrow.count() == 0:
+                mydict = {'read_item_id': new_item_id,
+                          'user_id': u,
+                          parent_ref_field: parent_item_id
+                          }
+                if post_level == 'comment':
+                    mydict['on_bug'] = db_tables[parent_level
+                                                 ][parent_item_id].on_bug
+                newsub = db_tables[post_level].insert(**mydict)
+                return_obj[post_level]['other_subs'].append(newsub)
 
     return return_obj
 

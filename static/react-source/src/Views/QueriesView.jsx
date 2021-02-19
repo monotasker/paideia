@@ -76,7 +76,8 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   console.log(`logged in (control): ${userLoggedIn}`);
   return(
     <div className={`control-row control-row-${level}`}>
-      {( level !== "comment" && !!userLoggedIn ) ?
+      { level !== "comment" && (
+        !!userLoggedIn ?
         <AdderButton level={level}
           showAdderValue={showAdderValue}
           showAdderAction={showAdderAction}
@@ -85,6 +86,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
         />
         :
         <span className={`control-row-login-msg`}>Log in to add your {labelLevel}</span>
+        )
       }
       {userId === opId &&
         <Button variant="outline-secondary"
