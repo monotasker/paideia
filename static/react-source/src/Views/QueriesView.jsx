@@ -19,7 +19,7 @@ import marked from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import UserProvider, { UserContext } from "../UserContext/UserProvider";
+import { UserContext } from "../UserContext/UserProvider";
 import { getQueries,
          addQuery,
          updateQuery,
@@ -120,7 +120,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
           <FontAwesomeIcon icon="thumbs-up" /> {myPop.length}
         </Button>
       }
-      {(userRoles.includes("administrators") || userRoles.includes("instructors") && !!classId && instructing.find(c => c.id == classId)) &&
+      {((userRoles.includes("administrators") || userRoles.includes("instructors")) && !!classId && instructing.find(c => c.id===classId)) &&
         <Button variant="outline-secondary"
           onClick={e =>
             updateAction({...defaultUpdateArgs, pinned: !pinned, event: e})
@@ -156,7 +156,7 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
   const [myText, setMyText] = useState();
   const idString = Object.values(idArgs).join("-");
   const FormComponent = !!autosize ? TextareaAutosize : FormControl;
-  const [changing, setChanging] = useState(false);
+  // const [changing, setChanging] = useState(false);
   const sendUpdate = e => {
     e.preventDefault();
     updateAction({...idArgs,
@@ -169,7 +169,7 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
       console.log(`myText: ${myText}`);
       sendUpdate(new Event('dummy'));
     }
-  }, [myText]);
+  }, [myText, optionList]);
 
   return (
     <Form id={`update-${level}-${updateField}-form-${idString}`}
@@ -262,7 +262,7 @@ const AddChildForm = ({level, classId, queryId, replyId=null,
                        addChildAction, setShowAdder
                       }) => {
   // FIXME: Handling legacy data here
-  if ( level=="reply" && replyId==undefined ) { replyId="null" };
+  if ( level==="reply" && replyId===undefined ) { replyId="null" };
   const [childText, setChildText] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const uid = [classId, queryId, replyId].join("_");
@@ -316,7 +316,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
     opRole.map(r => `${r}`).join(" ") : "";
   console.log(`DisplayRow: read: ${read}`);
   const readClass = read===true ? "read" : (read===false ? "unread" : "");
-  const {user, dispatch} = useContext(UserContext);
+  const {user, } = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
   const [ isPublic, setIsPublic ] = useState(showPublic);
@@ -441,11 +441,14 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             : ""
           }
           {user.userId===opId ?
-           <a className={`${level}-display-op-public display-op-public`} onClick={togglePublic}>
+           <Button className={`${level}-display-op-public display-op-public`}
+             onClick={togglePublic}
+             variant="link"
+           >
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
               {!!isPublic ? "public" : "private"}
-           </a> :
+           </Button> :
            <span className={`${level}-display-op-public display-op-public`} >
               <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
                 size="1x" />
@@ -621,7 +624,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
                        updateCommentAction, setReadStatusAction, viewingAsAdmin}) => {
-  const { user, dispatch } = useContext(UserContext);
+  const { user, } = useContext(UserContext);
   if (!!queries && !!queries[0] && !queries[0].section) {
     return (<ul>
               {queries.map(
@@ -645,7 +648,7 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
     return (
         <Table>
         <tbody>
-          {queries != [] && queries.map(({classId, institution, year, section, queries}) =>
+          {queries!==[] && queries.map(({classId, institution, year, section, queries}) =>
             <tr key={`${institution}_${year}_${section}`} >
               <td>
                 <span className="query-display-class-header">
@@ -681,19 +684,23 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
 
 const QueriesView = () => {
 
-    const {user, dispatch} = useContext(UserContext);
+    const {user, } = useContext(UserContext);
     const [queries, setQueries] = useState(null);
     const [userQueries, setUserQueries] = useState(null);
+    const [userUnreadCount, setUserUnreadCount] = useState(null);
     const [classQueries, setClassQueries] = useState(null);
+    const [classUnreadCount, setClassUnreadCount] = useState(null);
     const [studentsQueries, setStudentsQueries] = useState(null);
+    const [studentUnreadCount, setStudentUnreadCount] = useState(null);
     const [otherQueries, setOtherQueries] = useState(null);
+    const [otherUnreadCount, setOtherUnreadCount] = useState(null);
 
     const [loading, setLoading] = useState(!queries ? true : false);
 
     const location = useLocation();
     const urlParams = useParams();
     const pathArray = location.pathname.split('/');
-    const [onStep, setOnStep] = useState(pathArray[2] == "walk" &&
+    const [onStep, setOnStep] = useState(pathArray[2]==="walk" &&
       !["map", undefined].includes(urlParams.walkPage) &&
       !!user.currentStep);
 
@@ -702,7 +709,7 @@ const QueriesView = () => {
     const [viewScope, setViewScope] = useState('public');
     const [filterUnanswered, setFilterUnanswered] = useState(false);
     const [filterUnread, setFilterUnread] = useState(false);
-    const [viewingAsAdmin, setViewingAsAdmin ] = useState(
+    const [viewingAsAdmin, ] = useState(
       user.userRoles.includes("administrators"));
 
     const setScopeSingleStep = () => {
@@ -716,7 +723,7 @@ const QueriesView = () => {
     }
 
     useEffect(() => {
-      let amOnStep = pathArray[2] == "walk" &&
+      let amOnStep = pathArray[2]==="walk" &&
                       !["map", undefined].includes(urlParams.walkPage) &&
                       !!user.currentStep;
       setOnStep(amOnStep);
@@ -873,9 +880,9 @@ const QueriesView = () => {
     const _findAndUpdateReply = (mylist, newReply) => {
       const myQueryId = newReply.bug_posts.on_bug;
       const myReplyId = newReply.bug_posts.id;
-      const queryIndex = mylist.findIndex(q => q.queryId==myQueryId);
+      const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
       if ( queryIndex > -1 ) {
-        const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId==myReplyId);
+        const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId===myReplyId);
         if ( replyIndex > -1 ) {
           if ( newReply.bug_posts.deleted ) {
             mylist[queryIndex].children.splice(replyIndex, 1);
@@ -935,11 +942,11 @@ const QueriesView = () => {
     const _findAndUpdateComment = (mylist, newComment, queryId) => {
       const myReplyId = newComment.bug_post_comments.on_post;
       const myCommentId = newComment.bug_post_comments.id;
-      const queryIndex = mylist.findIndex(q => q.queryId==queryId);
+      const queryIndex = mylist.findIndex(q => q.queryId===queryId);
       if ( queryIndex > -1 ) {
-        const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId==myReplyId);
+        const replyIndex = mylist[queryIndex].children.findIndex(p => p.replyId===myReplyId);
         if ( replyIndex > -1 ) {
-          const commIndex = mylist[queryIndex].children[replyIndex].children.findIndex(c => c.commentId==myCommentId);
+          const commIndex = mylist[queryIndex].children[replyIndex].children.findIndex(c => c.commentId===myCommentId);
           if ( commIndex > -1 ) {
             if ( newComment.bug_post_comments.deleted ) {
               mylist[queryIndex].children[replyIndex].children.splice(commIndex, 1);
@@ -960,7 +967,7 @@ const QueriesView = () => {
       for (let i=0; i < myscopes.length; i++) {
         let qList = [...myscopes[i].list];
         const newComment = myresponse.new_comment;
-        const newQList = [];
+        let newQList = [];
         if ( qList.length && !!qList[0].classId ) {
           newQList = qList.map(myClass => {
             myClass.queries = _findAndUpdateComment(myClass.queries, newComment, queryId);
@@ -971,6 +978,31 @@ const QueriesView = () => {
         }
         myScopes[i].action(newQList);
       }
+    }
+
+    const _setUnreadCounts = (queryfetch) => {
+      setUserUnreadCount(
+        queryfetch.user_queries.filter(q => q.read===false).length
+      );
+      setOtherUnreadCount(
+        queryfetch.other_queries.filter(q => q.read===false).length
+      );
+      let classUnreadList = [];
+      queryfetch.class_queries.forEach(myClass => {
+        let unreadInClass = myClass.filter(q =>
+          q.read===false && classUnreadList.indexOf(q.id)===-1
+        );
+        classUnreadList.concat(unreadInClass.map(i => i.bugs.id));
+      });
+      setClassUnreadCount(classUnreadList.length);
+      let studentUnreadList = [];
+      queryfetch.course_queries.forEach(myCourse => {
+        let unreadInCourse = myCourse.filter(q =>
+          q.read===false && studentUnreadList.indexOf(q.id)===-1
+        );
+        studentUnreadList.concat(unreadInCourse.map(i => i.bugs.id));
+      });
+      setStudentUnreadCount(studentUnreadList.length);
     }
 
     const fetchAction = () => {
@@ -985,21 +1017,20 @@ const QueriesView = () => {
                   orderby: "modified_on"
                 })
       .then(queryfetch => {
-        console.log(queryfetch);
-
         setQueries(queryfetch);
         setUserQueries(queryfetch.user_queries.map(
           q => _formatQueryData(q)
         ));
-        setClassQueries(queryfetch.class_queries.map(
-          c => _formatClassData(c)
-        ));
-        setStudentsQueries(queryfetch.course_queries.map(
-          s => _formatClassData(s)
-        ));
-        setOtherQueries(queryfetch.other_queries.slice(0, 20).map(
-          q => _formatQueryData(q)
-        ));
+        setClassQueries(
+          queryfetch.class_queries.map(c => _formatClassData(c))
+        );
+        setStudentsQueries(
+          queryfetch.course_queries.map(s => _formatClassData(s))
+        );
+        setOtherQueries(
+          queryfetch.other_queries.slice(0, 20).map(q => _formatQueryData(q))
+        );
+        _setUnreadCounts(queryfetch);
         setLoading(false);
       });
     }
@@ -1205,7 +1236,10 @@ const QueriesView = () => {
             onClick={() => setViewScope('user')}
           >
             <FontAwesomeIcon icon="user" />Me
-            <Badge variant="success">{userQueries ? userQueries.length : "0"}</Badge>
+            <Badge variant="secondary">{userQueries ? userQueries.length : "0"}</Badge>
+            {!!userUnreadCount &&
+              <Badge variant="success">{userUnreadCount} unread</Badge>
+            }
           </Button>
           {!!user.userLoggedIn && !!user.classInfo &&
           <Button

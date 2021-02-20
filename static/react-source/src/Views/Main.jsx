@@ -6,8 +6,7 @@ import {
 import {
   Switch,
   Route,
-  BrowserRouter,
-  useLocation
+  BrowserRouter
 } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { library } from '@fortawesome/fontawesome-svg-core';
