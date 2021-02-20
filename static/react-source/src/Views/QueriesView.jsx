@@ -73,7 +73,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   const labelLevel = level === "query" ? "reply" : "comment";
   let myPop = Array.isArray(popularity) ? popularity : [];
   let myHelp = Array.isArray(helpfulness) ? helpfulness : [];
-  console.log(`logged in (control): ${userLoggedIn}`);
+  // console.log(`logged in (control): ${userLoggedIn}`);
   return(
     <div className={`control-row control-row-${level}`}>
       { level !== "comment" && (
@@ -161,12 +161,12 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
     e.preventDefault();
     updateAction({...idArgs,
       [updateField]: updateField==="score" ? parseFloat(myText) : myText});
-    console.log(`firing with myText: ${myText}`);
+    // console.log(`firing with myText: ${myText}`);
     setEditingAction(false);
   }
   useEffect(() => {
     if ( !!optionList && !!myText ) {
-      console.log(`myText: ${myText}`);
+      // console.log(`myText: ${myText}`);
       sendUpdate(new Event('dummy'));
     }
   }, [myText, optionList]);
@@ -314,7 +314,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     }) => {
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
-  console.log(`DisplayRow: read: ${read}`);
+  // console.log(`DisplayRow: read: ${read}`);
   const readClass = read===true ? "read" : (read===false ? "unread" : "");
   const {user, } = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
@@ -329,10 +329,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const uid = [classId, queryId, replyId, commentId].join('_');
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
-  console.log(`query ${uid}`);
-  console.log(`opId: ${opId}`);
-  console.log(`score: ${score}`);
-  console.log(`adjusted_score: ${adjustedScore}`);
+  // console.log(`query ${uid}`);
+  // console.log(`opId: ${opId}`);
+  // console.log(`score: ${score}`);
+  // console.log(`adjusted_score: ${adjustedScore}`);
   const iconSize = level==="query" ? "3x" : "1x";
   const queryStatusList = ["",
                            "confirmed",
@@ -689,9 +689,11 @@ const QueriesView = () => {
     const [userQueries, setUserQueries] = useState(null);
     const [userUnreadCount, setUserUnreadCount] = useState(null);
     const [classQueries, setClassQueries] = useState(null);
+    const [classTotalCount, setClassTotalCount] = useState(0);
     const [classUnreadCount, setClassUnreadCount] = useState(null);
     const [studentsQueries, setStudentsQueries] = useState(null);
-    const [studentUnreadCount, setStudentUnreadCount] = useState(null);
+    const [studentsTotalCount, setStudentsTotalCount] = useState(0);
+    const [studentsUnreadCount, setStudentsUnreadCount] = useState(null);
     const [otherQueries, setOtherQueries] = useState(null);
     const [otherUnreadCount, setOtherUnreadCount] = useState(null);
 
@@ -980,29 +982,47 @@ const QueriesView = () => {
       }
     }
 
-    const _setUnreadCounts = (queryfetch) => {
+    const _setCounts = (queryfetch) => {
       setUserUnreadCount(
         queryfetch.user_queries.filter(q => q.read===false).length
       );
       setOtherUnreadCount(
         queryfetch.other_queries.filter(q => q.read===false).length
       );
+
       let classUnreadList = [];
+      let classTotalList = [];
       queryfetch.class_queries.forEach(myClass => {
-        let unreadInClass = myClass.filter(q =>
-          q.read===false && classUnreadList.indexOf(q.id)===-1
+        let unreadInClass = myClass.queries.filter(q =>
+          q.read===false && classUnreadList.indexOf(q.bugs.id)===-1
         );
-        classUnreadList.concat(unreadInClass.map(i => i.bugs.id));
+        console.log('myClass----------------');
+        console.log(myClass);
+        console.log('unreadInClass');
+        console.log(unreadInClass);
+        classUnreadList = classUnreadList.concat(unreadInClass.map(i => i.bugs.id));
+        classTotalList = classTotalList.concat(myClass.queries
+          .filter(q => classTotalList.indexOf(q.bugs.id)===-1)
+          .map(i => i.bugs.id)
+        );
       });
       setClassUnreadCount(classUnreadList.length);
-      let studentUnreadList = [];
+      setClassTotalCount(classTotalList.length);
+
+      let studentsUnreadList = [];
+      let studentsTotalList = [];
       queryfetch.course_queries.forEach(myCourse => {
-        let unreadInCourse = myCourse.filter(q =>
-          q.read===false && studentUnreadList.indexOf(q.id)===-1
+        let unreadInCourse = myCourse.queries.filter(q =>
+          q.read===false && studentsUnreadList.indexOf(q.bugs.id)===-1
         );
-        studentUnreadList.concat(unreadInCourse.map(i => i.bugs.id));
+        studentsUnreadList = studentsUnreadList.concat(unreadInCourse.map(i => i.bugs.id));
+        studentsTotalList = studentsTotalList.concat(myCourse.queries
+          .filter(q => studentsTotalList.indexOf(q.bugs.id)===-1)
+          .map(i => i.bugs.id)
+        );
       });
-      setStudentUnreadCount(studentUnreadList.length);
+      setStudentsUnreadCount(studentsUnreadList.length);
+      setStudentsTotalCount(studentsTotalList.length);
     }
 
     const fetchAction = () => {
@@ -1030,7 +1050,7 @@ const QueriesView = () => {
         setOtherQueries(
           queryfetch.other_queries.slice(0, 20).map(q => _formatQueryData(q))
         );
-        _setUnreadCounts(queryfetch);
+        _setCounts(queryfetch);
         setLoading(false);
       });
     }
@@ -1052,8 +1072,8 @@ const QueriesView = () => {
                 user_comment: myComment,
                 show_public: showPublic})
       .then(myresponse => {
-        console.log('QueriesView: after newQueryAction======');
-        console.log(myresponse.read_status_updates);
+        // console.log('QueriesView: after newQueryAction======');
+        // console.log(myresponse.read_status_updates);
         setUserQueries(myresponse.queries.map(
           q => _formatQueryData(q)
         ));
@@ -1248,7 +1268,10 @@ const QueriesView = () => {
             onClick={() => setViewScope('class')}
           >
             <FontAwesomeIcon icon="users" />Classmates
-            <Badge variant="success">{classQueries ? classQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
+            <Badge variant="secondary">{classTotalCount}</Badge>
+            {!!classUnreadCount &&
+              <Badge variant="success">{classUnreadCount} unread</Badge>
+            }
           </Button>
           }
           {!!user.userRoles.some(v => ["instructors", "administrators"].includes(v)) &&
@@ -1258,7 +1281,10 @@ const QueriesView = () => {
               onClick={() => setViewScope('students')}
             >
               <FontAwesomeIcon icon="users" />Students
-              <Badge variant="success">{classQueries ? studentsQueries.reduce((sum, current) => sum + current.queries.length, 0) : "0"}</Badge>
+              <Badge variant="secondary">{studentsTotalCount}</Badge>
+              {!!studentsUnreadCount &&
+                <Badge variant="success">{studentsUnreadCount} unread</Badge>
+              }
             </Button>
           }
           <Button
@@ -1267,7 +1293,10 @@ const QueriesView = () => {
             onClick={() => setViewScope('public')}
           >
             <FontAwesomeIcon icon="globe-americas" />Others
-            <Badge variant="success">{otherQueries ? otherQueries.length : "0"}</Badge>
+            <Badge variant="secondary">{otherQueries ? otherQueries.length : "0"}</Badge>
+            {!!otherUnreadCount &&
+              <Badge variant="success">{otherUnreadCount} unread</Badge>
+            }
           </Button>
         </div>
 
