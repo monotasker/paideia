@@ -943,6 +943,8 @@ const QueriesView = () => {
                                     myscopes[i].action);
         myPromise.then(
           result => {
+            console.log(`**scope ${scopeLabel}`);
+            console.log('**result');
             console.log(result);
             _setCounts({[scopeLabel]: result});
           },
@@ -983,11 +985,15 @@ const QueriesView = () => {
     }
 
 
+    // expects four lists of queries in internal formatted form (not raw server response)
     const _setCounts = ({user_queries=null, other_queries=null,
                          class_queries=null, students_queries=null}) => {
 
       console.log('in _setCounts');
+      console.log('--other_queries');
       console.log(other_queries);
+      console.log('--class_queries');
+      console.log(class_queries);
       if ( !!user_queries ) {
         setUserUnreadCount(
           user_queries.filter(q => q.read===false).length
@@ -1000,35 +1006,44 @@ const QueriesView = () => {
       }
 
       if ( !!class_queries ) {
+        console.log('---class_queries');
+        console.log(class_queries);
         let classUnreadList = [];
         let classTotalList = [];
         class_queries.forEach(myClass => {
           let unreadInClass = myClass.queries.filter(q =>
-            q.read===false && classUnreadList.indexOf(q.bugs.id)===-1
+            q.read===false && classUnreadList.indexOf(q.queryId)===-1
           );
-          classUnreadList = classUnreadList.concat(unreadInClass.map(i => i.bugs.id));
+          classUnreadList = classUnreadList.concat(unreadInClass.map(i => i.queryId));
           classTotalList = classTotalList.concat(myClass.queries
-            .filter(q => classTotalList.indexOf(q.bugs.id)===-1)
-            .map(i => i.bugs.id)
+            .filter(q => classTotalList.indexOf(q.queryId)===-1)
+            .map(i => i.queryId)
           );
+          console.log(classTotalList);
+          console.log(classUnreadList);
         });
+
         setClassUnreadCount(classUnreadList.length);
         setClassTotalCount(classTotalList.length);
       }
 
       if ( !!students_queries ) {
+        console.log('---students_queries');
+        console.log(students_queries);
         let studentsUnreadList = [];
         let studentsTotalList = [];
         students_queries.forEach(myCourse => {
           let unreadInCourse = myCourse.queries.filter(q =>
-            q.read===false && studentsUnreadList.indexOf(q.bugs.id)===-1
+            q.read===false && studentsUnreadList.indexOf(q.queryId)===-1
           );
-          studentsUnreadList = studentsUnreadList.concat(unreadInCourse.map(i => i.bugs.id));
+          studentsUnreadList = studentsUnreadList.concat(unreadInCourse.map(i => i.queryId));
           studentsTotalList = studentsTotalList.concat(myCourse.queries
-            .filter(q => studentsTotalList.indexOf(q.bugs.id)===-1)
-            .map(i => i.bugs.id)
+            .filter(q => studentsTotalList.indexOf(q.queryId)===-1)
+            .map(i => i.queryId)
           );
         });
+        console.log(studentsTotalList);
+        console.log(studentsUnreadList);
         setStudentsUnreadCount(studentsUnreadList.length);
         setStudentsTotalCount(studentsTotalList.length);
       }
@@ -1047,22 +1062,25 @@ const QueriesView = () => {
                 })
       .then(queryfetch => {
         setQueries(queryfetch);
-        setUserQueries(queryfetch.user_queries.map(
+        const formattedUserQueries = queryfetch.user_queries.map(
           q => _formatQueryData(q)
-        ));
-        setClassQueries(
-          queryfetch.class_queries.map(c => _formatClassData(c))
         );
-        setStudentsQueries(
-          queryfetch.course_queries.map(s => _formatClassData(s))
+        setUserQueries(formattedUserQueries);
+        const formattedClassQueries = queryfetch.class_queries.map(
+          c => _formatClassData(c)
         );
-        setOtherQueries(
-          queryfetch.other_queries.slice(0, 20).map(q => _formatQueryData(q))
+        setClassQueries(formattedClassQueries);
+        const formattedStudentsQueries = queryfetch.course_queries.map(
+          s => _formatClassData(s)
         );
-        _setCounts({user_queries: queryfetch.user_queries,
-                    other_queries: queryfetch.other_queries,
-                    class_queries: queryfetch.class_queries,
-                    students_queries: queryfetch.course_queries});
+        setStudentsQueries(formattedStudentsQueries);
+        const formattedOtherQueries = queryfetch.other_queries
+          .slice(0, 20).map(q => _formatQueryData(q));
+        setOtherQueries(formattedOtherQueries);
+        _setCounts({user_queries: formattedUserQueries,
+                    other_queries: formattedOtherQueries,
+                    class_queries: formattedClassQueries,
+                    students_queries: formattedStudentsQueries});
         setLoading(false);
       });
     }
