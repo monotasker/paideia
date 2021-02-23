@@ -178,15 +178,15 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
         <Form.Group controlId={`update-${level}-${updateField}-input-${idString}`}>
           <FormComponent
             as={!autosize ? (!!optionList ? "select" : "input") : undefined }
-            defaultValue={!optionList ? currentText : undefined }
+            defaultValue={!optionList ? currentText : parseInt(currentText) }
             onChange={e => setMyText(e.target.value)}
             onSubmit={sendUpdate}
             size="sm"
           >
             {!!optionList ?
               optionList.map((label, index) =>
-                <option value={index}
-                  selected={index===parseInt(currentText) ? "selected" : false}
+                <option value={index} key={label}
+                  // selected={index===parseInt(currentText) ? "selected" : false}
                 >
                   {label.replace("_", " ")}
                 </option>)
@@ -367,6 +367,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                                 commentId: commentId,
                                 replyId: replyId, queryId: queryId}
   };
+  const idArgs = updateArgs[level];  // for building unique keys
+  idArgs['classId'] = classId;
   const updateThisAction = {query: updateQueryAction,
                             reply: updateReplyAction,
                             comment: updateCommentAction
@@ -419,7 +421,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           {!!queryStatus ? (
             (!!viewingAsAdmin || !!viewingAsInstructor) ?
               <UpdateForm level={level}
-                idArgs={updateArgs[level]}
+                idArgs={idArgs}
                 updateAction={updateThisAction[level]}
                 updateField="queryStatus"
                 currentText={DOMPurify.sanitize(queryStatus)}
@@ -463,7 +465,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 <span className={`${level}-display-op-points display-op-points`}>
                   Given
                   <UpdateForm level={level}
-                    idArgs={updateArgs[level]}
+                    idArgs={idArgs}
                     updateAction={updateThisAction[level]}
                     updateField="score"
                     currentText={!activeScore==="0" ? DOMPurify.sanitize(activeScore) : activeScore}
@@ -522,7 +524,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               {!!editing ?
                 <div className={`${level}-display-body-text display-body-text`}>
                   <UpdateForm level={level}
-                    idArgs={updateArgs[level]}
+                    idArgs={idArgs}
                     updateAction={updateThisAction[level]}
                     currentText={opText ? DOMPurify.sanitize(opText) : ""}
                     setEditingAction={setEditing}
@@ -626,7 +628,7 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        updateCommentAction, setReadStatusAction, viewingAsAdmin}) => {
   const { user, } = useContext(UserContext);
   if (!!queries && !!queries[0] && !queries[0].section) {
-    return (<ul>
+    return (<ul className="query-list">
               {queries.map(
                 q => <DisplayRow key={`query-row-${q.queryId}`}
                        level="query"
@@ -654,7 +656,7 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                 <span className="query-display-class-header">
                   {`${institution}, ${year}, ${section}`}
                 </span>
-                <ul>
+                <ul className="query-list">
                   {!!queries.length && queries.map(
                     q => <DisplayRow key={`${classId}_${q.queryId}`}
                            level="query"
@@ -882,6 +884,8 @@ const QueriesView = () => {
     // returns the modified version of the supplied query list
     // if the new post has deleted: true it is removed
     const _findAndUpdateReply = (mylist, newReply) => {
+      console.log('newReply');
+      console.log(newReply);
       const myQueryId = newReply.bug_posts.on_bug;
       const myReplyId = newReply.bug_posts.id;
       const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
@@ -903,19 +907,27 @@ const QueriesView = () => {
 
     // Non-returning function to properly update state with one post
     // expects myresponse to have keys "auth_user", "bugs", and "posts"
-    const _updateQueryInState = (myresponse, myscopes) => {
+    const _updateItemInState = (newItem, itemLevel, myscopes, queryId) => {
+      const findAndUpdateActions = {query: _findAndUpdateQuery,
+                             reply: _findAndUpdateReply,
+                             comment: _findAndUpdateComment}
+      const myFindAndUpdate = findAndUpdateActions[itemLevel];
+      const extraArg = itemLevel==="comment" ? [queryId] : [];
+
       let innerUpdate = (qList, updateAction) => {
         return new Promise((resolve, reject) => {
           let newQList = [];
           if ( qList.length && !!qList[0].classId ) {
             newQList = qList.map(myClass => {
-              myClass.queries = _findAndUpdateQuery(myClass.queries, myresponse);
+              myClass.queries = myFindAndUpdate(myClass.queries, newItem, ...extraArg);
               return myClass;
             })
           } else if ( qList.length ) {
-            newQList = _findAndUpdateQuery([...qList], myresponse);
-            console.log('inner_update*********************');
-            console.log(newQList);
+            console.log('_findAndUpdateItem::newItem');
+            console.log(newItem);
+            newQList = myFindAndUpdate([...qList], newItem, ...extraArg);
+            // console.log('inner_update*********************');
+            // console.log(newQList);
           }
           updateAction(newQList);
           resolve(newQList);
@@ -925,8 +937,8 @@ const QueriesView = () => {
       for (let i=0; i < myscopes.length; i++) {
         let scopeLabel = myscopes[i].scope!=="public" ? myscopes[i].scope
           : "other";
-        scopeLabel = `${scopeLabel}_queries`;
-        console.log(`scopeLabel: ${scopeLabel}------------------------------------`);
+        let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
+        scopeLabel = `${scopeLabel}_${levelLabel}s`;
         let myPromise = innerUpdate([ ...myscopes[i].list ],
                                     myscopes[i].action);
         myPromise.then(
@@ -934,27 +946,12 @@ const QueriesView = () => {
             console.log(result);
             _setCounts({[scopeLabel]: result});
           },
-          result => console.log('I broke!!!!!!!!!!!')
+          result => {
+            console.log('I broke!!!!!!!!!!!');
+            console.log(result);
+            console.log(scopeLabel);
+          }
         );
-      }
-    }
-
-    // Non-returning function to properly update state with one post
-    // expects myresponse to have keys "post_list" and "new_post"
-    const _updateReplyInState = (myresponse, myscopes) => {
-      for (let i=0; i < myscopes.length; i++) {
-        let qList = [...myscopes[i].list];
-        const newReply = myresponse.new_post;
-        let newQList = [];
-        if ( qList.length && !!qList[0].classId ) {
-          newQList = qList.map(myClass => {
-            myClass.queries = _findAndUpdateReply(myClass.queries, newReply);
-            return myClass;
-          })
-        } else if ( qList.length ) {
-          newQList = _findAndUpdateReply(qList, newReply);
-        }
-        myscopes[i].action(newQList);
       }
     }
 
@@ -985,24 +982,6 @@ const QueriesView = () => {
       return mylist;
     }
 
-    // Non-returning function to properly update state with one comment
-    // expects myresponse to have keys "comment_list" and "new_comment"
-    const _updateCommentInState = (myresponse, myscopes, queryId) => {
-      for (let i=0; i < myscopes.length; i++) {
-        let qList = [...myscopes[i].list];
-        const newComment = myresponse.new_comment;
-        let newQList = [];
-        if ( qList.length && !!qList[0].classId ) {
-          newQList = qList.map(myClass => {
-            myClass.queries = _findAndUpdateComment(myClass.queries, newComment, queryId);
-            return myClass;
-          })
-        } else if ( qList.length ) {
-          newQList = _findAndUpdateComment(qList, newComment, queryId);
-        }
-        myScopes[i].action(newQList);
-      }
-    }
 
     const _setCounts = ({user_queries=null, other_queries=null,
                          class_queries=null, students_queries=null}) => {
@@ -1124,7 +1103,7 @@ const QueriesView = () => {
       .then(myresponse => {
           if (myresponse.status_code===200) {
             if ( postLevel==='query' ) {
-              _updateQueryInState(myresponse.result, myScopes);
+              _updateItemInState(myresponse.result, postLevel, myScopes);
             }
           } else {
             console.log(myresponse);
@@ -1143,7 +1122,7 @@ const QueriesView = () => {
                      show_public: showPublic
                      })
       .then(myresponse => {
-        _updateReplyInState(myresponse, myScopes);
+        _updateItemInState(myresponse.new_post, 'reply', myScopes, 0);
       });
     }
 
@@ -1159,7 +1138,7 @@ const QueriesView = () => {
                       show_public: showPublic
                       })
       .then(myresponse => {
-        _updateCommentInState(myresponse, myScopes, queryId);
+        _updateItemInState(myresponse.new_comment, "comment", myScopes, queryId);
       });
     }
 
@@ -1190,7 +1169,7 @@ const QueriesView = () => {
                    queryStatus: queryStatus
                    })
       .then(myresponse => {
-        _updateQueryInState(myresponse.new_item, myScopes);
+        _updateItemInState(myresponse.new_item, "query", myScopes, 0);
       });
     }
 
@@ -1220,7 +1199,7 @@ const QueriesView = () => {
                        deleted: deleted
                        })
       .then(myresponse => {
-        _updateReplyInState(myresponse, myScopes);
+        _updateItemInState(myresponse.new_post, "reply", myScopes, 0);
       });
     }
 
@@ -1250,7 +1229,7 @@ const QueriesView = () => {
                          helpfulness: helpfulness
                         })
       .then(myresponse => {
-        _updateCommentInState(myresponse, myScopes, queryId);
+        _updateItemInState(myresponse.new_comment, "comment", myScopes, queryId);
       });
     }
 

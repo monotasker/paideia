@@ -1035,6 +1035,7 @@ def add_query_post():
         full_rec = {'auth_user': user_rec,
                     'bug_posts': post_result['new_post'],
                     'comments': []}
+        full_rec['read'] = read_status_updates['reply']['op_sub']['read_status']
         return json_serializer({'post_list': post_result['bug_post_list'],
                      'new_post': full_rec,
                      'read_status_updates': read_status_updates})
@@ -1058,7 +1059,7 @@ def update_query_post():
     deleted (bool)
     hidden (bool)
     """
-    vbs = False
+    vbs = True
 
     uid = request.vars['user_id']
 
@@ -1105,6 +1106,10 @@ def update_query_post():
         full_rec = {'auth_user': user_rec,
                     'bug_posts': result['new_post'],
                     'comments': mycomments}
+
+        if not new_data['deleted']:
+            full_rec['read'] = read_status_updates['reply'
+                                                   ]['op_sub']['read_status']
 
         return json_serializer({'post_list': result['bug_post_list'],
                      'new_post': full_rec})
@@ -1179,7 +1184,7 @@ def update_post_comment():
     helpfulness (double)
     popularity (double)
     """
-    vbs = False
+    vbs = True
 
     uid = request.vars['user_id']
 
@@ -1205,6 +1210,7 @@ def update_post_comment():
         # subscribe op to notices of updates/replies
         read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
             op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
+        if vbs: pprint(read_status_updates)
 
         user_rec = db(db.auth_user.id==result['new_comment']['commenter']
                       ).select(db.auth_user.id,
@@ -1214,6 +1220,9 @@ def update_post_comment():
         full_rec = {'auth_user': user_rec,
                     'bug_post_comments': result['new_comment'],
                     }
+        if not new_data['deleted']:
+            full_rec['read'] = read_status_updates['query'
+                                                   ]['op_sub']['read_status']
 
         return json_serializer({'comment_list': result['post_comment_list'],
                      'new_comment': full_rec})
@@ -1424,7 +1433,7 @@ def mark_read_status():
         to look at to record the item's read status. Allowed
         values are 'query', 'post', and 'comment'
     """
-    vbs = True
+    vbs = False
     auth = current.auth
     db = current.db
     response = current.response
@@ -1436,6 +1445,9 @@ def mark_read_status():
     db_tables = {'query': db.bugs_read_by_user,
                  'reply': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
+    # db_item_tables = {'query': db.bugs,
+    #                   'reply': db.bug_posts,
+    #                   'comment': db.bug_post_comments}
     if vbs: print('api::mark_read_status')
 
     def _mark_children_read(i_post_level, i_post_id, i_user_id):
@@ -1466,6 +1478,7 @@ def mark_read_status():
                                     'reason': 'Not logged in',
                                     'error': None})
         if user_id!=auth.user_id:
+            response.status = 401
             return json_serializer({'status': 'unauthorized',
                                     'reason': 'Insufficient privileges',
                                     'error': None})
