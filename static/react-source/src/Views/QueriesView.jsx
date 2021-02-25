@@ -862,33 +862,17 @@ const QueriesView = () => {
     // if the new query has deleted: true it is removed
     const _findAndUpdateItem = (mylist, newItem, itemLevel, queryId=0) => {
       // TODO: mark children read when marked read
-      // TODO: mark reply and comment ancestors
       console.log("_findAndUpdateItem-------------------------------------");
-      console.log("mylist");
-      console.log(mylist);
-      console.log("newItem");
-      console.log(newItem);
-      console.log('itemLevel');
-      console.log(itemLevel);
       const dbTableFields = {'query': 'bugs',
                              'reply': 'bug_posts',
                              'comment': 'bug_post_comments'}
       const itemTableField = dbTableFields[itemLevel];
-      console.log('itemTableField');
-      console.log(itemTableField);
-      console.log('itemID');
-      console.log(newItem.on_bug);
       const markingRead = !!newItem[itemTableField] ? false : true;
-      console.log('markingRead');
-      console.log(markingRead);
       const deleting = !!markingRead ? false
         : newItem[itemTableField].deleted;
 
-      console.log(newItem[itemTableField]);
       const myItemId = !!markingRead ? newItem.read_item_id
         : newItem[itemTableField].id;
-      console.log('myItemId');
-      console.log(myItemId);
 
       let myQueryId = myItemId;
       let myReplyId = 0;
@@ -906,28 +890,40 @@ const QueriesView = () => {
 
       const _innerUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
                             ) => {
-        console.log(`updating ${itemLevel}=================================`);
-        console.log(`itemIndex: ${i_itemIndex}`);
-        console.log('itemlist');
-        console.log(i_itemlist);
-        console.log(formatAction);
         if ( !!markingRead ) {
-          console.log('marking read---');
           i_itemlist[i_itemIndex].read = i_newItem.read_status;
         } else if ( !!deleting ) {
-          console.log('deleting---');
           i_itemlist.splice(i_itemIndex, 1);
         } else {
-          console.log('updating---');
           i_itemlist[i_itemIndex] = formatAction(i_newItem);
         }
         return i_itemlist
+      }
+
+      const _markChildrenRead = (mySubList, myIndex) => {
+        console.log("marking children read********");
+        console.log(mySubList);
+        console.log(myIndex);
+        let myReplyList = mySubList[myIndex].children;
+        for (let i=0; i<myReplyList.length; i++) {
+          myReplyList = _innerUpdate(i, myReplyList, _formatReplyData,
+                                     {read_status: true})
+          if ( !!myReplyList[i].children ) {
+            console.log("marking grandchildren read below========");
+            myReplyList[i].children = _markChildrenRead(myReplyList, i);
+          }
+          mySubList[myIndex].children = myReplyList;
+        }
+        return mySubList;
       }
 
       if ( queryIndex > -1 ) {
         // update at query level
         if (itemLevel==='query') {
           mylist = _innerUpdate(queryIndex, mylist, _formatQueryData, newItem);
+          if ( !!markingRead && newItem.read_status===true) {
+            mylist[queryIndex].children = _markChildrenRead(mylist, queryIndex);
+          }
         } else {
           // update either reply or comment level...
           let myReplyList = mylist[queryIndex].children;
@@ -941,6 +937,10 @@ const QueriesView = () => {
               if ( !!markingRead && newItem.read_status===false ) {
                 mylist = _innerUpdate(queryIndex, mylist, _formatQueryData,
                                       {read_status: false});
+              } else if ( !!markingRead && newItem.read_status===true ) {
+                mylist[queryIndex].children = _markChildrenRead(myReplyList,
+                                                                replyIndex);
+                console.log(mylist[queryIndex].children);
               }
             } else {
               // update at comment level
