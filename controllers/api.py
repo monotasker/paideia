@@ -1450,6 +1450,25 @@ def mark_read_status():
                       'comment': db.bug_post_comments}
     if vbs: print('api::mark_read_status')
 
+    def _mark_parents_read(i_post_level, i_post_id, i_user_id):
+        parent_level = 'query' if i_post_level == 'reply' else 'reply'
+        if vbs: print('parent_level', parent_level)
+        if vbs: print(db_tables[parent_level])
+        parent_item_field = 'on_bug' if i_post_level == 'reply' \
+            else 'on_bug_post'
+        if vbs: print('parent_item_field', parent_item_field)
+        parent_item_id = db(db_tables[i_post_level].read_item_id==i_post_id).select().first().as_dict()[parent_item_field]
+        if vbs: print('parent_item_id', parent_item_id)
+        if vbs: print(db(
+            (db_tables[parent_level].read_item_id==parent_item_id) &
+            (db_tables[parent_level].user_id==i_user_id)).select().first())
+        item_parent_count = db(
+            (db_tables[parent_level].read_item_id==parent_item_id) &
+            (db_tables[parent_level].user_id==i_user_id)
+            ).update(read_status=False)
+        if parent_level == 'reply':
+            _mark_parents_read('reply', parent_item_id, i_user_id)
+
     def _mark_children_read(i_post_level, i_post_id, i_user_id):
         if vbs: print('api::mark_read_status::_mark_children_read')
         if vbs: print(i_post_level, i_post_id, i_user_id)
@@ -1509,6 +1528,8 @@ def mark_read_status():
 
             if post_level != 'comment' and read_status == True:
                 _mark_children_read(post_level, post_id, user_id)
+            if post_level != 'query' and read_status == False:
+                _mark_parents_read(post_level, post_id, user_id)
 
             assert my_record
 
