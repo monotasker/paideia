@@ -1,3 +1,4 @@
+@use "sass:color";
 @import "../../node_modules/bootstrap/scss/_functions.scss";
 @import "../../node_modules/bootstrap/scss/_variables.scss";
 @import "../../node_modules/bootstrap/scss/_mixins.scss";
@@ -702,7 +703,7 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
             }
-            .display-body-wrapper       {padding-top: 1rem;
+            .display-body-wrapper       {
                 @include react-transition-fade('display-body-wrapper');
                 &.read                  {border: transparent solid 3px;
                 }
@@ -826,11 +827,20 @@ form                                    {margin-bottom: 1rem;
             }
         }
         .reply-display-wrapper          {color: lighten($niceGrey, 20%);
+                                         margin-left: 0.5rem;
+                                         margin-bottom: 0.5rem;
             .reply-display-op           {
                 .reply-display-name     {color: darken($niceGrey, 5%);
                 }
             }
             .reply-display-body-wrapper {height: 100%;
+
+                &.read                  {border: 0;
+                                         border-left: 3px solid lighten($niceGrey, 30%);
+                }
+                &.unread                {border: 0;
+                                         border-left: 3px solid color.scale(lighten($success, 30%), $saturation: -20%);
+                }
                 .reply-display-op-question     {color: darken($niceGrey, 5%);
                 }
                 .control-row            {
@@ -844,10 +854,19 @@ form                                    {margin-bottom: 1rem;
             }
         }
         .comment-display-wrapper        {color: darken($pallette2, 25%);
+                                         margin-left: 0.5rem;
+                                         margin-bottom: 0.5rem;
             .comment-display-op         {
                 .comment-display-op-name {color: darken($pallette2, 25%);
                 }
             }
+            .comment-display-body-wrapper {
+                &.read                  {border: 0;
+                                         border-left: 3px solid $pallette2;
+                }
+                &.unread                {border: 0;
+                                         border-left: 3px solid color.scale(lighten($success, 40%), $saturation: -20%);
+                }
             .comment-display-op-question {color: darken($pallette2, 45%);
             }
             .control-row                {
@@ -858,6 +877,7 @@ form                                    {margin-bottom: 1rem;
                                             color: darken($pallette2, 45%);
                     }
                 }
+            }
             }
         }
         .query-display-admin-status     {font-size: $font-size-base * 0.75;
