@@ -1059,7 +1059,7 @@ def update_query_post():
     deleted (bool)
     hidden (bool)
     """
-    vbs = True
+    vbs = False
 
     uid = request.vars['user_id']
 
@@ -1184,7 +1184,7 @@ def update_post_comment():
     helpfulness (double)
     popularity (double)
     """
-    vbs = True
+    vbs = False
 
     uid = request.vars['user_id']
 
@@ -1433,7 +1433,7 @@ def mark_read_status():
         to look at to record the item's read status. Allowed
         values are 'query', 'post', and 'comment'
     """
-    vbs = False
+    vbs = True
     auth = current.auth
     db = current.db
     response = current.response
@@ -1445,9 +1445,9 @@ def mark_read_status():
     db_tables = {'query': db.bugs_read_by_user,
                  'reply': db.posts_read_by_user,
                  'comment': db.comments_read_by_user}
-    # db_item_tables = {'query': db.bugs,
-    #                   'reply': db.bug_posts,
-    #                   'comment': db.bug_post_comments}
+    db_item_tables = {'query': db.bugs,
+                      'reply': db.bug_posts,
+                      'comment': db.bug_post_comments}
     if vbs: print('api::mark_read_status')
 
     def _mark_children_read(i_post_level, i_post_id, i_user_id):
@@ -1483,12 +1483,21 @@ def mark_read_status():
                                     'reason': 'Insufficient privileges',
                                     'error': None})
         try:
+            my_item_row = db_item_tables[post_level][post_id]
+            my_args = {'user_id': user_id,
+                       'read_item_id': post_id,
+                       'read_status': read_status
+                       }
+            if post_level == 'reply':
+                my_args['on_bug'] = my_item_row['on_bug']
+            if post_level == 'comment':
+                my_args['on_bug_post'] = my_item_row['on_post']
+                my_reply_row= db.bug_posts[my_item_row['on_post']]
+                my_args['on_bug'] = my_reply_row['on_bug']
             db_tables[post_level].update_or_insert(
                 (db_tables[post_level].user_id==user_id) &
                 (db_tables[post_level].read_item_id==post_id),
-                user_id=user_id,
-                read_item_id=post_id,
-                read_status=read_status
+                **my_args
                 )
             db.commit()
             if vbs: print('read status:', read_status)
