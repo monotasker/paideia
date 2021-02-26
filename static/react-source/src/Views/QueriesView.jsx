@@ -888,8 +888,12 @@ const QueriesView = () => {
       }
       const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
 
-      const _innerUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
+      const _innerFindAndUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
                             ) => {
+        console.log("inner find and update..........");
+        console.log(i_itemIndex);
+        console.log(i_itemlist);
+        console.log(`markingRead: ${markingRead}`);
         if ( !!markingRead ) {
           i_itemlist[i_itemIndex].read = i_newItem.read_status;
         } else if ( !!deleting ) {
@@ -897,6 +901,8 @@ const QueriesView = () => {
         } else {
           i_itemlist[i_itemIndex] = formatAction(i_newItem);
         }
+        console.log("returning from inner:");
+        console.log(i_itemlist);
         return i_itemlist
       }
 
@@ -906,13 +912,27 @@ const QueriesView = () => {
         console.log(myIndex);
         let myReplyList = mySubList[myIndex].children;
         for (let i=0; i<myReplyList.length; i++) {
-          myReplyList = _innerUpdate(i, myReplyList, _formatReplyData,
-                                     {read_status: true})
-          if ( !!myReplyList[i].children ) {
-            console.log("marking grandchildren read below========");
-            myReplyList[i].children = _markChildrenRead(myReplyList, i);
+          if ( myReplyList[i].read===false ) {
+            console.log("marking item");
+            console.log(i);
+            myReplyList = _innerFindAndUpdate(i, myReplyList, _formatReplyData,
+                                      {read_status: true})
+            if ( myReplyList[i].hasOwnProperty('children')) {
+              console.log("marking grandchildren read below========");
+              for (let x=0; x<myReplyList[i].children.length; x++) {
+                if ( myReplyList[i].children[x].read===false ) {
+                  console.log(myReplyList);
+                  console.log(x);
+                  myReplyList[i] = _innerFindAndUpdate(x,
+                    myReplyList[i].children,
+                    _formatCommentData, {read_status: true})
+                  console.log("grandchild result");
+                  console.log(myReplyList[i]);
+                }
+              }
+            }
+            mySubList[myIndex].children = myReplyList;
           }
-          mySubList[myIndex].children = myReplyList;
         }
         return mySubList;
       }
@@ -920,9 +940,11 @@ const QueriesView = () => {
       if ( queryIndex > -1 ) {
         // update at query level
         if (itemLevel==='query') {
-          mylist = _innerUpdate(queryIndex, mylist, _formatQueryData, newItem);
+          mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData, newItem);
           if ( !!markingRead && newItem.read_status===true) {
             mylist[queryIndex].children = _markChildrenRead(mylist, queryIndex);
+            console.log('returned from marking children read======');
+            console.log(mylist[queryIndex].children);
           }
         } else {
           // update either reply or comment level...
@@ -931,15 +953,16 @@ const QueriesView = () => {
           if (replyIndex > -1) {
             if ( itemLevel==='reply') {
               // update at reply level
-              mylist[queryIndex].children = _innerUpdate(replyIndex,
+              mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
                                                          myReplyList,
                                                          _formatReplyData, newItem);
               if ( !!markingRead && newItem.read_status===false ) {
-                mylist = _innerUpdate(queryIndex, mylist, _formatQueryData,
+                mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData,
                                       {read_status: false});
               } else if ( !!markingRead && newItem.read_status===true ) {
-                mylist[queryIndex].children = _markChildrenRead(myReplyList,
-                                                                replyIndex);
+                mylist[queryIndex].children = _markChildrenRead(
+                  mylist[queryIndex].children, replyIndex);
+                console.log('returned from marking children read======');
                 console.log(mylist[queryIndex].children);
               }
             } else {
@@ -950,13 +973,13 @@ const QueriesView = () => {
                 let myCommentList = mylist[queryIndex].children[replyIndex]
                   .children;
                 mylist[queryIndex].children[replyIndex]
-                  .children = _innerUpdate(commentIndex, myCommentList,
+                  .children = _innerFindAndUpdate(commentIndex, myCommentList,
                                            _formatCommentData, newItem);
 
                 if ( !!markingRead && newItem.read_status===false ) {
-                  mylist = _innerUpdate(queryIndex, mylist, _formatQueryData,
+                  mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData,
                                         {read_status: false});
-                  mylist[queryIndex].children = _innerUpdate(replyIndex,
+                  mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
                     myReplyList, _formatReplyData, {read_status: false});
                 }
               } else {
@@ -1289,14 +1312,14 @@ const QueriesView = () => {
         className="align-self-center map-spinner" />
     );
     console.log("in QueriesView----------------------")
-    console.log("class queries");
-    console.log(classQueries);
-    console.log("user queries");
-    console.log(userQueries);
-    console.log("student queries");
-    console.log(studentsQueries);
-    console.log("other queries");
-    console.log(otherQueries);
+    // console.log("class queries");
+    // console.log(classQueries);
+    // console.log("user queries");
+    // console.log(userQueries);
+    // console.log("student queries");
+    // console.log(studentsQueries);
+    // console.log("other queries");
+    // console.log(otherQueries);
     const myScopes = [
       {scope: 'user',
        list: userQueries,

@@ -535,7 +535,7 @@ def get_login():
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
-    debug=True
+    debug=False
     request = current.request
     auth = current.auth
     session = current.session
