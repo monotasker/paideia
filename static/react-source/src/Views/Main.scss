@@ -633,12 +633,34 @@ form                                    {margin-bottom: 1rem;
                                     font-size: 1.75rem;
                                     color: $accent1;
                                     border: 1px solid transparent;
+            &:hover                {background-color: color.scale(lighten($accent1, 65%), $saturation: -20%);
+            }
+            &.active,
+            &.active.btn-primary   {background-color: transparent;
+                                    border-radius: 0;
+                                    border-color: transparent;
+                                    border-bottom: 3px solid color.scale(lighten($accent1, 35%), $saturation: -20%);
+                                    padding-bottom: 0;
+                                    color: $accent1;
+                                    margin-bottom: 3px;
+            }
             &:first-of-type        {margin-left:1.5rem;
             }
         }
     }
-    > .form-group                  {flex: 0 0 auto;
-                                    margin-bottom: .5rem;
+    .add-query-form-toggle         {margin-top: 0.5rem;
+        svg                        {margin-right: 0.5rem;
+        }
+    }
+    .add-query-form                {margin-right: 1rem;
+    }
+    .query-filter-form             {display: flex;
+                                    justify-content: flex-end;
+                                    font-size: $font-size-sm;
+                                    line-height: 1.5rem;
+                                    color: $niceGrey;
+                                    margin: 0;
+                                    padding-right: 2rem;
     }
     .queries-view-wrapper          {flex: 1 0;
                                     display: flex;
@@ -647,17 +669,31 @@ form                                    {margin-bottom: 1rem;
     }
     .queries-view-changer-wrapper  {flex: 0 0 auto;
                                     display: block;
-        .queries-view-changer      {border-radius: 0.25rem 0.25rem 0 0;
+        .queries-view-changer      {border-radius: 0;
                                     background-color: lighten($pallette1, 10%);
-                                    border-color: $pallette1;
+                                    border: 1px solid transparent;
+                                    color: darken($pallette2, 30%);
             &.in                   {background-color: $pallette1;
                                     border-color: darken($pallette1, 5%);
-                &:hover            {background-color: darken($pallette1, 20%);
+                                    border: 1px solid $pallette1;
+                                    color: darken($pallette2, 40%);
+                .badge             {border: 1px solid darken($pallette1, 30%);
+                }
+                &:hover            {background-color: darken($pallette1, 10%);
                 }
             }
-            &:hover                {background-color: darken($pallette1, 20%);
+            &:hover                {background-color: darken($pallette1, 5%);
             }
             .badge                 {margin-left: 0.5rem;
+                &.badge-secondary  {color: darken($pallette1, 40%);
+                                    background-color: lighten($pallette1, 10%);
+                                    border: 1px solid darken($pallette1, 20%);
+                }
+                &.badge-success    {background-color: color.scale(lighten($success, 50%), $saturation: -20%);
+                                    color: $success;
+                                    margin-left: 0.25rem;
+                                    border: 1px solid lighten($success, 20%);
+                }
             }
         }
     }
@@ -666,8 +702,7 @@ form                                    {margin-bottom: 1rem;
                                      overflow-y: auto;
         @include react-transition-fade('queries-view-pane');
         ul.query-list,
-        ul.query-display-children   {margin-top: 1rem;
-                                     padding-left: 0.5rem;
+        ul.query-display-children   {padding-left: 0.5rem;
             li                      {padding: 0;
                                      list-style-type: none;
                                      list-style-position: outside;
@@ -693,6 +728,9 @@ form                                    {margin-bottom: 1rem;
                 .display-op-public     {font-size: $font-size-sm;
                                         display: block;
                                         padding-left: 0.4rem;
+                    .button            {padding: 0 0.4rem;
+                                        color: lighten($accent2, 5%);
+                    }
                     svg                {position: relative;
                                         top: 0.05rem;
                     }
@@ -746,6 +784,7 @@ form                                    {margin-bottom: 1rem;
                     .btn                  {padding-left: 0;
                                            color: $niceGrey;
                         svg               {margin-left: 0;
+                                           margin-right: 0.25rem;
                         }
                     }
                 }
@@ -770,6 +809,8 @@ form                                    {margin-bottom: 1rem;
                                        padding-top: 0;
                 svg                   {margin-right: 0;
                 }
+                .display-op-public svg    {margin-right: 0.25rem;
+                }
             }
             .display-body-wrapper     {padding-right: 0;
                                         padding-left: 1rem;
@@ -781,7 +822,6 @@ form                                    {margin-bottom: 1rem;
                                         border-radius: 0.75rem;
                                         padding: 0 0 0.5rem 1rem;
                                         position: relative;
-                                        margin-bottom: 1rem;
                                         border: 3px solid $accent2;
                 &:before                {border-right: 31px solid lighten($accent2, 30%);
                                         border-bottom: 31px solid transparent;
@@ -805,16 +845,18 @@ form                                    {margin-bottom: 1rem;
                 }
                 &.read                  {border: 3px solid lighten($accent2, 30%);
                 }
-                .query-display-response,
-                .query-display-prompt   {padding: .5rem;
-                                        font-size: $font-size-base;
-                                        font-family: $greek-fonts;
-                                        background-color: lighten($pallette2, 20%);
-                                        margin-bottom: .5rem;
-                    p:last-of-type      {margin-bottom: 0;
+                .query-display-body-text   {min-height: 8rem;
+                    .query-display-response,
+                    .query-display-prompt   {padding: .5rem;
+                                            font-size: $font-size-base;
+                                            font-family: $greek-fonts;
+                                            background-color: lighten($pallette2, 20%);
+                                            margin-bottom: .5rem;
+                        p:last-of-type      {margin-bottom: 0;
+                        }
                     }
-                }
-                .query-display-op-question  {margin-bottom: 0;
+                    .query-display-op-question  {margin-bottom: 0;
+                    }
                 }
                 .control-row            {
                     .btn                {color: lighten($accent2, 5%);
@@ -830,16 +872,19 @@ form                                    {margin-bottom: 1rem;
                                          margin-left: 0.5rem;
                                          margin-bottom: 0.5rem;
             .reply-display-op           {
-                .reply-display-name     {color: darken($niceGrey, 5%);
+                .reply-display-op-name     {color: darken($niceGrey, 5%);
                 }
             }
             .reply-display-body-wrapper {height: 100%;
 
                 &.read                  {border: 0;
-                                         border-left: 3px solid lighten($niceGrey, 30%);
+                                         border-left: 3px solid lighten($niceGrey, 40%);
                 }
                 &.unread                {border: 0;
-                                         border-left: 3px solid color.scale(lighten($success, 30%), $saturation: -20%);
+                                         border-left: 3px solid color.scale(lighten($success, 40%), $saturation: -20%);
+                }
+                .read-link              {color: $niceGrey;
+
                 }
                 .reply-display-op-question     {color: darken($niceGrey, 5%);
                 }

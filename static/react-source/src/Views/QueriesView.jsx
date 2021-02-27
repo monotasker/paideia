@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Badge,
+import { Alert,
+         Badge,
          Button,
          Col,
          Collapse,
@@ -214,6 +215,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
       onClick={() => setShowForm(!showForm)}
       aria-controls={`add-query-form`}
       aria-expanded={showForm}
+      className="add-query-form-toggle"
     >
       <FontAwesomeIcon icon="plus" />
       {"Ask a new question or make a comment!"}
@@ -221,19 +223,21 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
     <Collapse in={showForm}>
       <Form
         onSubmit={(event) => action(queryText, showPublic, event)}
+        className="add-query-form"
       >
         {(!nonStep && !!singleStep) &&
-          <Form.Group controlId="newQueryFormAnswer">
-            ({!!answer && answer !== "null" ?
+          <Form.Group controlId="newQueryFormAnswer"
+            className="alert alert-info"
+          >
+            {!!answer && answer !== "null" ?
               <React.Fragment>
                 <Form.Label>You said</Form.Label>
-                <p>{answer}</p>
-                <Form.Label>Awarded</Form.Label>
-                <span>{score}</span>
+                <Alert variant="light">{answer}</Alert>
+                <Form.Label>and that was counted for {score} {score===1 ? "point" : (score===0 ? "points" : "of a point")}</Form.Label>
               </React.Fragment>
             :
               <Form.Label>You haven't answered this question yet</Form.Label>
-            })
+            }
           </Form.Group>
         }
         <Form.Group controlId="newQueryFormTextarea">
@@ -535,45 +539,47 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                   />
                 </div>
                 :
+                <React.Fragment>
                 <div className={`${level}-display-body-text display-body-text`}>
                   <p className={`${level}-display-op-question display-op-question`}
                     dangerouslySetInnerHTML={{
                       __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
                   />
-                  <span className={`${level}-display-date display-date`}>
-                    <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(dateSubmitted)}
-                  </span>
-                  {!!dateUpdated && (dateUpdated !== dateSubmitted) &&
-                    <span className={`${level}-display-edited-date dispay-edited-date`}>
-                      <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
-                    </span>
-                  }
-                  {!!queryStep && (!!viewingAsAdmin || !!viewingAsInstructor) &&
-                    <span className={`${level}-display-query-step dispay-query-step`}>
-                      <FontAwesomeIcon icon="shoe-prints" size="sm" />for step {queryStep} in path {queryPath}
-                    </span>
-                  }
-                  <ControlRow
-                    userId={user.userId}
-                    opId={opId}
-                    level={level}
-                    classId={classId}
-                    icon={level==="comment" ? null : childLevel}
-                    showAdderValue={level==="comment" ? null : showAdder}
-                    showAdderAction={(level==="comment" || !user.userLoggedIn) ? null : setShowAdder}
-                    showEditorAction={showEditingForm}
-                    updateAction={updateThisAction[level]}
-                    defaultUpdateArgs={updateArgs[level]}
-                    userRoles={user.userRoles}
-                    instructing={user.instructing}
-                    showPublic={showPublic}
-                    flagged={flagged}
-                    pinned={pinned}
-                    popularity={popularity}
-                    helpfulness={helpfulness}
-                    userLoggedIn={user.userLoggedIn}
-                  />
                 </div>
+                <span className={`${level}-display-date display-date`}>
+                  <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(dateSubmitted)}
+                </span>
+                {!!dateUpdated && (dateUpdated !== dateSubmitted) &&
+                  <span className={`${level}-display-edited-date dispay-edited-date`}>
+                    <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
+                  </span>
+                }
+                {!!queryStep && (!!viewingAsAdmin || !!viewingAsInstructor) &&
+                  <span className={`${level}-display-query-step dispay-query-step`}>
+                    <FontAwesomeIcon icon="shoe-prints" size="sm" />for step {queryStep} in path {queryPath}
+                  </span>
+                }
+                <ControlRow
+                  userId={user.userId}
+                  opId={opId}
+                  level={level}
+                  classId={classId}
+                  icon={level==="comment" ? null : childLevel}
+                  showAdderValue={level==="comment" ? null : showAdder}
+                  showAdderAction={(level==="comment" || !user.userLoggedIn) ? null : setShowAdder}
+                  showEditorAction={showEditingForm}
+                  updateAction={updateThisAction[level]}
+                  defaultUpdateArgs={updateArgs[level]}
+                  userRoles={user.userRoles}
+                  instructing={user.instructing}
+                  showPublic={showPublic}
+                  flagged={flagged}
+                  pinned={pinned}
+                  popularity={popularity}
+                  helpfulness={helpfulness}
+                  userLoggedIn={user.userLoggedIn}
+                />
+                </React.Fragment>
               }
               </CSSTransition>
               </SwitchTransition>
@@ -1368,7 +1374,7 @@ const QueriesView = () => {
             <FontAwesomeIcon icon="user" />Me
             <Badge variant="secondary">{userQueries ? userQueries.length : "0"}</Badge>
             {!!userUnreadCount &&
-              <Badge variant="success">{userUnreadCount} unread</Badge>
+              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
             }
           </Button>
           {!!user.userLoggedIn && !!user.classInfo &&
@@ -1380,7 +1386,7 @@ const QueriesView = () => {
             <FontAwesomeIcon icon="users" />Classmates
             <Badge variant="secondary">{classTotalCount}</Badge>
             {!!classUnreadCount &&
-              <Badge variant="success">{classUnreadCount} unread</Badge>
+              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classUnreadCount}</Badge>
             }
           </Button>
           }
@@ -1393,7 +1399,7 @@ const QueriesView = () => {
               <FontAwesomeIcon icon="users" />Students
               <Badge variant="secondary">{studentsTotalCount}</Badge>
               {!!studentsUnreadCount &&
-                <Badge variant="success">{studentsUnreadCount} unread</Badge>
+                <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {studentsUnreadCount}</Badge>
               }
             </Button>
           }
@@ -1405,7 +1411,7 @@ const QueriesView = () => {
             <FontAwesomeIcon icon="globe-americas" />Others
             <Badge variant="secondary">{otherQueries ? otherQueries.length : "0"}</Badge>
             {!!otherUnreadCount &&
-              <Badge variant="success">{otherUnreadCount} unread</Badge>
+              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
             }
           </Button>
         </div>
@@ -1502,16 +1508,25 @@ const QueriesView = () => {
             </Button>
           </h2>
 
-          <Form.Group controlId={`filterUnansweredCheckbox`}>
-            <Form.Check inline type="checkbox" label="Only unanswered"
-              defaultValue={filterUnanswered}
-              onChange={e => setFilterUnanswered(!filterUnanswered)}
-              />
-            <Form.Check inline type="checkbox" label="Only unread"
-              defaultValue={filterUnread}
+          <Form controlId={`filterUnansweredCheckbox`}
+            inline
+            className="query-filter-form"
+          >
+            <Form.Check inline label="Only unread"
+              id="only-unread-checkbox"
+              type="switch"
+              // defaultValue={filterUnread}
+              isSelected={filterUnread}
               onChange={e => setFilterUnread(!filterUnread)}
               />
-          </Form.Group>
+            <Form.Check inline label="Only unanswered"
+              id="only-unanswered-checkbox"
+              type="switch"
+              // defaultValue={filterUnanswered}
+              isSelected={filterUnanswered}
+              onChange={e => setFilterUnanswered(!filterUnanswered)}
+              />
+          </Form>
 
           <div className="queries-view-wrapper">
             <SwitchTransition>
