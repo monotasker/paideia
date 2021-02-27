@@ -818,6 +818,16 @@ form                                    {margin-bottom: 1rem;
         }
         .query-display-wrapper          {color: lighten($accent2, 5%);
                                          margin-top: 0.5rem;
+            .query-disply-op-privateinfo    {font-size: $font-size-sm;
+                                             padding: 0.25rem;
+                                             border: 1px solid darken($pallette1, 10%);
+                                             background-color: lighten($pallette1, 5%);
+                                             color: darken($pallette1, 40%);
+                .query-display-op-points    {display: block;
+                                             width: 100%;
+                }
+
+            }
             .query-display-body-wrapper {background-color: lighten($accent2, 60%);
                                         border-radius: 0.75rem;
                                         padding: 0 0 0.5rem 1rem;
