@@ -450,21 +450,6 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             )
             : ""
           }
-          {user.userId===opId ?
-           <Button className={`${level}-display-op-public display-op-public`}
-             onClick={togglePublic}
-             variant="link"
-           >
-              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
-                size="1x" />
-              {!!isPublic ? "public" : "private"}
-           </Button> :
-           <span className={`${level}-display-op-public display-op-public`} >
-              <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
-                size="1x" />
-              {!!isPublic ? "public" : "private"}
-           </span>
-          }
           {level==="query" &&
            (user.userId===opId || !!viewingAsAdmin || !!viewingAsInstructor) &&
             score !== null &&
@@ -481,14 +466,31 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     autosize={false}
                     // submitButton={false}
                   />
-                  {!!adjustedScore && `(originally ${score})`}
+                  {!!adjustedScore && `(was ${score})`}
                 </span>
               :
-                <span className={`${level}-display-op-points display-op-points`}>
-                  given {!!adjustedScore ? `${adjustedScore}/1.0 (originally ${score})`: `${score}/1.0`}
+                <span className={`${level}-display-op-points display-op-points badge`}>
+                  {!!adjustedScore ? `${adjustedScore} point(s) (was ${score})`: `${score} point(s)`}
                 </span>
               }
-              Only you and your instructor can see this box
+              <span className={`${level}-display-op-privatemessage display-op-privatemessage`}>
+                <FontAwesomeIcon icon="eye-slash" />this score is private
+              </span>
+              {user.userId===opId ?
+              <Button className={`${level}-display-op-public display-op-public`}
+                onClick={togglePublic}
+                variant="link"
+              >
+                  <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                    size="1x" />
+                  {!!isPublic ? "public" : "private"}
+              </Button> :
+              <span className={`${level}-display-op-public display-op-public`} >
+                  <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                    size="1x" />
+                  {!!isPublic ? "public" : "private"}
+              </span>
+              }
             </div>
           }
         </Col>
@@ -504,6 +506,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               Mark as {!!read ? `unread` : `read`}
             </Button>
           }
+          <div className={`${level}-display-inner-wrapper ${readClass} display-inner-wrapper`}>
           {!!queryStep &&
             <React.Fragment>
               The step asked...
@@ -550,7 +553,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                   <FontAwesomeIcon icon="clock" size="sm" />{readableDateAndTime(dateSubmitted)}
                 </span>
                 {!!dateUpdated && (dateUpdated !== dateSubmitted) &&
-                  <span className={`${level}-display-edited-date dispay-edited-date`}>
+                  <span className={`${level}-display-edited-date display-edited-date`}>
                     <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
                   </span>
                 }
@@ -583,6 +586,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               }
               </CSSTransition>
               </SwitchTransition>
+              </div>
             </Col>
           </Row>
 
@@ -1429,10 +1433,10 @@ const QueriesView = () => {
               {scope==='user' ? (
                 !!user.userLoggedIn ? (
                   (nonStep===false && singleStep===false) ?
-                    <div>
+                    <Alert variant="warning" className="me-new-query-info">
                       <p>{"Asking a question that's not about a specific path or step? Select 'General' at top."}</p>
                       <p>To ask about a specific step you must be attempting that step when you submit your question.</p>
-                    </div>
+                    </Alert>
                   :
                     <NewQueryForm
                       answer={user.currentAnswer}
