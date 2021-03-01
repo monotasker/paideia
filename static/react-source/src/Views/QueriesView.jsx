@@ -6,6 +6,7 @@ import { Alert,
          Collapse,
          Form,
          FormControl,
+         FormLabel,
          OverlayTrigger,
          Row,
          Spinner,
@@ -152,7 +153,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
 const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
                      currentText, setEditingAction,
                      autosize=true, optionList=null,
-                     submitButton=true
+                     submitButton=true, labels=false, inline=false
                     }) => {
   const [myText, setMyText] = useState();
   const idString = Object.values(idArgs).join("-");
@@ -175,8 +176,10 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
   return (
     <Form id={`update-${level}-${updateField}-form-${idString}`}
       className={`update-${level}-${updateField}-form update-form`}
+      inline={inline}
     >
         <Form.Group controlId={`update-${level}-${updateField}-input-${idString}`}>
+          {!!labels && <FormLabel>{updateField}</FormLabel>}
           <FormComponent
             as={!autosize ? (!!optionList ? "select" : "input") : undefined }
             defaultValue={!optionList ? currentText : parseInt(currentText) }
@@ -312,6 +315,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      popularity, helpfulness, pinned, read,
                      classId=null, replyId=null, commentId=null,
                      queryStatus=null, opResponseText=null, stepPrompt=null,
+                     sampleAnswers=null,
                      queryStep=null, queryPath=null,
                      score=null, adjustedScore=null,
                      children=null, threadIndex=0
@@ -329,6 +333,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const showEditingForm = (e) => {
     e.preventDefault();
     setEditing(true);
+  }
+
+  let SampleList;
+  if ( !!sampleAnswers ) {
+    let sampleAnswerList = sampleAnswers.split("|");
+    SampleList = <ul>{sampleAnswerList.map(a => <li key={a}>{a}</li>)}</ul>
   }
   const uid = [classId, queryId, replyId, commentId].join('_');
   const levels = ["query", "reply", "comment"];
@@ -452,17 +462,18 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             <div className={`${level}-display-op-privateinfo display-op-privateinfo instructor-view`}>
               {(!!viewingAsAdmin || !!viewingAsInstructor) ?
                 <span className={`${level}-display-op-points display-op-points`}>
-                  Given
                   <UpdateForm level={level}
                     idArgs={idArgs}
                     updateAction={updateThisAction[level]}
                     updateField="score"
+                    labels={true}
                     currentText={!activeScore==="0" ? DOMPurify.sanitize(activeScore) : activeScore}
                     setEditingAction={setEditing}
                     autosize={false}
+                    inline={true}
                     // submitButton={false}
                   />
-                  {!!adjustedScore && `(was ${score})`}
+                  {!!adjustedScore && `(previously ${score})`}
                 </span>
               :
                 <span className={`${level}-display-op-points display-op-points badge`}>
@@ -520,6 +531,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 dangerouslySetInnerHTML={{
                   __html: !!opResponseText ? DOMPurify.sanitize(marked(opResponseText)) : ""}}
               />
+            </React.Fragment>
+          }
+          {!!sampleAnswers &&
+            <React.Fragment>
+              Good answers could include these...
+              <p className="query-display-samples">{SampleList}</p>
             </React.Fragment>
           }
           <SwitchTransition>
@@ -810,6 +827,7 @@ const QueriesView = () => {
           opNameFirst: "Ian",
           opNameLast: "Scott",
           opText: q.bugs.admin_comment,
+          sampleAnswers: q.bugs.sample_answers,
           dateSubmitted: q.bugs.date_submitted,
           dateUpdated: q.bugs.modified_on,
           opRole: ["administrators", "instructors"],
@@ -843,6 +861,7 @@ const QueriesView = () => {
                queryStatus: q.bugs.bug_status,
                opResponseText: q.bugs.user_response,
                opText: q.bugs.user_comment,
+               sampleAnswers: q.bugs.sample_answers,
                stepPrompt: myPrompt,
                hidden: q.bugs.hidden,
                showPublic: q.bugs.public,

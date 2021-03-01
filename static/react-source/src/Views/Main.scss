@@ -830,13 +830,28 @@ form                                    {margin-bottom: 1rem;
                 }
                 .query-display-op-privatemessage    {font-size: $font-size-sm;
                 }
+                &.instructor-view            {
+                    .query-display-op-points   {background-color: $pallette1;
+                                                color: darken($pallette2, 40%);
+                        .update-query-score-form    {margin: 0.25rem 0 0 0;
+                            .form-group     {flex-wrap: row nowrap;
+                                             margin-bottom: 0.25rem;
+                                .form-label {margin-right: 0.25rem;
+                                }
+                                .form-control {width: 20%
+                                }
+                            }
 
+                        }
+                    }
+                }
             }
             .query-display-body-wrapper {background-color: lighten($accent2, 60%);
                                         border-radius: 0.75rem;
                                         padding: 0 0 0.5rem 1rem;
                                         position: relative;
                                         border: 3px solid $accent2;
+                                        color: darken($accent2, 10%);
                 &:before                {border-right: 31px solid lighten($accent2, 30%);
                                         border-bottom: 31px solid transparent;
                                         left: -32px;
@@ -852,6 +867,7 @@ form                                    {margin-bottom: 1rem;
                                         position: absolute;
                 }
                 &.unread                {background-color: lighten($success, 60%);
+                                         color: darken($success, 10%);
                     &:before            {border-right: 31px solid $success;
                     }
                     &:after             {border-right: 25px solid lighten($success, 60%);
@@ -861,8 +877,10 @@ form                                    {margin-bottom: 1rem;
                 }
                 .query-display-inner-wrapper {padding-top: .5rem;
                                               padding-right: 1rem;
+                                              min-height: 8rem;
                     .query-display-response,
-                    .query-display-prompt   {padding: .5rem;
+                    .query-display-prompt,
+                    .query-display-samples   {padding: .5rem;
                                             padding-left: 1rem;
                                             font-size: $font-size-base;
                                             font-family: $greek-fonts;
@@ -872,13 +890,24 @@ form                                    {margin-bottom: 1rem;
                         p:last-of-type      {margin-bottom: 0;
                         }
                     }
-                    .query-display-body-text   {min-height: 8rem;
+                    .query-display-samples {
+                        ul                 {padding-left: 0;
+                            li             {list-style-type: disc;
+                                            list-style-position: inside;
+                                &:before   {content: "";
+                                            margin-left: -0.5rem;
+                                }
+                            }
+                        }
+                    }
+                    .query-display-body-text   {
                         .query-display-op-question  {margin-bottom: 0;
                         }
                     }
                     &.unread                {
                         .query-display-response,
-                        .query-display-prompt   {background-color: lighten($success, 70%);
+                        .query-display-prompt,
+                        .query-display-samples   {background-color: lighten($success, 70%);
                                                  border-color: lighten($success, 40%);
                         }
                     }
