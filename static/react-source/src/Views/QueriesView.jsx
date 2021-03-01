@@ -386,13 +386,9 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
     setIsPublic(!isPublic);
   };
   const toggleRead = () => {
-    console.log('toggleRead firing,,,,,,,,,,,,,,');
-    console.log(`postLevel: ${level}`);
     let myIds = {query: queryId,
                  reply: replyId,
                  comment: commentId}
-    console.log(`postId: ${myIds[level]}`);
-    console.log(`userId: ${user.userId}`);
     setReadStatusAction({postLevel: level,
                          postId: myIds[level],
                          userId: user.userId,
@@ -453,7 +449,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           {level==="query" &&
            (user.userId===opId || !!viewingAsAdmin || !!viewingAsInstructor) &&
             score !== null &&
-            <div className={`${level}-display-op-privateinfo display-op-privateinfo`}>
+            <div className={`${level}-display-op-privateinfo display-op-privateinfo instructor-view`}>
               {(!!viewingAsAdmin || !!viewingAsInstructor) ?
                 <span className={`${level}-display-op-points display-op-points`}>
                   Given
@@ -476,22 +472,23 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               <span className={`${level}-display-op-privatemessage display-op-privatemessage`}>
                 <FontAwesomeIcon icon="eye-slash" />this score is private
               </span>
-              {user.userId===opId ?
-              <Button className={`${level}-display-op-public display-op-public`}
-                onClick={togglePublic}
-                variant="link"
-              >
-                  <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
-                    size="1x" />
-                  {!!isPublic ? "public" : "private"}
-              </Button> :
-              <span className={`${level}-display-op-public display-op-public`} >
-                  <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
-                    size="1x" />
-                  {!!isPublic ? "public" : "private"}
-              </span>
-              }
             </div>
+          }
+          {user.userId===opId ?
+            <Button className={`${level}-display-op-public display-op-public`}
+              onClick={togglePublic}
+              variant="link"
+            >
+                <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                  size="1x" />
+                {!!isPublic ? "public" : "private"}
+            </Button>
+            :
+            <span className={`${level}-display-op-public display-op-public`} >
+                <FontAwesomeIcon icon={!!isPublic ? "eye" : "eye-slash"}
+                  size="1x" />
+                {!!isPublic ? "public" : "private"}
+            </span>
           }
         </Col>
         <Col xs={9}
