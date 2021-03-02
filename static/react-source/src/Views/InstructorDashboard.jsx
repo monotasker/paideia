@@ -4,11 +4,13 @@ import React, { useState, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
 
 import {
-  Row,
   Col,
   Form,
+  Row,
   Spinner,
+  Tab,
   Table,
+  Tabs
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
@@ -156,6 +158,8 @@ const InstructorDashboard = () => {
             </Form.Control>
           </Form.Group>
 
+        <Tabs>
+        <Tab eventKey="course-details" title="Course Details">
         <Form>
           <Form.Row>
             <Col className="dashboard-class-info" xs={12} lg={4}>
@@ -292,6 +296,46 @@ const InstructorDashboard = () => {
             </Col>
           </Form.Row>
         </Form>
+        </Tab> {/* end of course parameters tab */}
+
+        <Tab eventKey="course-students" title="Students">
+          <Table>
+            <thead>
+              <tr>
+                <td>Given Name</td>
+                <td>Family Name</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </thead>
+            <tbody>
+              {classMembers.map(m =>
+              <tr>
+                <td>{m.first_name}</td>
+                <td>{m.last_name}</td>
+                <td>{m.custom_start}</td>
+                <td>{m.custom_end}</td>
+                <td>{m.starting_set}</td>
+                <td>{m.ending_set}</td>
+                <td>{m.custom_a_cap}</td>
+                <td>{m.custom_b_cap}</td>
+                <td>{m.custom_c_cap}</td>
+                <td>{m.custom_d_cap}</td>
+                <td>{m.final_grade}</td>
+              </tr>
+              )}
+            </tbody>
+          </Table>
+        </Tab>
+        </Tabs>
+
         </Col>
       </Row>
     )
