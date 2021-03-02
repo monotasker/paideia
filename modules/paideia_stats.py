@@ -1502,13 +1502,11 @@ def get_term_bounds(meminfo, start_date, end_date):
     return mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend
 
 
-def compute_letter_grade(uid, myprog, startset, classrow):
+def compute_letter_grade(uid, myprog, startset, classrow, membership):
     """
     Computes student's letter grade based on his/her progress in badge sets.
     """
     debug = False
-    mymem = get_current_class(uid, datetime.datetime.utcnow(),
-                              myclass=classrow['id'])
     if debug: print('stats::compute_letter_grade: uid = ', uid)
     if debug: db = current.db
     if debug: print(db.auth_user[uid].last_name)
@@ -1518,8 +1516,8 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     for let in ['a', 'b', 'c', 'd']:
         letcap = '{}_cap'.format(let)
         lettarget = '{}_target'.format(let)
-        if mymem['custom_{}_cap'.format(let)]:
-            mylet = mymem['custom_{}_cap'.format(let)]
+        if membership['custom_{}_cap'.format(let)]:
+            mylet = membership['custom_{}_cap'.format(let)]
         else:
             realtarget = (int(startset) + classrow[lettarget])
             if classrow[letcap] and (classrow[letcap] < realtarget):
@@ -1562,9 +1560,9 @@ def get_current_class(uid, now, myclass=None):
                                    (row.classes.start_date < now) and
                                    (row.classes.end_date > now)
                                    )
-        myrow = myclasses.first()
+        myrow = myclasses.first().as_dict()
     if myrow:
-        myc = myrow.as_dict()
+        myc = myrow
         myreturn = myc
 
         myprof = db.auth_user(myc['classes']['instructor'])
@@ -1575,14 +1573,14 @@ def get_current_class(uid, now, myclass=None):
     return myreturn
 
 
-def make_classlist(member_sel, users, start_date, end_date, target, classrow):
+def make_classlist(memberships, users, start_date, end_date, target, classrow):
     """
     Return a dictionary of information on each student in the class.
     """
     debug = False
     if debug: print('starting paideia_status/make_classlist ==============')
     userlist = []
-    for member in member_sel:
+    for member in memberships:
         uid = member.name
         if debug: print(uid)
         try:
@@ -1591,15 +1589,12 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
             print('oops!')
             db = current.db
             user = {'auth_user': db.auth_user(uid)}
-        myname = '{}, {}'.format(user['auth_user'].last_name,
-                                 user['auth_user'].first_name)
-        if debug: print(myname)
-        meminfo = member_sel.find(lambda row: row.name == uid)[0]
+        # meminfo = memberships.find(lambda row: row.name == uid)[0]
         mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend = \
-            get_term_bounds(meminfo, start_date, end_date)
+            get_term_bounds(member, start_date, end_date)
 
         mycounts = get_daycounts(user['auth_user'], target)
-        startset = meminfo.starting_set if meminfo.starting_set \
+        startset = member.starting_set if member.starting_set \
             else get_set_at_date(uid, mystart)
 
         if datetime.datetime.utcnow() < myend and \
@@ -1609,7 +1604,11 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
             currset = get_set_at_date(uid, myend)
 
         myprog = currset - int(startset)
-        mygrade = compute_letter_grade(uid, myprog, startset, classrow)
+
+        print('classrow======================')
+        print(classrow)
+        print(type(classrow))
+        mygrade = compute_letter_grade(uid, myprog, startset, classrow, member)
         try:
             tp_id = user['tag_progress'].id
         except KeyError:  # if no 'tag_progress' key in user dict
@@ -1620,7 +1619,8 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
         if debug: print('tp_id', tp_id)
 
         userlist.append({'uid': uid,
-                         'name': myname,
+                         'first_name': user['auth_user'].first_name,
+                         'last_name': user['auth_user'].last_name,
                          'counts': mycounts,
                          'current_set': currset,
                          'starting_set': startset,
@@ -1629,7 +1629,17 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                          'start_date': fmt_start,
                          'end_date': fmt_end,
                          'previous_end_date': fmt_prevend,
-                         'tp_id': tp_id})
+                         'tp_id': tp_id,
+                         'custom_start': member['custom_start'],
+                         'custom_end': member['custom_end'],
+                         'starting_set': member['starting_set'],
+                         'ending_set': member['ending_set'],
+                         'custom_a_cap': member['custom_a_cap'],
+                         'custom_b_cap': member['custom_b_cap'],
+                         'custom_c_cap': member['custom_c_cap'],
+                         'custom_d_cap': member['custom_d_cap'],
+                         'final_grade': member['final_grade']
+                         })
     userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
     if debug: print('returning userlist --------------------')
     if debug: pprint(userlist)

@@ -12,7 +12,8 @@ import os
 from pprint import pprint
 from paideia import Walk
 from paideia_utils import GreekNormalizer
-from paideia_stats import Stats, get_set_at_date, get_term_bounds
+from paideia_stats import Stats, get_set_at_date, make_classlist, \
+    get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
 import re
@@ -2139,7 +2140,7 @@ def get_course_data():
     db = current.db
     try:
         print('getting course', request.vars.course_id)
-        course_rec = db.classes(request.vars.course_id).as_dict()
+        course_rec = db.classes(request.vars.course_id)
     except AttributeError:
         print(format_exc(5))
         response = current.response
@@ -2167,7 +2168,6 @@ def get_course_data():
         return json_serializer({'status': 'unauthorized',
                      'reason': 'Insufficient privileges'})
 
-
     mycourse = {k: v for k, v in course_rec.items() if k in [
                 'id',
                 'institution', 'academic_year', 'term',
@@ -2180,6 +2180,20 @@ def get_course_data():
                 'd_target', 'd_cap',
                 'f_target'
                 ]}
+    in_process = True if course_rec['end_date'] > datetime.datetime.now() \
+        else False
+
+    memberships = db(db.class_membership.class_section ==
+                    course_rec['id']).select()
+    users = db((db.auth_user.id == db.tag_progress.name) &
+                (db.auth_user.id.belongs([m['name'] for m in memberships]))
+                ).select(orderby=db.auth_user.last_name)
+    print('course_rec======================')
+    print(course_rec)
+    print(type(course_rec))
+    classlist = make_classlist(memberships, users, course_rec['start_date'],
+                                course_rec['end_date'], course_rec['paths_per_day'], course_rec)
+
     members = [{'first_name': m.auth_user.first_name,
                 'last_name': m.auth_user.last_name,
                 'custom_start': m.class_membership.custom_start,
@@ -2196,7 +2210,9 @@ def get_course_data():
            (db.class_membership.name==db.auth_user.id)
            ).iterselect()
     ]
-    mycourse['members'] = members
+
+    mycourse['members'] = classlist
+
 
     return json_serializer(mycourse, default=my_custom_json)
 
