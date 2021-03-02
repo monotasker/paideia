@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
 
 import {
+  Alert,
   Col,
   Form,
   Row,
@@ -26,34 +27,54 @@ import { returnStatusCheck } from "../Services/authService";
 const InstructorDashboard = () => {
 
     const { user, dispatch } = useContext(UserContext);
-    const [ myClasses, setMyClasses ] = useState(user.instructing.sort(
+    const myhistory = useHistory();
+    const [ myClasses, setMyClasses ] = useState(!!user.instructing ?
+      user.instructing.sort(
         (a, b) => (Date.parse(a.start_date) > Date.parse(b.start_date)) ? -1 : 1)
+      :
+      []
     );
     const [ activeClassInfo, setActiveClassInfo ] = useState(myClasses[0]);
-    const [ activeClassId, setActiveClassId ] = useState(activeClassInfo.id);
-    const [ classInstitution, setClassInstitution ] = useState(activeClassInfo.institution);
-    const [ classYear, setClassYear ] = useState(activeClassInfo.academic_year || '');
+    const [ activeClassId, setActiveClassId ] = useState(
+      !!activeClassInfo ? activeClassInfo.id : 0);
+    const [ classInstitution, setClassInstitution ] = useState(
+      !!activeClassInfo ? activeClassInfo.institution : null);
+    const [ classYear, setClassYear ] = useState(
+      !!activeClassInfo ? (activeClassInfo.academic_year || '') : null);
     console.log(classYear);
-    const [ classTerm, setClassTerm ] = useState(activeClassInfo.term || '');
+    const [ classTerm, setClassTerm ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.term || '' ) : null);
     console.log(classTerm);
-    const [ classSection, setClassSection ] = useState(activeClassInfo.course_section || '');
+    const [ classSection, setClassSection ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.course_section || '' ) : null);
+    console.log(activeClassInfo.start_date);
     const [ classStart, setClassStart ] = useState(
-      moment(activeClassInfo.start_date).toDate()
-    );
+      !!activeClassInfo ? moment(activeClassInfo.start_date).toDate() : null);
+    console.log(activeClassInfo.end_date);
     const [ classEnd, setClassEnd ] = useState(
-      moment(activeClassInfo.end_date).toDate()
-    );
-    const [ classDailyQuota, setClassDailyQuota ] = useState(activeClassInfo.paths_per_day || '');
-    const [ classWeeklyQuota, setClassWeeklyQuota ] = useState(activeClassInfo.days_per_week || '');
-    const [ classTargetA, setClassTargetA ] = useState(activeClassInfo.a_target || 'set me');
-    const [ classTargetB, setClassTargetB ] = useState(activeClassInfo.b_target || '');
-    const [ classTargetC, setClassTargetC ] = useState(activeClassInfo.c_target || '');
-    const [ classTargetD, setClassTargetD ] = useState(activeClassInfo.d_target || '');
-    const [ classTargetF, setClassTargetF ] = useState(activeClassInfo.f_target || '');
-    const [ classCapA, setClassCapA ] = useState(activeClassInfo.a_cap || '');
-    const [ classCapB, setClassCapB ] = useState(activeClassInfo.b_cap || '');
-    const [ classCapC, setClassCapC ] = useState(activeClassInfo.c_cap || '');
-    const [ classCapD, setClassCapD ] = useState(activeClassInfo.d_cap || '');
+      !!activeClassInfo ? moment(activeClassInfo.end_date).toDate() : null);
+    const [ classDailyQuota, setClassDailyQuota ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.paths_per_day || '' ) : null);
+    const [ classWeeklyQuota, setClassWeeklyQuota ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.days_per_week || '' ) : null);
+    const [ classTargetA, setClassTargetA ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.a_target || 'set me' ) : null);
+    const [ classTargetB, setClassTargetB ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.b_target || '' ) : null);
+    const [ classTargetC, setClassTargetC ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.c_target || '' ) : null);
+    const [ classTargetD, setClassTargetD ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.d_target || '' ) : null);
+    const [ classTargetF, setClassTargetF ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.f_target || '' ) : null);
+    const [ classCapA, setClassCapA ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.a_cap || '' ) : null);
+    const [ classCapB, setClassCapB ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.b_cap || '' ) : null);
+    const [ classCapC, setClassCapC ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.c_cap || '' ) : null);
+    const [ classCapD, setClassCapD ] = useState(
+      !!activeClassInfo ? ( activeClassInfo.d_cap || '' ) : null);
     const [ classMembers, setClassMembers ] = useState([]);
     const [ classSignInLink, setClassSignInLink ] = useState(null);
     const [ classRegCode, setClassRegCode ] = useState(null);
@@ -140,10 +161,30 @@ const InstructorDashboard = () => {
     }, [classStart, classEnd, classDailyQuota, classWeeklyQuota, classCapA, classCapB, classCapC, classCapD, classTargetA, classTargetB, classTargetC, classTargetD, classTargetF]
 
     )
+    console.log(`user? ${!!user}`);
+    console.log(`user.userLoggedIn? ${!!user.userLoggedIn}`);
+    console.log(`user has roles?`);
+    console.log(!!user.userRoles && !!["instructors", "administrators"]
+                  .some(r => user.userRoles.includes(r)));
 
     return(
       <Row className="dashboard-component content-view">
         <Col>
+          { (!user || user.userLoggedIn !== true ) &&
+              myhistory.push('login?need_login=true')
+          }
+          { ( !user.userRoles || !["instructors", "administrators"]
+                  .some(r => user.userRoles.includes(r) )) ?
+            <Alert variant="danger">
+              <Col xs="auto">
+                <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+              </Col>
+              <Col xs="10">
+                Sorry, you have to be logged in as an instructor or administrator to enter this area.
+              </Col>
+            </Alert>
+            :
+          <React.Fragment>
           <h2>My Dashboard</h2>
           <Form.Group controlId="classForm.classSelector">
             <Form.Label>Choose a class group</Form.Label>
@@ -299,7 +340,7 @@ const InstructorDashboard = () => {
         </Tab> {/* end of course parameters tab */}
 
         <Tab eventKey="course-students" title="Students">
-          <Table>
+          <Table className="course-students-table">
             <thead>
               <tr>
                 <td>Given Name</td>
@@ -317,7 +358,7 @@ const InstructorDashboard = () => {
             </thead>
             <tbody>
               {classMembers.map(m =>
-              <tr>
+              <tr key={`${m.first_name}_${m.last_name}`}>
                 <td>{m.first_name}</td>
                 <td>{m.last_name}</td>
                 <td>{m.custom_start}</td>
@@ -335,7 +376,8 @@ const InstructorDashboard = () => {
           </Table>
         </Tab>
         </Tabs>
-
+        </React.Fragment>
+        }
         </Col>
       </Row>
     )

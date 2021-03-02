@@ -85,6 +85,16 @@ const LoginInner = ({submitAction}) => {
         { user.userLoggedIn === false && (
           <React.Fragment>
           <h2 className="text-center">How About Logging In?</h2>
+          {queryParams.get("need_login")==="true" &&
+            <Alert variant="danger">
+              <Col xs="auto">
+                <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+              </Col>
+              <Col xs="10">
+                Sorry, you have to be logged in to access that area. You can log in now to continue or sign up.
+              </Col>
+            </Alert>
+          }
           {queryParams.get("just_registered")==="true" &&
             <Alert variant="success">
               Now you can log in using the email and password that you just used to create your account!
