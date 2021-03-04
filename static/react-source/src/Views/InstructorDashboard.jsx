@@ -1,7 +1,7 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import React, { useState, useEffect, useContext } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 
 import {
   Alert,
@@ -22,6 +22,7 @@ import 'react-day-picker/lib/style.css';
 import {UserContext} from "../UserContext/UserProvider";
 import {fetchClassInfo} from "../Services/infoFetchService";
 import { returnStatusCheck } from "../Services/authService";
+import { urlBase } from "../variables";
 
 
 const InstructorDashboard = () => {
@@ -35,6 +36,7 @@ const InstructorDashboard = () => {
       []
     );
     const [ activeClassInfo, setActiveClassInfo ] = useState(myClasses[0]);
+    const [ classInProcess, setClassInProcess ] = useState();
     const [ activeClassId, setActiveClassId ] = useState(
       !!activeClassInfo ? activeClassInfo.id : 0);
     const [ classInstitution, setClassInstitution ] = useState(
@@ -47,10 +49,8 @@ const InstructorDashboard = () => {
     console.log(classTerm);
     const [ classSection, setClassSection ] = useState(
       !!activeClassInfo ? ( activeClassInfo.course_section || '' ) : null);
-    console.log(activeClassInfo.start_date);
     const [ classStart, setClassStart ] = useState(
       !!activeClassInfo ? moment(activeClassInfo.start_date).toDate() : null);
-    console.log(activeClassInfo.end_date);
     const [ classEnd, setClassEnd ] = useState(
       !!activeClassInfo ? moment(activeClassInfo.end_date).toDate() : null);
     const [ classDailyQuota, setClassDailyQuota ] = useState(
@@ -103,6 +103,7 @@ const InstructorDashboard = () => {
           info => {
             console.log(info);
             if ( info.hasOwnProperty("classInstitution") ) {
+              setClassInProcess(info.classInProcess);
               setClassInstitution(info.classInstitution);
               setClassSection(info.classSection);
               setClassYear(info.classYear);
@@ -161,17 +162,17 @@ const InstructorDashboard = () => {
     }, [classStart, classEnd, classDailyQuota, classWeeklyQuota, classCapA, classCapB, classCapC, classCapD, classTargetA, classTargetB, classTargetC, classTargetD, classTargetF]
 
     )
-    console.log(`user? ${!!user}`);
-    console.log(`user.userLoggedIn? ${!!user.userLoggedIn}`);
-    console.log(`user has roles?`);
-    console.log(!!user.userRoles && !!["instructors", "administrators"]
-                  .some(r => user.userRoles.includes(r)));
+    // console.log(`user? ${!!user}`);
+    // console.log(`user.userLoggedIn? ${!!user.userLoggedIn}`);
+    // console.log(`user has roles?`);
+    // console.log(!!user.userRoles && !!["instructors", "administrators"]
+    //               .some(r => user.userRoles.includes(r)));
 
     return(
       <Row className="dashboard-component content-view">
         <Col>
           { (!user || user.userLoggedIn !== true ) &&
-              myhistory.push('login?need_login=true')
+              myhistory.push(`/${urlBase}/login?need_login=true`)
           }
           { ( !user.userRoles || !["instructors", "administrators"]
                   .some(r => user.userRoles.includes(r) )) ?
@@ -343,25 +344,35 @@ const InstructorDashboard = () => {
           <Table className="course-students-table">
             <thead>
               <tr>
-                <td>Given Name</td>
                 <td>Family Name</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>Given Name</td>
+                <td>
+                  {!!classInProcess ? "Current badge set" : "Final badge set"}
+                </td>
+                <td>Starting badge set</td>
+                <td>Progress this course</td>
+                <td>Current grade achieved</td>
               </tr>
             </thead>
             <tbody>
               {classMembers.map(m =>
+              <React.Fragment>
               <tr key={`${m.first_name}_${m.last_name}`}>
-                <td>{m.first_name}</td>
-                <td>{m.last_name}</td>
-                <td>{m.custom_start}</td>
+                <td rowSpan="2">
+                  <Link to={`/${urlBase}/profile/${m.uid}`}>
+                    {m.last_name}
+                  </Link>
+                </td>
+                <td>
+                  <Link to={`/${urlBase}/profile/${m.uid}`}>
+                    {m.first_name}
+                  </Link>
+                </td>
+                <td>{!!classInProcess ? m.current_set : m.ending_set }</td>
+                <td>{m.starting_set}</td>
+                <td>{m.progress} badge sets</td>
+                <td>{m.grade}</td>
+                {/* <td>{m.custom_start}</td>
                 <td>{m.custom_end}</td>
                 <td>{m.starting_set}</td>
                 <td>{m.ending_set}</td>
@@ -369,8 +380,64 @@ const InstructorDashboard = () => {
                 <td>{m.custom_b_cap}</td>
                 <td>{m.custom_c_cap}</td>
                 <td>{m.custom_d_cap}</td>
-                <td>{m.final_grade}</td>
+                <td>{m.final_grade}</td> */}
               </tr>
+              <tr>
+                {/* two cells blocked off by name */}
+                <td colSpan="5">
+                  <Table>
+                    <thead>
+                      <tr>
+                        <td></td>
+                        <td>Days active</td>
+                        <td>Days meeting minimum</td>
+                      </tr>
+                    </thead>
+                    <tr>
+                      <td>This week</td>
+                      <td>{m.counts[0]}</td>
+                      <td>{m.counts[1]}</td>
+                    </tr>
+                    <tr>
+                      <td>Last week</td>
+                      <td>{m.counts[2]}</td>
+                      <td>{m.counts[3]}</td>
+                    </tr>
+                  </Table>
+                  <Table>
+                    <tr>
+                      <td>Individual start date</td>
+                      <td>{m.custom_start}</td>
+                    </tr>
+                    <tr>
+                      <td>Individual end date</td>
+                      <td>{m.custom_end}</td>
+                    </tr>
+                  </Table>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <td>Individual grade caps</td>
+                      </tr>
+                      <tr>
+                        <td>A</td>
+                        <td>B</td>
+                        <td>C</td>
+                        <td>D</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{m.custom_a_cap}</td>
+                        <td>{m.custom_a_cap}</td>
+                        <td>{m.custom_c_cap}</td>
+                        <td>{m.custom_d_cap}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </td>
+              </tr>
+              </React.Fragment>
               )}
             </tbody>
           </Table>

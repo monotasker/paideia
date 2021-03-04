@@ -536,7 +536,7 @@ def get_login():
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
-    debug=False
+    debug=True
     request = current.request
     auth = current.auth
     session = current.session
@@ -2123,17 +2123,30 @@ def get_course_data():
             f_target
             members
         members is an array of objects which each have the following keys:
+            uid
             first_name
             last_name
+            progress
+            counts (list): [days active this week, days met target this week,
+                             days active last week, days met target last week]
+            current_set (int):
+            custom_a_cap (int):
+            custom_b_cap (int):
+            custom_c_cap
+            custom_d_cap
+            custom_end
+            custom_start
+            end_date
+            ending_set
+            final_grade: []
+            grade
+            previous_end_date
+            start_date
+            starting_set
+            tp_id: 585
             custom_start
             starting_set
             custom_end
-            ending_set
-            custom_a_cap
-            custom_b_cap
-            custom_c_cap
-            custom_d_cap
-            final_grade
     """
     auth = current.auth
     session = current.session
@@ -2180,8 +2193,8 @@ def get_course_data():
                 'd_target', 'd_cap',
                 'f_target'
                 ]}
-    in_process = True if course_rec['end_date'] > datetime.datetime.now() \
-        else False
+    mycourse['in_process'] = True if \
+        course_rec['end_date'] > datetime.datetime.now() else False
 
     memberships = db(db.class_membership.class_section ==
                     course_rec['id']).select()

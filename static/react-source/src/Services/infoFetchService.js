@@ -29,6 +29,7 @@ const fetchClassInfo = async ({courseId=null}) => {
         classYear: jsonData.academic_year,
         classTerm: jsonData.term,
         classSection: jsonData.course_section,
+        classInProcess: jsonData.in_process,
         classStart: jsonData.start_date,
         classEnd: jsonData.end_date,
         classDailyQuota: jsonData.paths_per_day,

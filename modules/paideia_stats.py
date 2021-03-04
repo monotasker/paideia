@@ -1410,7 +1410,11 @@ def get_set_at_date(user_id, mydt):
 def get_daycounts(user, target):
     """
     Return a 4-member tuple giving the number of active days in the past 2
-    weeks.
+    weeks. The members are:
+        [0] days active in current week
+        [1] days meeting minimum class target in current week
+        [2] days active in previous week
+        [3] days meeting minimum class target in previous week
     """
     db = current.db
     offset = get_offset(user)
@@ -1547,6 +1551,9 @@ def get_current_class(uid, now, myclass=None):
     db = current.db
     myreturn = None
     myrow = None
+    if debug: print('paideia_stats::get_current_class: uid:', uid)
+    if debug: print('paideia_stats::get_current_class: myclass:', myclass)
+    if debug: print('paideia_stats::get_current_class: now:', now)
     if myclass:
         myrow = db((db.class_membership.name == uid) &
                    (db.class_membership.class_section == myclass)
@@ -1555,12 +1562,24 @@ def get_current_class(uid, now, myclass=None):
         myclasses = db((db.class_membership.name == uid) &
                        (db.class_membership.class_section == db.classes.id)
                        ).select()
+        if debug: print('paideia_stats::get_current_class: myclasses:')
+        if debug: print(myclasses)
+        if debug: print(type(myclasses))
+        if debug: print(len(myclasses))
+        if debug: print(myclasses[-1])
         myclasses = myclasses.find(lambda row: (row.classes.start_date is not
                                                 None) and
                                    (row.classes.start_date < now) and
                                    (row.classes.end_date > now)
                                    )
-        myrow = myclasses.first().as_dict()
+        if debug: print('paideia_stats::get_current_class: myclasses:')
+        if debug: print(myclasses)
+        if debug: print(type(myclasses))
+        if debug: print(len(myclasses))
+        try:
+            myrow = myclasses.first().as_dict()
+        except AttributeError:  # because no matching row after filtering
+            myrow = None
     if myrow:
         myc = myrow
         myreturn = myc
@@ -1640,7 +1659,8 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
                          'custom_d_cap': member['custom_d_cap'],
                          'final_grade': member['final_grade']
                          })
-    userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
+    userlist = sorted(userlist, key=lambda t: (t['last_name'].capitalize(),
+                                               t['first_name'].capitalize()))
     if debug: print('returning userlist --------------------')
     if debug: pprint(userlist)
 
