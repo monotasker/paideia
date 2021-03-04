@@ -88,36 +88,15 @@ const register = async ({token,
   return mydata;
 }
 
-const login = async ({token, email, password}) => {
-  let formdata = new FormData();
-  formdata.append("email", email);
-  formdata.append("password", password);
-  formdata.append("token", token);
-  let response = await fetch('/paideia/api/get_login', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      body: formdata
-  })
-  let mystatus = response.status;
-  const jsonData = await response.json();
-  let mydata = jsonData;
-  mydata.status_code = mystatus;
-  return mydata;
-}
+/**
+ * Expects payload with keys:
+ *   token
+ *   email,
+ *   password
+ *  */
+const login = async (payload) => doApiCall(payload, "get_login", "form");
 
-const logout = async () => {
-  let response = await fetch('/paideia/api/do_logout', {
-      method: "GET",
-      cache: "no-cache",
-      mode: "same-origin"
-  })
-  let mystatus = response.status;
-  const jsonData = await response.json();
-  let mydata = jsonData;
-  mydata.status_code = mystatus;
-  return mydata;
-}
+const logout = async () => doApiCall({}, "do_logout", "none", "GET");
 
 const checkLogin = async (user, dispatch) => {
   let response = await fetch('/paideia/api/check_login', {

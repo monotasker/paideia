@@ -19,8 +19,8 @@ import { useParams, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { urlBase } from "../variables";
-import { returnStatusCheck } from "../Services/authService";
-import { getProfileInfo } from "../Services/utilityService";
+import { returnStatusCheck } from "../Services/utilityService";
+import { getProfileInfo } from "../Services/authService";
 import { UserContext } from "../UserContext/UserProvider";
 import Calendar from "../Components/Calendar";
 import { withinOneDay,

@@ -38,10 +38,10 @@ const useQuery = () => {
   return new URLSearchParams(useLocation().search);
 }
 
-const doApiCall = async (payload, method, format) => {
+const doApiCall = async (payload, apiFunction, format="none", method="POST") => {
   let myBody = payload;
   let headers = {
-      method: "POST",
+      method: method,
       cache: "no-cache",
       mode: "same-origin",
   }
@@ -60,8 +60,8 @@ const doApiCall = async (payload, method, format) => {
       default:
         break;
   }
-  let response = await fetch(`/paideia/api/${method}`, {headers: headers,
-                                                        body: myBody});
+  let response = await fetch(`/paideia/api/${apiFunction}`, {headers: headers,
+                                                             body: myBody});
   const jsonData = await response.json();
   jsonData.status_code = response.status;
   return jsonData;
