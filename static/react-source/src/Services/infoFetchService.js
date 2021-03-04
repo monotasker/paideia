@@ -1,50 +1,36 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-const fetchClassInfo = async ({courseId=null}) => {
-  let response = await fetch('/paideia/api/get_course_data', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        course_id: courseId,
-      })
-  })
+import { doApiCall } from "../Services/utilityService";
 
-  let mystatus = response.status;
-  const jsonData = await response.json();
-  console.log(jsonData);
-  if ( jsonData.hasOwnProperty("status") ) {
-    const mydata = {
-        status_code: mystatus,
-        reason: jsonData.status
-    }
-    return mydata
+const fetchClassInfo = async ({courseId=null}) => {
+  let response = await doApiCall({course_id: courseId}, 'get_course_data', "JSON");
+
+  let mydata;
+  if ( response.hasOwnProperty("status") ) {
+    mydata = response;
   } else {
-    const mydata = {
-        classInstitution: jsonData.institution,
-        classYear: jsonData.academic_year,
-        classTerm: jsonData.term,
-        classSection: jsonData.course_section,
-        classInProcess: jsonData.in_process,
-        classStart: jsonData.start_date,
-        classEnd: jsonData.end_date,
-        classDailyQuota: jsonData.paths_per_day,
-        classWeeklyQuota: jsonData.days_per_week,
-        classTargetA: jsonData.a_target,
-        classCapA: jsonData.a_cap,
-        classTargetB: jsonData.b_target,
-        classCapB: jsonData.b_cap,
-        classTargetC: jsonData.c_target,
-        classCapC: jsonData.c_cap,
-        classTargetD: jsonData.d_target,
-        classCapD: jsonData.d_cap,
-        classTargetF: jsonData.f_target,
-        classMembers: jsonData.members,
-        status_code: mystatus
+    mydata = {
+        classInstitution: response.institution,
+        classYear: response.academic_year,
+        classTerm: response.term,
+        classSection: response.course_section,
+        classInProcess: response.in_process,
+        classStart: response.start_date,
+        classEnd: response.end_date,
+        classDailyQuota: response.paths_per_day,
+        classWeeklyQuota: response.days_per_week,
+        classTargetA: response.a_target,
+        classCapA: response.a_cap,
+        classTargetB: response.b_target,
+        classCapB: response.b_cap,
+        classTargetC: response.c_target,
+        classCapC: response.c_cap,
+        classTargetD: response.d_target,
+        classCapD: response.d_cap,
+        classTargetF: response.f_target,
+        classMembers: response.members,
+        status_code: response.status_code
         // classSignInLink: jsonData.signin_link,
         // classRegCode: jsonData.reg_code,
     }

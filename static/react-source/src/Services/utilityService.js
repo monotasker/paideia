@@ -38,33 +38,40 @@ const useQuery = () => {
   return new URLSearchParams(useLocation().search);
 }
 
-const doApiCall = async (payload, apiFunction, format="none", method="POST") => {
-  let myBody = payload;
-  let headers = {
-      method: method,
-      cache: "no-cache",
-      mode: "same-origin",
-  }
+const doApiCall = async (payload, apiFunction,
+                         format="none", method="POST") => {
+  console.log(`method: ${method}`);
+  let callObject = {method: method,
+                    cache: "no-cache",
+                    mode: "same-origin"
+                   }
   switch (format) {
       case "JSON":
-        headers['Content-Type'] = 'application/json';
-        myBody = JSON.stringify(payload);
+        callObject['headers'] = {'Content-Type': 'application/json'};
+        callObject['body'] = JSON.stringify(payload);
         break;
       case "form":
         let formdata = new FormData();
         for (const [key, value] of Object.entries(payload)) {
             formdata.append(key, value);
         }
-        myBody = formdata;
+        callObject['body'] = formdata;
         break;
       default:
         break;
   }
-  let response = await fetch(`/paideia/api/${apiFunction}`, {headers: headers,
-                                                             body: myBody});
-  const jsonData = await response.json();
-  jsonData.status_code = response.status;
-  return jsonData;
+  console.log(callObject);
+  let response = await fetch(`/paideia/api/${apiFunction}`, callObject);
+  let mydata;
+  try {
+    mydata = await response.json();
+  } catch(err) {
+    mydata = {status: "internal server error",
+              reason: "Unknown error in function do_password_reset",
+              error: err.message}
+  }
+  mydata.status_code = response.status;
+  return mydata;
 }
 
 function returnStatusCheck(mydata, history, action, reducer,

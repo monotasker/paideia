@@ -6,87 +6,39 @@ import { loadScriptByURL,
          doApiCall
        } from "../Services/utilityService";
 
-const startPasswordReset = async ({email,
-                                   token,
-                                  }) => {
-  console.log(`email: ${email}`);
-  let formdata = new FormData();
-  formdata.append("email", email);
-  formdata.append("token", token);
+/**
+ *
+ * expects payload with keys:
+ *   email
+ *   token
+ */
+const startPasswordReset = async (payload) => doApiCall(payload,
+                                                        "start_password_reset",
+                                                        "form");
 
-  let response = await fetch('/paideia/api/start_password_reset', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      body: formdata
-  })
-
-  let mystatus = response.status;
-  const jsonData = await response.json();
-  let mydata = jsonData;
-  mydata.status_code = mystatus;
-  return mydata;
-}
-
-const doPasswordReset = async ({resetKey,
-                                token,
-                                passwordA,
-                                passwordB
-                                }) => {
-  let formdata = new FormData();
-  formdata.append("key", resetKey);
-  formdata.append("token", token);
-  formdata.append("new_password_A", passwordA);
-  formdata.append("new_password_B", passwordB);
-
-  let response = await fetch('/paideia/api/do_password_reset', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      body: formdata
-  })
-
-  let mystatus = response.status;
-  let mydata;
-  try {
-    mydata = await response.json();
-  } catch(err) {
-    mydata = {status: "internal server error",
-              reason: "Unknown error in function do_password_reset",
-              error: err.message}
-  }
-  mydata.status_code = mystatus;
-  return mydata;
-}
-
-const register = async ({token,
-                         firstName,
-                         lastName,
-                         timeZone,
-                         email,
-                         password
-                         }) => {
-  let formdata = new FormData();
-  formdata.append("my_first_name", firstName);
-  formdata.append("my_last_name", lastName);
-  formdata.append("my_time_zone", timeZone);
-  formdata.append("my_email", email);
-  formdata.append("my_password", password);
-  formdata.append("my_token", token);
-
-  let response = await fetch('/paideia/api/get_registration', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      body: formdata
-  })
-
-  let mystatus = response.status;
-  const jsonData = await response.json();
-  let mydata = jsonData;
-  mydata.status_code = mystatus;
-  return mydata;
-}
+/**
+ *
+ * expects payload with keys:
+ *   resetKey,
+ *   token,
+ *   passwordA,
+ *   passwordB
+ */
+const doPasswordReset = async payload => await doApiCall(payload,
+                                                           "do_password_reset",
+                                                           "form");
+/**
+ *
+ * expects payload with keys:
+ *   token
+ *   firstName
+ *   lastName
+ *   timeZone
+ *   email
+ *   password
+ */
+const register = async payload => await doApiCall(payload, "get_registration",
+                                                  "form");
 
 /**
  * Expects payload with keys:
@@ -94,34 +46,27 @@ const register = async ({token,
  *   email,
  *   password
  *  */
-const login = async (payload) => doApiCall(payload, "get_login", "form");
+const login = async payload => await doApiCall(payload, "get_login", "form");
 
-const logout = async () => doApiCall({}, "do_logout", "none", "GET");
+const logout = async () => await doApiCall({}, "do_logout", "none", "GET");
 
 const checkLogin = async (user, dispatch) => {
-  let response = await fetch('/paideia/api/check_login', {
-      method: "GET",
-      cache: "no-cache",
-      mode: "same-origin",
-  });
-  const jsonData = await response.json();
+  let response = await doApiCall({}, "check_login", "none", "GET");
 
-  console.log('=========================================');
-  console.log('CHECKING LOGIN');
   let myVal = true;
 
-  if ( !!user.userLoggedIn && !!jsonData.logged_in ) {
+  if ( !!user.userLoggedIn && !!response.logged_in ) {
     console.log('logged in both');
 
-    if ( user.userId !== jsonData.user ) {
+    if ( user.userId !== response.user ) {
       myVal = false;
       throw new Error("local user doesn't match server login");
     }
-  } else if ( !user.userLoggedIn && !!jsonData.logged_in ) {
+  } else if ( !user.userLoggedIn && !!response.logged_in ) {
     console.log('logged in server only');
     updateUserInfo(dispatch);
 
-  } else if ( (!!user.userID || !!user.userLoggedIn) && !jsonData.logged_in ) {
+  } else if ( (!!user.userID || !!user.userLoggedIn) && !response.logged_in ) {
     console.log('logged in local only');
     dispatch({type: 'deactivateUser'});
     myVal = false;
@@ -129,61 +74,41 @@ const checkLogin = async (user, dispatch) => {
   return myVal;
 }
 
-const updateUserInfo = async (dispatch) => {
-  let response = await fetch('/paideia/api/get_userdata', {
-      method: "GET",
-      cache: "no-cache",
-      mode: "same-origin",
-  })
-  const jsonData = await response.json();
-  const myinfo = formatLoginData(jsonData);
+const updateUserInfo = async dispatch => {
+  let response = await doApiCall({}, "get_userdata", "none", "GET");
+  const myinfo = formatLoginData(response);
   dispatch({type: 'initializeUser', payload: myinfo});
-  return myinfo
+  return myinfo;
 }
 
 const getProfileInfo = async ({forSelf=false,
                                userId=null,
                                dispatch=null}) => {
-  let response = await fetch('/paideia/api/get_profile_info', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        userId: userId,
-      })
-  })
-
-  let mystatus = response.status;
-  const jsonData = await response.json();
-  let mydata = jsonData;
-  mydata.status_code = mystatus;
-
-  if ( mystatus===200 ) {
+  let response = await doApiCall({userId}, "get_profile_info", "JSON");
+  let mydata = {};
+  if ( response.status_code===200 ) {
     mydata = {
-      firstName: jsonData.the_name.first_name,
-      lastName: jsonData.the_name.last_name,
-      email: jsonData.email,
-      timezone: jsonData.tz,
-      pathsPerDay: jsonData.paths_per_day,
-      daysPerWeek: jsonData.days_per_week,
-      currentBadgeSet: jsonData.max_set,
-      badgeLevels: jsonData.badge_levels,
-      calendar: jsonData.cal,
-      badgeTableData: jsonData.badge_table_data,
-      answerCounts: jsonData.answer_counts,
-      badgeSetDict: jsonData.badge_set_dict,
-      badgeSetMilestones: jsonData.badge_set_milestones,
-      chart1Data: jsonData.chart1_data,
-      endDate: jsonData.end_date,
-      startingSet: jsonData.starting_set,
-      classInfo: jsonData.class_info,
-      status_code: mystatus
+      firstName: response.the_name.first_name,
+      lastName: response.the_name.last_name,
+      email: response.email,
+      timezone: response.tz,
+      pathsPerDay: response.paths_per_day,
+      daysPerWeek: response.days_per_week,
+      currentBadgeSet: response.max_set,
+      badgeLevels: response.badge_levels,
+      calendar: response.cal,
+      badgeTableData: response.badge_table_data,
+      answerCounts: response.answer_counts,
+      badgeSetDict: response.badge_set_dict,
+      badgeSetMilestones: response.badge_set_milestones,
+      chart1Data: response.chart1_data,
+      endDate: response.end_date,
+      startingSet: response.starting_set,
+      classInfo: response.class_info,
+      status_code: response.status_code
     }
     if ( !!forSelf ) {
-      dispatch({type: 'updateProfileInfo', payload: mydata})
+      dispatch({type: "updateProfileInfo", payload: mydata})
     }
   }
   return mydata
