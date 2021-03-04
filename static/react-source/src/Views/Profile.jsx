@@ -4,7 +4,6 @@ import {
   Badge,
   Button,
   Form,
-  InputGroup,
   OverlayTrigger,
   Popover,
   PopoverTitle,
@@ -20,7 +19,8 @@ import { useParams, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { urlBase } from "../variables";
-import { returnStatusCheck, getProfileInfo } from "../Services/authService";
+import { returnStatusCheck } from "../Services/authService";
+import { getProfileInfo } from "../Services/utilityService";
 import { UserContext } from "../UserContext/UserProvider";
 import Calendar from "../Components/Calendar";
 import { withinOneDay,

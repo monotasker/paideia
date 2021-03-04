@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { returnStatusCheck } from '../Services/authService';
+import { returnStatusCheck } from '../Services/utilityService';
 
 /**
  * Abstracted function to handle the server request on submission of a form

@@ -9,7 +9,7 @@ import SvgMap from "./SvgMap";
 import Step from "./Step";
 import { getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
-import { returnStatusCheck } from "../Services/authService";
+import { returnStatusCheck } from "../Services/utilityService";
 import { urlBase } from "../variables";
 
 

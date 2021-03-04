@@ -21,7 +21,7 @@ import AudioPlayer from "../Components/AudioPlayer";
 import { evaluateAnswer, getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import useEventListener from "../Hooks/UseEventListener";
-import { returnStatusCheck } from "../Services/authService";
+import { returnStatusCheck } from "../Services/utilityService";
 
 
 const Step = (props) => {

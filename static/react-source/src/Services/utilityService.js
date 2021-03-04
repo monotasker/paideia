@@ -38,9 +38,90 @@ const useQuery = () => {
   return new URLSearchParams(useLocation().search);
 }
 
+const doApiCall = async (payload, method, format) => {
+  let myBody = payload;
+  let headers = {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+  }
+  switch (format) {
+      case "JSON":
+        headers['Content-Type'] = 'application/json';
+        myBody = JSON.stringify(payload);
+        break;
+      case "form":
+        let formdata = new FormData();
+        for (const [key, value] of Object.entries(payload)) {
+            formdata.append(key, value);
+        }
+        myBody = formdata;
+        break;
+      default:
+        break;
+  }
+  let response = await fetch(`/paideia/api/${method}`, {headers: headers,
+                                                        body: myBody});
+  const jsonData = await response.json();
+  jsonData.status_code = response.status;
+  return jsonData;
+}
+
+function returnStatusCheck(mydata, history, action, reducer,
+                           otherActions={}) {
+  if ( mydata.status_code === 200 ) {
+    action(mydata);
+  } else if ( mydata.status_code === 400 ) {
+    console.log('400: Bad request');
+    if ( otherActions.hasOwnProperty("badRequestAction") ) {
+      otherActions.badRequestAction(mydata);
+    }
+  } else if ( mydata.status_code === 401 ) {
+    if ( mydata.reason === "Not logged in" ) {
+      console.log('401: Not logged in');
+      if ( otherActions.hasOwnProperty("unauthorizedAction")) {
+        otherActions.unauthorizedAction(mydata);
+      } else {
+        reducer({type: 'deactivateUser', payload: null});
+        history.push(`login`);
+      }
+    } else if ( mydata.reason === "Insufficient privileges" ) {
+      console.log('401: Insufficient privileges');
+      if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
+        otherActions.insufficientPrivilegesAction(mydata);
+      }
+    } else if ( mydata.reason === "Login failed" ) {
+      console.log('401: Login failed');
+      otherActions.unauthorizedAction(mydata);
+    } else if ( mydata.reason === "Action blocked") {
+      console.log('401: Action blocked');
+      otherActions.actionBlockedAction(mydata);
+    }
+  } else if ( mydata.status_code === 404 ) {
+    console.log('404: No such record');
+    if ( otherActions.hasOwnProperty("noRecordAction") ) {
+      otherActions.noRecordAction(mydata);
+    }
+  } else if ( mydata.status_code === 409 ) {
+    console.log('409: Conflict');
+    if ( otherActions.hasOwnProperty("dataConflictAction") ) {
+      console.log('taking conflict action');
+      otherActions.dataConflictAction(mydata);
+    }
+  } else if ( mydata.status_code === 500 ) {
+    console.log('500: Internal server error');
+    if ( otherActions.hasOwnProperty("serverErrorAction") ) {
+      otherActions.serverErrorAction(mydata);
+    }
+  } else {
+    console.log('Uncaught problem in returnStatusCheck:');
+    console.log(mydata);
+  }
+}
 
 export {
     loadScriptByURL,
-    useQuery
+    useQuery,
+    doApiCall,
+    returnStatusCheck
 }
-

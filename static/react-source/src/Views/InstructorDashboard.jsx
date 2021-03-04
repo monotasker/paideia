@@ -21,7 +21,7 @@ import 'react-day-picker/lib/style.css';
 
 import {UserContext} from "../UserContext/UserProvider";
 import {fetchClassInfo} from "../Services/infoFetchService";
-import { returnStatusCheck } from "../Services/authService";
+import { returnStatusCheck } from "../Services/utilityService";
 import { urlBase } from "../variables";
 
 

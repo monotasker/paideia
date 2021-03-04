@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import { recaptchaKey } from "../variables";
-import { loadScriptByURL } from "../Services/utilityService";
+import { loadScriptByURL,
+         doApiCall
+       } from "../Services/utilityService";
 
 const startPasswordReset = async ({email,
                                    token,
@@ -132,7 +134,7 @@ const checkLogin = async (user, dispatch) => {
   if ( !!user.userLoggedIn && !!jsonData.logged_in ) {
     console.log('logged in both');
 
-    if ( user.userId != jsonData.user ) {
+    if ( user.userId !== jsonData.user ) {
       myVal = false;
       throw new Error("local user doesn't match server login");
     }
@@ -208,84 +210,16 @@ const getProfileInfo = async ({forSelf=false,
   return mydata
 }
 
-const getCalendarMonth = async ({userId=null,
-                                 year=null,
-                                 month=null}) => {
-  let response = await fetch('/paideia/api/get_calendar_month', {
-      method: "POST",
-      cache: "no-cache",
-      mode: "same-origin",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        year: year,
-        month: month
-      })
-  })
-
-  let mystatus = response.status;
-  const jsonData = await response.json();
-
-  const mydata = {
-    calendar: jsonData,
-    status_code: mystatus
-  }
-  return mydata
-}
-
-function returnStatusCheck(mydata, history, action, reducer,
-                           otherActions={}) {
-  if ( mydata.status_code === 200 ) {
-    action(mydata);
-  } else if ( mydata.status_code === 400 ) {
-    console.log('400: Bad request');
-    if ( otherActions.hasOwnProperty("badRequestAction") ) {
-      otherActions.badRequestAction(mydata);
-    }
-  } else if ( mydata.status_code === 401 ) {
-    if ( mydata.reason === "Not logged in" ) {
-      console.log('401: Not logged in');
-      if ( otherActions.hasOwnProperty("unauthorizedAction")) {
-        otherActions.unauthorizedAction(mydata);
-      } else {
-        reducer({type: 'deactivateUser', payload: null});
-        history.push(`login`);
-      }
-    } else if ( mydata.reason === "Insufficient privileges" ) {
-      console.log('401: Insufficient privileges');
-      if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
-        otherActions.insufficientPrivilegesAction(mydata);
-      }
-    } else if ( mydata.reason === "Login failed" ) {
-      console.log('401: Login failed');
-      otherActions.unauthorizedAction(mydata);
-    } else if ( mydata.reason === "Action blocked") {
-      console.log('401: Action blocked');
-      otherActions.actionBlockedAction(mydata);
-    }
-  } else if ( mydata.status_code === 404 ) {
-    console.log('404: No such record');
-    if ( otherActions.hasOwnProperty("noRecordAction") ) {
-      otherActions.noRecordAction(mydata);
-    }
-  } else if ( mydata.status_code === 409 ) {
-    console.log('409: Conflict');
-    if ( otherActions.hasOwnProperty("dataConflictAction") ) {
-      console.log('taking conflict action');
-      otherActions.dataConflictAction(mydata);
-    }
-  } else if ( mydata.status_code === 500 ) {
-    console.log('500: Internal server error');
-    if ( otherActions.hasOwnProperty("serverErrorAction") ) {
-      otherActions.serverErrorAction(mydata);
-    }
-  } else {
-    console.log('Uncaught problem in returnStatusCheck:');
-    console.log(mydata);
-  }
-}
+/**
+ * Return data on one month of app activity for a given user
+ *
+ * expects payload keys:
+ *  userId
+    year
+    month
+ */
+const getCalendarMonth = async (payload) => await doApiCall(payload,
+  "get_calendar_month", "JSON");
 
 const formatLoginData = (data) => {
   return {
@@ -378,7 +312,6 @@ export {
   updateUserInfo,
   getProfileInfo,
   getCalendarMonth,
-  returnStatusCheck,
   formatLoginData,
   useRecaptcha,
   withRecaptcha

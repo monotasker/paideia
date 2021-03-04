@@ -62,10 +62,10 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
                       year: newYr,
                       month: newMn + 1})
     .then(info => {
-      setMyMonth(info.calendar.month - 1);
-      setMyMonthName(moment.months(info.calendar.month - 1));
-      setMyYear(info.calendar.year);
-      setMyMonthData(info.calendar.data);
+      setMyMonth(info.month - 1);
+      setMyMonthName(moment.months(info.month - 1));
+      setMyYear(info.year);
+      setMyMonthData(info.data);
       setUpdating(false);
     })
   }
