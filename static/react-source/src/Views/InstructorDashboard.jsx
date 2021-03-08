@@ -5,8 +5,10 @@ import { useHistory, Link } from "react-router-dom";
 
 import {
   Alert,
+  Button,
   Col,
   Form,
+  FormGroup,
   Row,
   Spinner,
   Tab,
@@ -21,8 +23,11 @@ import 'react-day-picker/lib/style.css';
 
 import {UserContext} from "../UserContext/UserProvider";
 import {fetchClassInfo} from "../Services/infoFetchService";
-import { returnStatusCheck } from "../Services/utilityService";
+import { doApiCall, returnStatusCheck } from "../Services/utilityService";
 import { urlBase } from "../variables";
+import { sendFormRequest,
+         useResponseCallbacks
+       } from "../Services/formsService";
 
 
 const InstructorDashboard = () => {
@@ -76,26 +81,23 @@ const InstructorDashboard = () => {
     const [ classCapD, setClassCapD ] = useState(
       !!activeClassInfo ? ( activeClassInfo.d_cap || '' ) : null);
     const [ classMembers, setClassMembers ] = useState([]);
-    const [ classSignInLink, setClassSignInLink ] = useState(null);
-    const [ classRegCode, setClassRegCode ] = useState(null);
-    const [ unauthorized, setUnauthorized ] = useState(false);
-    const [ missingClass, setMissingClass ] = useState(false);
-    const [ fetching, setFetching ] = useState(false);
+    // const [ classSignInLink, setClassSignInLink ] = useState(null);
+    // const [ classRegCode, setClassRegCode ] = useState(null);
+    const [ fetchingClass, setFetchingClass ] = useState(false);
+    const [ fetchingStudents, setFetchingStudents ] = useState(false);
     const history = useHistory();
 
-
+    // flags are unauthorized, serverError, badRequest, noRecord, success
+    // callbacks are serErrorAction, unauthorizedAction,
+    // badRequestAction, noRecordAction, successAction
+    let {missing, setMissing,
+         flags, setFlags, myCallbacks} = useResponseCallbacks();
+    let {studentMissing, setStudentMissing, studentFlags,
+         setStudentFlags, myStudentCallbacks} = useResponseCallbacks();
 
     useEffect(() => {
       console.log('fetching');
-      setFetching(true);
-      const insufficientPrivilegesAction = data => {
-        setUnauthorized(true);
-        console.log(data);
-      }
-      const noRecordAction = data => {
-        setMissingClass(true);
-        console.log(data);
-      }
+      setFetchingClass(true);
 
       fetchClassInfo({courseId: activeClassId})
       .then(info => {
@@ -122,26 +124,64 @@ const InstructorDashboard = () => {
               setClassCapC(info.classCapC);
               setClassCapD(info.classCapD);
               setClassMembers(info.classMembers);
-              setUnauthorized(false);
-              setMissingClass(false);
-              setFetching(false);
-            } else if (info.reason == "Insufficient privileges") {
-              setUnauthorized(true);
-            } else if (info.reason == "No such record") {
-              setMissingClass(true);
+              myCallbacks.successAction();
+              setFetchingClass(false);
+            } else {
+              myCallbacks.serverErrorAction();
             }
           },
           dispatch,
-          {insufficientPrivilegesAction: insufficientPrivilegesAction,
-          noRecordAction: noRecordAction
+          {insufficientPrivilegesAction: myCallbacks.unauthorizedAction,
+           noRecordAction: myCallbacks.noRecordAction
           }
         );
       });
     }, [activeClassId]);
 
-    const changeClassAction = (id) => {
-      console.log('changed');
-      setActiveClassId(id);
+    const changeClassAction = (id) => { setActiveClassId(id); }
+
+    const classDataConflictAction = (data) => {};
+    const studentDataConflictAction = (data) => {};
+
+    const updateClassData = () => {
+      let fieldSet = {institution: [classInstitution, setClassInstitution],
+                academic_year: [classYear, setClassYear],
+                term: [classTerm, setClassTerm],
+                course_section: [classSection, setClassSection],
+                start_date: [classStart, setClassStart],
+                end_date: [ classEnd, setClassEnd ],
+                paths_per_day: [ classDailyQuota, setClassDailyQuota ],
+                days_per_week: [ classWeeklyQuota, setClassWeeklyQuota ],
+                a_target: [ classTargetA, setClassTargetA ],
+                b_target: [ classTargetB, setClassTargetB ],
+                c_target: [ classTargetC, setClassTargetC ],
+                d_target: [ classTargetD, setClassTargetD ],
+                f_target: [ classTargetF, setClassTargetF ],
+                a_cap: [ classCapA, setClassCapA ],
+                b_cap: [ classCapB, setClassCapB ],
+                c_cap: [ classCapC, setClassCapC ],
+                d_cap: [ classCapD, setClassCapD ]
+               }
+      let updateData = {}
+      Object.keys(fieldSet).forEach((k) => {
+        updateData[k] = fieldSet[k][0];
+      });
+
+      sendFormRequest(null, {
+          formId: 'dashboard-class-info-form',
+          fieldSet: fieldSet,
+          requestAction: () => doApiCall(updateData, "update_course_data",
+                                         "form"),
+          history: myhistory,
+          dispatch: dispatch,
+          successCallback: myCallbacks.successAction,
+          otherCallbacks: {serverErrorAction: myCallbacks.serverErrorAction,
+                           dataConflictAction: classDataConflictAction,
+                           badRequestAction: myCallbacks.badRequestAction,
+                           unauthorizedAction: myCallbacks.unauthorizedAction
+                          },
+          setInProgressAction: setFetchingClass
+        });
     }
 
     useEffect(() => {
@@ -202,12 +242,14 @@ const InstructorDashboard = () => {
 
         <Tabs>
         <Tab eventKey="course-details" title="Course Details">
-        <Form>
+        <Form role="form"
+          id="dashboard-class-info-form"
+        >
           <Form.Row>
             <Col className="dashboard-class-info" xs={12} lg={4}>
-              {!!fetching && <Spinner animation="grow" variant="info" />}
+              {!!fetchingClass && <Spinner animation="grow" variant="info" />}
               <h3>{classSection} {classTerm} {classYear}</h3>
-              <Form.Group controlId="classForm.StartDatePicker">
+              <Form.Group controlId="start_date">
                 <Form.Label>Begins</Form.Label>
                 <DayPickerInput
                   onDayChange={day => setClassStart(day)}
@@ -221,7 +263,7 @@ const InstructorDashboard = () => {
                   onChange={e => setClassStart(e.target.value)}
                 />
               </Form.Group>
-              <Form.Group controlId="classForm.endDatePicker">
+              <Form.Group controlId="end_date">
                 <Form.Label>Ends</Form.Label>
                 <DayPickerInput
                   onDayChange={day => setClassEnd(day)}
@@ -238,14 +280,14 @@ const InstructorDashboard = () => {
             </Col>
             <Col>
               <h4>Minimum Participation Requirements</h4>
-              <Form.Group controlId="classForm.dailyQuotaInput">
+              <Form.Group controlId="paths_per_day">
                 <Form.Label>Minimum paths / day</Form.Label>
                 <Form.Control
                   value={classDailyQuota}
                   onChange={e => setClassDailyQuota(e.target.value)}
                 ></Form.Control>
               </Form.Group>
-              <Form.Group controlId="classForm.weeklyQuotaInput">
+              <Form.Group controlId="days_per_week">
                 <Form.Label>Minimum days / week</Form.Label>
                 <Form.Control
                   value={classWeeklyQuota}
@@ -268,65 +310,84 @@ const InstructorDashboard = () => {
                   <tr>
                     <td>A</td>
                     <td>
-                      <Form.Control value={classTargetA}
-                        onChange={e => setClassTargetA(e.target.value)}
-                      ></Form.Control> new sets
+                      <FormGroup controlId="a_target">
+                        <Form.Control value={classTargetA}
+                          onChange={e => setClassTargetA(e.target.value)}
+                        />
+                      </FormGroup> new sets
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control value={classCapA}
-                        onChange={e => setClassCapA(e.target.value)}
-                      ></Form.Control>
+
+                      <FormGroup controlId="a_cap">
+                        Begin set <Form.Control value={classCapA}
+                          onChange={e => setClassCapA(e.target.value)}
+                        />
+                      </FormGroup>
                     </td>
                   </tr>
                   <tr>
                     <td>B</td>
                     <td>
-                      <Form.Control value={classTargetB}
-                        onChange={e => setClassTargetB(e.target.value)}
-                      ></Form.Control> new sets
+                      <FormGroup controlId="b_target">
+                        <Form.Control value={classTargetB}
+                          onChange={e => setClassTargetB(e.target.value)}
+                        /> new sets
+                      </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control value={classCapB}
-                        onChange={e => setClassCapB(e.target.value)}
-                      ></Form.Control>
+                      <FormGroup controlId="b_cap">
+                        Begin set <Form.Control value={classCapB}
+                          onChange={e => setClassCapB(e.target.value)}
+                        />
+                      </FormGroup>
                     </td>
                   </tr>
                   <tr>
                     <td>C</td>
                     <td>
-                      <Form.Control value={classTargetC}
-                        onChange={e => setClassTargetC(e.target.value)}
-                      ></Form.Control> new sets
+                      <FormGroup controlId="c_target">
+                        <Form.Control value={classTargetC}
+                          onChange={e => setClassTargetC(e.target.value)}
+                        /> new sets
+                      </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control value={classCapC}
-                        onChange={e => setClassCapC(e.target.value)}
-                      ></Form.Control>
+                      <FormGroup controlId="c_cap">
+                        Begin set <Form.Control value={classCapC}
+                          onChange={e => setClassCapC(e.target.value)}
+                        />
+                      </FormGroup>
                     </td>
                   </tr>
                   <tr>
                     <td>D</td>
                     <td>
-                      <Form.Control value={classTargetD}
-                        onChange={e => setClassTargetD(e.target.value)}
-                      ></Form.Control> new sets
+                      <FormGroup controlId="d_target">
+                        <Form.Control value={classTargetD}
+                          onChange={e => setClassTargetD(e.target.value)}
+                        /> new sets
+                      </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
-                      Begin set <Form.Control value={classCapD}
-                        onChange={e => setClassCapD(e.target.value)}
-                      ></Form.Control>
+                      <FormGroup controlId="d_cap">
+                        Begin set <Form.Control value={classCapD}
+                          onChange={e => setClassCapD(e.target.value)}
+                        />
+                      </FormGroup>
                     </td>
                   </tr>
                   <tr>
                     <td>F</td>
                     <td>
-                      <Form.Control value={classTargetF}
-                        onChange={e => setClassTargetF(e.target.value)}
-                      ></Form.Control> new sets
+                      <FormGroup controlId="f_target">
+                        <Form.Control value={classTargetF}
+                          onChange={e => setClassTargetF(e.target.value)}
+                        /> new sets
+                      </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
@@ -337,6 +398,13 @@ const InstructorDashboard = () => {
               </Table>
             </Col>
           </Form.Row>
+          <Button variant="primary"
+              type="submit"
+              onClick={updateClassData}
+              disabled={!!fetchingClass ? true : false }
+          >
+            <FontAwesomeIcon icon="" /> Save changes
+          </Button>
         </Form>
         </Tab> {/* end of course parameters tab */}
 

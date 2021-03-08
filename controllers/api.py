@@ -2059,6 +2059,14 @@ def update_course_data():
     try:
         # print('updating course', request.vars.course_id)
         course_rec = db.classes(request.vars.course_id)
+
+        update_data = {k: v for k, v in mydata.items() if k in
+            ["institution", "academic_year", "term", "course_section",
+             "instructor", "start_date", "end_date", "paths_per_day",
+             "days_per_week", "a_target", "a_cap", "b_target", "b_cap",
+             "c_target", "c_cap", "d_target", "d_cap", "f_target"
+             ] and v not in ["undefined", "null", None]
+            }
         # print('old data:')
         # print(course_rec)
     except AttributeError:
@@ -2086,7 +2094,7 @@ def update_course_data():
         response.status = 401
         return json_serializer({'status': 'Insufficient privileges'})
 
-    myresult = db(db.classes.id == course_id).update(**mydata)
+    myresult = course_rec.update(**mydata)
     assert myresult == 1
 
     return json_serializer({"update_count": myresult}, default=my_custom_json)

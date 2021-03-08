@@ -80,12 +80,32 @@ const sendFormRequest = (token, setFields,
 /**
  * React custom hook to provide logic and state variables for handling
  * various response statuses after a form is submitted
+ *
+ * provides flags object with setter function. This has keys:
+ *  unauthorized
+ *  serverError
+ *  badRequest
+ *  noRecord
+ *  success
+ *
+ * provides missing array with setter function. This includes a
+ * string with the field name of any fields whose values were missing
+ * in the request.
+ *
+ * provides an object with default callback functions on each server
+ * response code. The keys for this object are:
+ *    serverErrorAction
+ *    unauthorizedAction
+ *    badRequestAction
+ *    noRecordAction
+ *    successAction
  */
 const useResponseCallbacks = () => {
     const [ missing, setMissing ] = useState([]);
     const [ flags, setFlags ] = useState({unauthorized: false,
                                           serverError: false,
                                           badRequest: false,
+                                          noRecord: false,
                                           success: false
                                           });
 
@@ -97,8 +117,15 @@ const useResponseCallbacks = () => {
           setMissing(Object.keys(data.error));
           setFlags({...flags, badRequest: false});
         },
+        noRecordAction: (data) => {
+          setFlags({...flags, noRecord: true});
+        },
         successAction: () => {
-          setFlags({...flags, success: true});
+          setFlags({success: true,
+                    noRecord: false,
+                    badRequest: false,
+                    serverError: false,
+                    unauthorized: false});
         }
     }
 

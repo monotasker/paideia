@@ -38,7 +38,6 @@ const fetchClassInfo = async ({courseId=null}) => {
   }
 }
 
-
 export {
     fetchClassInfo
 }
