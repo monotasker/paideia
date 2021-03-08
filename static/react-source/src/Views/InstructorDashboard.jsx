@@ -403,7 +403,7 @@ const InstructorDashboard = () => {
               onClick={updateClassData}
               disabled={!!fetchingClass ? true : false }
           >
-            <FontAwesomeIcon icon="" /> Save changes
+            <FontAwesomeIcon icon="save" /> Save changes
           </Button>
         </Form>
         </Tab> {/* end of course parameters tab */}
@@ -461,26 +461,30 @@ const InstructorDashboard = () => {
                         <td>Days meeting minimum</td>
                       </tr>
                     </thead>
-                    <tr>
-                      <td>This week</td>
-                      <td>{m.counts[0]}</td>
-                      <td>{m.counts[1]}</td>
-                    </tr>
-                    <tr>
-                      <td>Last week</td>
-                      <td>{m.counts[2]}</td>
-                      <td>{m.counts[3]}</td>
-                    </tr>
+                    <tbody>
+                      <tr>
+                        <td>This week</td>
+                        <td>{m.counts[0]}</td>
+                        <td>{m.counts[1]}</td>
+                      </tr>
+                      <tr>
+                        <td>Last week</td>
+                        <td>{m.counts[2]}</td>
+                        <td>{m.counts[3]}</td>
+                      </tr>
+                    </tbody>
                   </Table>
                   <Table>
-                    <tr>
-                      <td>Individual start date</td>
-                      <td>{m.custom_start}</td>
-                    </tr>
-                    <tr>
-                      <td>Individual end date</td>
-                      <td>{m.custom_end}</td>
-                    </tr>
+                    <tbody>
+                      <tr>
+                        <td>Individual start date</td>
+                        <td>{m.custom_start}</td>
+                      </tr>
+                      <tr>
+                        <td>Individual end date</td>
+                        <td>{m.custom_end}</td>
+                      </tr>
+                    </tbody>
                   </Table>
                   <Table>
                     <thead>
