@@ -143,7 +143,8 @@ const InstructorDashboard = () => {
     const classDataConflictAction = (data) => {};
     const studentDataConflictAction = (data) => {};
 
-    const updateClassData = () => {
+    const updateClassData = (event) => {
+      event.preventDefault();
       let fieldSet = {institution: [classInstitution, setClassInstitution],
                 academic_year: [classYear, setClassYear],
                 term: [classTerm, setClassTerm],
@@ -162,9 +163,10 @@ const InstructorDashboard = () => {
                 c_cap: [ classCapC, setClassCapC ],
                 d_cap: [ classCapD, setClassCapD ]
                }
-      let updateData = {}
+      let updateData = {course_id: activeClassId,
+                        course_data: {}}
       Object.keys(fieldSet).forEach((k) => {
-        updateData[k] = fieldSet[k][0];
+        updateData["course_data"][k] = fieldSet[k][0];
       });
 
       sendFormRequest(null, {
@@ -184,7 +186,7 @@ const InstructorDashboard = () => {
         });
     }
 
-    useEffect(() => {
+/**     useEffect(() => {
       console.log("handling form change");
       console.log(classStart);
       console.log(classEnd);
@@ -200,8 +202,8 @@ const InstructorDashboard = () => {
       console.log(classTargetD);
       console.log(classTargetF);
     }, [classStart, classEnd, classDailyQuota, classWeeklyQuota, classCapA, classCapB, classCapC, classCapD, classTargetA, classTargetB, classTargetC, classTargetD, classTargetF]
+    )*/
 
-    )
     // console.log(`user? ${!!user}`);
     // console.log(`user.userLoggedIn? ${!!user.userLoggedIn}`);
     // console.log(`user has roles?`);
@@ -424,8 +426,8 @@ const InstructorDashboard = () => {
             </thead>
             <tbody>
               {classMembers.map(m =>
-              <React.Fragment>
-              <tr key={`${m.first_name}_${m.last_name}`}>
+              <React.Fragment key={`${m.first_name}_${m.last_name}`}>
+              <tr >
                 <td rowSpan="2">
                   <Link to={`/${urlBase}/profile/${m.uid}`}>
                     {m.last_name}

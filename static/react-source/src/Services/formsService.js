@@ -12,7 +12,7 @@ import { returnStatusCheck } from '../Services/utilityService';
  *    - signal back to the calling component when the request is finished
  *
  * @param {Event} event   passed through from the form submission
- * @param {string} authentication   token supplied by HOC like useRecaptcha
+ * @param {string} token    supplied by HOC like useRecaptcha
  *    when it wraps the calling function
  * @param {Object} param2  an object holding the other named parameters,
  *    i.e. the ones not being passed through from a HOC
@@ -53,6 +53,8 @@ const sendFormRequest = (token, setFields,
     // handle autocompleted form fields that aren't picked up by React state
     let requestArgs = {};
     Object.keys(fieldSet).forEach(key => {
+      console.log('formId===========');
+      console.log(formId);
       let myval = document.getElementById(formId).elements[key].value;
       if ( !fieldSet[key] && !!myval ) {
         setFields(myval, fieldSet[key]);
@@ -133,7 +135,12 @@ const useResponseCallbacks = () => {
 }
 
 /**
- *  custom hook to manage
+ *  custom hook to manage client-side validation of form fields
+ *
+ *  at present just removes items from "missing" state array
+ *  if user enters a value in the field
+ *
+ *  TODO: I *think* the returned fields and setFields are useless
  */
 const useFieldValidation = (missing, setMissing, fieldList) => {
 
@@ -143,9 +150,11 @@ const useFieldValidation = (missing, setMissing, fieldList) => {
               return {...obj, [item]: null }
             }, {})
             );
+    console.log('fields is');
+    console.log(fields);
 
     const setFieldValue = (val, fieldName) => {
-      setFields({...fields, fieldName: val});
+      setFields({...fields, [fieldName]: val});
       var myMissing = [...missing];
       const index = myMissing.indexOf(fieldName);
       if (index > -1) {

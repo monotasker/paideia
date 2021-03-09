@@ -19,11 +19,13 @@ import moment from 'moment';
 import 'moment-timezone';
 
 import { register,
-         returnStatusCheck,
          withRecaptcha
        } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
-import { sendFormRequest } from "../Services/formsService";
+
+import { returnStatusCheck } from "../Services/utilityService";
+import { sendFormRequest,
+         useFieldValidation } from "../Services/formsService";
 
 const Register = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
@@ -62,6 +64,11 @@ const Register = ({submitAction}) => {
       myhistory.push('login?just_registered=true');
   }
 
+  const {setFieldValue, fields, setFields
+        } = useFieldValidation(missingData, setMissingData,
+                               ['my_last_name', 'my_first_name', 'my_email',
+                                'my_time_zone', 'my_password']);
+
   const getRegistration = (event) => {
     setEmailAlreadyExists(false);
     setInadequatePassword(false);
@@ -69,9 +76,9 @@ const Register = ({submitAction}) => {
     setMissingData([]);
 
     submitAction(event,
-      token => sendFormRequest(token, {
-        formId: 'registrationForm',
-        fieldSet: {lastName: [myLastName, setMyLastName],
+      token => sendFormRequest(token, setFieldValue,
+        {formId: 'registrationForm',
+         fieldSet: {lastName: [myLastName, setMyLastName],
                    firstName: [myFirstName, setMyFirstName],
                    email: [myEmail, setMyEmail],
                    timeZone: [myTimeZone, setMyTimeZone],
@@ -89,20 +96,6 @@ const Register = ({submitAction}) => {
         setInProgressAction: setRequestInProgress
       })
     );
-  }
-
-  const setFieldValue = (val, fieldName) => {
-    const fields = {my_last_name: setMyLastName,
-                    my_first_name: setMyFirstName,
-                    my_email: setMyEmail,
-                    my_time_zone: setMyTimeZone,
-                    my_password: setMyPassword
-                   }
-    fields[fieldName](val);
-    const index = missingData.indexOf(fieldName);
-    if (index > -1) {
-      missingData.splice(index, 1);
-    }
   }
 
   return(

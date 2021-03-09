@@ -34,8 +34,14 @@ const LoginInner = ({submitAction}) => {
   const queryParams = useQuery();
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
+  // flagging and handling of problems after request is returned
   let { missing, setMissing, flags,
         setFlags, myCallbacks } = useResponseCallbacks();
+
+  // remove field from "missing" when updated via setFieldValue
+  // establish single state object to handle form fields
+  const {setFormFieldValue, formFieldValues, setFormFieldsDirectly
+        } = useFieldValidation(missing, setMissing, ["email", "password"]);
 
   myCallbacks.successAction = (data) => {
     if ( data.id != null ) {
@@ -48,15 +54,12 @@ const LoginInner = ({submitAction}) => {
     }
   }
 
-  const {setFieldValue, fields, setFields
-        } = useFieldValidation(missing, setMissing, ["email", "password"]);
-
   const getLogin = event => {
     submitAction(event,
-      token => sendFormRequest(token, setFields, {
+      token => sendFormRequest(token, setFormFieldValue, {
         formId: 'login-form',
-        fieldSet: {email: fields.email,
-                   password: fields.password},
+        fieldSet: {email: formFieldValues.email,
+                   password: formFieldValues.password},
         requestAction: login,
         extraArgs: ["token"],
         history: history,

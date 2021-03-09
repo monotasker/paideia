@@ -543,14 +543,16 @@ def get_login():
     response = current.response
     token = request.vars['token'].strip()
     email = request.vars['email'].strip()
+    if debug: print('api::get_login: email:', email)
     password = request.vars['password'].strip()
+    if debug: print('api::get_login: password:', password)
 
     email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
     password_pat = re.compile("^[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{4,50}$")
 
     missing = {k: v for k, v in request.vars.items() if
                k!="token" and
-               ((v in ["undefined", None, ""])
+               ((v in ["undefined", None, "", "null"])
                 or (k=="password" and not re.search(password_pat, password))
                 or (k=="my_email" and not re.search(email_pat, email))
                 )
@@ -2051,14 +2053,17 @@ def update_course_data():
                 f_target (int)
 
     """
-
+    debug = True
     mydata = request.vars.course_data
     mydata['modified_on'] = datetime.datetime.utcnow
     course_id = request.vars.course_id
+    if debug: print("api::update_course_data::course_id:", course_id)
+    if debug: print("api::update_course_data::mydata:")
+    if debug: print(mydata)
 
     try:
         # print('updating course', request.vars.course_id)
-        course_rec = db.classes(request.vars.course_id)
+        course_rec = db.classes(course_id)
 
         update_data = {k: v for k, v in mydata.items() if k in
             ["institution", "academic_year", "term", "course_section",
@@ -2094,7 +2099,7 @@ def update_course_data():
         response.status = 401
         return json_serializer({'status': 'Insufficient privileges'})
 
-    myresult = course_rec.update(**mydata)
+    myresult = course_rec.update(**update_data)
     assert myresult == 1
 
     return json_serializer({"update_count": myresult}, default=my_custom_json)
@@ -2156,11 +2161,12 @@ def get_course_data():
             starting_set
             custom_end
     """
+    debug = False
     auth = current.auth
     session = current.session
     db = current.db
     try:
-        print('getting course', request.vars.course_id)
+        if debug: print('getting course', request.vars.course_id)
         course_rec = db.classes(request.vars.course_id)
     except AttributeError:
         print(format_exc(5))
@@ -2209,9 +2215,9 @@ def get_course_data():
     users = db((db.auth_user.id == db.tag_progress.name) &
                 (db.auth_user.id.belongs([m['name'] for m in memberships]))
                 ).select(orderby=db.auth_user.last_name)
-    print('course_rec======================')
-    print(course_rec)
-    print(type(course_rec))
+    if debug: print('course_rec======================')
+    if debug: print(course_rec)
+    if debug: print(type(course_rec))
     classlist = make_classlist(memberships, users, course_rec['start_date'],
                                 course_rec['end_date'], course_rec['paths_per_day'], course_rec)
 

@@ -1624,9 +1624,9 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
 
         myprog = currset - int(startset)
 
-        print('classrow======================')
-        print(classrow)
-        print(type(classrow))
+        if debug: print('classrow======================')
+        if debug: print(classrow)
+        if debug: print(type(classrow))
         mygrade = compute_letter_grade(uid, myprog, startset, classrow, member)
         try:
             tp_id = user['tag_progress'].id
