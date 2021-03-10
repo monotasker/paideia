@@ -156,12 +156,6 @@ const LoginInner = ({submitAction}) => {
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your password.
                 </Alert>
               }
-              {flags.badRequestData.length > 0 &&
-                flags.badRequestData.includes("password") &&
-                <Alert variant="danger" className="error-message">
-                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to include a password that is complex enough.
-                </Alert>
-              }
             </Form.Group>
             <Button variant="primary"
               type="submit"
