@@ -23,76 +23,54 @@ import { register,
        } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 
-import { returnStatusCheck } from "../Services/utilityService";
+// import { returnStatusCheck } from "../Services/utilityService";
 import { sendFormRequest,
-         useFieldValidation } from "../Services/formsService";
+         useFormManagement } from "../Services/formsService";
 
 const Register = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const myhistory = useHistory();
-  const [ myFirstName, setMyFirstName ] = useState();
-  const [ myLastName, setMyLastName ] = useState();
-  const [ myTimeZone, setMyTimeZone ] = useState("America/Toronto");
-  const [ myEmail, setMyEmail ] = useState();
-  const [ myPassword, setMyPassword ] = useState();
-  const [ emailAlreadyExists, setEmailAlreadyExists ] = useState(false);
-  const [ registrationFailed, setRegistrationFailed ] = useState(false);
-  const [ inadequatePassword, setInadequatePassword ] = useState(false);
-  const [ missingData, setMissingData ] = useState([]);
+  // const [ myTimeZone, setMyTimeZone ] = useState("America/Toronto");
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
-  const registerServerErrorAction = () => {
-    console.log("Something went wrong on the server end");
-    setRegistrationFailed(true);
+  const fieldsAndValidators = {last_name: null, first_name: null,
+                               email: "email", time_zone: null,
+                               password: "password"}
+
+  let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
+        flags, setFlags, myCallbacks
+      } = useFormManagement(fieldsAndValidators);
+  if ( formFieldValues.time_zone===null ) {
+    setFormFieldValue("America/Toronto", "time_zone");
   }
 
-  const registerDataConflictAction = () => {
-    console.log("A user with this email already exists!");
-    setEmailAlreadyExists(true);
-  }
-
-  const registerBadRequestAction = (mydata) => {
-    if ( mydata.reason==="Password is not strong enough" ) {
-      setInadequatePassword(true);
-    } else if ( mydata.reason==="Missing request data" ) {
-      let missingObj = mydata.error;
-      setMissingData(Object.keys(missingObj));
-    }
-  }
-
-  const successAction = (data) => {
+  myCallbacks.successAction = (data) => {
       myhistory.push('login?just_registered=true');
   }
 
-  const {setFieldValue, fields, setFields
-        } = useFieldValidation(missingData, setMissingData,
-                               ['my_last_name', 'my_first_name', 'my_email',
-                                'my_time_zone', 'my_password']);
+  // create object with state field value and setter for each field
+  const fieldNames = Object.keys(fieldsAndValidators);
+  const fieldSet = fieldNames.reduce((current, myName) => {
+    return {...current, [myName]: [formFieldValues[myName],
+                                   val => setFormFieldValue(val, myName)]}
+  }, {});
 
   const getRegistration = (event) => {
-    setEmailAlreadyExists(false);
-    setInadequatePassword(false);
-    setRegistrationFailed(false);
-    setMissingData([]);
-
     submitAction(event,
-      token => sendFormRequest(token, setFieldValue,
+      token => sendFormRequest(token, setFormFieldValue,
         {formId: 'registrationForm',
-         fieldSet: {lastName: [myLastName, setMyLastName],
-                   firstName: [myFirstName, setMyFirstName],
-                   email: [myEmail, setMyEmail],
-                   timeZone: [myTimeZone, setMyTimeZone],
-                   password: [myPassword, setMyPassword]
-        },
-        requestAction: register,
-        extraArgs: ["token"],
-        history: myhistory,
-        dispatch: dispatch,
-        successCallback: successAction,
-        otherCallbacks: {serverErrorAction: registerServerErrorAction,
-          dataConflictAction: registerDataConflictAction,
-          badRequestAction: registerBadRequestAction
-          },
+         fieldSet: fieldSet,
+         requestAction: register,
+         extraArgs: ["token"],
+         history: myhistory,
+         dispatch: dispatch,
+         successCallback: myCallbacks.successAction,
+         otherCallbacks: {
+           serverErrorAction: myCallbacks.serverErrorAction,
+           dataConflictAction: myCallbacks.dataConflictAction,
+           badRequestDataAction: myCallbacks.badRequestDataAction,
+           missingRequestDataAction: myCallbacks.missingRequestDataAction
+         },
         setInProgressAction: setRequestInProgress
       })
     );
@@ -111,7 +89,7 @@ const Register = ({submitAction}) => {
         { user.userLoggedIn === false && (
           <React.Fragment>
           <h2 className="text-center">Create an account here!</h2>
-          {!!registrationFailed &&
+          {!!flags.serverError &&
             <Alert variant="danger" className="row error-message">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
@@ -122,7 +100,8 @@ const Register = ({submitAction}) => {
               </Col>
             </Alert>
           }
-          {!!missingData && missingData.length > 0 &&
+          {!!flags.missingRequestData &&
+              flags.missingRequestData.length > 0 &&
             <Alert variant="danger" className="row error-message">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
@@ -137,43 +116,45 @@ const Register = ({submitAction}) => {
             role="form"
             id="registrationForm"
           >
-            <Form.Group as={Row} controlId="registerFirstName">
+            <Form.Group as={Row} controlId="first_name">
               <Form.Label column sm={5}>
                 First Name
               </Form.Label>
               <Col sm={7}>
                 <Form.Control
-                  name="firstName"
+                  name="first_name"
                   placeholder="Enter your first name"
                   autoComplete="given-name"
-                  onChange={e => setFieldValue(e.target.value, "my_first_name")}
+                  onChange={e => setFormFieldValue(e.target.value, "first_name")}
                 />
               </Col>
-              {!!missingData && missingData.includes("my_first_name") &&
+              {!!flags.missingRequestData &&
+                  flags.missingRequestData.includes("first_name") &&
                 <Alert variant="danger" className="col col-sm-12">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a first name.
                 </Alert>
               }
             </Form.Group>
-            <Form.Group as={Row} controlId="registerLastName">
+            <Form.Group as={Row} controlId="last_name">
               <Form.Label column sm={5}>
                 Last Name
               </Form.Label>
               <Col sm={7}>
                 <Form.Control
-                  name="lastName"
+                  name="last_name"
                   placeholder="Enter your surname or family name"
                   autoComplete="family-name"
-                  onChange={e => setFieldValue(e.target.value, "my_last_name")}
+                  onChange={e => setFormFieldValue(e.target.value, "last_name")}
                 />
               </Col>
-              {!!missingData && missingData.includes("my_last_name") &&
+              {!!flags.missingRequestData &&
+                  flags.missingRequestData.includes("last_name") &&
                 <Alert variant="danger" className="col col-sm-12">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a last name.
                 </Alert>
               }
             </Form.Group>
-            <Form.Group as={Row} controlId="registerEmail">
+            <Form.Group as={Row} controlId="email">
               <Form.Label column sm={5}>
                 Email
               </Form.Label>
@@ -183,15 +164,16 @@ const Register = ({submitAction}) => {
                   name="email"
                   placeholder="Enter your email address"
                   autoComplete="email"
-                  onChange={e => setFieldValue(e.target.value, "my_email")}
+                  onChange={e => setFormFieldValue(e.target.value, "email")}
                 />
               </Col>
-              {(!!missingData && missingData.includes("my_email")) ?
+              {(!!flags.missingRequestData &&
+                  flags.missingRequestData.includes("email")) ?
                 <Alert variant="danger" className="col col-sm-12">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide your email address.
                 </Alert>
                 :
-                (!!emailAlreadyExists ?
+                (!!flags.dataConflict ?
                   <Alert variant="danger" className="row error-message">
                     <Col xs="auto">
                       <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
@@ -209,22 +191,23 @@ const Register = ({submitAction}) => {
                 )
               }
             </Form.Group>
-            <Form.Group as={Row} controlId="registerTimezone">
+            <Form.Group as={Row} controlId="time_zone">
               <Form.Label column sm={5}>
                 Your Time Zone
               </Form.Label>
               <Col sm={7}>
                 <Typeahead
-                  id="registerTimeZone"
+                  id="time_zone"
                   labelKey="tz"
-                  inputProps={{name: "timeZone"}}
+                  inputProps={{name: "time_zone"}}
                   placeholder="Choose a time zone"
-                  onChange={selected => setFieldValue(selected, "my_time_zone")}
+                  onChange={selected => setFormFieldValue(selected, "time_zone")}
                   options={moment.tz.names()}
-                  defaultInputValue={!Array.isArray(myTimeZone) ? myTimeZone : myTimeZone[0]}
+                  defaultInputValue={!Array.isArray(formFieldValues.time_zone) ? formFieldValues.time_zone : formFieldValues.time_zone[0]}
                 />
               </Col>
-              {(!!missingData && missingData.includes("my_last_name")) ?
+              {(!!flags.missingRequestData &&
+                    flags.missingRequestData.includes("time_zone")) ?
                   <Alert variant="danger" className="col col-sm-12">
                     <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid time zone.
                   </Alert>
@@ -234,7 +217,7 @@ const Register = ({submitAction}) => {
                   </Form.Text>
               }
             </Form.Group>
-            <Form.Group as={Row} controlId="registerPassword">
+            <Form.Group as={Row} controlId="password">
               <Form.Label column sm={5}>
                 Password
               </Form.Label>
@@ -244,15 +227,17 @@ const Register = ({submitAction}) => {
                   name="password"
                   autoComplete="new-password"
                   placeholder="Enter a password"
-                  onChange={e => setFieldValue(e.target.value, "my_password")}
+                  onChange={e => setFormFieldValue(e.target.value, "password")}
                 />
               </Col>
-              {(!!missingData && missingData.includes("my_password")) ?
+              {(!!flags.missingRequestData &&
+                    flags.missingRequestData.includes("password")) ?
                   <Alert variant="danger" className="col col-sm-12">
                     <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a password.
                   </Alert>
                   :
-                  (!!inadequatePassword &&
+                  (!!flags.badRequestData &&
+                      flags.badRequestData.includes("password") &&
                     <Alert variant="danger" className="row error-message">
                       <Col xs="auto">
                         <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
