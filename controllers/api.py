@@ -441,24 +441,24 @@ def start_password_reset():
 def get_registration():
     """
     """
-    debug=False
+    debug=True
     request = current.request
     auth = current.auth
     response = current.response
-    token = request.vars['my_token'].strip()
-    email = request.vars['my_email'].strip()
-    password = request.vars['my_password'].strip()
-    tz = request.vars['my_time_zone'].strip()
-    first_name = request.vars['my_first_name'].strip()
-    last_name = request.vars['my_last_name'].strip()
+    token = request.vars['token'].strip()
+    email = request.vars['email'].strip()
+    password = request.vars['password'].strip()
+    tz = request.vars['time_zone'].strip()
+    first_name = request.vars['first_name'].strip()
+    last_name = request.vars['last_name'].strip()
 
     str_pat = re.compile('^[a-zA-Z0-9\s\-\/_]+$')
     email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
     missing = {k: v for k, v in request.vars.items() if
-               k not in ["my_token", "my_password"] and
-               ((v in ["undefined", None, ""])
-                or (k!="my_email" and not re.search(str_pat, v.strip()))
-                or (k=="my_email" and not re.search(email_pat, v.strip()))
+               k not in ["token", "password"] and
+               ((v in ["undefined", None, "", "null"])
+                or (k!="email" and not re.search(str_pat, v.strip()))
+                or (k=="email" and not re.search(email_pat, v.strip()))
                 )}
     if missing and len(missing.keys()) > 0:
         response.status = 400
@@ -470,7 +470,7 @@ def get_registration():
         response.status = 400
         return json_serializer({'status': 'bad request',
                     'reason': 'Password is not strong enough',
-                    'error': None})
+                    'error': {"password": password}})
 
     existing_user_count = db(db.auth_user.email==email).count()
     if existing_user_count>0:
@@ -536,13 +536,13 @@ def get_login():
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
-    debug=True
+    debug=False
     request = current.request
     auth = current.auth
     session = current.session
     response = current.response
-    token = request.vars['token'].strip()
-    email = request.vars['email'].strip()
+    token = request.vars['token'].strip() if request.vars['token'] else None
+    email = request.vars['email'].strip() if request.vars['email'] else None
     if debug: print('api::get_login: email:', email)
     password = request.vars['password'].strip()
     if debug: print('api::get_login: password:', password)
@@ -554,7 +554,7 @@ def get_login():
                k!="token" and
                ((v in ["undefined", None, "", "null"])
                 or (k=="password" and not re.search(password_pat, password))
-                or (k=="my_email" and not re.search(email_pat, email))
+                or (k=="email" and not re.search(email_pat, email))
                 )
                }
     if missing and len(missing.keys()) > 0:

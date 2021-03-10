@@ -178,6 +178,22 @@ const useFormManagement = (formFields) => {
         newFlags.badRequestData = myBad;
       }
 
+      // validate password fields
+      if ( formFields[fieldName]==="password" ) {
+        let myBad = [ ...newFlags.badRequestData ];
+        const passwordIndex = myBad.indexOf(fieldName);
+        const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$/;
+        console.log('passed password test?');
+        console.log(re.test(val));
+        if ( !re.test(val) ) {
+          if (passwordIndex === -1) { myBad.push(fieldName); }
+        } else {
+          if (passwordIndex > -1) { myBad.splice(passwordIndex, 1); }
+        }
+        newFlags.badRequestData = myBad;
+      }
+
+
       // if custom validator function is passed, execute
       if ( !!formFields[fieldName] &&
           typeof formFields[fieldName]==="function" ) {
@@ -193,6 +209,8 @@ const useFormManagement = (formFields) => {
       setFlags(newFlags);
       console.log('missingRequestData is');
       console.log(flags.missingRequestData);
+      console.log('badRequestData is');
+      console.log(flags.badRequestData);
     }
 
     const myCallbacks = {

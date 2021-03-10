@@ -89,8 +89,8 @@ function returnStatusCheck(mydata, history, action, reducer,
         } else if ( otherActions.hasOwnProperty("badRequestDataAction") ) {
                 otherActions.badRequestDataAction(mydata);
         }
-      } else if ( otherActions.hasOwnProperty("badRequestAction") ) {
-        otherActions.badRequestAction(mydata);
+      } else if ( otherActions.hasOwnProperty("badRequestDataAction") ) {
+        otherActions.badRequestDataAction(mydata);
       }
       break;
 

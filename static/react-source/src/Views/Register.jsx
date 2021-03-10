@@ -51,9 +51,10 @@ const Register = ({submitAction}) => {
   // create object with state field value and setter for each field
   const fieldNames = Object.keys(fieldsAndValidators);
   const fieldSet = fieldNames.reduce((current, myName) => {
-    return {...current, [myName]: [formFieldValues[myName],
-                                   val => setFormFieldValue(val, myName)]}
+    return {...current, [myName]: formFieldValues[myName]}
   }, {});
+  console.log('before submission: fieldSet is');
+  console.log(fieldSet);
 
   const getRegistration = (event) => {
     submitAction(event,
@@ -167,6 +168,12 @@ const Register = ({submitAction}) => {
                   onChange={e => setFormFieldValue(e.target.value, "email")}
                 />
               </Col>
+              {(!!flags.badRequestData &&
+                  flags.badRequestData.includes("email")) &&
+                <Alert variant="danger" className="col col-sm-12">
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid email address.
+                </Alert>
+              }
               {(!!flags.missingRequestData &&
                   flags.missingRequestData.includes("email")) ?
                 <Alert variant="danger" className="col col-sm-12">
