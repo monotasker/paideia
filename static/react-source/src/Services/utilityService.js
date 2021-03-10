@@ -76,53 +76,69 @@ const doApiCall = async (payload, apiFunction,
 
 function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
-  if ( mydata.status_code === 200 ) {
-    action(mydata);
-  } else if ( mydata.status_code === 400 ) {
-    console.log('400: Bad request');
-    if ( otherActions.hasOwnProperty("badRequestAction") ) {
-      otherActions.badRequestAction(mydata);
-    }
-  } else if ( mydata.status_code === 401 ) {
-    if ( mydata.reason === "Not logged in" ) {
-      console.log('401: Not logged in');
-      if ( otherActions.hasOwnProperty("unauthorizedAction")) {
-        otherActions.unauthorizedAction(mydata);
-      } else {
-        reducer({type: 'deactivateUser', payload: null});
-        history.push(`login`);
+  switch (mydata.status_code) {
+    case 200:
+      action(mydata);
+      break;
+
+    case 400:
+      console.log('400: Bad request');
+      if ( mydata.reason === 'Missing request data' ) {
+        if ( otherActions.hasOwnProperty("missingRequestDataAction") ) {
+                otherActions.missingRequestDataAction(mydata);
+        } else if ( otherActions.hasOwnProperty("badRequestDataAction") ) {
+                otherActions.badRequestDataAction(mydata);
+        }
+      } else if ( otherActions.hasOwnProperty("badRequestAction") ) {
+        otherActions.badRequestAction(mydata);
       }
-    } else if ( mydata.reason === "Insufficient privileges" ) {
-      console.log('401: Insufficient privileges');
-      if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
-        otherActions.insufficientPrivilegesAction(mydata);
+      break;
+
+    case 401:
+
+      if ( mydata.reason === "Not logged in" ) {
+        if ( otherActions.hasOwnProperty("notLoggedInAction")) {
+          otherActions.notLoggedInAction(mydata);
+        } else {
+          reducer({type: 'deactivateUser', payload: null});
+          history.push(`login`);
+        }
+      } else if ( mydata.reason === "Insufficient privileges" ) {
+        console.log('401: Insufficient privileges');
+        if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
+          otherActions.insufficientPrivilegesAction(mydata);
+        }
+      } else if ( mydata.reason === "Login failed" ) {
+        otherActions.loginFailedAction(mydata);
+      } else if ( mydata.reason === "Recaptcha failed" ) {
+        otherActions.recaptchaFailedAction(mydata);
+      } else if ( mydata.reason === "Action blocked") {
+        otherActions.actionBlockedAction(mydata);
       }
-    } else if ( mydata.reason === "Login failed" ) {
-      console.log('401: Login failed');
-      otherActions.unauthorizedAction(mydata);
-    } else if ( mydata.reason === "Action blocked") {
-      console.log('401: Action blocked');
-      otherActions.actionBlockedAction(mydata);
-    }
-  } else if ( mydata.status_code === 404 ) {
-    console.log('404: No such record');
-    if ( otherActions.hasOwnProperty("noRecordAction") ) {
-      otherActions.noRecordAction(mydata);
-    }
-  } else if ( mydata.status_code === 409 ) {
-    console.log('409: Conflict');
-    if ( otherActions.hasOwnProperty("dataConflictAction") ) {
-      console.log('taking conflict action');
-      otherActions.dataConflictAction(mydata);
-    }
-  } else if ( mydata.status_code === 500 ) {
-    console.log('500: Internal server error');
-    if ( otherActions.hasOwnProperty("serverErrorAction") ) {
-      otherActions.serverErrorAction(mydata);
-    }
-  } else {
-    console.log('Uncaught problem in returnStatusCheck:');
-    console.log(mydata);
+      break;
+
+    case 404:
+      if ( otherActions.hasOwnProperty("noRecordAction") ) {
+        otherActions.noRecordAction(mydata);
+      }
+      break;
+
+    case 409:
+      if ( otherActions.hasOwnProperty("dataConflictAction") ) {
+        otherActions.dataConflictAction(mydata);
+      }
+      break;
+
+    case 500:
+      if ( otherActions.hasOwnProperty("serverErrorAction") ) {
+        otherActions.serverErrorAction(mydata);
+      }
+      break;
+
+    default:
+      console.log('Uncaught problem in returnStatusCheck:');
+      console.log(mydata);
+      break;
   }
 }
 

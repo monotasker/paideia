@@ -81,93 +81,160 @@ const sendFormRequest = (token, setFields,
 
 /**
  * React custom hook to provide logic and state variables for handling
- * various response statuses after a form is submitted
+ * form field values in state, validating those values client-side,
+ * and responding to response statuses after a form is submitted
+ *
+ * required args:
+ *    formFields (obj)  An object whose keys are form field names and whose
+ *      values (if set) are either (a) strings giving names of standard
+ *      validators, or (b) custom validator functions
+ *
+ * provides formFieldValues object with two setter functions to hold values
+ * for form fields with the supplied names. (These names should also be
+ * the same as the back-end db table fields.)
+ *
+ * The setter setFormFieldValue updates a single field value and
+ * does some validation in the process (like removing "missing" flag
+ * if you're supplying missing value). The setFormFieldValuesDirectly
+ * setter allows for direct updating of the whole formFieldValues
+ * object in state.
  *
  * provides flags object with setter function. This has keys:
- *  unauthorized
- *  serverError
- *  badRequest
- *  noRecord
- *  success
- *
- * provides missing array with setter function. This includes a
- * string with the field name of any fields whose values were missing
- * in the request.
+ *   missingRequestData (array)
+ *   badRequestData (array)
+ *   notLoggedIn (bool)
+ *   insufficientPrivileges (bool)
+ *   loginFailed (bool)
+ *   recaptchaFailed (bool)
+ *   actionBlocked (bool)
+ *   noRecord (bool)
+ *   dataConflict (bool)
+ *   serverError (bool)
+ *   success (bool)
  *
  * provides an object with default callback functions on each server
  * response code. The keys for this object are:
- *    serverErrorAction
- *    unauthorizedAction
- *    badRequestAction
+ *    missingRequestDataAction
+ *    badRequestDataAction
+ *    notLoggedInAction
+ *    insufficientPrivilegesAction
+ *    loginFailedAction
+ *    recaptchaFailedAction
+ *    actionBlockedAction
  *    noRecordAction
+ *    dataConflictAction
+ *    serverErrorAction
  *    successAction
  */
-const useResponseCallbacks = () => {
-    const [ missing, setMissing ] = useState([]);
-    const [ flags, setFlags ] = useState({unauthorized: false,
-                                          serverError: false,
-                                          badRequest: false,
+const useFormManagement = (formFields) => {
+    const [ flags, setFlags ] = useState({missingRequestData: [],
+                                          badRequestData: [],
+                                          notLoggedIn: false,
+                                          insufficientPrivileges: false,
+                                          loginFailed: false,
+                                          recaptchaFailed: false,
+                                          actionBlocked: false,
                                           noRecord: false,
-                                          success: false
+                                          dataConflict: false,
+                                          serverError: false,
+                                          success: true
                                           });
+    const fieldList = Object.keys(formFields);
 
-    //** default callback functions for different response states */
-    const myCallbacks = {
-        serverErrorAction: () => { setFlags({...flags, serverError: true}) },
-        unauthorizedAction: () => { setFlags({...flags, unauthorized: true}) },
-        badRequestAction: (data) => {
-          setMissing(Object.keys(data.error));
-          setFlags({...flags, badRequest: false});
-        },
-        noRecordAction: (data) => {
-          setFlags({...flags, noRecord: true});
-        },
-        successAction: () => {
-          setFlags({success: true,
-                    noRecord: false,
-                    badRequest: false,
-                    serverError: false,
-                    unauthorized: false});
-        }
-    }
-
-    return {missing, setMissing, flags, setFlags, myCallbacks}
-}
-
-/**
- *  custom hook to manage client-side validation of form fields
- *
- *  at present just removes items from "missing" state array
- *  if user enters a value in the field
- *
- *  TODO: I *think* the returned fields and setFields are useless
- */
-const useFieldValidation = (missing, setMissing, fieldList) => {
-
-    const [fields, setFields
+    const [formFieldValues, setFormFieldValuesDirectly
           ] = useState(fieldList.reduce(
             (obj, item) => {
               return {...obj, [item]: null }
             }, {})
             );
-    console.log('fields is');
-    console.log(fields);
+    console.log('formFieldValues is');
+    console.log(formFieldValues);
 
-    const setFieldValue = (val, fieldName) => {
-      setFields({...fields, [fieldName]: val});
-      var myMissing = [...missing];
-      const index = myMissing.indexOf(fieldName);
-      if (index > -1) {
-        myMissing.splice(index, 1);
-        setMissing(myMissing);
+    const setFormFieldValue = (val, fieldName) => {
+      setFormFieldValuesDirectly({...formFieldValues, [fieldName]: val});
+      let newFlags = { ...flags };
+
+      // unflag missing field values if we're now entering them
+      var myMissing = [...newFlags.missingRequestData ];
+      const missingIndex = myMissing.indexOf(fieldName);
+      console.log(`missingIndex ${missingIndex}`);
+      if (missingIndex > -1) {
+        myMissing.splice(missingIndex, 1);
+        newFlags.missingRequestData = myMissing;
       }
+
+      // validate email fields
+      if ( formFields[fieldName]==="email" ) {
+        let myBad = [ ...newFlags.badRequestData ];
+        const emailIndex = myBad.indexOf(fieldName);
+        const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+        console.log('passed email test?');
+        console.log(re.test(String(val).toLowerCase()));
+        if ( !re.test(String(val).toLowerCase()) ) {
+          if (emailIndex === -1) { myBad.push(fieldName); }
+        } else {
+          if (emailIndex > -1) { myBad.splice(emailIndex, 1); }
+        }
+        newFlags.badRequestData = myBad;
+      }
+
+      // if custom validator function is passed, execute
+      if ( !!formFields[fieldName] &&
+          typeof formFields[fieldName]==="function" ) {
+        let myBad = [ ...newFlags.badRequestData ];
+        if ( !formFields[fieldName](val) ) {
+          myBad.push(fieldName);
+        } else {
+          const index = myBad.indexOf(fieldName);
+          if (index > -1) { myBad.splice(index, 1); }
+        }
+        newFlags.badRequestData = myBad;
+      }
+      setFlags(newFlags);
+      console.log('missingRequestData is');
+      console.log(flags.missingRequestData);
     }
 
-    return({setFieldValue, fields, setFields})
+    const myCallbacks = {
+        missingRequestDataAction: (data) => {
+          setFlags({...flags, missingRequestData: Object.keys(data.error)});
+        },
+        badRequestDataAction: (data) => {
+          setFlags({...flags, badRequestData: Object.keys(data.error)});
+        },
+        notLoggedInAction: () => { setFlags({...flags, notLoggedIn: true}) },
+        insufficientPrivilegesAction: () => {
+          setFlags({...flags, insufficientPrivileges: true})
+        },
+        loginFailedAction: () => { setFlags({...flags, loginFailed: true}) },
+        recaptchaFailedAction: () => {
+          setFlags({...flags, recaptchaFailed: true});
+        },
+        actionBlockedAction: () => { setFlags({...flags, actionBlocked: true}) },
+        noRecordAction: () => { setFlags({...flags, noRecord: true}); },
+        dataConflictAction: () => { setFlags({...flags, dataConflict: true}); },
+        serverErrorAction: () => { setFlags({...flags, serverError: true}) },
+        successAction: () => {
+          setFlags({missingRequestData: [],
+                    badRequestData: [],
+                    notLoggedIn: false,
+                    insufficientPrivileges: false,
+                    loginFailed: false,
+                    recaptchaFailed: false,
+                    actionBlocked: false,
+                    noRecord: false,
+                    dataConflict: false,
+                    serverError: false,
+                    success: true
+                  });
+        }
+    }
+
+    return {formFieldValues, setFormFieldValue, setFormFieldValuesDirectly,
+            flags, setFlags, myCallbacks}
 }
 
 export {
     sendFormRequest,
-    useResponseCallbacks,
-    useFieldValidation
+    useFormManagement
 }

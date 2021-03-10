@@ -24,8 +24,7 @@ import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from '../Services/utilityService';
 import {
   sendFormRequest,
-  useResponseCallbacks,
-  useFieldValidation
+  useFormManagement
 } from "../Services/formsService";
 
 const LoginInner = ({submitAction}) => {
@@ -34,14 +33,9 @@ const LoginInner = ({submitAction}) => {
   const queryParams = useQuery();
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
-  // flagging and handling of problems after request is returned
-  let { missing, setMissing, flags,
-        setFlags, myCallbacks } = useResponseCallbacks();
-
-  // remove field from "missing" when updated via setFieldValue
-  // establish single state object to handle form fields
-  const {setFormFieldValue, formFieldValues, setFormFieldsDirectly
-        } = useFieldValidation(missing, setMissing, ["email", "password"]);
+  let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
+        flags, setFlags, myCallbacks
+      } = useFormManagement({"email": "email", "password": null});
 
   myCallbacks.successAction = (data) => {
     if ( data.id != null ) {
@@ -65,9 +59,11 @@ const LoginInner = ({submitAction}) => {
         history: history,
         dispatch: dispatch,
         successCallback: myCallbacks.successAction,
-        otherCallbacks: {serverErrorAction: myCallbacks.serverErrorAction,
-                         unauthorizedAction: myCallbacks.unauthorizedAction,
-                         badRequestAction: myCallbacks.badRequestAction
+        otherCallbacks: {
+          serverErrorAction: myCallbacks.serverErrorAction,
+          loginFailedAction: myCallbacks.loginFailedAction,
+          badRequestDataAction: myCallbacks.badRequestDataAction,
+          missingRequestDataAction: myCallbacks.missingRequestDataAction
         },
         setInProgressAction: setRequestInProgress
       })
@@ -108,7 +104,7 @@ const LoginInner = ({submitAction}) => {
               Now you can log in using your new password!
             </Alert>
           }
-          {missing.length > 0 &&
+          {flags.missingRequestData.length > 0 &&
             <Alert variant="danger" className="error-message row">
               <Col xs="auto">
                 <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
@@ -128,11 +124,18 @@ const LoginInner = ({submitAction}) => {
                 name="email"
                 placeholder="Enter your email address"
                 autoComplete="email"
-                onChange={e => setFieldValue(e.target.value, "email")}
+                onChange={e => setFormFieldValue(e.target.value, "email")}
               />
-              {missing.length > 0 && missing.includes("email") &&
+              {flags.missingRequestData.length > 0 &&
+                flags.missingRequestData.includes("email") &&
                 <Alert variant="danger" className="error-message">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your email address.
+                </Alert>
+              }
+              {flags.badRequestData.length > 0 &&
+              flags.badRequestData.includes("email") &&
+                <Alert variant="danger" className="error-message">
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid email address.
                 </Alert>
               }
             </Form.Group>
@@ -145,11 +148,18 @@ const LoginInner = ({submitAction}) => {
                 name="password"
                 autoComplete="current-password"
                 placeholder="Password"
-                onChange={e => setFieldValue(e.target.value, "password")}
+                onChange={e => setFormFieldValue(e.target.value, "password")}
               />
-              {missing.length > 0 && missing.includes("password") &&
+              {flags.missingRequestData.length > 0 &&
+                flags.missingRequestData.includes("password") &&
                 <Alert variant="danger" className="error-message">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your password.
+                </Alert>
+              }
+              {flags.badRequestData.length > 0 &&
+                flags.badRequestData.includes("password") &&
+                <Alert variant="danger" className="error-message">
+                  <FontAwesomeIcon icon="exclamation-triangle" /> You need to include a password that is complex enough.
                 </Alert>
               }
             </Form.Group>
@@ -159,7 +169,7 @@ const LoginInner = ({submitAction}) => {
               <FontAwesomeIcon icon="sign-in-alt" /> Log in
             </Button>
           </Form>
-          {flags.unauthorized===true &&
+          {flags.loginFailed===true &&
             <Alert variant="danger" className="error-message row">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
