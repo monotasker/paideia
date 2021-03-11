@@ -117,6 +117,12 @@ function returnStatusCheck(mydata, history, action, reducer,
       }
       break;
 
+    case 403:
+      if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
+        otherActions.insufficientPrivilegesAction(mydata);
+      }
+      break;
+
     case 404:
       if ( otherActions.hasOwnProperty("noRecordAction") ) {
         otherActions.noRecordAction(mydata);

@@ -22,81 +22,61 @@ import {
 } from '../Services/authService';
 import { useQuery} from '../Services/utilityService';
 import { UserContext } from '../UserContext/UserProvider';
-import { sendFormRequest } from '../Services/formsService';
+import { sendFormRequest,
+         useFormManagement } from '../Services/formsService';
 
 
 const StartResetForm = ({submitAction}) => {
   const myhistory = useHistory();
   const { user, dispatch } = useContext(UserContext);
-  const [ email, setEmail ] = useState();
-  const [ missingEmail, setMissingEmail ] = useState(false);
-  const [ resetFailed, setResetFailed ] = useState(false);
-  const [ noSuchUser, setNoSuchUser ] = useState(false);
-  const [ resetSucceeded, setResetSucceeded ] = useState(false);
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
-  const serverErrorAction = (mydata) => {
-    setRequestInProgress(false);
-    setResetFailed(true);
-  }
-
-  const badRequestAction = (mydata) => {
-    setRequestInProgress(false);
-    if ( mydata.reason === "User does not exist" ) {
-      setNoSuchUser(true);
-    } else {
-      setMissingEmail(true);
-    }
-  }
-
-  const successAction = (mydata) => {
-    setResetSucceeded(true);
-  }
+  let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
+        flags, setFlags, myCallbacks
+      } = useFormManagement({email: "email"});
 
   const submitPasswordResetRequest = (event) => {
-    console.log(`requesting for ${email}`);
+    console.log(`requesting for ${formFieldValues.email}`);
     submitAction(event,
-        (token) => {sendFormRequest(token, {formId: "start-pass-reset-form",
-                        fieldSet: {email: [email, setEmail]},
-                        requestAction: startPasswordReset,
-                        extraArgs: ["token"],
-                        history: myhistory,
-                        dispatch: dispatch,
-                        successCallback: successAction,
-                        otherCallbacks: {serverErrorAction: serverErrorAction,
-                                        badRequestAction: badRequestAction
-                                        },
-                        setInProgressAction: setRequestInProgress
-                      })
-                    }
+        (token) => {sendFormRequest(token, setFormFieldValue,
+          {formId: "start-pass-reset-form",
+           fieldSet: {email: formFieldValues.email},
+           requestAction: startPasswordReset,
+           extraArgs: ["token"],
+           history: myhistory,
+           dispatch: dispatch,
+           successCallback: myCallbacks.successAction,
+           otherCallbacks: {
+             serverErrorAction: myCallbacks.serverErrorAction,
+             noRecordAction: myCallbacks.noRecordAction,
+             dataConflictAction: myCallbacks.dataConflictAction,
+             missingRequestDataAction: myCallbacks.missingRequestDataAction,
+             recaptchaFailedAction: myCallbacks.recaptchaFailedAction
+           },
+           setInProgressAction: setRequestInProgress
+        })
+      }
     )
-  }
-
-  const setEmailValue = (val) => {
-    if (!!val) {
-      setMissingEmail(false);
-      setEmail(val);
-    }
   }
 
   return (
     <React.Fragment>
       <h2 className="text-center">Request a password reset</h2>
-      {!!resetSucceeded &&
+      {!!flags.success &&
         <Alert variant="success">
           <h3>Success!</h3>
           <p>
-            Your password reset request was accepted. An email has been sent to {email} with a temporary link allowing you to reset your password.
+            Your password reset request was accepted. An email has been sent to {formFieldValues.email} with a temporary link allowing you to reset your password.
           </p>
           <p>(If you can't find the email, check your spam folder. Some email servers might put it in there!)</p>
         </Alert>
       }
-      {!resetSucceeded &&
+      {!flags.success &&
         <React.Fragment>
         <p>
           We'll send you an email with a temporary link allowing you to reset your password. After you click "Request reset email", look in your email inbox. (If you can't find the email, check your spam folder. Some email servers might put it in there!)
         </p>
-        {!!resetFailed &&
+        {!!flags.serverError &&
           <Alert variant="danger" className="row error-message">
             <Col xs="auto">
               <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
@@ -107,7 +87,7 @@ const StartResetForm = ({submitAction}) => {
             </Col>
           </Alert>
         }
-        {!!noSuchUser &&
+        {!!flags.noRecord &&
           <Alert variant="danger" className="row error-message">
             <Col xs="auto">
               <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
@@ -117,7 +97,18 @@ const StartResetForm = ({submitAction}) => {
             </Col>
           </Alert>
         }
-        {!!missingEmail &&
+        {!!flags.dataConflict &&
+          <Alert variant="danger" className="row error-message">
+            <Col xs="auto">
+              <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
+            </Col>
+            <Col xs="10">
+              Sorry, a password reset is already in process for this user. If you requested one earlier, check your email for the link to perform the reset.
+            </Col>
+          </Alert>
+        }
+        {!!flags.missingRequestData.length > 0 &&
+            flags.missingRequestData.includes("email") &&
           <Alert variant="danger" className="row error-message">
             <Col xs="auto">
               <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
@@ -130,7 +121,7 @@ const StartResetForm = ({submitAction}) => {
         <Form role="form"
           id="start-pass-reset-form"
         >
-          <Form.Group as={Row} controlId="startPassResetEmail">
+          <Form.Group as={Row} controlId="email">
             <Form.Label column sm={5}>
               Email
             </Form.Label>
@@ -140,9 +131,20 @@ const StartResetForm = ({submitAction}) => {
                 name="email"
                 placeholder="Enter your email address"
                 autoComplete="email"
-                onChange={e => setEmailValue(e.target.value, "my_email")}
+                onChange={e => setFormFieldValue(e.target.value, "email")}
               />
             </Col>
+            {!!flags.badRequestData.length > 0 &&
+                flags.badRequestData.includes("email") &&
+              <Alert variant="danger" className="row error-message">
+                <Col xs="auto">
+                  <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
+                </Col>
+                <Col xs="10">
+                  Please provide a valid email address.
+                </Col>
+              </Alert>
+            }
           </Form.Group>
           <Form.Group as={Row} controlId="startPassResetSubmitButton">
             <Col xs sm={5}>
@@ -167,110 +169,57 @@ const StartResetForm = ({submitAction}) => {
 const CompleteResetForm = ({resetKey, submitAction}) => {
   const myhistory = useHistory();
   const { user, dispatch } = useContext(UserContext);
-  const [ passwordA, setPasswordA ] = useState();
-  const [ passwordB, setPasswordB ] = useState();
-  const [ passwordAMissing, setPasswordAMissing ] = useState(false);
-  const [ passwordBMissing, setPasswordBMissing ] = useState(false);
-  const [ inadequatePassword, setInadequatePassword ] = useState(false);
-  const [ passwordsDontMatch, setPasswordsDontMatch ] = useState(false);
-  const [ recaptchaFailed, setRecaptchaFailed ] = useState(false);
-  const [ expiredResetKey, setExpiredResetKey ] = useState(false);
-  const [ noSuchUser, setNoSuchUser ] = useState(false);
-  const [ resetBlocked, setResetBlocked ] = useState(false);
-  const [ resetFailed, setResetFailed ] = useState(false);
-  const [ resetSucceeded, setResetSucceeded ] = useState(false);
   const [ requestInProgress, setRequestInProgress ] = useState(false);
-  const [ errorDetails, setErrorDetails ] = useState(null);
-  const [ showErrorDetails, setShowErrorDetails ] = useState(false);
 
-  const serverErrorAction = (data) => {
-    setResetFailed(true);
-    setErrorDetails(data.error)
-  }
+  const myFields = {password_A: "password",
+                    password_B: "password"}
 
-  const badRequestAction = (data) => {
+  let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
+        flags, setFlags, myCallbacks
+      } = useFormManagement(myFields);
+
+  const fieldSet = Object.keys(myFields).reduce((current, myName) => {
+    return {...current, [myName]: formFieldValues[myName]}
+  }, {});
+
+  myCallbacks.badRequestDataAction = (data) => {
     if ( data.reason==="New passwords do not match" ) {
-      setPasswordsDontMatch(true);
-    } else if ( data.reason==="Missing request data" ) {
-      if ( Object.keys(data.error).includes("new_password_A") ) {
-         setPasswordAMissing(true)}
-      if ( Object.keys(data.error).includes("new_password_B") ) {
-         setPasswordBMissing(true)}
+      setFlags({...flags, passwordsDoNotMatch: true});
     } else if ( data.reason==="Password is not strong enough") {
-      setInadequatePassword(true);
-    } else if ( data.reason==="Password reset key was bad") {
-      setExpiredResetKey(true);
-    } else if ( data.reason==="User does not exist") {
-      setNoSuchUser(true);
-    } else {
-      setResetFailed(true);
+      setFlags({...flags, badRequestData: ["password"]});
     }
   }
 
-  const unauthorizedAction = (data) => {
-    if (data.reason==='Recaptcha failed') {
-      setRecaptchaFailed(true);
-    } else {
-      setResetFailed(true);
-      setErrorDetails(data.error);
-    }
-  }
-
-  const actionBlockedAction = (data) => {
-    if ( data.reason === 'Action blocked' ) {
-      setResetBlocked(true);
-    } else {
-      setResetFailed(true);
-      setErrorDetails(data.error);
-    }
-  }
-
-  const successAction = (data) => {
-    setResetSucceeded(true);
+  myCallbacks.successAction = (data) => {
     myhistory.push('login?just_reset_password=true');
   }
 
   const changePassword = (event) => {
-    setInadequatePassword(false);
-    setResetFailed(false);
-    setResetSucceeded(false);
-    setPasswordAMissing(false);
-    setPasswordBMissing(false);
-    setPasswordsDontMatch(false);
-    setNoSuchUser(false);
-    setExpiredResetKey(false);
-    setResetBlocked(false);
-    submitAction(event,
-      (token) => {sendFormRequest(token,
-                     {formId: "complete-pass-reset-form",
-                      fieldSet: {passwordA: [passwordA, setPasswordA],
-                                 passwordB: [passwordB, setPasswordB],
-                                 resetKey: [resetKey, null]
-                                },
-                      requestAction: doPasswordReset,
-                      extraArgs: ["token"],
-                      history: myhistory,
-                      dispatch: dispatch,
-                      successCallback: successAction,
-                      otherCallbacks: {serverErrorAction: serverErrorAction,
-                                       badRequestAction: badRequestAction,
-                                       unauthorizedAction: unauthorizedAction,
-                                       actionBlockedAction: actionBlockedAction
-                                      },
-                      setInProgressAction: setRequestInProgress
-                    })
-                  }
+    setFlags({...flags, passwordsDoNotMatch: false});
+    submitAction(event, setFormFieldValue, (token) => {
+      sendFormRequest(token,
+           {formId: "complete-pass-reset-form",
+            fieldSet: {...fieldSet,
+                       resetKey: resetKey
+                      },
+            requestAction: doPasswordReset,
+            extraArgs: ["token"],
+            history: myhistory,
+            dispatch: dispatch,
+            successCallback: myCallbacks.successAction,
+            otherCallbacks: {
+              serverErrorAction: myCallbacks.serverErrorAction,
+              badRequestDataAction: myCallbacks.badRequestAction,
+              missingRequestDataAction: myCallbacks.missingRequestDataAction,
+              noRecordAction: myCallbacks.noRecordAction,
+              insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
+              actionBlockedAction: myCallbacks.actionBlockedAction,
+              recaptchaFailedAction: myCallbacks.recaptchaFailedAction
+            },
+            setInProgressAction: setRequestInProgress
+          })
+        }
     );
-  }
-
-  const updatePasswordAField = (val) => {
-    setPasswordA(val);
-    setPasswordAMissing(false);
-  }
-
-  const updatePasswordBField = (val) => {
-    setPasswordB(val);
-    setPasswordBMissing(false);
   }
 
   return (
@@ -294,34 +243,37 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
             />
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="doPassResetPasswordA">
+        <Form.Group as={Row} controlId="password_A">
           <Form.Label column sm={5}>
             New password
           </Form.Label>
           <Col sm={7}>
             <Form.Control
               type="password"
-              name="passwordA"
+              name="password_A"
               autoComplete="new-password"
               placeholder="Enter a new password"
-              onChange={e => updatePasswordAField(e.target.value)}
+              onChange={e => setFormFieldValue(e.target.value, "password_A")}
             />
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="doPassResetPasswordB">
+        <Form.Group as={Row} controlId="password_B">
           <Form.Label column sm={5}>
             Confirm password
           </Form.Label>
           <Col sm={7}>
             <Form.Control
               type="password"
-              name="passwordB"
+              name="password_B"
               autoComplete="new-password"
               placeholder="Re-type the new password"
-              onChange={e => updatePasswordBField(e.target.value)}
+              onChange={e => setFormFieldValue(e.target.value, "password_B")}
             />
           </Col>
-          {( !!passwordAMissing || !!passwordBMissing ) &&
+          {( flags.missingRequestData.length > 0 &&
+                (flags.missingRequestData.includes("password_A") ||
+                 flags.missingRequestData.includes("password_B"))
+           ) &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
@@ -330,7 +282,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!passwordsDontMatch &&
+          {!!flags.passwordsDoNotMatch &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
@@ -339,7 +291,8 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!inadequatePassword &&
+          {!!flags.badRequestData.length > 0 &&
+                flags.badRequestData.includes("password_A") &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
@@ -348,7 +301,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!expiredResetKey &&
+          {!!flags.insufficientPrivileges &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
@@ -357,7 +310,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!recaptchaFailed &&
+          {!!flags.recaptchaFailed &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
@@ -366,7 +319,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!noSuchUser &&
+          {!!flags.noRecord &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>
@@ -376,7 +329,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!resetBlocked &&
+          {!!flags.actionBlocked &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
@@ -386,7 +339,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 </Col>
               </Alert>
           }
-          {!!resetFailed &&
+          {!!flags.serverError &&
               <Alert variant="danger" className="row error-message">
                 <Col xs="auto">
                   <FontAwesomeIcon size="2x" icon="exclamation-triangle" /></Col>

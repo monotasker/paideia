@@ -290,20 +290,20 @@ def do_password_reset():
 
             t0 = int(key.split('-')[0])
             if time.time() - t0 > 60 * 60 * 24:
-                response.status = 400
-                return json_serializer({'status': 'bad request',
+                response.status = 403
+                return json_serializer({'status': 'forbidden',
                                         'reason': 'Password reset key was bad',
                                         'error': None})
             user = db(db.auth_user.reset_password_key==key).select().first()
             if not user:
-                response.status = 400
-                return json_serializer({'status': 'bad request',
+                response.status = 404
+                return json_serializer({'status': 'not found',
                             'reason': 'User does not exist',
                             'error': None})
             rkey = user.registration_key
             if rkey in ('pending', 'disabled', 'blocked') or (rkey or '').startswith('pending'):
-                response.status = 401
-                return json_serializer({'status': 'unauthorized',
+                response.status = 409
+                return json_serializer({'status': 'conflict',
                                         'reason': 'Action blocked',
                                         'error': "Reset blocked or pending"})
             print('USER=========================')
@@ -381,8 +381,8 @@ def start_password_reset():
 
     user = db(db.auth_user.email==email).select().first()
     if not user:
-        response.status = 400
-        return json_serializer({'status': 'bad request',
+        response.status = 404
+        return json_serializer({'status': 'not found',
                     'reason': 'User does not exist',
                     'error': None})
 
@@ -410,8 +410,8 @@ def start_password_reset():
             key = user.registration_key
 
             if key in ('pending', 'disabled', 'blocked') or (key or '').startswith('pending'):
-                response.status = 401
-                return json_serializer({'status': 'unauthorized',
+                response.status = 409
+                return json_serializer({'status': 'conflict',
                             'reason': 'Action already pending',
                             'error': None})
 
