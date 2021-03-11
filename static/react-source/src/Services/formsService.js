@@ -215,23 +215,138 @@ const useFormManagement = (formFields) => {
 
     const myCallbacks = {
         missingRequestDataAction: (data) => {
-          setFlags({...flags, missingRequestData: Object.keys(data.error)});
+          setFlags({...flags,
+                    missingRequestData: Object.keys(data.error),
+                    notLoggedIn: false,
+                    insufficientPrivileges: false,
+                    loginFailed: false,
+                    recaptchaFailed: false,
+                    actionBlocked: false,
+                    noRecord: false,
+                    dataConflict: false,
+                    serverError: false,
+                    success: false
+                   });
         },
         badRequestDataAction: (data) => {
-          setFlags({...flags, badRequestData: Object.keys(data.error)});
+          setFlags({...flags, badRequestData: Object.keys(data.error),
+                    notLoggedIn: false,
+                    insufficientPrivileges: false,
+                    loginFailed: false,
+                    recaptchaFailed: false,
+                    actionBlocked: false,
+                    noRecord: false,
+                    dataConflict: false,
+                    serverError: false,
+                    success: false
+          });
         },
-        notLoggedInAction: () => { setFlags({...flags, notLoggedIn: true}) },
+        notLoggedInAction: () => { setFlags({...flags, notLoggedIn: true,
+                                             badRequestData: [],
+                                             missingRequestData: [],
+                                             insufficientPrivileges: false,
+                                             loginFailed: false,
+                                             recaptchaFailed: false,
+                                             actionBlocked: false,
+                                             noRecord: false,
+                                             dataConflict: false,
+                                             serverError: false,
+                                             success: false
+          });
+        },
         insufficientPrivilegesAction: () => {
-          setFlags({...flags, insufficientPrivileges: true})
+          setFlags({...flags, insufficientPrivileges: true,
+                    notLoggedIn: false,
+                    badRequestData: [],
+                    missingRequestData: [],
+                    loginFailed: false,
+                    recaptchaFailed: false,
+                    actionBlocked: false,
+                    noRecord: false,
+                    dataConflict: false,
+                    serverError: false,
+                    success: false
+          });
         },
-        loginFailedAction: () => { setFlags({...flags, loginFailed: true}) },
+        loginFailedAction: () => { setFlags({...flags, loginFailed: true,
+                                             notLoggedIn: false,
+                                             badRequestData: [],
+                                             missingRequestData: [],
+                                             insufficientPrivileges: false,
+                                             recaptchaFailed: false,
+                                             actionBlocked: false,
+                                             noRecord: false,
+                                             dataConflict: false,
+                                             serverError: false,
+                                             success: false
+          });
+        },
         recaptchaFailedAction: () => {
-          setFlags({...flags, recaptchaFailed: true});
+          setFlags({...flags, recaptchaFailed: true,
+                    loginFailed: false,
+                    notLoggedIn: false,
+                    badRequestData: [],
+                    missingRequestData: [],
+                    insufficientPrivileges: false,
+                    actionBlocked: false,
+                    noRecord: false,
+                    dataConflict: false,
+                    serverError: false,
+                    success: false
+          });
         },
-        actionBlockedAction: () => { setFlags({...flags, actionBlocked: true}) },
-        noRecordAction: () => { setFlags({...flags, noRecord: true}); },
-        dataConflictAction: () => { setFlags({...flags, dataConflict: true}); },
-        serverErrorAction: () => { setFlags({...flags, serverError: true}) },
+        actionBlockedAction: () => { setFlags({...flags, actionBlocked: true,
+                                               recaptchaFailed: false,
+                                               loginFailed: false,
+                                               notLoggedIn: false,
+                                               badRequestData: [],
+                                               missingRequestData: [],
+                                               insufficientPrivileges: false,
+                                               noRecord: false,
+                                               dataConflict: false,
+                                               serverError: false,
+                                               success: false
+          });
+        },
+        noRecordAction: () => { setFlags({...flags, noRecord: true,
+                                          recaptchaFailed: false,
+                                          loginFailed: false,
+                                          notLoggedIn: false,
+                                          badRequestData: [],
+                                          missingRequestData: [],
+                                          insufficientPrivileges: false,
+                                          actionBlocked: false,
+                                          dataConflict: false,
+                                          serverError: false,
+                                          success: false
+          });
+        },
+        dataConflictAction: () => { setFlags({...flags, dataConflict: true,
+                                              recaptchaFailed: false,
+                                              loginFailed: false,
+                                              notLoggedIn: false,
+                                              badRequestData: [],
+                                              missingRequestData: [],
+                                              insufficientPrivileges: false,
+                                              actionBlocked: false,
+                                              noRecord: false,
+                                              serverError: false,
+                                              success: false
+          });
+        },
+        serverErrorAction: () => { setFlags({...flags, serverError: true,
+                                             recaptchaFailed: false,
+                                             loginFailed: false,
+                                             notLoggedIn: false,
+                                             badRequestData: [],
+                                             missingRequestData: [],
+                                             insufficientPrivileges: false,
+                                             actionBlocked: false,
+                                             noRecord: false,
+                                             dataConflict: false,
+                                             success: false
+          });
+        },
         successAction: () => {
           setFlags({missingRequestData: [],
                     badRequestData: [],
