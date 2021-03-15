@@ -231,6 +231,8 @@ def _check_password_strength(password):
     password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
                      "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
     password_pat = re.compile(password_regex)
+    print('password', password)
+    print('password_pat', password_pat)
     return re.search(password_pat, password)
 
 
@@ -243,12 +245,12 @@ def do_password_reset():
 
     key = request.vars['key']
     token = request.vars['token']
-    new_password_A = request.vars['new_password_A']
-    new_password_B = request.vars['new_password_B']
+    new_password_A = request.vars['password_A']
+    new_password_B = request.vars['password_B']
 
 
     missing = {k: v for k, v in request.vars.items() if
-               k in ['key', 'new_password_A', 'new_password_B']
+               k in ['key', 'password_A', 'password_B']
                and v in [None, "null", "undefined", ""]}
     if missing and len(missing.keys()) > 0:
         response.status = 400

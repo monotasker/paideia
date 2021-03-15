@@ -218,6 +218,7 @@ mail.settings.server = keydata['email_server']  # 'logging' # SMTP server
 mail.settings.sender = keydata['email_address']  # email
 mail.settings.login = '{}:{}'.format(keydata['email_user'],
                                      keydata['email_pass'])
+mail.settings.hostname = keydata['email_hostname']
 mail.settings.tls = True
 current.mail = mail
 

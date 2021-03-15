@@ -51,11 +51,15 @@ const sendFormRequest = (token, setFields,
                       ) => {
     setInProgressAction(true);
     // handle autocompleted form fields that aren't picked up by React state
+    console.log('formId===========');
+    console.log(formId);
     let requestArgs = {};
     Object.keys(fieldSet).forEach(key => {
-      console.log('formId===========');
-      console.log(formId);
-      let myval = document.getElementById(formId).elements[key].value;
+      console.log('key');
+      console.log(key);
+      let mycontrol = document.getElementById(formId).elements[key]
+      let myval = !!mycontrol ? mycontrol.value : undefined;
+
       if ( !fieldSet[key] && !!myval ) {
         setFields(myval, fieldSet[key]);
         requestArgs[key] = myval;
@@ -127,6 +131,7 @@ const sendFormRequest = (token, setFields,
  *    successAction
  */
 const useFormManagement = (formFields) => {
+    const [ showErrorDetails, setShowErrorDetails ] = useState(false);
     const [ flags, setFlags ] = useState({missingRequestData: [],
                                           badRequestData: [],
                                           notLoggedIn: false,
@@ -137,7 +142,7 @@ const useFormManagement = (formFields) => {
                                           noRecord: false,
                                           dataConflict: false,
                                           serverError: false,
-                                          success: true
+                                          success: false
                                           });
     const fieldList = Object.keys(formFields);
 
@@ -334,7 +339,8 @@ const useFormManagement = (formFields) => {
                                               success: false
           });
         },
-        serverErrorAction: () => { setFlags({...flags, serverError: true,
+        serverErrorAction: (data) => { setFlags({...flags,
+                                             serverError: data.error,
                                              recaptchaFailed: false,
                                              loginFailed: false,
                                              notLoggedIn: false,
@@ -364,7 +370,7 @@ const useFormManagement = (formFields) => {
     }
 
     return {formFieldValues, setFormFieldValue, setFormFieldValuesDirectly,
-            flags, setFlags, myCallbacks}
+            flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails}
 }
 
 export {

@@ -32,7 +32,7 @@ const StartResetForm = ({submitAction}) => {
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
   let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
-        flags, setFlags, myCallbacks
+        flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
       } = useFormManagement({email: "email"});
 
   const submitPasswordResetRequest = (event) => {
@@ -58,6 +58,8 @@ const StartResetForm = ({submitAction}) => {
       }
     )
   }
+  console.log("flags is:");
+  console.log(flags);
 
   return (
     <React.Fragment>
@@ -175,7 +177,7 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                     password_B: "password"}
 
   let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
-        flags, setFlags, myCallbacks
+        flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
       } = useFormManagement(myFields);
 
   const fieldSet = Object.keys(myFields).reduce((current, myName) => {
@@ -196,11 +198,11 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
 
   const changePassword = (event) => {
     setFlags({...flags, passwordsDoNotMatch: false});
-    submitAction(event, setFormFieldValue, (token) => {
-      sendFormRequest(token,
+    submitAction(event,
+      (token) => {sendFormRequest(token, setFormFieldValue,
            {formId: "complete-pass-reset-form",
             fieldSet: {...fieldSet,
-                       resetKey: resetKey
+                       key: resetKey
                       },
             requestAction: doPasswordReset,
             extraArgs: ["token"],
@@ -346,13 +348,17 @@ const CompleteResetForm = ({resetKey, submitAction}) => {
                 <Col xs="10">
                   Sorry, something went wrong on our end and we weren't able to reset your password. But if you contact the Paideia team we'll help to resolve the problem.<br/>
                   {/* FIXME: add contact form link here */}
-                  <Button variant="link"
-                    onClick={() => setShowErrorDetails(!showErrorDetails)}>
-                      <FontAwesomeIcon icon="bug" size="sm" />show error details
-                  </Button>
-                  <Collapse in={showErrorDetails}>
-                    <div>{errorDetails}</div>
-                  </Collapse>
+                  {typeof flags.serverError==="string" &&
+                    <React.Fragment>
+                    <Button variant="link"
+                      onClick={() => setShowErrorDetails(!showErrorDetails)}>
+                        <FontAwesomeIcon icon="bug" size="sm" />show error details
+                    </Button>
+                    <Collapse in={showErrorDetails}>
+                      <div>{flags.serverError}</div>
+                    </Collapse>
+                    </React.Fragment>
+                  }
                 </Col>
               </Alert>
           }
