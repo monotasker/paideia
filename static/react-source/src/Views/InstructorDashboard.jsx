@@ -97,6 +97,7 @@ const InstructorDashboard = () => {
                 Object.keys(info).forEach(field => {
                   // console.log(`setting ${field} value: ${info[field]}`);
                   if (['start_date', 'end_date'].includes(field)) {
+                    console.log(`setting ${field} value: ${info[field]}`);
                     currentValues = {...currentValues,
                                      [field]: moment(info[field]).toDate()};
                   } else if (!["members", "status_code"].includes(field)) {
@@ -194,9 +195,10 @@ const InstructorDashboard = () => {
                   formatDate={formatDate}
                   parseDate={parseDate}
                   format="LL"
-                  dayPickerProps={{
-                    selectedDays: formFieldValues.start_date
-                  }}
+                  // dayPickerProps={{
+                  //   selectedDays: formFieldValues.start_date
+                  // }}
+                  value={formFieldValues.start_date}
                   placeholder={`${formatDate(new Date(formFieldValues.start_date), 'LL')}`}
                   onChange={e => setFormFieldValue(e.target.value, "start_date")}
                 />
@@ -208,9 +210,10 @@ const InstructorDashboard = () => {
                   formatDate={formatDate}
                   parseDate={parseDate}
                   format="LL"
-                  dayPickerProps={{
-                    selectedDays: formFieldValues.end_date
-                  }}
+                  // dayPickerProps={{
+                  //   selectedDays: formFieldValues.end_date
+                  // }}
+                  value={formFieldValues.end_date}
                   placeholder={`${formatDate(new Date(formFieldValues.end_date), 'LL')}`}
                   onChange={e => setFormFieldValue(e.target.value, "end_date")}
                 />
