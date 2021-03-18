@@ -81,6 +81,8 @@ const InstructorDashboard = () => {
         } = useFormManagement(classFieldsAndValidators);
     console.log("in main component: formFieldValues is:");
     console.log(formFieldValues);
+    console.log("in main component: classMembers is:");
+    console.log(classMembers);
 
     useEffect(() => {
       if ( activeClassId!==0 ) {
@@ -93,7 +95,7 @@ const InstructorDashboard = () => {
               if ( info.hasOwnProperty("institution") ) {
                 let currentValues = {...formFieldValues};
                 Object.keys(info).forEach(field => {
-                  console.log(`setting ${field} value: ${info[field]}`);
+                  // console.log(`setting ${field} value: ${info[field]}`);
                   if (['start_date', 'end_date'].includes(field)) {
                     currentValues = {...currentValues,
                                      [field]: moment(info[field]).toDate()};
@@ -102,7 +104,7 @@ const InstructorDashboard = () => {
                   }
                 });
                 setFormFieldValuesDirectly(currentValues);
-                setClassMembers(info.classMembers);
+                setClassMembers(info.members);
                 myCallbacks.successAction();
                 setFetchingClass(false);
               } else {
@@ -219,15 +221,15 @@ const InstructorDashboard = () => {
               <Form.Group controlId="paths_per_day">
                 <Form.Label>Minimum paths / day</Form.Label>
                 <Form.Control
-                  value={formFieldValues.paths_per_day}
-                  onChange={e => setFormFieldValue(e.target.value, "paths_per_day")}
+                  value={formFieldValues.paths_per_day || ''}
+                  onChange={e => setFormFieldValue(parseInt(e.target.value), "paths_per_day")}
                 ></Form.Control>
               </Form.Group>
               <Form.Group controlId="days_per_week">
                 <Form.Label>Minimum days / week</Form.Label>
                 <Form.Control
-                  value={formFieldValues.days_per_week}
-                  onChange={e => setFormFieldValue(e.target.value, "days_per_week")}
+                  value={formFieldValues.days_per_week || ''}
+                  onChange={e => setFormFieldValue(parseInt(e.target.value), "days_per_week")}
                 ></Form.Control>
               </Form.Group>
             </Col>
@@ -247,8 +249,8 @@ const InstructorDashboard = () => {
                     <td>A</td>
                     <td>
                       <FormGroup controlId="a_target">
-                        <Form.Control value={formFieldValues.a_target}
-                          onChange={e => setFormFieldValue(e.target.value, "a_target")}
+                        <Form.Control value={formFieldValues.a_target || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "a_target")}
                         />
                       </FormGroup> new sets
                     </td>
@@ -256,8 +258,8 @@ const InstructorDashboard = () => {
                     <td>
 
                       <FormGroup controlId="a_cap">
-                        Begin set <Form.Control value={formFieldValues.a_cap}
-                          onChange={e => setFormFieldValue(e.target.value, "a_cap")}
+                        Begin set <Form.Control value={formFieldValues.a_cap || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "a_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -266,16 +268,16 @@ const InstructorDashboard = () => {
                     <td>B</td>
                     <td>
                       <FormGroup controlId="b_target">
-                        <Form.Control value={formFieldValues.b_target}
-                          onChange={e => setFormFieldValue(e.target.value, "b_target")}
+                        <Form.Control value={formFieldValues.b_target || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "b_target")}
                         /> new sets
                       </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
                       <FormGroup controlId="b_cap">
-                        Begin set <Form.Control value={formFieldValues.b_cap}
-                          onChange={e => setFormFieldValue(e.target.value, "b_cap")}
+                        Begin set <Form.Control value={formFieldValues.b_cap || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "b_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -284,16 +286,16 @@ const InstructorDashboard = () => {
                     <td>C</td>
                     <td>
                       <FormGroup controlId="c_target">
-                        <Form.Control value={formFieldValues.c_target}
-                          onChange={e => setFormFieldValue(e.target.value, "c_target")}
+                        <Form.Control value={formFieldValues.c_target || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "c_target")}
                         /> new sets
                       </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
                       <FormGroup controlId="c_cap">
-                        Begin set <Form.Control value={formFieldValues.c_cap}
-                          onChange={e => setFormFieldValue(e.target.value, "c_cap")}
+                        Begin set <Form.Control value={formFieldValues.c_cap || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "c_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -302,16 +304,16 @@ const InstructorDashboard = () => {
                     <td>D</td>
                     <td>
                       <FormGroup controlId="d_target">
-                        <Form.Control value={formFieldValues.d_target}
-                          onChange={e => setFormFieldValue(e.target.value, "d_target")}
+                        <Form.Control value={formFieldValues.d_target || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "d_target")}
                         /> new sets
                       </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
                       <FormGroup controlId="d_cap">
-                        Begin set <Form.Control value={formFieldValues.d_cap}
-                          onChange={e => setFormFieldValue(e.target.value, "d_cap")}
+                        Begin set <Form.Control value={formFieldValues.d_cap || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "d_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -320,8 +322,8 @@ const InstructorDashboard = () => {
                     <td>F</td>
                     <td>
                       <FormGroup controlId="f_target">
-                        <Form.Control value={formFieldValues.f_target}
-                          onChange={e => setFormFieldValue(e.target.value, "f_target")}
+                        <Form.Control value={formFieldValues.f_target || ''}
+                          onChange={e => setFormFieldValue(parseInt(e.target.value), "f_target")}
                         /> new sets
                       </FormGroup>
                     </td>

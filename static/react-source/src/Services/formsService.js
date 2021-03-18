@@ -152,8 +152,8 @@ const useFormManagement = (formFields) => {
               return {...obj, [item]: null }
             }, {})
             );
-    console.log('formFieldValues is');
-    console.log(formFieldValues);
+    // console.log('formFieldValues is');
+    // console.log(formFieldValues);
 
     // const _findMissingAndBadValues
 
@@ -168,7 +168,7 @@ const useFormManagement = (formFields) => {
       // unflag missing field values if we're now entering them
       var myMissing = [...newFlags.missingRequestData ];
       const missingIndex = myMissing.indexOf(fieldName);
-      console.log(`missingIndex ${missingIndex}`);
+      // console.log(`missingIndex ${missingIndex}`);
       if (missingIndex > -1) {
         myMissing.splice(missingIndex, 1);
         newFlags.missingRequestData = myMissing;
@@ -179,8 +179,8 @@ const useFormManagement = (formFields) => {
         let myBad = [ ...newFlags.badRequestData ];
         const emailIndex = myBad.indexOf(fieldName);
         const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-        console.log('passed email test?');
-        console.log(re.test(String(val).toLowerCase()));
+        // console.log('passed email test?');
+        // console.log(re.test(String(val).toLowerCase()));
         if ( !re.test(String(val).toLowerCase()) ) {
           if (emailIndex === -1) { myBad.push(fieldName); }
         } else {
@@ -194,8 +194,8 @@ const useFormManagement = (formFields) => {
         let myBad = [ ...newFlags.badRequestData ];
         const passwordIndex = myBad.indexOf(fieldName);
         const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$/;
-        console.log('passed password test?');
-        console.log(re.test(val));
+        // console.log('passed password test?');
+        // console.log(re.test(val));
         if ( !re.test(val) ) {
           if (passwordIndex === -1) { myBad.push(fieldName); }
         } else {
@@ -218,10 +218,10 @@ const useFormManagement = (formFields) => {
         newFlags.badRequestData = myBad;
       }
       setFlags(newFlags);
-      console.log('missingRequestData is');
-      console.log(flags.missingRequestData);
-      console.log('badRequestData is');
-      console.log(flags.badRequestData);
+      // console.log('missingRequestData is');
+      // console.log(flags.missingRequestData);
+      // console.log('badRequestData is');
+      // console.log(flags.badRequestData);
     }
 
     const myCallbacks = {
