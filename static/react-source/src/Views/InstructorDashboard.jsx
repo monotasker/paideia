@@ -51,7 +51,8 @@ const InstructorDashboard = () => {
       :
       []
     );
-    const [ activeClassId, setActiveClassId ] = useState(0);
+    const [ activeClassId, setActiveClassId ] = useState(
+      myClasses.length > 0 ? myClasses[0].id : 0);
     const [ activeClassInfo, setActiveClassInfo ] = useState(myClasses[0]);
     const [ classInProcess, setClassInProcess ] = useState();
     const [ classMembers, setClassMembers ] = useState([]);
@@ -78,6 +79,8 @@ const InstructorDashboard = () => {
     let {formFieldValues, setFormFieldValue, setFormFieldValuesDirectly,
          flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
         } = useFormManagement(classFieldsAndValidators);
+    console.log("in main component: formFieldValues is:");
+    console.log(formFieldValues);
 
     useEffect(() => {
       if ( activeClassId!==0 ) {
@@ -88,13 +91,17 @@ const InstructorDashboard = () => {
             info => {
               console.log(info);
               if ( info.hasOwnProperty("institution") ) {
+                let currentValues = {...formFieldValues};
                 Object.keys(info).forEach(field => {
+                  console.log(`setting ${field} value: ${info[field]}`);
                   if (['start_date', 'end_date'].includes(field)) {
-                    setFormFieldValue(moment(info[field]).toDate(), field);
+                    currentValues = {...currentValues,
+                                     [field]: moment(info[field]).toDate()};
                   } else if (!["members", "status_code"].includes(field)) {
-                    setFormFieldValue(info[field], field);
+                    currentValues = {...currentValues, [field]: info[field]};
                   }
                 });
+                setFormFieldValuesDirectly(currentValues);
                 setClassMembers(info.classMembers);
                 myCallbacks.successAction();
                 setFetchingClass(false);
@@ -352,7 +359,8 @@ const InstructorDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {classMembers.map(m =>
+              {!!classMembers && classMembers.length > 0 &&
+                classMembers.map(m =>
               <React.Fragment key={`${m.first_name}_${m.last_name}`}>
               <tr >
                 <td rowSpan="2">

@@ -155,6 +155,12 @@ const useFormManagement = (formFields) => {
     console.log('formFieldValues is');
     console.log(formFieldValues);
 
+    // const _findMissingAndBadValues
+
+    // const setAllFormFieldValues = (vals) => {
+    //   setFormFieldValuesDirectly(vals);
+    // }
+
     const setFormFieldValue = (val, fieldName) => {
       setFormFieldValuesDirectly({...formFieldValues, [fieldName]: val});
       let newFlags = { ...flags };
