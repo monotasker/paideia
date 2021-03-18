@@ -80,34 +80,36 @@ const InstructorDashboard = () => {
         } = useFormManagement(classFieldsAndValidators);
 
     useEffect(() => {
-      setFetchingClass(true);
-      doApiCall({course_id: activeClassId}, 'get_course_data', "JSON")
-      .then(info => {
-        returnStatusCheck(info, history,
-          info => {
-            console.log(info);
-            if ( info.hasOwnProperty("classInstitution") ) {
-              Object.keys(info).forEach(field => {
-                if (['start_date', 'end_date'].includes(field)) {
-                  setFormFieldValue(moment(info[field]).toDate(), field);
-                } else if (!["members", "status_code"].includes(field)) {
-                  setFormFieldValue(info[field], field);
-                }
-              });
-              setClassMembers(info.classMembers);
-              myCallbacks.successAction();
-              setFetchingClass(false);
-            } else {
-              myCallbacks.serverErrorAction();
+      if ( activeClassId!==0 ) {
+        setFetchingClass(true);
+        doApiCall({course_id: activeClassId}, 'get_course_data', "JSON")
+        .then(info => {
+          returnStatusCheck(info, history,
+            info => {
+              console.log(info);
+              if ( info.hasOwnProperty("classInstitution") ) {
+                Object.keys(info).forEach(field => {
+                  if (['start_date', 'end_date'].includes(field)) {
+                    setFormFieldValue(moment(info[field]).toDate(), field);
+                  } else if (!["members", "status_code"].includes(field)) {
+                    setFormFieldValue(info[field], field);
+                  }
+                });
+                setClassMembers(info.classMembers);
+                myCallbacks.successAction();
+                setFetchingClass(false);
+              } else {
+                myCallbacks.serverErrorAction();
+              }
+            },
+            dispatch,
+            {insufficientPrivilegesAction: myCallbacks.unauthorizedAction,
+            noRecordAction: myCallbacks.noRecordAction,
+            serverErrorAction: myCallbacks.serverErrorAction
             }
-          },
-          dispatch,
-          {insufficientPrivilegesAction: myCallbacks.unauthorizedAction,
-           noRecordAction: myCallbacks.noRecordAction,
-           serverErrorAction: myCallbacks.serverErrorAction
-          }
-        );
-      });
+          );
+        });
+      }
     }, [activeClassId]);
 
     const updateClassData = (event) => {
