@@ -18,7 +18,7 @@ import { returnStatusCheck } from '../Services/utilityService';
  *    i.e. the ones not being passed through from a HOC
  * @param {string}  param2.formId   the id of the submitting form
  * @param {Object}  param2.fieldSet object with form field names as keys
- *    values are [corresponding state object, corresponding state setter]
+ *    values are the corresponding state objects
  *    note that these names must also be the argument names for the
  *    requestAction function call
  * @param {Function}  param2.requestAction  the function being called to make

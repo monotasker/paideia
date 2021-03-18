@@ -21,14 +21,25 @@ import DayPickerInput from "react-day-picker/DayPickerInput";
 import { formatDate, parseDate } from "react-day-picker/moment";
 import 'react-day-picker/lib/style.css';
 
-import {UserContext} from "../UserContext/UserProvider";
-import {fetchClassInfo} from "../Services/infoFetchService";
+import { UserContext } from "../UserContext/UserProvider";
 import { doApiCall, returnStatusCheck } from "../Services/utilityService";
 import { urlBase } from "../variables";
 import { sendFormRequest,
-         useResponseCallbacks
+         useFormManagement,
        } from "../Services/formsService";
 
+const StudentRow = () => {
+
+    let studentFieldsAndValidators = {
+
+    };
+
+
+    let {studentFormFieldValues, setStudentFormFieldValue,
+         setStudentFieldDirectly, studentFlags, setStudentFlags, myStudentCallbacks, showStudentErrorDetails,
+         setShowStudentErrorDetails} = useFormManagement(studentFieldsAndValidators);
+
+}
 
 const InstructorDashboard = () => {
 
@@ -40,89 +51,49 @@ const InstructorDashboard = () => {
       :
       []
     );
+    const [ activeClassId, setActiveClassId ] = useState(0);
     const [ activeClassInfo, setActiveClassInfo ] = useState(myClasses[0]);
     const [ classInProcess, setClassInProcess ] = useState();
-    const [ activeClassId, setActiveClassId ] = useState(
-      !!activeClassInfo ? activeClassInfo.id : 0);
-    const [ classInstitution, setClassInstitution ] = useState(
-      !!activeClassInfo ? activeClassInfo.institution : null);
-    const [ classYear, setClassYear ] = useState(
-      !!activeClassInfo ? (activeClassInfo.academic_year || '') : null);
-    console.log(classYear);
-    const [ classTerm, setClassTerm ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.term || '' ) : null);
-    console.log(classTerm);
-    const [ classSection, setClassSection ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.course_section || '' ) : null);
-    const [ classStart, setClassStart ] = useState(
-      !!activeClassInfo ? moment(activeClassInfo.start_date).toDate() : null);
-    const [ classEnd, setClassEnd ] = useState(
-      !!activeClassInfo ? moment(activeClassInfo.end_date).toDate() : null);
-    const [ classDailyQuota, setClassDailyQuota ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.paths_per_day || '' ) : null);
-    const [ classWeeklyQuota, setClassWeeklyQuota ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.days_per_week || '' ) : null);
-    const [ classTargetA, setClassTargetA ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.a_target || 'set me' ) : null);
-    const [ classTargetB, setClassTargetB ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.b_target || '' ) : null);
-    const [ classTargetC, setClassTargetC ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.c_target || '' ) : null);
-    const [ classTargetD, setClassTargetD ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.d_target || '' ) : null);
-    const [ classTargetF, setClassTargetF ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.f_target || '' ) : null);
-    const [ classCapA, setClassCapA ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.a_cap || '' ) : null);
-    const [ classCapB, setClassCapB ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.b_cap || '' ) : null);
-    const [ classCapC, setClassCapC ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.c_cap || '' ) : null);
-    const [ classCapD, setClassCapD ] = useState(
-      !!activeClassInfo ? ( activeClassInfo.d_cap || '' ) : null);
     const [ classMembers, setClassMembers ] = useState([]);
-    // const [ classSignInLink, setClassSignInLink ] = useState(null);
-    // const [ classRegCode, setClassRegCode ] = useState(null);
     const [ fetchingClass, setFetchingClass ] = useState(false);
     const [ fetchingStudents, setFetchingStudents ] = useState(false);
     const history = useHistory();
 
+    let classFieldsAndValidators = {id: null, institution: null,
+                                    academic_year: null, term: null,
+                                    course_section: null,
+                                    start_date: null, end_date: null,
+                                    paths_per_day: null,
+                                    days_per_week: null,
+                                    a_target: null, b_target: null,
+                                    c_target: null, d_target: null,
+                                    f_target: null,
+                                    a_cap: null, b_cap: null,
+                                    c_cap: null, d_cap: null
+                                   }
+
     // flags are unauthorized, serverError, badRequest, noRecord, success
     // callbacks are serErrorAction, unauthorizedAction,
     // badRequestAction, noRecordAction, successAction
-    let {missing, setMissing,
-         flags, setFlags, myCallbacks} = useResponseCallbacks();
-    let {studentMissing, setStudentMissing, studentFlags,
-         setStudentFlags, myStudentCallbacks} = useResponseCallbacks();
+    let {formFieldValues, setFormFieldValue, setFormFieldValuesDirectly,
+         flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
+        } = useFormManagement(classFieldsAndValidators);
 
     useEffect(() => {
-      console.log('fetching');
       setFetchingClass(true);
-
-      fetchClassInfo({courseId: activeClassId})
+      doApiCall({course_id: activeClassId}, 'get_course_data', "JSON")
       .then(info => {
         returnStatusCheck(info, history,
           info => {
             console.log(info);
             if ( info.hasOwnProperty("classInstitution") ) {
-              setClassInProcess(info.classInProcess);
-              setClassInstitution(info.classInstitution);
-              setClassSection(info.classSection);
-              setClassYear(info.classYear);
-              setClassTerm(info.classTerm);
-              setClassStart(info.classStart);
-              setClassEnd(info.classEnd);
-              setClassDailyQuota(info.classDailyQuota);
-              setClassWeeklyQuota(info.classWeeklyQuota);
-              setClassTargetA(info.classTargetA);
-              setClassTargetB(info.classTargetB);
-              setClassTargetC(info.classTargetC);
-              setClassTargetD(info.classTargetD);
-              setClassTargetF(info.classTargetF);
-              setClassCapA(info.classCapA);
-              setClassCapB(info.classCapB);
-              setClassCapC(info.classCapC);
-              setClassCapD(info.classCapD);
+              Object.keys(info).forEach(field => {
+                if (['start_date', 'end_date'].includes(field)) {
+                  setFormFieldValue(moment(info[field]).toDate(), field);
+                } else if (!["members", "status_code"].includes(field)) {
+                  setFormFieldValue(info[field], field);
+                }
+              });
               setClassMembers(info.classMembers);
               myCallbacks.successAction();
               setFetchingClass(false);
@@ -132,92 +103,44 @@ const InstructorDashboard = () => {
           },
           dispatch,
           {insufficientPrivilegesAction: myCallbacks.unauthorizedAction,
-           noRecordAction: myCallbacks.noRecordAction
+           noRecordAction: myCallbacks.noRecordAction,
+           serverErrorAction: myCallbacks.serverErrorAction
           }
         );
       });
     }, [activeClassId]);
 
-    const changeClassAction = (id) => { setActiveClassId(id); }
-
-    const classDataConflictAction = (data) => {};
-    const studentDataConflictAction = (data) => {};
-
     const updateClassData = (event) => {
       event.preventDefault();
-      let fieldSet = {institution: [classInstitution, setClassInstitution],
-                academic_year: [classYear, setClassYear],
-                term: [classTerm, setClassTerm],
-                course_section: [classSection, setClassSection],
-                start_date: [classStart, setClassStart],
-                end_date: [ classEnd, setClassEnd ],
-                paths_per_day: [ classDailyQuota, setClassDailyQuota ],
-                days_per_week: [ classWeeklyQuota, setClassWeeklyQuota ],
-                a_target: [ classTargetA, setClassTargetA ],
-                b_target: [ classTargetB, setClassTargetB ],
-                c_target: [ classTargetC, setClassTargetC ],
-                d_target: [ classTargetD, setClassTargetD ],
-                f_target: [ classTargetF, setClassTargetF ],
-                a_cap: [ classCapA, setClassCapA ],
-                b_cap: [ classCapB, setClassCapB ],
-                c_cap: [ classCapC, setClassCapC ],
-                d_cap: [ classCapD, setClassCapD ]
-               }
-      let updateData = {course_id: activeClassId,
-                        course_data: {}}
-      Object.keys(fieldSet).forEach((k) => {
-        updateData["course_data"][k] = fieldSet[k][0];
-      });
+      const updateData = {...formFieldValues, id: activeClassId};
 
       sendFormRequest(null, {
           formId: 'dashboard-class-info-form',
-          fieldSet: fieldSet,
+          fieldSet: updateData,
           requestAction: () => doApiCall(updateData, "update_course_data",
                                          "form"),
           history: myhistory,
           dispatch: dispatch,
           successCallback: myCallbacks.successAction,
-          otherCallbacks: {serverErrorAction: myCallbacks.serverErrorAction,
-                           dataConflictAction: classDataConflictAction,
-                           badRequestAction: myCallbacks.badRequestAction,
-                           unauthorizedAction: myCallbacks.unauthorizedAction
-                          },
+          otherCallbacks: {
+            serverErrorAction: myCallbacks.serverErrorAction,
+            badRequestAction: myCallbacks.badRequestAction,
+            insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
+            notLoggedInAction: myCallbacks.notLoggedInAction
+          },
           setInProgressAction: setFetchingClass
         });
     }
 
-/**     useEffect(() => {
-      console.log("handling form change");
-      console.log(classStart);
-      console.log(classEnd);
-      console.log(classDailyQuota);
-      console.log(classWeeklyQuota);
-      console.log(classCapA);
-      console.log(classCapB);
-      console.log(classCapC);
-      console.log(classCapD);
-      console.log(classTargetA);
-      console.log(classTargetB);
-      console.log(classTargetC);
-      console.log(classTargetD);
-      console.log(classTargetF);
-    }, [classStart, classEnd, classDailyQuota, classWeeklyQuota, classCapA, classCapB, classCapC, classCapD, classTargetA, classTargetB, classTargetC, classTargetD, classTargetF]
-    )*/
-
-    // console.log(`user? ${!!user}`);
-    // console.log(`user.userLoggedIn? ${!!user.userLoggedIn}`);
-    // console.log(`user has roles?`);
-    // console.log(!!user.userRoles && !!["instructors", "administrators"]
-    //               .some(r => user.userRoles.includes(r)));
 
     return(
       <Row className="dashboard-component content-view">
         <Col>
-          { (!user || user.userLoggedIn !== true ) &&
+          { (!user || user.userLoggedIn !== true || !!flags.notLoggedIn ) &&
               myhistory.push(`/${urlBase}/login?need_login=true`)
           }
           { ( !user.userRoles || !["instructors", "administrators"]
-                  .some(r => user.userRoles.includes(r) )) ?
+                  .some(r => user.userRoles.includes(r) ) || !!flags.insufficientPrivileges ) ?
             <Alert variant="danger">
               <Col xs="auto">
                 <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
@@ -232,7 +155,7 @@ const InstructorDashboard = () => {
           <Form.Group controlId="classForm.classSelector">
             <Form.Label>Choose a class group</Form.Label>
             <Form.Control as="select"
-              onChange={e => changeClassAction(e.target.value)}
+              onChange={e => setActiveClassId(e.target.value)}
             >
               {myClasses.map((c, index) =>
                 <option key={index} value={c.id}>
@@ -250,33 +173,35 @@ const InstructorDashboard = () => {
           <Form.Row>
             <Col className="dashboard-class-info" xs={12} lg={4}>
               {!!fetchingClass && <Spinner animation="grow" variant="info" />}
-              <h3>{classSection} {classTerm} {classYear}</h3>
+              <h3>
+                {formFieldValues.institution} {formFieldValues.term} {formFieldValues.academic_year}
+              </h3>
               <Form.Group controlId="start_date">
                 <Form.Label>Begins</Form.Label>
                 <DayPickerInput
-                  onDayChange={day => setClassStart(day)}
+                  onDayChange={day => setFormFieldValue(day, "start_date")}
                   formatDate={formatDate}
                   parseDate={parseDate}
                   format="LL"
                   dayPickerProps={{
-                    selectedDays: {classStart}
+                    selectedDays: formFieldValues.start_date
                   }}
-                  placeholder={`${formatDate(new Date(classStart), 'LL')}`}
-                  onChange={e => setClassStart(e.target.value)}
+                  placeholder={`${formatDate(new Date(formFieldValues.start_date), 'LL')}`}
+                  onChange={e => setFormFieldValue(e.target.value, "start_date")}
                 />
               </Form.Group>
               <Form.Group controlId="end_date">
                 <Form.Label>Ends</Form.Label>
                 <DayPickerInput
-                  onDayChange={day => setClassEnd(day)}
+                  onDayChange={day => setFormFieldValue(day, "end_date")}
                   formatDate={formatDate}
                   parseDate={parseDate}
                   format="LL"
                   dayPickerProps={{
-                    selectedDays: {classEnd}
+                    selectedDays: formFieldValues.end_date
                   }}
-                  placeholder={`${formatDate(new Date(classEnd), 'LL')}`}
-                  onChange={e => setClassStart(e.target.value)}
+                  placeholder={`${formatDate(new Date(formFieldValues.end_date), 'LL')}`}
+                  onChange={e => setFormFieldValue(e.target.value, "end_date")}
                 />
               </Form.Group>
             </Col>
@@ -285,15 +210,15 @@ const InstructorDashboard = () => {
               <Form.Group controlId="paths_per_day">
                 <Form.Label>Minimum paths / day</Form.Label>
                 <Form.Control
-                  value={classDailyQuota}
-                  onChange={e => setClassDailyQuota(e.target.value)}
+                  value={formFieldValues.paths_per_day}
+                  onChange={e => setFormFieldValue(e.target.value, "paths_per_day")}
                 ></Form.Control>
               </Form.Group>
               <Form.Group controlId="days_per_week">
                 <Form.Label>Minimum days / week</Form.Label>
                 <Form.Control
-                  value={classWeeklyQuota}
-                  onChange={e => setClassWeeklyQuota(e.target.value)}
+                  value={formFieldValues.days_per_week}
+                  onChange={e => setFormFieldValue(e.target.value, "days_per_week")}
                 ></Form.Control>
               </Form.Group>
             </Col>
@@ -313,8 +238,8 @@ const InstructorDashboard = () => {
                     <td>A</td>
                     <td>
                       <FormGroup controlId="a_target">
-                        <Form.Control value={classTargetA}
-                          onChange={e => setClassTargetA(e.target.value)}
+                        <Form.Control value={formFieldValues.a_target}
+                          onChange={e => setFormFieldValue(e.target.value, "a_target")}
                         />
                       </FormGroup> new sets
                     </td>
@@ -322,8 +247,8 @@ const InstructorDashboard = () => {
                     <td>
 
                       <FormGroup controlId="a_cap">
-                        Begin set <Form.Control value={classCapA}
-                          onChange={e => setClassCapA(e.target.value)}
+                        Begin set <Form.Control value={formFieldValues.a_cap}
+                          onChange={e => setFormFieldValue(e.target.value, "a_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -332,16 +257,16 @@ const InstructorDashboard = () => {
                     <td>B</td>
                     <td>
                       <FormGroup controlId="b_target">
-                        <Form.Control value={classTargetB}
-                          onChange={e => setClassTargetB(e.target.value)}
+                        <Form.Control value={formFieldValues.b_target}
+                          onChange={e => setFormFieldValue(e.target.value, "b_target")}
                         /> new sets
                       </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
                       <FormGroup controlId="b_cap">
-                        Begin set <Form.Control value={classCapB}
-                          onChange={e => setClassCapB(e.target.value)}
+                        Begin set <Form.Control value={formFieldValues.b_cap}
+                          onChange={e => setFormFieldValue(e.target.value, "b_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -350,16 +275,16 @@ const InstructorDashboard = () => {
                     <td>C</td>
                     <td>
                       <FormGroup controlId="c_target">
-                        <Form.Control value={classTargetC}
-                          onChange={e => setClassTargetC(e.target.value)}
+                        <Form.Control value={formFieldValues.c_target}
+                          onChange={e => setFormFieldValue(e.target.value, "c_target")}
                         /> new sets
                       </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
                       <FormGroup controlId="c_cap">
-                        Begin set <Form.Control value={classCapC}
-                          onChange={e => setClassCapC(e.target.value)}
+                        Begin set <Form.Control value={formFieldValues.c_cap}
+                          onChange={e => setFormFieldValue(e.target.value, "c_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -368,16 +293,16 @@ const InstructorDashboard = () => {
                     <td>D</td>
                     <td>
                       <FormGroup controlId="d_target">
-                        <Form.Control value={classTargetD}
-                          onChange={e => setClassTargetD(e.target.value)}
+                        <Form.Control value={formFieldValues.d_target}
+                          onChange={e => setFormFieldValue(e.target.value, "d_target")}
                         /> new sets
                       </FormGroup>
                     </td>
                     <td>OR</td>
                     <td>
                       <FormGroup controlId="d_cap">
-                        Begin set <Form.Control value={classCapD}
-                          onChange={e => setClassCapD(e.target.value)}
+                        Begin set <Form.Control value={formFieldValues.d_cap}
+                          onChange={e => setFormFieldValue(e.target.value, "d_cap")}
                         />
                       </FormGroup>
                     </td>
@@ -386,8 +311,8 @@ const InstructorDashboard = () => {
                     <td>F</td>
                     <td>
                       <FormGroup controlId="f_target">
-                        <Form.Control value={classTargetF}
-                          onChange={e => setClassTargetF(e.target.value)}
+                        <Form.Control value={formFieldValues.f_target}
+                          onChange={e => setFormFieldValue(e.target.value, "f_target")}
                         /> new sets
                       </FormGroup>
                     </td>

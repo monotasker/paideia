@@ -78,6 +78,7 @@ function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
   switch (mydata.status_code) {
     case 200:
+      console.log("check succeeded!!!");
       action(mydata);
       break;
 
@@ -148,9 +149,45 @@ function returnStatusCheck(mydata, history, action, reducer,
   }
 }
 
+/**
+ * Filters an object to retain only the keys included in the provided list.
+ *
+ * @param {Object}  obj   The initial object to be filtered
+ * @param {Array}   keys  An array of strings listing the keys to be retained
+ *                        in the new object
+ * @returns {Object} A new object consisting of the keys/values whose keys
+ *                   were in the provided array
+ */
+const filterObjectByKeys = (obj, keys) => {
+  const keyValuePairs = Object.entries(obj);
+  const filteredPairs = keyValuePairs.filter(
+    ([key, value]) => keys.includes(key)
+  );
+  return Object.fromEntries(filteredPairs);
+}
+
+/**
+ * Filters an object to remove the keys included in the provided list.
+ *
+ * @param {Object}  obj   The initial object to be filtered
+ * @param {Array}   keys  An array of strings listing the keys to be removed
+ *                        from the new object
+ * @returns {Object} A new object consisting of the keys/values whose keys
+ *                   were NOT in the provided array
+ */
+const filterObjectExcludeKeys = (obj, keys) => {
+  const keyValuePairs = Object.entries(obj);
+  const filteredPairs = keyValuePairs.filter(
+    ([key, value]) => !keys.includes(key)
+  );
+  return Object.fromEntries(filteredPairs);
+}
+
 export {
     loadScriptByURL,
     useQuery,
     doApiCall,
-    returnStatusCheck
+    returnStatusCheck,
+    filterObjectByKeys,
+    filterObjectExcludeKeys
 }

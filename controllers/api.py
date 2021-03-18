@@ -2030,79 +2030,84 @@ def update_course_data():
     Private api method to handle calls from the react front-end. This method does not handle data on student membership in a course. That information must be updated separately with the update_course_membership_data method.
 
     Expects URL variables:
-        course_id (int)
-        course_data (dict)
-
-    The course_data dictionary can have any of the following keys:
-
-                institution (str)
-                academic_year (int)
-                term (str)
-                course_section (str)
-                instructor (int [reference auth_user])
-                start_date (str [datetime])
-                end_date (str [datetime])
-                paths_per_day (int)
-                days_per_week (int)
-                a_target (int)
-                a_cap (int)
-                b_target (int)
-                b_cap (int)
-                c_target (int)
-                c_cap (int)
-                d_target (int)
-                d_cap (int)
-                f_target (int)
+        id (int)
+        institution (str)
+        academic_year (int)
+        term (str)
+        course_section (str)
+        instructor (int [reference auth_user])
+        start_date (str [datetime])
+        end_date (str [datetime])
+        paths_per_day (int)
+        days_per_week (int)
+        a_target (int)
+        a_cap (int)
+        b_target (int)
+        b_cap (int)
+        c_target (int)
+        c_cap (int)
+        d_target (int)
+        d_cap (int)
+        f_target (int)
 
     """
     debug = True
-    mydata = request.vars.course_data
+    mydata = request.vars
     mydata['modified_on'] = datetime.datetime.utcnow
-    course_id = request.vars.course_id
+    course_id = request.vars.id
     if debug: print("api::update_course_data::course_id:", course_id)
     if debug: print("api::update_course_data::mydata:")
     if debug: print(mydata)
 
     try:
-        # print('updating course', request.vars.course_id)
-        course_rec = db.classes(course_id)
+        try:
+            # print('updating course', request.vars.course_id)
+            course_rec = db.classes(course_id)
 
-        update_data = {k: v for k, v in mydata.items() if k in
-            ["institution", "academic_year", "term", "course_section",
-             "instructor", "start_date", "end_date", "paths_per_day",
-             "days_per_week", "a_target", "a_cap", "b_target", "b_cap",
-             "c_target", "c_cap", "d_target", "d_cap", "f_target"
-             ] and v not in ["undefined", "null", None]
-            }
-        # print('old data:')
-        # print(course_rec)
-    except AttributeError:
-        print(format_exc(5))
-        response = current.response
-        response.status = 404
-        return json_serializer({'status': 'No such record'})
+            update_data = {k: v for k, v in mydata.items() if k in
+                ["institution", "academic_year", "term", "course_section",
+                "instructor", "start_date", "end_date", "paths_per_day",
+                "days_per_week", "a_target", "a_cap", "b_target", "b_cap",
+                "c_target", "c_cap", "d_target", "d_cap", "f_target"
+                ] and v not in ["undefined", "null", None]
+                }
+            # print('old data:')
+            # print(course_rec)
+        except AttributeError:
+            print(format_exc(5))
+            response = current.response
+            response.status = 404
+            return json_serializer({'status': 'No such record'})
 
-    try:
-        assert auth.is_logged_in()
-    except AssertionError:
-        print(format_exc(5))
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'Not logged in'})
+        try:
+            assert auth.is_logged_in()
+        except AssertionError:
+            print(format_exc(5))
+            response = current.response
+            response.status = 401
+            return json_serializer({'status': 'Not logged in'})
 
-    try:
-        assert (auth.has_membership('administrators') or
-                (auth.has_membership('instructors') and
-                course_rec['instructor'] == auth.user_id)
-                )
-    except AssertionError:
-        print(format_exc(5))
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'Insufficient privileges'})
+        try:
+            assert (auth.has_membership('administrators') or
+                    (auth.has_membership('instructors') and
+                    course_rec['instructor'] == auth.user_id)
+                    )
+        except AssertionError:
+            print(format_exc(5))
+            response = current.response
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Insufficient privileges'})
 
-    myresult = course_rec.update(**update_data)
-    assert myresult == 1
+        myresult = course_rec.update(**update_data)
+        assert myresult == 1
+
+    except Exception:
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                    'reason': 'Unknown error in function do_password_reset',
+                    'error': format_exc()})
 
     return json_serializer({"update_count": myresult}, default=my_custom_json)
 
@@ -2193,8 +2198,8 @@ def get_course_data():
     except AssertionError:
         print(format_exc(5))
         response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        response.status = 403
+        return json_serializer({'status': 'forbidden',
                      'reason': 'Insufficient privileges'})
 
     mycourse = {k: v for k, v in course_rec.items() if k in [

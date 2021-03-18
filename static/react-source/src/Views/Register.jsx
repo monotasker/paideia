@@ -38,7 +38,7 @@ const Register = ({submitAction}) => {
                                password: "password"}
 
   let { formFieldValues, setFormFieldValue, setFormFieldsDirectly,
-        flags, setFlags, myCallbacks
+        flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
       } = useFormManagement(fieldsAndValidators);
   if ( formFieldValues.time_zone===null ) {
     setFormFieldValue("America/Toronto", "time_zone");
