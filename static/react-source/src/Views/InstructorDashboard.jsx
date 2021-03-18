@@ -87,7 +87,7 @@ const InstructorDashboard = () => {
           returnStatusCheck(info, history,
             info => {
               console.log(info);
-              if ( info.hasOwnProperty("classInstitution") ) {
+              if ( info.hasOwnProperty("institution") ) {
                 Object.keys(info).forEach(field => {
                   if (['start_date', 'end_date'].includes(field)) {
                     setFormFieldValue(moment(info[field]).toDate(), field);
