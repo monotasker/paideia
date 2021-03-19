@@ -2076,8 +2076,8 @@ def update_course_data():
             if "start_date" in update_data.keys():
                 update_data['start_date'] = dateutil.parser.parse(
                     update_data['start_date'])
-            if "start_date" in update_data.keys():
-                update_data['start_date'] = dateutil.parser.parse(
+            if "end_date" in update_data.keys():
+                update_data['end_date'] = dateutil.parser.parse(
                     update_data['end_date'])
 
             if debug: print('api::update_course_data: received start_date:',
