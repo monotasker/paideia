@@ -183,11 +183,45 @@ const filterObjectExcludeKeys = (obj, keys) => {
   return Object.fromEntries(filteredPairs);
 }
 
+/**
+ * Determines whether a string's characters are a single number.
+ *
+ * @param {string} str The string to be tested to determine whether it is a
+ *                     numeric sequence of characters
+ * @returns {boolean} Returns true if the provided string is a number,
+ *                    but false if it is not
+ */
+function isNumericString(str) {
+  if (typeof str != "string") return false // we only process strings!
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+         !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+}
+
+
+/**
+ * Determines whether a string's characters represent a single integer.value.
+ *
+ * @param {string} str The string to be tested to determine whether it is a
+ *                     numeric sequence of characters that form a single
+ *                     integer value
+ * @returns {boolean} Returns true if the provided string is an integer,
+ *                    but false if it is not
+ */
+function isIntegerString(str) {
+  if ( isNumericString(str) ) {
+    return parseInt(str).toString()===str;
+  } else {
+    return false;
+  }
+}
+
 export {
     loadScriptByURL,
     useQuery,
     doApiCall,
     returnStatusCheck,
     filterObjectByKeys,
-    filterObjectExcludeKeys
+    filterObjectExcludeKeys,
+    isNumericString,
+    isIntegerString
 }

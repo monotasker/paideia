@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from copy import copy
 import datetime
+import dateutil
 from itertools import permutations
 from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
@@ -2052,6 +2053,7 @@ def update_course_data():
 
     """
     debug = True
+    response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.datetime.utcnow
     course_id = request.vars.id
@@ -2071,11 +2073,20 @@ def update_course_data():
                 "c_target", "c_cap", "d_target", "d_cap", "f_target"
                 ] and v not in ["undefined", "null", None]
                 }
+            if "start_date" in update_data.keys():
+                update_data['start_date'] = dateutil.parser.parse(
+                    update_data['start_date'])
+            if "start_date" in update_data.keys():
+                update_data['start_date'] = dateutil.parser.parse(
+                    update_data['end_date'])
+
+            if debug: print('api::update_course_data: received start_date:',
+                            update_data['start_date'])
+            if debug: print(type(update_data['start_date']))
             # print('old data:')
             # print(course_rec)
         except AttributeError:
             print(format_exc(5))
-            response = current.response
             response.status = 404
             return json_serializer({'status': 'No such record'})
 
@@ -2083,7 +2094,6 @@ def update_course_data():
             assert auth.is_logged_in()
         except AssertionError:
             print(format_exc(5))
-            response = current.response
             response.status = 401
             return json_serializer({'status': 'Not logged in'})
 
@@ -2094,13 +2104,19 @@ def update_course_data():
                     )
         except AssertionError:
             print(format_exc(5))
-            response = current.response
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
-        myresult = course_rec.update(**update_data)
-        assert myresult == 1
+        if debug: print('api::update_course_data: course_rec:')
+        if debug: print(course_rec)
+        if debug: print('api::update_course_data: update_data:')
+        if debug: print(update_data)
+        myresult = course_rec.update_record(**update_data)
+        if debug: print('api::update_course_data: myresult:')
+        if debug: print(myresult)
+        assert myresult
+        db.commit()
 
     except Exception:
         print_exc()
@@ -2109,7 +2125,8 @@ def update_course_data():
                     'reason': 'Unknown error in function do_password_reset',
                     'error': format_exc()})
 
-    return json_serializer({"update_count": myresult}, default=my_custom_json)
+    return json_serializer({"status": 'success',
+                            "updated_record": myresult}, default=my_custom_json)
 
 
 def get_course_data():

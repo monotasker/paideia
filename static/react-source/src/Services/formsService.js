@@ -67,7 +67,7 @@ const sendFormRequest = (token, setFields,
         requestArgs[key] = fieldSet[key]
       }
     })
-    if ( extraArgs.includes("token") ) {
+    if ( !!extraArgs && extraArgs.includes("token") ) {
       requestArgs.token = token;
     }
 

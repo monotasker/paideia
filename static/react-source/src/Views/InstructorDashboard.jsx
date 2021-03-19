@@ -124,23 +124,26 @@ const InstructorDashboard = () => {
 
     const updateClassData = (event) => {
       event.preventDefault();
-      const updateData = {...formFieldValues, id: activeClassId};
+      let myStartString = formFieldValues.start_date.toISOString();
+      let myEndString = formFieldValues.end_date.toISOString();
+      const updateData = {...formFieldValues, id: activeClassId,
+                          start_date: myStartString, end_date: myEndString};
 
-      sendFormRequest(null, {
-          formId: 'dashboard-class-info-form',
-          fieldSet: updateData,
-          requestAction: () => doApiCall(updateData, "update_course_data",
-                                         "form"),
-          history: myhistory,
-          dispatch: dispatch,
-          successCallback: myCallbacks.successAction,
-          otherCallbacks: {
-            serverErrorAction: myCallbacks.serverErrorAction,
-            badRequestAction: myCallbacks.badRequestAction,
-            insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
-            notLoggedInAction: myCallbacks.notLoggedInAction
-          },
-          setInProgressAction: setFetchingClass
+      sendFormRequest(null, setFormFieldValue,
+        {formId: 'dashboard-class-info-form',
+         fieldSet: updateData,
+         requestAction: () => doApiCall(updateData, "update_course_data",
+                                        "form"),
+         history: myhistory,
+         dispatch: dispatch,
+         successCallback: myCallbacks.successAction,
+         otherCallbacks: {
+           serverErrorAction: myCallbacks.serverErrorAction,
+           badRequestAction: myCallbacks.badRequestAction,
+           insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
+           notLoggedInAction: myCallbacks.notLoggedInAction
+         },
+         setInProgressAction: setFetchingClass
         });
     }
 
