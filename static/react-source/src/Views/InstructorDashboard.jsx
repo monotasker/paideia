@@ -7,6 +7,7 @@ import {
   Alert,
   Button,
   Col,
+  Collapse,
   Form,
   FormGroup,
   Row,
@@ -28,17 +29,238 @@ import { sendFormRequest,
          useFormManagement,
        } from "../Services/formsService";
 
-const StudentRow = () => {
+const StudentRow = ({ studentData, classInProcess, history, dispatch }) => {
+  const [ showStudentDetails, setShowStudentDetails ] = useState(false);
+  const [ fetchingStudent, setFetchingStudent ] = useState(false);
 
-    let studentFieldsAndValidators = {
+  let {uid, first_name, last_name, current_set, starting_set, ending_set,
+        final_grade, grade, counts, start_date, end_date, custom_start, custom_end, previous_end_date, progress, custom_a_cap, custom_b_cap, custom_c_cap, custom_d_cap, tp_id} = studentData;
 
-    };
+  const fieldsAndValidators = {
+    [`starting_set%${uid}`]: "number",
+    [`ending_set%${uid}`]: "number",
+    [`grade%${uid}`]: "alphanumeric",
+    [`custom_start%${uid}`]: "date",
+    [`custom_end%${uid}`]: "date",
+    [`custom_a_cap%${uid}`]: "number",
+    [`custom_b_cap%${uid}`]: "number",
+    [`custom_c_cap%${uid}`]: "number",
+    [`custom_d_cap%${uid}`]: "number"
+  };
 
+  let {formFieldValues, setFormFieldValue,
+        setFormFieldsDirectly, flags, setFlags, myCallbacks, showErrorDetails,
+        setShowErrorDetails} = useFormManagement(fieldsAndValidators);
 
-    let {studentFormFieldValues, setStudentFormFieldValue,
-         setStudentFieldDirectly, studentFlags, setStudentFlags, myStudentCallbacks, showStudentErrorDetails,
-         setShowStudentErrorDetails} = useFormManagement(studentFieldsAndValidators);
+  const updateStudentData = event => {
+    event.preventDefault();
+    let submitValues = Object.entries(formFieldValues).map(
+      (key, value) => [key.split("%")[0], value]
+    );
+    console.log('submitValues');
+    console.log(submitValues);
+    let submitObject = Object.fromEntries(submitValues);
+    console.log('submitObject');
+    console.log(submitObject);
+    let myStartString = submitObject.custom_start.toISOString();
+    let myEndString = submitObject.custom_end.toISOString();
+    const updateData = {...submitObject, uid: uid,
+                        custom_start: myStartString, custom_end: myEndString};
 
+    sendFormRequest(null, setFormFieldValue,
+      {formId: `dashboard-student-info-${first_name}_${last_name}_${uid}`,
+        fieldSet: updateData,
+        requestAction: () => doApiCall(updateData, "update_student_data",
+                                      "form"),
+        history: history,
+        dispatch: dispatch,
+        successCallback: myCallbacks.successAction,
+        otherCallbacks: {
+          serverErrorAction: myCallbacks.serverErrorAction,
+          badRequestAction: myCallbacks.badRequestAction,
+          insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
+          notLoggedInAction: myCallbacks.notLoggedInAction
+        },
+        setInProgressAction: setFetchingStudent
+      });
+  }
+
+  return(
+    <Form role="form"
+      id={`dashboard-student-info-${first_name}_${last_name}_${uid}`}
+    >
+      <Form.Row >
+        <Col>
+          <Link to={`/${urlBase}/profile/${uid}`}>
+            {last_name}, {first_name}
+          </Link>
+        </Col>
+        <Col>
+          <span className="dashboard-student-info-current">
+            <span className="dashboard-student-info-current-label">
+              {!!classInProcess ? "Current" : "Final"} badge set:
+            </span>
+            {!!classInProcess ? current_set : ending_set }
+          </span>
+        </Col>
+        <Col>
+          <span className="dashboard-student-info-starting-set">
+            <span className="dashboard-student-info-starting-set-label">
+              Started at set
+            </span>
+            {starting_set}
+          </span>
+        </Col>
+        <Col>
+          <span className="dashboard-student-info-starting-set">
+            <span className="dashboard-student-info-starting-set-label">
+              Progressed
+            </span>
+            {progress} sets
+          </span>
+        </Col>
+        <Col>
+          <span className="dashboard-student-info-starting-set">
+            <span className="dashboard-student-info-starting-set-label">
+              Earned{!!classInProcess ? " so far" : ""}
+            </span>
+            {grade}
+          </span>
+        </Col>
+        <Col>
+          <Button className="dashboard-student-info-show-details"
+            onClick={() => setShowStudentDetails(!showStudentDetails)} size="sm" variant="primary"
+          >
+            <FontAwesomeIcon icon="angle-down" size="sm" /> show details
+          </Button>
+        </Col>
+      </Form.Row>
+      <Collapse in={showStudentDetails}>
+        <div className="dashboard-student-details-container">
+      <Form.Row>
+        <Col>
+          <Table className="dashboard-student-info-active">
+            <thead>
+              <tr>
+                <td></td>
+                <td>Days active</td>
+                <td>Days meeting minimum</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>This week</td>
+                <td>{counts[0]}</td>
+                <td>{counts[1]}</td>
+              </tr>
+              <tr>
+                <td>Last week</td>
+                <td>{counts[2]}</td>
+                <td>{counts[3]}</td>
+              </tr>
+            </tbody>
+          </Table>
+        </Col>
+      </Form.Row>
+      <Form.Row>
+        <Col>
+          <Form.Group controlId={`custom_start%${uid}`}>
+            <Form.Label>Individual start date</Form.Label>
+            <DayPickerInput
+              onDayChange={day => setFormFieldValue(day, `custom_start%${uid}`)}
+              formatDate={formatDate}
+              parseDate={parseDate}
+              format="LL"
+              value={formFieldValues.custom_start}
+              placeholder={`${formatDate(
+                new Date(formFieldValues.custom_start), 'LL')}`}
+              onChange={e => setFormFieldValue(e.target.value, `custom_start%${uid}`)}
+            />
+          </Form.Group>
+        </Col>
+        <Col>
+          <Form.Group controlId={`custom_end%${uid}`}>
+            <Form.Label>Individual end date</Form.Label>
+            <DayPickerInput
+              onDayChange={day => setFormFieldValue(day, `custom_end%${uid}`)}
+              formatDate={formatDate}
+              parseDate={parseDate}
+              format="LL"
+              value={formFieldValues.custom_start}
+              placeholder={`${formatDate(
+                new Date(formFieldValues.custom_start), 'LL')}`}
+              onChange={e => setFormFieldValue(e.target.value, `custom_end%${uid}`)}
+            />
+          </Form.Group>
+        </Col>
+      </Form.Row>
+      <Form.Row>
+        <Col>
+          <Table>
+            <thead>
+              <tr>
+                <td>Individual grade caps</td>
+              </tr>
+              <tr>
+                <td>A</td>
+                <td>B</td>
+                <td>C</td>
+                <td>D</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <Form.Group controlId={`custom_a_cap%${uid}`}>
+                    <Form.Control
+                      value={formFieldValues.custom_a_cap || ''}
+                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_a_cap%${uid}`)}
+                    />
+                  </Form.Group>
+                </td>
+                <td>
+                  <Form.Group controlId={`custom_b_cap%${uid}`}>
+                    <Form.Control
+                      value={formFieldValues.custom_b_cap || ''}
+                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_b_cap%${uid}`)}
+                    />
+                  </Form.Group>
+                </td>
+                <td>
+                  <Form.Group controlId={`custom_c_cap%${uid}`}>
+                    <Form.Control
+                      value={formFieldValues.custom_a_cap || ''}
+                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_c_cap%${uid}`)}
+                    />
+                  </Form.Group>
+                </td>
+                <td>
+                  <Form.Group controlId={`custom_d_cap%${uid}`}>
+                    <Form.Control
+                      value={formFieldValues.custom_d_cap || ''}
+                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_d_cap%${uid}`)}
+                    />
+                  </Form.Group>
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+        </Col>
+      </Form.Row>
+      <Form.Row>
+        <Button variant="primary"
+            type="submit"
+            onClick={updateStudentData}
+            disabled={!!fetchingStudent ? true : false }
+        >
+          <FontAwesomeIcon icon="save" /> Save changes
+        </Button>
+      </Form.Row>
+      </div>
+
+    </Collapse>
+  </Form>
+  );
 }
 
 const InstructorDashboard = () => {
@@ -180,6 +402,9 @@ const InstructorDashboard = () => {
             </Form.Control>
           </Form.Group>
 
+        <h3>
+          {formFieldValues.institution} {formFieldValues.term} {formFieldValues.academic_year}
+        </h3>
         <Tabs>
         <Tab eventKey="course-details" title="Course Details">
         <Form role="form"
@@ -188,9 +413,6 @@ const InstructorDashboard = () => {
           <Form.Row>
             <Col className="dashboard-class-info" xs={12} lg={4}>
               {!!fetchingClass && <Spinner animation="grow" variant="info" />}
-              <h3>
-                {formFieldValues.institution} {formFieldValues.term} {formFieldValues.academic_year}
-              </h3>
               <Form.Group controlId="start_date">
                 <Form.Label>Begins</Form.Label>
                 <DayPickerInput
@@ -353,111 +575,16 @@ const InstructorDashboard = () => {
         </Tab> {/* end of course parameters tab */}
 
         <Tab eventKey="course-students" title="Students">
-          <Table className="course-students-table">
-            <thead>
-              <tr>
-                <td>Family Name</td>
-                <td>Given Name</td>
-                <td>
-                  {!!classInProcess ? "Current badge set" : "Final badge set"}
-                </td>
-                <td>Starting badge set</td>
-                <td>Progress this course</td>
-                <td>Current grade achieved</td>
-              </tr>
-            </thead>
-            <tbody>
-              {!!classMembers && classMembers.length > 0 &&
-                classMembers.map(m =>
-              <React.Fragment key={`${m.first_name}_${m.last_name}`}>
-              <tr >
-                <td rowSpan="2">
-                  <Link to={`/${urlBase}/profile/${m.uid}`}>
-                    {m.last_name}
-                  </Link>
-                </td>
-                <td>
-                  <Link to={`/${urlBase}/profile/${m.uid}`}>
-                    {m.first_name}
-                  </Link>
-                </td>
-                <td>{!!classInProcess ? m.current_set : m.ending_set }</td>
-                <td>{m.starting_set}</td>
-                <td>{m.progress} badge sets</td>
-                <td>{m.grade}</td>
-                {/* <td>{m.custom_start}</td>
-                <td>{m.custom_end}</td>
-                <td>{m.starting_set}</td>
-                <td>{m.ending_set}</td>
-                <td>{m.custom_a_cap}</td>
-                <td>{m.custom_b_cap}</td>
-                <td>{m.custom_c_cap}</td>
-                <td>{m.custom_d_cap}</td>
-                <td>{m.final_grade}</td> */}
-              </tr>
-              <tr>
-                {/* two cells blocked off by name */}
-                <td colSpan="5">
-                  <Table>
-                    <thead>
-                      <tr>
-                        <td></td>
-                        <td>Days active</td>
-                        <td>Days meeting minimum</td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>This week</td>
-                        <td>{m.counts[0]}</td>
-                        <td>{m.counts[1]}</td>
-                      </tr>
-                      <tr>
-                        <td>Last week</td>
-                        <td>{m.counts[2]}</td>
-                        <td>{m.counts[3]}</td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                  <Table>
-                    <tbody>
-                      <tr>
-                        <td>Individual start date</td>
-                        <td>{m.custom_start}</td>
-                      </tr>
-                      <tr>
-                        <td>Individual end date</td>
-                        <td>{m.custom_end}</td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                  <Table>
-                    <thead>
-                      <tr>
-                        <td>Individual grade caps</td>
-                      </tr>
-                      <tr>
-                        <td>A</td>
-                        <td>B</td>
-                        <td>C</td>
-                        <td>D</td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>{m.custom_a_cap}</td>
-                        <td>{m.custom_a_cap}</td>
-                        <td>{m.custom_c_cap}</td>
-                        <td>{m.custom_d_cap}</td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </td>
-              </tr>
-              </React.Fragment>
-              )}
-            </tbody>
-          </Table>
+
+          {!!classMembers && classMembers.length > 0 &&
+            classMembers.map(m =>
+              <StudentRow studentData={m}
+                classInProcess={classInProcess}
+                history={myhistory}
+                dispatch={dispatch}
+                key={`${m.first_name}_${m.last_name}_${m.uid}`}
+              />
+          )}
         </Tab>
         </Tabs>
         </React.Fragment>

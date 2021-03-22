@@ -12,6 +12,7 @@ import { CSSTransition } from "react-transition-group";
 import { library } from '@fortawesome/fontawesome-svg-core';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  faAngleDown,
   faArrowsAltH,
   faBalanceScale,
   faBolt,
@@ -98,6 +99,7 @@ import { checkLogin } from '../Services/authService';
 import ResetPassword from './ResetPassword';
 
 library.add(
+  faAngleDown,
   faArrowsAltH,
   faBalanceScale,
   faBolt,
