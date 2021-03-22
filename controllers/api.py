@@ -550,7 +550,7 @@ def get_login():
     password = request.vars['password'].strip()
     if debug: print('api::get_login: password:', password)
 
-    email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    email_pat = re.compile('^([a-zA-Z0-9]?[\._]?[a-zA-Z0-9]+)+[@]\w+[.]\w+$')
     password_pat = re.compile("^[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{2,50}$")
 
     missing = {k: v for k, v in request.vars.items() if

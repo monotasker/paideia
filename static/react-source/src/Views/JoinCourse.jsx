@@ -1,5 +1,10 @@
-import React, { useState } from "react";
-import { useContext } from "react";
+import React,
+  { useState,
+    useContext
+  } from "react";
+import {
+         Link
+       } from 'react-router-dom';
 import {
     Alert,
     Col,
@@ -27,7 +32,9 @@ const JoinCourse = () => {
           <FontAwesomeIcon icon="hard-hat" size="2x" />
         </Col>
         <Col xs="10">
-          The payment form is still <b>under construction</b>. We want to make sure it's as secure as possible to keep you and your data safe. But <b>check back in a few days</b> to join your course group.
+          <p>The payment form is still <b>under construction</b>. We want to make sure it's as secure as possible to keep you and your data safe. But <b>check back in a few days</b> to join your course group.</p>
+
+          <p>Until then, feel free to <Link to="register">sign up</Link> for a free account and explore the app on your own.</p>
         </Col>
         </Alert>
       </Col>
