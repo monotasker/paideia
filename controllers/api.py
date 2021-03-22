@@ -292,7 +292,7 @@ def do_password_reset():
         try:
 
             t0 = int(key.split('-')[0])
-            if time.time() - t0 > 60 * 60 * 24:
+            if time.time() - t0 > 60 * 60 * 48:
                 response.status = 403
                 return json_serializer({'status': 'forbidden',
                                         'reason': 'Password reset key was bad',
@@ -347,7 +347,7 @@ def my_email_reset_password(auth, user):
     d.update(dict(key=reset_password_key, link=link))
     if auth.settings.mailer and auth.settings.mailer.send(
         to=user.email,
-        subject=auth.messages.reset_password_subject,
+        subject=auth.messages.reset_password_subject % d,
             message=auth.messages.reset_password % d):
         user.update_record(reset_password_key=reset_password_key)
         return True
@@ -360,14 +360,20 @@ def start_password_reset():
     auth = current.auth
     auth.settings.function = ""
     auth.settings.controller = ""
-    auth.messages.reset_password = ("<html><p>Greetings from the people at "
-        "<a href='https://learngreek.ca/paideia'>Paideia</a>! Someone asked " "to reset the account password for this email address. "
+    auth.messages.reset_password = (
+        "<html><p>Hi %(first_name)s %(last_name)s,</p>"
+        "<p>Greetings from the people at "
+        "<a href='https://learngreek.ca/paideia'>Paideia</a>! Someone asked " "to reset the account password for %(email)s. "
         "If this was you, click on the link below and enter your "
-        "new password in the form there.</p>"
+        "new password in the form there. If you didn't request this "
+        "reset, or you have changed your mind, you can ignore this email "
+        "and your password will remain unchanged."
         "<p>Reset password link: %(link)s</p> "
+        "<p>This link will be valid for 48 hours. After that you'll need to "
+        "request a new one.<p>"
         "<p>All the best,</p>"
         "<p>The Paideia people</p></html>")
-    auth.messages.reset_password_subject = "Password reset requested for Paideia"
+    auth.messages.reset_password_subject = "Paideia Password reset requested for %(first_name)s %(last_name)s"
     response = current.response
     email = request.vars['email']
     token = request.vars['token']
