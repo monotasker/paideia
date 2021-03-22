@@ -372,7 +372,7 @@ def start_password_reset():
     email = request.vars['email']
     token = request.vars['token']
 
-    email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    email_pat = re.compile('^([a-zA-Z0-9]?[\._]?[a-zA-Z0-9]+)+[@]\w+[.]\w+$')
     if email in [None, "null", "undefined", ""] \
             or not re.search(email_pat, email.strip()):
         response.status = 400
@@ -456,7 +456,7 @@ def get_registration():
     last_name = request.vars['last_name'].strip()
 
     str_pat = re.compile('^[a-zA-Z0-9\s\-\/_]+$')
-    email_pat = re.compile('^[a-zA-Z0-9]+[\._]?[a-zA-Z0-9]+[@]\w+[.]\w+$')
+    email_pat = re.compile('^([a-zA-Z0-9]?[\._]?[a-zA-Z0-9]+)+[@]\w+[.]\w+$')
     missing = {k: v for k, v in request.vars.items() if
                k not in ["token", "password"] and
                ((v in ["undefined", None, "", "null"])
