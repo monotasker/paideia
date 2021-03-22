@@ -94,6 +94,7 @@ import Videos from "./Videos";
 import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
+import JoinCourse from "./JoinCourse";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { checkLogin } from '../Services/authService';
 import ResetPassword from './ResetPassword';
@@ -169,15 +170,20 @@ library.add(
 
 const myroutes = [
   {path: "/" + urlBase + "(/static/react-source/dist/index.html||/home)", exact: true, Component: Home},
-  {path: "/" + urlBase + "/videos/:lessonParam?", exact: false, Component: Videos},
+  {path: "/" + urlBase + "/videos/:lessonParam?", exact: false,
+    Component: Videos},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
   {path: "/" + urlBase + "/login", exact: false, Component: Login},
   {path: "/" + urlBase + "/register", exact: false, Component: Register},
-  {path: "/" + urlBase + "/reset_password", exact: false, Component: ResetPassword}
+  {path: "/" + urlBase + "/reset_password", exact: false,
+    Component: ResetPassword},
+  {path: "/" + urlBase + "/join_course:courseKey?", exact: false,
+    Component: JoinCourse}
 ]
 
 const myPrivateRoutes = [
-  {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false, Component: Walk},
+  {path: "/" + urlBase + "/walk/:walkPage/:walkStep?", exact: false,
+    Component: Walk},
   {path: "/" + urlBase + "/profile/:userId?", exact: false, Component: Profile},
   {path: "/" + urlBase + "/admin/:adminPage", exact: false, Component: Admin},
   {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},

@@ -51,12 +51,12 @@ const sendFormRequest = (token, setFields,
                       ) => {
     setInProgressAction(true);
     // handle autocompleted form fields that aren't picked up by React state
-    console.log('formId===========');
-    console.log(formId);
+    // console.log('formId===========');
+    // console.log(formId);
     let requestArgs = {};
     Object.keys(fieldSet).forEach(key => {
-      console.log('key');
-      console.log(key);
+      // console.log('key');
+      // console.log(key);
       let mycontrol = document.getElementById(formId).elements[key]
       let myval = !!mycontrol ? mycontrol.value : undefined;
 
