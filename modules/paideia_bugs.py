@@ -183,7 +183,7 @@ class Bug(object):
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
-        vbs = True
+        vbs = False
         if vbs: print("in Bug.undo*****************")
         if vbs: print("score", score)
         if vbs: print("adjusted_score", adjusted_score)
@@ -454,7 +454,7 @@ class Bug(object):
                 newly inserted or updated post.
 
         """
-        vbs = True
+        vbs = False
         db = current.db
         request = current.request
         if vbs: print('in paideia_bugs::record_bug_post')
@@ -507,7 +507,7 @@ class Bug(object):
 def trigger_bug_undo(*args, **kwargs):
     """
     """
-    vbs = True
+    vbs = False
     db = current.db
     mystatus = db(db.bug_status.id == kwargs['bug_status']).select().first()
     result = "No records reversed."

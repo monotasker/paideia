@@ -232,8 +232,8 @@ def _check_password_strength(password):
     password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"\
                      "[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$"
     password_pat = re.compile(password_regex)
-    print('password', password)
-    print('password_pat', password_pat)
+    # print('password', password)
+    # print('password_pat', password_pat)
     return re.search(password_pat, password)
 
 
@@ -241,6 +241,7 @@ def do_password_reset():
     """
     Actually allow a user to reset their password after email link followed.
     """
+    debug = False
     request = current.request
     response = current.response
 
@@ -309,8 +310,8 @@ def do_password_reset():
                 return json_serializer({'status': 'conflict',
                                         'reason': 'Action blocked',
                                         'error': "Reset blocked or pending"})
-            print('USER=========================')
-            pprint(user)
+            if debug: print('USER=========================')
+            if debug: pprint(user)
             encrypted_password = db.auth_user.password.validate(new_password_B)[0]
             user.update_record(**{'password': encrypted_password,
                                 'registration_key': '',
@@ -450,7 +451,7 @@ def start_password_reset():
 def get_registration():
     """
     """
-    debug=True
+    debug=False
     request = current.request
     auth = current.auth
     response = current.response
@@ -554,7 +555,7 @@ def get_login():
     email = request.vars['email'].strip() if request.vars['email'] else None
     if debug: print('api::get_login: email:', email)
     password = request.vars['password'].strip()
-    if debug: print('api::get_login: password:', password)
+    # if debug: print('api::get_login: password:', password)
 
     email_pat = re.compile('^([a-zA-Z0-9]?[\._]?[a-zA-Z0-9]+)+[@]\w+[.]\w+$')
     password_pat = re.compile("^[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{2,50}$")
@@ -652,11 +653,11 @@ def do_logout():
         JSON object with the same user fields returned at login, but with null
         values for each one.
     """
-    print("about to log out")
+    # print("about to log out")
     auth = current.auth
     try:
         mylogout = auth.logout_bare()
-        print ("did logout")
+        # print ("did logout")
         myuser = {k:None for k in ['email', 'first_name', 'last_name',
                                    'hide_read_queries', 'id', 'time_zone']}
         return json_serializer(myuser)
@@ -681,7 +682,7 @@ def check_login():
 
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
-    vbs = False
+    debug = False
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
             myposts = db(
@@ -767,8 +768,8 @@ def _add_posts_to_queries(queries, unread_posts, unread_comments):
                         c['read'] = False if c['bug_post_comments']['id'] \
                             in unread_comments else True
                 myposts[i]['comments'] = mycomments
-                pprint('===================================')
-                pprint(mycomments)
+                if debug: pprint('===================================')
+                if debug: pprint(mycomments)
 
             queries[idx]['posts'] = myposts
         else:
@@ -1446,7 +1447,7 @@ def mark_read_status():
         to look at to record the item's read status. Allowed
         values are 'query', 'post', and 'comment'
     """
-    vbs = True
+    vbs = False
     auth = current.auth
     db = current.db
     response = current.response
@@ -1939,8 +1940,8 @@ def get_profile_info():
 
         # get user's current course
         myc = _fetch_current_coursedata(user.id, datetime.datetime.utcnow())
-        print('myc=============')
-        print(myc)
+        if debug: print('myc=============')
+        if debug: print(myc)
         if myc['class_info']:
             starting_set = myc['class_info']['starting_set']
         # FIXME: UserProvider should be updated here with class info if new
@@ -2058,7 +2059,7 @@ def update_course_data():
         f_target (int)
 
     """
-    debug = True
+    debug = False
     response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.datetime.utcnow
