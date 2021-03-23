@@ -169,7 +169,7 @@ library.add(
 
 
 const myroutes = [
-  {path: "/" + urlBase + "(/static/react-source/dist/index.html||/home)", exact: true, Component: Home},
+  {path: "/" + urlBase + "(/static/react-source/dist/index.html||/home||/)", exact: true, Component: Home},
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false,
     Component: Videos},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
