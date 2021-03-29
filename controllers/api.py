@@ -1,9 +1,12 @@
 #! /usr/bin/python3.6
 # -*- coding: utf-8 -*-
 from copy import copy
-import datetime
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 import dateutil
 from itertools import permutations
+import os
 from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
 from gluon.serializers import json as json_serializer
@@ -17,7 +20,9 @@ from paideia_stats import Stats, get_set_at_date, make_classlist, \
     get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
+import pytz
 import re
+import stripe
 import time
 # from pydal.objects import Rows
 
@@ -210,7 +215,7 @@ def _fetch_userdata(raw_user, vars):
                 user['instructing'] = None
 
         user.update(**_fetch_current_coursedata(user['id'],
-                                                datetime.datetime.utcnow())
+                                                datetime.now(timezone.utc))
                     )
 
         my_progress = db(db.tag_progress.name == user['id']
@@ -235,6 +240,22 @@ def _check_password_strength(password):
     # print('password', password)
     # print('password_pat', password_pat)
     return re.search(password_pat, password)
+
+
+def _is_safe_string(mystring, length=0):
+    """
+    Returns true if string is regular alphanumeric string
+
+    If length is specified as a single number (or numeric string), also requires that the string be the set length.
+    Otherwise no length constraints required.
+    """
+    if type(length) is list:
+        mylength = "{},{}".format(str(length[0]), str(length[1]))
+    else:
+        mylength = str(length) if length!=0 else "1,64"
+    str_pat = re.compile(r'^[a-zA-Z0-9\s\-\/_]+{{{}}}$'.format(mylength))
+
+    return re.search(str_pat, mystring)
 
 
 def do_password_reset():
@@ -536,6 +557,112 @@ def get_registration():
                         'reason': 'Recaptcha failed',
                         'error': None})
 
+
+def validate_class_key():
+    """
+    """
+    response = current.response
+    myclass_key = request.vars['course_key']
+    myclass = None
+
+    try:
+        if (not myclass_key or myclass_key in ['null', 'undefined']
+                or not _is_safe_string(myclass_key)):
+            response.status = 400
+            return json_serializer({'status': 'bad request',
+                        'reason': 'Missing request data',
+                        'error': {'course_key': myclass_key}})
+
+        myclass_rows = db((db.class_keys.class_key==myclass_key) &
+                    (db.class_keys.class_section==db.classes.id)
+                    ).select()
+        if len(myclass_rows) == 0:
+            response.status = 404
+            return json_serializer({'status': 'Not found',
+                                    'reason': 'No matching record found'})
+
+        expiration_dt = datetime.now(timezone.utc) + timedelta(days=30)
+        time_valid_rows = myclass_rows.find(lambda r:
+            r.class_keys.created_date <= expiration_dt)
+        if len(time_valid_rows) == 0:
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Class key is expired'})
+
+        valid_rows = time_valid_rows.find(lambda r:
+                                          r.class_keys.cancelled==False)
+        if len(valid_rows) == 0:
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Class key was cancelled'})
+        myclass = valid_rows[0]
+
+        class_label = "{}, {} {}, {}".format(myclass.classes.course_section,
+                                        myclass.classes.term,
+                                        myclass.classes.academic_year,
+                                        myclass.classes.institution
+                                        )
+        response.status = 200
+        return json_serializer({'status': 'success',
+                                'class_label': class_label,
+                                'class_id': myclass.classes.id})
+
+    except Exception:
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                    'reason': 'Unknown error in function validate_class_key',
+                    'error': format_exc()})
+
+
+def join_class_group():
+    pass
+
+
+def create_checkout_session():
+    """
+    Create a Stripe payment checkout session for hosted checkout page.
+    """
+    response = current.response
+    myclass_key = request.vars['course_key']
+    myclass = None
+    class_label = ""
+    if myclass_key and myclass_key not in ['null', 'undefined']:
+        expiration_dt = datetime.now(timezone.utc) + timedelta(days=30)
+        myclass = db((db.class_keys.class_key==myclass_key) &
+                     (db.class_keys.created_date <= expiration_dt) &
+                     (db.class_keys.cancelled==False) &
+                     (db.class_keys.class_section==db.classes.id)
+                     ).select().first()
+        class_label = "{}, {} {}, {}".format(myclass.classes.course_section,
+                                          myclass.classes.term,
+                                          myclass.classes.academic_year,
+                                          myclass.classes.institution
+                                          )
+
+    try:
+        keydata = {}
+        with open('applications/paideia/private/app.keys', 'r') as keyfile:
+            for line in keyfile:
+                k, v = line.split()
+                keydata[k] = v
+        stripe.api_key = keydata['stripe_secret_key']
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {'price_data': {'currency': 'cad',
+                                'unit_amount': 1500,
+                                'product_data': {'Student Membership, '
+                                                 }
+                                }
+                }
+            ]
+        )
+
+    except Exception:
+        response.status = 403
+        return json_serializer({'status': 'insufficient privileges',
+                    'reason': 'Stripe checkout session creation failed',
+                    'error': print_exc()})
 
 def get_login():
     """
@@ -1914,7 +2041,7 @@ def get_profile_info():
                     ).select(db.class_membership.name).as_list()
     try:
         assert auth.is_logged_in();
-        now = datetime.datetime.utcnow()
+        now = datetime.now(timezone.utc)
         # Allow passing explicit user but default to current user
         if 'userId' in request.vars.keys():
             sid = request.vars['userId']
@@ -1939,7 +2066,7 @@ def get_profile_info():
         stats = Stats(user.id)
 
         # get user's current course
-        myc = _fetch_current_coursedata(user.id, datetime.datetime.utcnow())
+        myc = _fetch_current_coursedata(user.id, datetime.now(timezone.utc))
         if debug: print('myc=============')
         if debug: print(myc)
         if myc['class_info']:
@@ -2031,6 +2158,105 @@ def update_course_membership_data():
     pass
 
 
+def update_student_data():
+    """
+    Update a db record in the "course_memberships" table.
+
+    Private api method to handle calls from the react front-end. This method does not add or remove students from a course. That information must be updated separately with the update_course_membership_data method.
+
+    Expects URL variables:
+        name (int reference auth_user)
+        custom_start (str)
+        custom_end (str)
+        custom_a_cap (int)
+        custom_b_cap (int)
+        custom_c_cap (int)
+        custom_d_cap (int)
+        class_section (int reference classes)
+    """
+    debug = True
+    response = current.response
+    mydata = request.vars
+    mydata['modified_on'] = datetime.now(timezone.utc)
+    course_id = request.vars.class_section
+    if debug: print("api::update_course_data::course_id:", course_id)
+    if debug: print("api::update_course_data::mydata:")
+    if debug: print(mydata)
+
+    try:
+        try:
+            # print('updating course', request.vars.course_id)
+            member_rec = db(
+                (db.class_membership.name==mydata['name']) &
+                (db.class_membership.class_section==mydata['class_section'])
+                ).select().first()
+
+            update_data = {k: v for k, v in mydata.items() if k in
+                ["custom_start", "custom_end", "custom_a_cap",
+                 "custom_b_cap", "custom_c_cap", "custom_d_cap"
+                ] and v not in ["undefined", "null", None]
+                }
+            if len(update_data.keys()) == 0:
+                response.status = 200
+                return json_serializer({'status': 'success',
+                            'reason': 'no update data',
+                            'error': format_exc()})
+
+            if "custom_start" in update_data.keys():
+                update_data['custom_start'] = dateutil.parser.parse(
+                    update_data['custom_start'])
+            if "custom_end" in update_data.keys():
+                update_data['custom_end'] = dateutil.parser.parse(
+                    update_data['custom_end'])
+
+            # print('old data:')
+            # print(course_rec)
+        except AttributeError:
+            print(format_exc(5))
+            response.status = 404
+            return json_serializer({'status': 'No such record'})
+
+        try:
+            assert auth.is_logged_in()
+        except AssertionError:
+            print(format_exc(5))
+            response.status = 401
+            return json_serializer({'status': 'Not logged in'})
+
+        try:
+            instructor = db.classes(course_id).instructor
+            assert (auth.has_membership('administrators') or
+                    (auth.has_membership('instructors') and
+                    instructor == auth.user_id)
+                    )
+        except AssertionError:
+            print(format_exc(5))
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Insufficient privileges'})
+
+        if debug: print('api::update_student_data: member_rec:')
+        if debug: print(member_rec)
+        if debug: print('api::update_student_data: update_data:')
+        if debug: print(update_data)
+        myresult = member_rec.update_record(**update_data)
+        if debug: print('api::update_student_data: myresult:')
+        if debug: print(myresult)
+        assert myresult
+        db.commit()
+
+    except Exception:
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                    'reason': 'Unknown error in function do_password_reset',
+                    'error': format_exc()})
+
+    return json_serializer({"status": 'success',
+                            "updated_record": myresult}, default=my_custom_json)
+
+
+
 def update_course_data():
     """
     Update a db record in the "classes" table.
@@ -2062,7 +2288,7 @@ def update_course_data():
     debug = False
     response = current.response
     mydata = request.vars
-    mydata['modified_on'] = datetime.datetime.utcnow
+    mydata['modified_on'] = datetime.now(timezone.utc)
     course_id = request.vars.id
     if debug: print("api::update_course_data::course_id:", course_id)
     if debug: print("api::update_course_data::mydata:")
@@ -2165,6 +2391,7 @@ def get_course_data():
             d_target
             d_cap
             f_target
+            class_key
             members
         members is an array of objects which each have the following keys:
             uid
@@ -2239,7 +2466,16 @@ def get_course_data():
                 'f_target'
                 ]}
     mycourse['in_process'] = True if \
-        course_rec['end_date'] > datetime.datetime.now() else False
+        course_rec['end_date'].replace(tzinfo=pytz.UTC) > datetime.now(timezone.utc) else False
+
+    expiration_dt = datetime.now(timezone.utc) - timedelta(days=30)
+    mycourse_key_row = db((db.class_keys.class_section==mycourse['id']) &
+                          (db.class_keys.created_date >= expiration_dt) &
+                          (db.class_keys.cancelled==False)
+                          ).select().first()
+    if not mycourse_key_row:
+        mycourse_key_row = db.class_keys.insert(class_section=mycourse['id'])
+    mycourse['class_key'] = mycourse_key_row.class_key
 
     memberships = db(db.class_membership.class_section ==
                     course_rec['id']).select()

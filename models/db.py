@@ -18,7 +18,7 @@ import logging
 import uuid  # or gluon.utils.web2py_uuid ?
 import datetime
 from pytz import common_timezones
-from pytz import timezone
+import pytz
 from gluon.tools import Recaptcha2, Auth, Mail, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
@@ -160,7 +160,7 @@ auth.settings.extra_fields['auth_user'] = [
           ),
     Field.Virtual('tz_obj',
                   lambda row:
-                  timezone(row.auth_user.time_zone.replace('|', ''))
+                  pytz.timezone(row.auth_user.time_zone.replace('|', ''))
                   if (hasattr(row.auth_user, 'time_zone') and
                       row.auth_user.time_zone)
                   else 'America/Toronto'

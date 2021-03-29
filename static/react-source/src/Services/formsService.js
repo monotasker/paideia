@@ -92,6 +92,7 @@ const sendFormRequest = (token, setFields,
  *    formFields (obj)  An object whose keys are form field names and whose
  *      values (if set) are either (a) strings giving names of standard
  *      validators, or (b) custom validator functions
+ *      NEW!!! value may also be an array of [validator, initial field value]
  *
  * provides formFieldValues object with two setter functions to hold values
  * for form fields with the supplied names. (These names should also be
@@ -149,7 +150,7 @@ const useFormManagement = (formFields) => {
     const [formFieldValues, setFormFieldValuesDirectly
           ] = useState(fieldList.reduce(
             (obj, item) => {
-              return {...obj, [item]: null }
+              return {...obj, [item]: !!Array.isArray(formFields[item]) ? formFields[item][1] : null }
             }, {})
             );
     // console.log('formFieldValues is');
@@ -165,6 +166,8 @@ const useFormManagement = (formFields) => {
       setFormFieldValuesDirectly({...formFieldValues, [fieldName]: val});
       let newFlags = { ...flags };
 
+      console.log(`setting field ${fieldName}: ${val}`);
+
       // unflag missing field values if we're now entering them
       var myMissing = [...newFlags.missingRequestData ];
       const missingIndex = myMissing.indexOf(fieldName);
@@ -174,8 +177,11 @@ const useFormManagement = (formFields) => {
         newFlags.missingRequestData = myMissing;
       }
 
+      // may be value, or may be first in array if value is array
+      const validator = !!Array.isArray(formFields[fieldName]) ?
+        formFields[fieldName][0] : formFields[fieldName];
       // validate email fields
-      if ( formFields[fieldName]==="email" ) {
+      if ( validator==="email" ) {
         let myBad = [ ...newFlags.badRequestData ];
         const emailIndex = myBad.indexOf(fieldName);
         const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
@@ -190,7 +196,7 @@ const useFormManagement = (formFields) => {
       }
 
       // validate password fields
-      if ( formFields[fieldName]==="password" ) {
+      if ( validator==="password" ) {
         let myBad = [ ...newFlags.badRequestData ];
         const passwordIndex = myBad.indexOf(fieldName);
         const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$/;
@@ -206,10 +212,9 @@ const useFormManagement = (formFields) => {
 
 
       // if custom validator function is passed, execute
-      if ( !!formFields[fieldName] &&
-          typeof formFields[fieldName]==="function" ) {
+      if ( !!validator && typeof validator==="function" ) {
         let myBad = [ ...newFlags.badRequestData ];
-        if ( !formFields[fieldName](val) ) {
+        if ( !validator(val) ) {
           myBad.push(fieldName);
         } else {
           const index = myBad.indexOf(fieldName);

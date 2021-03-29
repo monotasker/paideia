@@ -10,8 +10,11 @@ movement from one db system to another.
 
 from plugin_ajaxselect import AjaxSelect
 # from itertools import chain
-import datetime
+from datetime import datetime
+from datetime import timezone
 import os
+import random
+import string
 import traceback
 import uuid
 from paideia_utils import simple_obj_print
@@ -38,7 +41,7 @@ response.files.insert(5, URL('static',
 response.files.append(URL('static', 'css/plugin_listandedit.css'))
 response.files.append(URL('static', 'css/plugin_slider.css'))
 
-dtnow = datetime.datetime.utcnow()
+dtnow = datetime.now(timezone.utc)
 
 db.define_table('classes',
                 Field('institution', 'string', default='Tyndale Seminary'),
@@ -74,6 +77,18 @@ db.classes.term.requires = IS_EMPTY_OR(IS_IN_SET(('fall',
                                                   'june', 'july', 'august',
                                                   'september', 'october',
                                                   'november', 'december')))
+
+db.define_table('class_keys',
+                Field('class_key', 'string', default=lambda: ''.join(
+                    random.choice(string.ascii_letters) for i in range(10)),
+                    unique=True
+                    ),
+                Field('class_section', 'reference classes'),
+                Field('created_date', 'datetime', default=dtnow),
+                Field('cancelled', 'boolean', default=False),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=dtnow),
+                )
 
 db.define_table('class_membership',
                 Field('name', 'reference auth_user'),

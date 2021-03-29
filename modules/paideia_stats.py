@@ -1567,11 +1567,21 @@ def get_current_class(uid, now, myclass=None):
         if debug: print(type(myclasses))
         if debug: print(len(myclasses))
         if debug: print(myclasses[-1])
-        myclasses = myclasses.find(lambda row: (row.classes.start_date is not
-                                                None) and
-                                   (row.classes.start_date < now) and
-                                   (row.classes.end_date > now)
-                                   )
+        # FIXME: TypeError because legacy start/end dates are tz naive
+        try:
+            myclasses = myclasses.find(lambda row: (row.classes.start_date is not
+                                                    None) and
+                                    (row.classes.start_date < now) and
+                                    (row.classes.end_date > now)
+                                    )
+        except TypeError:
+            now = now.replace(tzinfo=None)
+            myclasses = myclasses.find(lambda row: (row.classes.start_date is not
+                                                    None) and
+                                    (row.classes.start_date < now) and
+                                    (row.classes.end_date > now)
+                                    )
+
         if debug: print('paideia_stats::get_current_class: myclasses:')
         if debug: print(myclasses)
         if debug: print(type(myclasses))
