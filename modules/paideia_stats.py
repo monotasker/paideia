@@ -1510,13 +1510,15 @@ def compute_letter_grade(uid, myprog, startset, classrow, membership):
     """
     Computes student's letter grade based on his/her progress in badge sets.
     """
-    debug = False
+    debug = True
     if debug: print('stats::compute_letter_grade: uid = ', uid)
     if debug: db = current.db
     if debug: print(db.auth_user[uid].last_name)
     if debug: print('stats::compute_letter_grade: start = ', startset)
     if debug: print('stats::compute_letter_grade: progress = ', myprog)
     gradedict = {}
+    endset = int(startset) + myprog
+    if debug: print('stats::compute_letter_grade: endset = ', endset)
     for let in ['a', 'b', 'c', 'd']:
         letcap = '{}_cap'.format(let)
         lettarget = '{}_target'.format(let)
@@ -1527,16 +1529,15 @@ def compute_letter_grade(uid, myprog, startset, classrow, membership):
             if classrow[letcap] and (classrow[letcap] < realtarget):
                 mylet = classrow[letcap]
             else:
-                mylet = int(startset) + classrow[lettarget]
+                mylet = realtarget
         gradedict[mylet] = let.upper()
     if debug: pprint(gradedict)
-    if myprog in list(gradedict.keys()):
-
-        mygrade = gradedict[myprog]
-    elif any([k for k, v in list(gradedict.items()) if myprog > k]):
-        grade_prog = max([k for k, v in list(gradedict.items()) if myprog > k])
+    if endset in list(gradedict.keys()):
+        mygrade = gradedict[endset]
+    elif any([k for k, v in list(gradedict.items()) if endset > k]):
+        grade_prog = max([k for k, v in list(gradedict.items()) if endset > k])
         mygrade = gradedict[grade_prog]
-    elif myprog > [k for k, v in list(gradedict.items()) if v == 'A'][0]:
+    elif endset > [k for k, v in list(gradedict.items()) if v == 'A'][0]:
         mygrade = 'A'
     else:
         mygrade = 'F'
@@ -1608,9 +1609,13 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
     """
     debug = False
     if debug: print('starting paideia_status/make_classlist ==============')
+    db = current.db
+    class_in_process = end_date > datetime.datetime.utcnow()
+    if debug: print('class_in_process', class_in_process)
     userlist = []
     for member in memberships:
         uid = member.name
+        if debug: print("user---------")
         if debug: print(uid)
         try:
             user = users.find(lambda row: row.auth_user.id == uid)[0]
@@ -1621,10 +1626,14 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
         # meminfo = memberships.find(lambda row: row.name == uid)[0]
         mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend = \
             get_term_bounds(member, start_date, end_date)
+        if debug: print("term bounds")
+        if debug: print(mystart, myend)
 
         mycounts = get_daycounts(user['auth_user'], target)
-        startset = member.starting_set if member.starting_set \
+        startset = copy(member.starting_set) if member.starting_set \
             else get_set_at_date(uid, mystart)
+        if debug: print("startset**************")
+        if debug: print(startset)
 
         if datetime.datetime.utcnow() < myend and \
                 'tag_progress' in list(user.keys()):  # during class term
@@ -1632,12 +1641,39 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
         else:  # after class term
             currset = get_set_at_date(uid, myend)
 
+        endset = member['ending_set']
+        if not endset and not class_in_process:
+            endset = currset
+            if debug: print("writing endset", endset)
+            db((db.class_membership.name==uid) &
+               (db.class_membership.class_section==classrow['id'])
+               ).update(ending_set=currset)
+            db.commit()
+            if debug: print(db((db.class_membership.name==uid) &
+                               (db.class_membership.class_section==classrow['id'])
+                               ).select().first()
+                            )
+
         myprog = currset - int(startset)
 
-        if debug: print('classrow======================')
-        if debug: print(classrow)
-        if debug: print(type(classrow))
-        mygrade = compute_letter_grade(uid, myprog, startset, classrow, member)
+        # if debug: print('classrow======================')
+        # if debug: print(classrow)
+        # if debug: print(type(classrow))
+        mygrade = member['final_grade']
+        if not mygrade:
+            mygrade = compute_letter_grade(uid, myprog, startset,
+                                           classrow, member)
+            if not class_in_process:
+                if debug: print("writing grade", mygrade)
+                db((db.class_membership.name==uid) &
+                   (db.class_membership.class_section==classrow['id'])
+                   ).update(final_grade=mygrade)
+                db.commit()
+                if debug: print(db((db.class_membership.name==uid) &
+                                   (db.class_membership.class_section==classrow['id'])
+                                   ).select().first()
+                                )
+
         try:
             tp_id = user['tag_progress'].id
         except KeyError:  # if no 'tag_progress' key in user dict
@@ -1646,33 +1682,37 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
             except AttributeError:  # if no tag_progress record for user
                 tp_id = None
         if debug: print('tp_id', tp_id)
+        if debug: print("startset**************")
+        if debug: print(startset)
 
-        userlist.append({'uid': uid,
-                         'first_name': user['auth_user'].first_name,
-                         'last_name': user['auth_user'].last_name,
-                         'counts': mycounts,
-                         'current_set': currset,
-                         'starting_set': startset,
-                         'progress': myprog,
-                         'grade': mygrade,
-                         'start_date': fmt_start,
-                         'end_date': fmt_end,
-                         'previous_end_date': fmt_prevend,
-                         'tp_id': tp_id,
-                         'custom_start': member['custom_start'],
-                         'custom_end': member['custom_end'],
-                         'starting_set': member['starting_set'],
-                         'ending_set': member['ending_set'],
-                         'custom_a_cap': member['custom_a_cap'],
-                         'custom_b_cap': member['custom_b_cap'],
-                         'custom_c_cap': member['custom_c_cap'],
-                         'custom_d_cap': member['custom_d_cap'],
-                         'final_grade': member['final_grade']
-                         })
+        mydict = {'uid': uid,
+                  'first_name': user['auth_user'].first_name,
+                  'last_name': user['auth_user'].last_name,
+                  'counts': mycounts,
+                  'current_set': currset,
+                  'starting_set': startset,
+                  'progress': myprog,
+                  'grade': mygrade,
+                  'start_date': fmt_start,
+                  'end_date': fmt_end,
+                  'previous_end_date': fmt_prevend,
+                  'tp_id': tp_id,
+                  'custom_start': member['custom_start'],
+                  'custom_end': member['custom_end'],
+                  'ending_set': endset,
+                  'custom_a_cap': member['custom_a_cap'],
+                  'custom_b_cap': member['custom_b_cap'],
+                  'custom_c_cap': member['custom_c_cap'],
+                  'custom_d_cap': member['custom_d_cap'],
+                  'final_grade': member['final_grade']
+                  }
+        print("in dict")
+        print(mydict["starting_set"])
+        userlist.append(mydict)
     userlist = sorted(userlist, key=lambda t: (t['last_name'].capitalize(),
                                                t['first_name'].capitalize()))
     if debug: print('returning userlist --------------------')
-    if debug: pprint(userlist)
+    if debug: pprint({r['uid']:r['starting_set'] for r in userlist})
 
     return userlist
 

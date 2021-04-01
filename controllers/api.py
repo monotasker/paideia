@@ -2419,7 +2419,7 @@ def get_course_data():
             starting_set
             custom_end
     """
-    debug = False
+    debug = True
     auth = current.auth
     session = current.session
     db = current.db
