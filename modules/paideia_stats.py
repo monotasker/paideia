@@ -1642,7 +1642,7 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
             currset = get_set_at_date(uid, myend)
 
         endset = member['ending_set']
-        if not endset and not class_in_process:
+        if (not endset or endset!=currset) and not class_in_process:
             endset = currset
             if debug: print("writing endset", endset)
             db((db.class_membership.name==uid) &
@@ -1659,10 +1659,9 @@ def make_classlist(memberships, users, start_date, end_date, target, classrow):
         # if debug: print('classrow======================')
         # if debug: print(classrow)
         # if debug: print(type(classrow))
-        mygrade = member['final_grade']
-        if not mygrade:
-            mygrade = compute_letter_grade(uid, myprog, startset,
-                                           classrow, member)
+        mygrade = compute_letter_grade(uid, myprog, startset,
+                                        classrow, member)
+        if not mygrade or mygrade!=member['final_grade']:
             if not class_in_process:
                 if debug: print("writing grade", mygrade)
                 db((db.class_membership.name==uid) &
