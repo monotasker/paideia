@@ -1510,7 +1510,7 @@ def compute_letter_grade(uid, myprog, startset, classrow, membership):
     """
     Computes student's letter grade based on his/her progress in badge sets.
     """
-    debug = True
+    debug = False
     if debug: print('stats::compute_letter_grade: uid = ', uid)
     if debug: db = current.db
     if debug: print(db.auth_user[uid].last_name)

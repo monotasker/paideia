@@ -2162,6 +2162,10 @@ def update_student_data():
     """
     Update a db record in the "course_memberships" table.
 
+    Ignores fields with values of None, "null", or "undefined" UNLESS only one
+    field is passed. Then the method assumes we're updating a single field and
+    this could include clearing its value.
+
     Private api method to handle calls from the react front-end. This method does not add or remove students from a course. That information must be updated separately with the update_course_membership_data method.
 
     Expects URL variables:
@@ -2176,36 +2180,47 @@ def update_student_data():
     """
     debug = True
     response = current.response
-    mydata = request.vars
-    mydata['modified_on'] = datetime.now(timezone.utc)
+    mydata = {k: v for k, v in request.vars.items()
+              if k not in ["name", "class_section"]}
     course_id = request.vars.class_section
-    if debug: print("api::update_course_data::course_id:", course_id)
-    if debug: print("api::update_course_data::mydata:")
+    uid = request.vars.name
+    if debug: print("api::update_student_data::course_id:", course_id)
+    if debug: print("api::update_student_data::mydata:")
     if debug: print(mydata)
 
     try:
         try:
             # print('updating course', request.vars.course_id)
             member_rec = db(
-                (db.class_membership.name==mydata['name']) &
-                (db.class_membership.class_section==mydata['class_section'])
+                (db.class_membership.name==uid) &
+                (db.class_membership.class_section==course_id)
                 ).select().first()
 
-            update_data = {k: v for k, v in mydata.items() if k in
-                ["custom_start", "custom_end", "custom_a_cap",
-                 "custom_b_cap", "custom_c_cap", "custom_d_cap"
-                ] and v not in ["undefined", "null", None]
-                }
+            if (len(mydata)==1) and (
+                    list(mydata.values())[0] in [None, "undefined", "null"]):
+                update_data = mydata
+                if list(update_data.values())[0] in ["undefined", "null"]:
+                    update_data = {k: None for k, v in update_data.items()}
+            else:
+                update_data = {k: v for k, v in mydata.items() if k in
+                    ["custom_start", "custom_end", "custom_a_cap",
+                    "custom_b_cap", "custom_c_cap", "custom_d_cap"
+                    ] and v not in ["undefined", "null", None]
+                    }
             if len(update_data.keys()) == 0:
                 response.status = 200
                 return json_serializer({'status': 'success',
                             'reason': 'no update data',
                             'error': format_exc()})
 
-            if "custom_start" in update_data.keys():
+            update_data['modified_on'] = datetime.now(timezone.utc)
+
+            if "custom_start" in update_data.keys() \
+                    and update_data["custom_start"] is not None:
                 update_data['custom_start'] = dateutil.parser.parse(
                     update_data['custom_start'])
-            if "custom_end" in update_data.keys():
+            if "custom_end" in update_data.keys() \
+                    and update_data["custom_end"] is not None:
                 update_data['custom_end'] = dateutil.parser.parse(
                     update_data['custom_end'])
 
@@ -2249,17 +2264,19 @@ def update_student_data():
         print_exc()
         response.status = 500
         return json_serializer({'status': 'internal server error',
-                    'reason': 'Unknown error in function do_password_reset',
+                    'reason': 'Unknown error in function update_student_data',
                     'error': format_exc()})
 
     return json_serializer({"status": 'success',
                             "updated_record": myresult}, default=my_custom_json)
 
-
-
 def update_course_data():
     """
     Update a db record in the "classes" table.
+
+    Ignores fields with values of None, "null", or "undefined" UNLESS only one
+    field is passed. Then the method assumes we're updating a single field and
+    this could include clearing its value.
 
     Private api method to handle calls from the react front-end. This method does not handle data on student membership in a course. That information must be updated separately with the update_course_membership_data method.
 
@@ -2285,7 +2302,7 @@ def update_course_data():
         f_target (int)
 
     """
-    debug = False
+    debug = True
     response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.now(timezone.utc)
@@ -2299,13 +2316,19 @@ def update_course_data():
             # print('updating course', request.vars.course_id)
             course_rec = db.classes(course_id)
 
-            update_data = {k: v for k, v in mydata.items() if k in
-                ["institution", "academic_year", "term", "course_section",
-                "instructor", "start_date", "end_date", "paths_per_day",
-                "days_per_week", "a_target", "a_cap", "b_target", "b_cap",
-                "c_target", "c_cap", "d_target", "d_cap", "f_target"
-                ] and v not in ["undefined", "null", None]
-                }
+            if (len(mydata)==1) and (
+                    list(mydata.values())[0] in [None, "undefined", "null"]):
+                update_data = mydata
+                if list(update_data.values())[0] in ["undefined", "null"]:
+                    update_data = {k: None for k, v in update_data.items()}
+            else:
+                update_data = {k: v for k, v in mydata.items() if k in
+                    ["institution", "academic_year", "term", "course_section",
+                    "instructor", "start_date", "end_date", "paths_per_day",
+                    "days_per_week", "a_target", "a_cap", "b_target", "b_cap",
+                    "c_target", "c_cap", "d_target", "d_cap", "f_target"
+                    ] and v not in ["undefined", "null", None]
+                    }
             if "start_date" in update_data.keys():
                 update_data['start_date'] = dateutil.parser.parse(
                     update_data['start_date'])
@@ -2355,7 +2378,7 @@ def update_course_data():
         print_exc()
         response.status = 500
         return json_serializer({'status': 'internal server error',
-                    'reason': 'Unknown error in function do_password_reset',
+                    'reason': 'Unknown error in function update_course_data',
                     'error': format_exc()})
 
     return json_serializer({"status": 'success',
@@ -2419,7 +2442,7 @@ def get_course_data():
             starting_set
             custom_end
     """
-    debug = True
+    debug = False
     auth = current.auth
     session = current.session
     db = current.db
@@ -2467,6 +2490,12 @@ def get_course_data():
                 ]}
     mycourse['in_process'] = True if \
         course_rec['end_date'].replace(tzinfo=pytz.UTC) > datetime.now(timezone.utc) else False
+    instructor_row = db((db.classes.instructor==course_rec['instructor']) &
+                        (db.classes.instructor==db.auth_user.id)
+                        ).select().first()
+    mycourse['instructor'] = {"id": instructor_row.classes.instructor,
+                              "first_name": instructor_row.auth_user.first_name,
+                              "last_name": instructor_row.auth_user.last_name}
 
     expiration_dt = datetime.now(timezone.utc) - timedelta(days=30)
     mycourse_key_row = db((db.class_keys.class_section==mycourse['id']) &

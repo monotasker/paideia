@@ -10,6 +10,7 @@ import {
   Collapse,
   Form,
   FormGroup,
+  InputGroup,
   Row,
   Spinner,
   Tab,
@@ -35,6 +36,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                       defaults, courseId }) => {
   const [ showStudentDetails, setShowStudentDetails ] = useState(false);
   const [ fetchingStudent, setFetchingStudent ] = useState(false);
+  const [ clearingValue, setClearingValue ] = useState(false);
 
   let {uid, first_name, last_name, current_set, starting_set, ending_set,
         final_grade, grade, counts, start_date, end_date, custom_start, custom_end, previous_end_date, progress, custom_a_cap, custom_b_cap, custom_c_cap, custom_d_cap, tp_id} = studentData;
@@ -43,8 +45,8 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
     [`starting_set%${uid}`]: ["number", starting_set],
     [`ending_set%${uid}`]: ["number", ending_set],
     [`grade%${uid}`]: ["alphanumeric", grade],
-    [`custom_start%${uid}`]: ["date", moment(custom_start).toDate()],
-    [`custom_end%${uid}`]: ["date", moment(custom_end).toDate()],
+    [`custom_start%${uid}`]: ["date", moment(custom_start).isValid() ? moment(custom_start).toDate() : "Class default"],
+    [`custom_end%${uid}`]: ["date", moment(custom_end).isValid() ? moment(custom_end).toDate() : "Class default"],
     [`custom_a_cap%${uid}`]: ["number", custom_a_cap],
     [`custom_b_cap%${uid}`]: ["number", custom_b_cap],
     [`custom_c_cap%${uid}`]: ["number", custom_c_cap],
@@ -54,6 +56,32 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
   let {formFieldValues, setFormFieldValue,
         setFormFieldsDirectly, flags, setFlags, myCallbacks, showErrorDetails,
         setShowErrorDetails} = useFormManagement(fieldsAndValidators);
+
+  // console.log("defaults******");
+  // console.log(defaults);
+
+  const clearFieldValue = fieldLabel => {
+    setFormFieldValue(null, fieldLabel);
+
+    const updateData = {[fieldLabel.split("%")[0]]: null,
+                        name: uid, class_section: courseId};
+    sendFormRequest(null, setFormFieldValue,
+      {formId: `dashboard-student-info-${first_name}_${last_name}_${uid}`,
+        fieldSet: updateData,
+        requestAction: () => doApiCall(updateData, "update_student_data",
+                                      "form"),
+        history: history,
+        dispatch: dispatch,
+        successCallback: myCallbacks.successAction,
+        otherCallbacks: {
+          serverErrorAction: myCallbacks.serverErrorAction,
+          badRequestAction: myCallbacks.badRequestAction,
+          insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
+          notLoggedInAction: myCallbacks.notLoggedInAction
+        },
+        setInProgressAction: setClearingValue
+      });
+  }
 
   const updateStudentData = event => {
     event.preventDefault();
@@ -67,14 +95,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
         return([key.split("%")[0], value])
       }
     );
-    console.log('submitValues');
-    console.log(submitValues);
     let submitObject = Object.fromEntries(submitValues);
     console.log('submitObject');
     console.log(submitObject);
     submitObject.class_section = courseId;
-    let myStartString = !!submitObject.custom_start ? submitObject.custom_start.toISOString() : null;
-    let myEndString = !!submitObject.custom_end ? submitObject.custom_end.toISOString() : null;
+    let myStartString = (!!submitObject.custom_start && submitObject.custom_start!=="Class default") ? submitObject.custom_start.toISOString() : null;
+    let myEndString = (!!submitObject.custom_end && submitObject.custom_end!=="Class default") ? submitObject.custom_end.toISOString() : null;
     const updateData = {...submitObject, name: uid,
                         custom_start: myStartString, custom_end: myEndString};
 
@@ -95,9 +121,6 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
         setInProgressAction: setFetchingStudent
       });
   }
-
-  console.log('classInProcess');
-  console.log(classInProcess);
 
   return(
     <Form role="form"
@@ -183,16 +206,30 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
               className={!formFieldValues[`custom_start%${uid}`] ? "default-value" : ""}
             >
               <Form.Label>Individual start date</Form.Label>
-              <DayPickerInput
-                onDayChange={day => setFormFieldValue(day, `custom_start%${uid}`)}
-                formatDate={formatDate}
-                parseDate={parseDate}
-                format="LL"
-                value={formFieldValues[`custom_start%${uid}`] || defaults.custom_start}
-                placeholder={`${formatDate(
-                  new Date(formFieldValues[`custom_start%${uid}`]), 'LL')}`}
-                onChange={e => setFormFieldValue(e.target.value, `custom_start%${uid}`)}
-              />
+
+              <InputGroup>
+                <DayPickerInput
+                  onDayChange={day => setFormFieldValue(day, `custom_start%${uid}`)}
+                  component={props => <Form.Control {...props} />}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  format="LL"
+                  value={formFieldValues[`custom_start%${uid}`] || "Class default"}
+                  placeholder={`${formatDate(
+                    formFieldValues[`custom_start%${uid}`], 'LL')}`}
+                  onChange={e => setFormFieldValue(e.target.value, `custom_start%${uid}`)}
+                />
+                <InputGroup.Append>
+                  <Button variant="outline-warning"
+                    disabled={clearingValue}
+                    onClick={() => clearFieldValue(`custom_start%${uid}`)}
+                  >
+                    <FontAwesomeIcon icon="undo-alt" />
+                  </Button>
+                </InputGroup.Append>
+              </InputGroup>
+              <Form.Text>Default is {formatDate(defaults.custom_start, 'LL')}
+              </Form.Text>
             </Form.Group>
           </Row>
           <Row>
@@ -200,16 +237,29 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
               className={!formFieldValues[`custom_end%${uid}`] ? "default-value" : ""}
             >
               <Form.Label>Individual end date</Form.Label>
-              <DayPickerInput
-                onDayChange={day => setFormFieldValue(day, `custom_end%${uid}`)}
-                formatDate={formatDate}
-                parseDate={parseDate}
-                format="LL"
-                value={formFieldValues[`custom_end%${uid}`] || defaults.custom_end}
-                placeholder={`${formatDate(
-                  new Date(formFieldValues[`custom_end%${uid}`]), 'LL')}`}
-                onChange={e => setFormFieldValue(e.target.value, `custom_end%${uid}`)}
-              />
+              <InputGroup>
+                <DayPickerInput
+                  onDayChange={day => setFormFieldValue(day, `custom_end%${uid}`)}
+                  component={props => <Form.Control {...props} />}
+                  formatDate={formatDate}
+                  parseDate={parseDate}
+                  format="LL"
+                  value={formFieldValues[`custom_end%${uid}`] || "Class default"}
+                  placeholder={`${formatDate(
+                    new Date(formFieldValues[`custom_end%${uid}`]), 'LL')}`}
+                  onChange={e => setFormFieldValue(e.target.value, `custom_end%${uid}`)}
+                />
+                <InputGroup.Append>
+                  <Button variant="outline-warning"
+                    disabled={clearingValue}
+                    onClick={() => clearFieldValue(`custom_end%${uid}`)}
+                  >
+                    <FontAwesomeIcon icon="undo-alt" />
+                  </Button>
+                </InputGroup.Append>
+              </InputGroup>
+              <Form.Text>Default is {formatDate(defaults.custom_end, 'LL')}
+              </Form.Text>
             </Form.Group>
           </Row>
         </Col>
@@ -230,42 +280,93 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                   <Form.Group controlId={`custom_a_cap%${uid}`}
                     className={!formFieldValues[`custom_a_cap%${uid}`] ? "default-value" : ""}
                   >
-                    <Form.Control
-                      value={formFieldValues[`custom_a_cap%${uid}`]}
-                      placeholder={defaults.custom_a_cap}
-                      onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : "", `custom_a_cap%${uid}`)}
-                    />
+                    <InputGroup>
+                      <Form.Control
+                        value={formFieldValues[`custom_a_cap%${uid}`] || "default"}
+                        onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_a_cap%${uid}`)}
+                      />
+                      <InputGroup.Append>
+                        <Button variant="outline-warning"
+                          disabled={clearingValue}
+                          onClick={() => clearFieldValue(`custom_a_cap%${uid}`)}
+                        >
+                          <FontAwesomeIcon icon="undo-alt" />
+                        </Button>
+                      </InputGroup.Append>
+                    </InputGroup>
+                    <Form.Text>
+                      Default is {defaults.custom_a_cap}
+                    </Form.Text>
                   </Form.Group>
                 </td>
                 <td>
                   <Form.Group controlId={`custom_b_cap%${uid}`}
                     className={!formFieldValues[`custom_b_cap%${uid}`] ? "default-value" : ""}
                   >
-                    <Form.Control
-                      value={formFieldValues[`custom_b_cap%${uid}`] || defaults.custom_b_cap}
-                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_b_cap%${uid}`)}
-                    />
+                    <InputGroup>
+                      <Form.Control
+                        value={formFieldValues[`custom_b_cap%${uid}`] || "default"}
+                        onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_b_cap%${uid}`)}
+                      />
+                      <InputGroup.Append>
+                        <Button variant="outline-warning"
+                          disabled={clearingValue}
+                          onClick={() => clearFieldValue(`custom_b_cap%${uid}`)}
+                        >
+                          <FontAwesomeIcon icon="undo-alt" />
+                        </Button>
+                      </InputGroup.Append>
+                    </InputGroup>
+                    <Form.Text>
+                      Default is {defaults.custom_b_cap}
+                    </Form.Text>
                   </Form.Group>
                 </td>
                 <td>
                   <Form.Group controlId={`custom_c_cap%${uid}`}
                     className={!formFieldValues[`custom_c_cap%${uid}`] ? "default-value" : "new-value"}
                   >
-                    <Form.Control
-                      value={formFieldValues[`custom_c_cap%${uid}`] || defaults.custom_c_cap}
-                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_c_cap%${uid}`)}
-                    />
+                    <InputGroup>
+                      <Form.Control
+                        value={formFieldValues[`custom_c_cap%${uid}`] || "default"}
+                        onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_c_cap%${uid}`)}
+                      />
+                      <InputGroup.Append>
+                        <Button variant="outline-warning"
+                          disabled={clearingValue}
+                          onClick={() => clearFieldValue(`custom_c_cap%${uid}`)}
+                        >
+                          <FontAwesomeIcon icon="undo-alt" />
+                        </Button>
+                      </InputGroup.Append>
+                    </InputGroup>
+                    <Form.Text>
+                      Default is {defaults.custom_c_cap}
+                    </Form.Text>
                   </Form.Group>
                 </td>
                 <td>
                   <Form.Group controlId={`custom_d_cap%${uid}`}
                     className={!formFieldValues[`custom_d_cap%${uid}`] ? "default-value" : ""}
                   >
-                    <Form.Control
-                      value={formFieldValues[`custom_d_cap%${uid}`] || defaults.custom_d_cap}
-                      onChange={e => setFormFieldValue(parseInt(e.target.value), `custom_d_cap%${uid}`)}
-                      className={formFieldValues[`custom_d_cap%${uid}`]===defaults.custom_d_cap ? "default-value" : ""}
-                    />
+                    <InputGroup>
+                      <Form.Control
+                        value={formFieldValues[`custom_d_cap%${uid}`] || "default"}
+                        onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_d_cap%${uid}`)}
+                        className={formFieldValues[`custom_d_cap%${uid}`]===defaults.custom_d_cap ? "default-value" : ""}
+                      />
+                      <InputGroup.Append>
+                        <Button variant="outline-warning"
+                          disabled={clearingValue}
+                          onClick={() => clearFieldValue(`custom_c_cap%${uid}`)}
+                        >
+                          <FontAwesomeIcon icon="undo-alt" />
+                        </Button>
+                      </InputGroup.Append>
+                    </InputGroup>
+                    <Form.Text>
+                      Default is {defaults.custom_d_cap}
+                    </Form.Text>
                   </Form.Group>
                 </td>
               </tr>
@@ -280,6 +381,16 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
           >
             <FontAwesomeIcon icon="save" /> Save changes
           </Button>
+          {!!flags.serverError &&
+            <Alert variant="danger">
+              <Col xs="auto">
+                <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+              </Col>
+              <Col xs="10">
+                Sorry, something went wrong submitting that change.
+              </Col>
+            </Alert>
+          }
         </Col>
       </Form.Row>
       </div>
@@ -305,6 +416,7 @@ const InstructorDashboard = () => {
     // const [ activeClassInfo, setActiveClassInfo ] = useState(myClasses[0]);
     const [ classInProcess, setClassInProcess ] = useState(myClasses[0].in_process || undefined);
     const [ classMembers, setClassMembers ] = useState([]);
+    const [ classInstructor, setClassInstructor ] = useState(undefined);
     const [ fetchingClass, setFetchingClass ] = useState(false);
     const history = useHistory();
 
@@ -354,6 +466,7 @@ const InstructorDashboard = () => {
                 });
                 setFormFieldValuesDirectly(currentValues);
                 setClassMembers(info.members);
+                setClassInstructor(info.instructor);
                 setCourseKey(info.class_key);
                 setClassInProcess(info.in_process);
                 myCallbacks.successAction();
@@ -475,6 +588,15 @@ const InstructorDashboard = () => {
                       ></Form.Control>
                     </Form.Group>
                   </Col>
+                </Form.Row>
+                <Form.Row>
+                    <Form.Group controlId="instructor">
+                      <Form.Label>Instructor</Form.Label>
+                      <Form.Control
+                        value={!!classInstructor ? `${classInstructor.first_name} ${classInstructor.last_name}` : ""}
+                        disabled
+                      ></Form.Control>
+                    </Form.Group>
                 </Form.Row>
               </Col>
               <Col className="dashboard-class-key" xs={12} md={6} lg={4}>
