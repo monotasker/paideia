@@ -218,7 +218,7 @@ const Step = (props) => {
       return !Object.keys(inst_set).includes(inst);
     });
     if ( extra_strs.length > 0 ) {
-      const extra = extra_strs.map( inst => <li key={inst} >{inst}</li> );
+      const extra = extra_strs.map( inst => <li key={inst} ><FontAwesomeIcon key="1" icon="info-circle" size="sm" />{inst}</li> );
       const extra_icon = (
         <OverlayTrigger key="extra-instruction-trigger" placement="top"
           overlay={<Tooltip id="tooltip-extra"><ul>{extra}</ul></Tooltip>}
@@ -237,12 +237,14 @@ const Step = (props) => {
     <Row id="step_row" className="stepPane"
       style={{backgroundImage: `url("${stepData.bg_image}")`}}
     >
+        <div className="speaker-inner-wrapper">
+          <img src={stepData.npc_image}
+            alt="The current speaker addressing the student"
+          />
+        </div>
       <Col className="speaker" sm={4} xs={12}>
-        <img src={stepData.npc_image}
-          alt="The current speaker addressing the student"
-        />
       </Col>
-      <Col sm={8} xs={12}>
+      <Col sm={8} xs={12} className="prompt-column">
         <Row className="npc prompt">
           <CSSTransition
             in={ !!promptText }
@@ -277,7 +279,10 @@ const Step = (props) => {
                         <ul>
                           {Object.entries(stepData.slidedecks).map(([id, label]) =>
                             <li key={label}>
-                              <Link to={`/${urlBase}/videos/${id}`}>{label}</Link>
+                              <Link to={`/${urlBase}/videos/${id}`}>
+                                <FontAwesomeIcon icon="video" size="sm" />
+                                {label}
+                              </Link>
                             </li>
                           )}
                         </ul>
@@ -311,7 +316,7 @@ const Step = (props) => {
             <Form onSubmit={submitAction}>
               { !!stepData.instructions && make_instructions()}
               {widgets[stepData.response_form.form_type]()}
-              <Button variant="success" type="submit">
+              <Button variant="success" type="submit" className="submit_reply">
                 { evaluatingStep ? (
                     <FontAwesomeIcon icon="spinner" pulse />
                   ) : ( "Submit Reply" )

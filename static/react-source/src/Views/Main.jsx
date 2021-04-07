@@ -210,7 +210,7 @@ const MainPage = () => {
   }
 
   useEffect(() => {
-    setHeight();
+    // setHeight();
   });
 
   useEffect(() => {
