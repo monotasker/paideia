@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
+  Alert,
   Col,
   Badge,
   Button,
@@ -15,11 +16,15 @@ import {
   Tabs
 } from "react-bootstrap";
 // import { LinkContainer } from "react-router-bootstrap";
-import { useParams, Link } from "react-router-dom";
+import { useParams,
+         useHistory,
+         Link
+       } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { urlBase } from "../variables";
-import { returnStatusCheck } from "../Services/utilityService";
+import { isAlphanumericString, returnStatusCheck } from "../Services/utilityService";
+import { useFormManagement } from "../Services/formsService";
 import { getProfileInfo } from "../Services/authService";
 import { UserContext } from "../UserContext/UserProvider";
 import Calendar from "../Components/Calendar";
@@ -181,6 +186,113 @@ const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
     )
 }
 
+const ProfileClassInfo = ({updating, classInfo}) => {
+
+  let history = useHistory();
+  let { formFieldValues, setFormFieldValue, flags, setFlags, ...rest
+      } = useFormManagement({profile_join_class_key:
+                             str => isAlphanumericString(str, 10, 10)});
+
+  const goToJoinPage = () => {
+      history.push(`join_course?course_key=${formFieldValues.profile_join_class_key}`);
+  }
+
+  return (<>
+    <h3>My Class Group</h3>
+    <UpdateNotice status={updating} />
+    {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
+    {!!updating ?
+      <Spinner animation="grow" variant="secondary" />
+      : (classInfo !== null && Object.keys(classInfo).length > 0 ?
+          <Table className="profile-classinfo-content">
+            <tbody>
+              <tr><td colSpan="2">
+                <span className="profile-classinfo-institution">{classInfo.institution}</span>,&nbsp;
+                <span className="profile-classinfo-section">
+                {classInfo.course_section}</span>,&nbsp;
+                <span className="profile-classinfo-term">
+                {classInfo.term} {classInfo.academic_year}
+                </span>
+              </td></tr>
+              <tr>
+                <td colSpan="2">course start:&nbsp;
+                {readableDate(!!classInfo.custom_start_date ? classInfo.custom_start_date : classInfo.start_date)}
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2">course end:&nbsp;
+                {readableDate(!!classInfo.custom_end_date ? classInfo.custom_end_date : classInfo.end_date)}</td>
+              </tr>
+              <tr>
+                <td colSpan="2">Minimum participation requirements:
+                  <ul>
+                    <li>At least {classInfo.paths_per_day} paths each day</li>
+                    <li>On at least {classInfo.days_per_week} different days</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2">I began the course at badge set {classInfo.starting_set}
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2">I will finish with an...</td>
+              </tr>
+              <tr>
+                <td>A</td>
+                <td>if I have begun badge set {Math.min(classInfo.a_cap, (classInfo.a_target + parseInt(classInfo.starting_set)))}</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td>if I have begun badge set {Math.min(classInfo.b_cap, classInfo.b_target + parseInt(classInfo.starting_set))}</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td>if I have begun badge set {Math.min(classInfo.c_cap, classInfo.c_target + parseInt(classInfo.starting_set))}</td>
+              </tr>
+              <tr>
+                <td>D</td>
+                <td>if I have begun badge set {Math.min(classInfo.d_cap, classInfo.d_target + parseInt(classInfo.starting_set))}</td>
+              </tr>
+              <tr>
+                <td colSpan="2">by the end of this course</td>
+              </tr>
+            </tbody>
+          </Table>
+        : <React.Fragment>
+            <div className="profile-classinfo-signup">
+            You're not currently part of a class group in Paideia. If you have a class enrollment key, you can enter it here to join the class group.
+              <Alert variant="warning" >This is not the same as registering for the course with your institution. You may already be registered for a course and not yet have joined the associated course group here on Paideia.</Alert>
+            </div>
+            <Form>
+              <Form.Row>
+              <Form.Group controlId="profile_join_class_key">
+                <Col>
+                  <Form.Control type="text" placeholder="Enter code here"
+                    name="profile_join_class_key"
+                    onChange={e => setFormFieldValue(e.target.value,
+                                                     "profile_join_class_key")}
+                  />
+                </Col>
+                {!!flags.badRequestData.includes("profile_join_class_key") &&
+                  <Alert variant="danger" className="col col-sm-12">
+                    <FontAwesomeIcon icon="exclamation-triangle" /> Please enter a valid course key.
+                  </Alert>
+                }
+              </Form.Group>
+              <Col>
+                <Button variant="primary" type="submit"
+                  onClick={goToJoinPage}
+                >Join</Button>
+              </Col>
+              </Form.Row>
+            </Form>
+          </React.Fragment>
+        )
+    }
+  </>)
+}
+
 const Profile = (props) => {
   const myDate = new Date();
 
@@ -188,7 +300,7 @@ const Profile = (props) => {
   console.log('userIdParam');
   console.log(userIdParam);
   const { user, dispatch } = useContext(UserContext);
-  console.log('User in Profie ++++++++++++++');
+  console.log('User in Profile ++++++++++++++');
   console.log(user);
 
   const [ updating, setUpdating ] = useState(true);
@@ -318,84 +430,7 @@ const Profile = (props) => {
         />
 
         <Col className="profile-classinfo">
-          <h3>My Class Group</h3>
-          <UpdateNotice status={updating} />
-          {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
-          {!!updating ?
-            <Spinner animation="grow" variant="secondary" />
-            : (classInfo !== null && Object.keys(classInfo).length > 0 ?
-                <Table className="profile-classinfo-content">
-                  <tbody>
-                    <tr><td colSpan="2">
-                      <span className="profile-classinfo-institution">{classInfo.institution}</span>,&nbsp;
-                      <span className="profile-classinfo-section">
-                      {classInfo.course_section}</span>,&nbsp;
-                      <span className="profile-classinfo-term">
-                      {classInfo.term} {classInfo.academic_year}
-                      </span>
-                    </td></tr>
-                    <tr>
-                      <td colSpan="2">course start:&nbsp;
-                      {readableDate(!!classInfo.custom_start_date ? classInfo.custom_start_date : classInfo.start_date)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan="2">course end:&nbsp;
-                      {readableDate(!!classInfo.custom_end_date ? classInfo.custom_end_date : classInfo.end_date)}</td>
-                    </tr>
-                    <tr>
-                      <td colSpan="2">Minimum participation requirements:
-                        <ul>
-                          <li>At least {classInfo.paths_per_day} paths each day</li>
-                          <li>On at least {classInfo.days_per_week} different days</li>
-                        </ul>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan="2">I began the course at badge set {classInfo.starting_set}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan="2">I will finish with an...</td>
-                    </tr>
-                    <tr>
-                      <td>A</td>
-                      <td>if I have begun badge set {Math.min(classInfo.a_cap, (classInfo.a_target + parseInt(classInfo.starting_set)))}</td>
-                    </tr>
-                    <tr>
-                      <td>B</td>
-                      <td>if I have begun badge set {Math.min(classInfo.b_cap, classInfo.b_target + parseInt(classInfo.starting_set))}</td>
-                    </tr>
-                    <tr>
-                      <td>C</td>
-                      <td>if I have begun badge set {Math.min(classInfo.c_cap, classInfo.c_target + parseInt(classInfo.starting_set))}</td>
-                    </tr>
-                    <tr>
-                      <td>D</td>
-                      <td>if I have begun badge set {Math.min(classInfo.d_cap, classInfo.d_target + parseInt(classInfo.starting_set))}</td>
-                    </tr>
-                    <tr>
-                      <td colSpan="2">by the end of this course</td>
-                    </tr>
-                  </tbody>
-                </Table>
-              : <React.Fragment>
-                  <div className="profile-classinfo-signup">
-                  You're not currently part of a class group in Paideia. If you have a class enrollment code, you can enter it here to join the class group.
-                  </div>
-                  <Form>
-                    <Form.Row>
-                      <Col>
-                        <Form.Control type="text" placeholder="Enter code here" />
-                      </Col>
-                      <Col>
-                        <Button variant="primary" type="submit">Join</Button>
-                      </Col>
-                    </Form.Row>
-                  </Form>
-                </React.Fragment>
-              )
-          }
+          <ProfileClassInfo updating={updating} classInfo={classInfo} />
         </Col>
 
         <Col className="profile-progress" xs={12} lg={8}>

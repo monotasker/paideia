@@ -180,6 +180,7 @@ const useFormManagement = (formFields) => {
       // may be value, or may be first in array if value is array
       const validator = !!Array.isArray(formFields[fieldName]) ?
         formFields[fieldName][0] : formFields[fieldName];
+
       // validate email fields
       if ( validator==="email" ) {
         let myBad = [ ...newFlags.badRequestData ];

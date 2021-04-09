@@ -215,6 +215,39 @@ function isIntegerString(str) {
   }
 }
 
+/**
+ * Determines whether a string is alphanumeric and the specified length.
+ *
+ * If no max and min specified, defaults to a maximum of 48 characters and
+ * a minimum of 1.
+ *
+ * @param {string} str The string to be tested to determine whether it is an
+ *                     alphanumeric sequence of characters of the specified
+ *                     length.
+ * @param {integer} max The maximum length of a valid string
+ * @param {integer} min The minimum length of a valid string
+ * @returns {boolean} Returns true if the provided string is alphanumeric and
+ *                    the correct length, but false if it is not
+ */
+function isAlphanumericString(str, max=48, min=1) {
+  let myreturn = false;
+  const len = str.length;
+  if ( len >= min && len <= max ) {
+    let code;
+    for (let i = 0; i < len; i++) {
+      code = str.charCodeAt(i);
+      if (!(code > 47 && code < 58) && // numeric (0-9)
+          !(code > 64 && code < 91) && // upper alpha (A-Z)
+          !(code > 96 && code < 123)) { // lower alpha (a-z)
+        myreturn = false;
+      } else {
+        myreturn = true;
+      }
+    }
+  }
+  return myreturn;
+}
+
 export {
     loadScriptByURL,
     useQuery,
@@ -223,5 +256,6 @@ export {
     filterObjectByKeys,
     filterObjectExcludeKeys,
     isNumericString,
-    isIntegerString
+    isIntegerString,
+    isAlphanumericString
 }
