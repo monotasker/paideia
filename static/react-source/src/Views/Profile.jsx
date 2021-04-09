@@ -141,7 +141,7 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
 const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
                           userId, dailyQuota, weeklyQuota}) => {
   return (
-      <Col className="profile-calendar" xs={xs} lg={lg}>
+      <>
         <h3>My Activity</h3>
         <UpdateNotice status={updating} />
         {calendarData &&
@@ -182,7 +182,7 @@ const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
         <span>Note that if you are enrolled in a course you can't lower your targets below the minimum set by your instructor.</span>
 
         */}
-      </Col>
+      </>
     )
 }
 
@@ -204,33 +204,40 @@ const ProfileClassInfo = ({updating, classInfo}) => {
     {!!updating ?
       <Spinner animation="grow" variant="secondary" />
       : (classInfo !== null && Object.keys(classInfo).length > 0 ?
-          <Table className="profile-classinfo-content">
-            <tbody>
-              <tr><td colSpan="2">
-                <span className="profile-classinfo-institution">{classInfo.institution}</span>,&nbsp;
-                <span className="profile-classinfo-section">
-                {classInfo.course_section}</span>,&nbsp;
-                <span className="profile-classinfo-term">
-                {classInfo.term} {classInfo.academic_year}
+          <div className="profile-classinfo-body">
+            <div className="profile-classinfo-section">
+              {classInfo.course_section}
+            </div>
+            <div className="profile-classinfo-institution-term">
+              <span className="profile-classinfo-institution">{classInfo.institution}</span>
+              <span className="profile-classinfo-term">
+              {classInfo.term} {classInfo.academic_year}
+              </span>
+            </div>
+            <div className="profile-classinfo-dates">
+                <span className="profile-classinfo-start">
+                  <Badge variant="primary" className="label">
+                    <FontAwesomeIcon icon="calendar-day" size="sm" />
+                    Start
+                  </Badge>&nbsp;
+                  {readableDate(!!classInfo.custom_start_date ? classInfo.custom_start_date : classInfo.start_date)}
                 </span>
-              </td></tr>
-              <tr>
-                <td colSpan="2">course start:&nbsp;
-                {readableDate(!!classInfo.custom_start_date ? classInfo.custom_start_date : classInfo.start_date)}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan="2">course end:&nbsp;
-                {readableDate(!!classInfo.custom_end_date ? classInfo.custom_end_date : classInfo.end_date)}</td>
-              </tr>
-              <tr>
-                <td colSpan="2">Minimum participation requirements:
-                  <ul>
-                    <li>At least {classInfo.paths_per_day} paths each day</li>
-                    <li>On at least {classInfo.days_per_week} different days</li>
-                  </ul>
-                </td>
-              </tr>
+                <span className="profile-classinfo-start">
+                  <Badge variant="primary" className="label">
+                    <FontAwesomeIcon icon="calendar-day" size="sm" />
+                    End
+                  </Badge>&nbsp;
+                  {readableDate(!!classInfo.custom_end_date ? classInfo.custom_end_date : classInfo.end_date)}
+                </span>
+            </div>
+            {/* // <td colSpan="2">Minimum participation requirements:
+            //   <ul>
+            //     <li>At least {classInfo.paths_per_day} paths each day</li>
+            //     <li>On at least {classInfo.days_per_week} different days</li>
+            //   </ul>
+            // </td> */}
+          <Table className="profile-classinfo-targets" size="sm">
+            <thead>
               <tr>
                 <td colSpan="2">I began the course at badge set {classInfo.starting_set}
                 </td>
@@ -238,28 +245,37 @@ const ProfileClassInfo = ({updating, classInfo}) => {
               <tr>
                 <td colSpan="2">I will finish with an...</td>
               </tr>
+            </thead>
+            <tbody>
               <tr>
                 <td>A</td>
-                <td>if I have begun badge set {Math.min(classInfo.a_cap, (classInfo.a_target + parseInt(classInfo.starting_set)))}</td>
+                <td>if I have begun <span className="target-set">badge set {Math.min(classInfo.a_cap, (classInfo.a_target + parseInt(classInfo.starting_set)))}</span>
+                </td>
               </tr>
               <tr>
                 <td>B</td>
-                <td>if I have begun badge set {Math.min(classInfo.b_cap, classInfo.b_target + parseInt(classInfo.starting_set))}</td>
+                <td>if I have begun <span className="target-set">badge set {Math.min(classInfo.b_cap, classInfo.b_target + parseInt(classInfo.starting_set))}</span>
+                </td>
               </tr>
               <tr>
                 <td>C</td>
-                <td>if I have begun badge set {Math.min(classInfo.c_cap, classInfo.c_target + parseInt(classInfo.starting_set))}</td>
+                <td>if I have begun <span className="target-set">badge set {Math.min(classInfo.c_cap, classInfo.c_target + parseInt(classInfo.starting_set))}</span>
+                </td>
               </tr>
               <tr>
                 <td>D</td>
-                <td>if I have begun badge set {Math.min(classInfo.d_cap, classInfo.d_target + parseInt(classInfo.starting_set))}</td>
+                <td>if I have begun <span className="target-set">badge set {Math.min(classInfo.d_cap, classInfo.d_target + parseInt(classInfo.starting_set))}</span>
+              </td>
               </tr>
+            </tbody>
+            <tfoot>
               <tr>
                 <td colSpan="2">by the end of this course</td>
               </tr>
-            </tbody>
+            </tfoot>
           </Table>
-        : <React.Fragment>
+          </div>
+        : <div className="profile-classinfo-body">
             <div className="profile-classinfo-signup">
             You're not currently part of a class group in Paideia. If you have a class enrollment key, you can enter it here to join the class group.
               <Alert variant="warning" >This is not the same as registering for the course with your institution. You may already be registered for a course and not yet have joined the associated course group here on Paideia.</Alert>
@@ -268,7 +284,7 @@ const ProfileClassInfo = ({updating, classInfo}) => {
               <Form.Row>
               <Form.Group controlId="profile_join_class_key">
                 <Col>
-                  <Form.Control type="text" placeholder="Enter code here"
+                  <Form.Control type="text" placeholder="Enter key here"
                     name="profile_join_class_key"
                     onChange={e => setFormFieldValue(e.target.value,
                                                      "profile_join_class_key")}
@@ -287,9 +303,97 @@ const ProfileClassInfo = ({updating, classInfo}) => {
               </Col>
               </Form.Row>
             </Form>
-          </React.Fragment>
+          </div>
         )
     }
+  </>)
+}
+
+const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
+  return (<>
+    <h3>My Progress</h3>
+    <UpdateNotice status={updating} />
+    <div className="profile-progress-scale-container">
+      <div className="profile-progress-scale">
+        {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n =>
+          <div key={n} className="profile-progress-unit">{n}
+            {n===scaleBadgeSet &&
+            <div className="current-set">
+              <span className="current-set-intro">
+                So far I've reached badge set</span>
+              <span className="current-set-number">{n}</span>
+            </div>}
+          </div>
+        )}
+      </div>
+      <div className={`profile-progress-bar badge-set-${scaleBadgeSet}`}>
+        {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n => {return(
+          !!badgeSetMilestones && badgeSetMilestones.find(o => o.badge_set === n) ?
+            <OverlayTrigger key={`progress-bar-set-${n}`} placement="auto" trigger="click" rootClose
+              overlay={
+                <Popover id={`tooltip-${n}`}>
+                  <PopoverTitle>Badge Set {n}</PopoverTitle>
+                  <PopoverContent>
+                    {`Reached on ${readableDate(badgeSetMilestones.find(o => o.badge_set === n).my_date)}`}
+                  </PopoverContent>
+                </Popover>
+              }
+            >
+              <div key={n} className="profile-progress-unit">{n}
+              </div>
+            </OverlayTrigger>
+          :
+            <div key={n} className="profile-progress-unit">{n}
+            </div>
+          )}
+        )}
+      </div>
+    </div>
+  </>)
+}
+
+const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
+                        badgeTableData}) => {
+  return (<>
+    <h3>My Badge Mastery</h3>
+    <UpdateNotice status={updating} />
+    <Tabs defaultActiveKey="level1" id="profile-stages-tabs">
+      {( badgeLevels != null ) ? badgeLevelTitles.map(blevel =>
+        <Tab
+          key={blevel.slug}
+          eventKey={blevel.slug}
+          title={<React.Fragment><Badge variant="primary">{badgeLevels[blevel.index].length}</Badge> {blevel.title}</React.Fragment>}
+        >
+          <span className="level-explanation">{blevel.text}. (Click a badge for details.)</span>
+          {badgeLevels[blevel.index].length!==0 &&
+           badgeLevels[blevel.index].map(b => {
+              if (!!badgeTableData) {
+                const bData = badgeTableData.find(o => o.tag===b[1]);
+                return (
+                  <BadgeTerm key={b[0]} title={b[0]} description={b[2]} lessons={b[3]} data={bData} level={blevel.title} />
+                )
+              } else {
+                return <></>
+              }
+           })
+          }
+        </Tab>
+      )
+      : <div className="tab-pane active show">
+        <Spinner variant="secondary" animation="grow" size="lg" />
+        </div>}
+    </Tabs>
+  </>)
+}
+
+const ProfileInfo = ({viewingSelf, firstName, lastName, userEmail,
+                      userTimezone}) => {
+  return (<>
+    {!viewingSelf && <Badge variant="warning">Viewing student info</Badge>}
+    <FontAwesomeIcon icon="user-circle" size="5x" />
+    <span className="profile-name">{firstName} {lastName}</span><br />
+    <span className="profile-email"><FontAwesomeIcon icon="envelope" />{userEmail}</span>&nbsp;
+    <span className="profile-timezone"><FontAwesomeIcon icon="globe-americas" />{userTimezone}</span>
   </>)
 }
 
@@ -407,101 +511,74 @@ const Profile = (props) => {
   return (
     <Row className="profile-component content-view">
       {!(authorized && recordExists) ? (
-          !authorized ? <span>Sorry, you aren't authorized to view that studen's record. If you think you should be, please contact the site administrator.</span>
-          : <span>Sorry, the requested user account does not exist.</span>
+          !authorized ?
+          <Alert variant="danger">
+            Sorry, you aren't authorized to view that student's record. If you think you should be, please contact the site administrator.
+          </Alert>
+          :
+          <Alert variant="danger">
+            Sorry, the requested user account does not exist.
+          </Alert>
         )
-      : (<React.Fragment>
-        <Col className="profile-info" xs={12} lg={4}>
-          {!viewingSelf && <Badge variant="warning">Viewing student info</Badge>}
-          <FontAwesomeIcon icon="user-circle" size="5x" />
-          <span className="profile-name">{firstName} {lastName}</span><br />
-          <span className="profile-email"><FontAwesomeIcon icon="envelope" />{userEmail}</span>&nbsp;
-          <span className="profile-timezone"><FontAwesomeIcon icon="globe-americas" />{userTimezone}</span>
+      : (<>
+        <Col className="profile-info d-none d-lg-block" xs={12} lg={4}
+        >
+          <ProfileInfo
+            viewingSelf={viewingSelf}
+            firstName={firstName}
+            lastName={lastName}
+            userEmail={userEmail}
+            userTimezone={userTimezone}
+          />
         </Col>
 
-        <ProfileCalendar xs={12} lg={4}
-          updating={updating}
-          calendarData={calendarData}
-          calYear={calYear}
-          calMonth={calMonth}
-          userId={userId}
-          dailyQuota={dailyQuota}
-          weeklyQuota={weeklyQuota}
-        />
+        <Col className="profile-content-column" xs={12} lg={8}>
+          <Row>
+            <Col className="profile-info d-block d-lg-none" xs={12} lg={4}
+            >
+              <ProfileInfo
+                viewingSelf={viewingSelf}
+                firstName={firstName}
+                lastName={lastName}
+                userEmail={userEmail}
+                userTimezone={userTimezone}
+              />
+            </Col>
 
-        <Col className="profile-classinfo">
-          <ProfileClassInfo updating={updating} classInfo={classInfo} />
-        </Col>
+            <Col className="profile-progress" xs={12} lg={12}>
+              <ProfileProgress updating={updating}
+                scaleBadgeSet={scaleBadgeSet}
+                badgeSetMilestones={badgeSetMilestones}
+              />
+            </Col>
 
-        <Col className="profile-progress" xs={12} lg={8}>
-          <h3>My Progress</h3>
-          <UpdateNotice status={updating} />
-          <div className="profile-progress-scale-container">
-            <div className="profile-progress-scale">
-              {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n =>
-                <div key={n} className="profile-progress-unit">{n}
-                  {n == scaleBadgeSet &&
-                  <div className="current-set">
-                    <span className="current-set-intro">
-                      So far I've reached badge set</span>
-                    <span className="current-set-number">{n}</span>
-                  </div>}
-                </div>
-              )}
-            </div>
-            <div className={`profile-progress-bar badge-set-${scaleBadgeSet}`}>
-              {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n => {return(
-                !!badgeSetMilestones && badgeSetMilestones.find(o => o.badge_set === n) ?
-                  <OverlayTrigger key={`progress-bar-set-${n}`} placement="auto" trigger="click" rootClose
-                    overlay={
-                      <Popover id={`tooltip-${n}`}>
-                        <PopoverTitle>Badge Set {n}</PopoverTitle>
-                        <PopoverContent>
-                          {`Reached on ${readableDate(badgeSetMilestones.find(o => o.badge_set === n).my_date)}`}
-                        </PopoverContent>
-                      </Popover>
-                    }
-                  >
-                    <div key={n} className="profile-progress-unit">{n}
-                    </div>
-                  </OverlayTrigger>
-                :
-                  <div key={n} className="profile-progress-unit">{n}
-                  </div>
-                )}
-              )}
-            </div>
-          </div>
+            <Col className="profile-calendar" xs={12}  xl={6}>
+              <ProfileCalendar
+                updating={updating}
+                calendarData={calendarData}
+                calYear={calYear}
+                calMonth={calMonth}
+                userId={userId}
+                dailyQuota={dailyQuota}
+                weeklyQuota={weeklyQuota}
+              />
+            </Col>
 
-        </Col>
-        <Col className="profile-stages">
-          <h3>My Badge Mastery</h3>
-            <UpdateNotice status={updating} />
-            <Tabs defaultActiveKey="level1" id="profile-stages-tabs">
-              {( badgeLevels != null ) ? badgeLevelTitles.map(blevel =>
-                <Tab
-                  key={blevel.slug}
-                  eventKey={blevel.slug}
-                  title={<React.Fragment><Badge variant="primary">{badgeLevels[blevel.index].length}</Badge> {blevel.title}</React.Fragment>}
-                >
-                  <span className="level-explanation">{blevel.text}. (Click a badge for details.)</span>
-                  {badgeLevels[blevel.index].length != 0 && badgeLevels[blevel.index].map(b => {
-                    if (!!badgeTableData) {
-                      const bData = badgeTableData.find(o => o.tag == b[1]);
-                      return (
-                        <BadgeTerm key={b[0]} title={b[0]} description={b[2]} lessons={b[3]} data={bData} level={blevel.title} />
-                      )
-                    }
-                    })
-                  }
-                </Tab>
-              )
-              : <div className="tab-pane active show">
-                <Spinner variant="secondary" animation="grow" size="lg" />
-                </div>}
-            </Tabs>
-        </Col>
-      </React.Fragment>)}
+            <Col className="profile-classinfo" xs={12} xl={6}>
+              <ProfileClassInfo updating={updating} classInfo={classInfo} />
+            </Col>
+
+            <Col className="profile-stages" xs={12} lg={12}>
+              <ProfileStages
+                updating={updating}
+                badgeLevelTitles={badgeLevelTitles}
+                badgeLevels={badgeLevels}
+                badgeTableData={badgeTableData}
+              />
+            </Col>
+          </Row>
+      </Col>
+      </>)}
     </Row>
   )
 }

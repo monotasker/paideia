@@ -30,6 +30,7 @@ $greenDark:             #809240;
 // $red:                   #9d261d;
 $blueDark:              #1c7f99; // #006699;
 $blue:                  #049cdb;
+$purple:                #8d4a8d; // #800080;
 $yellow:                #ffc40d;
 $orange:                #f89406;
 $niceGrey:              #6c757d;
@@ -44,6 +45,7 @@ $pallette4: $greenDark;
 $accent1: $red;
 $accent2: $blueDark;
 $accent3: $orange;
+$accent4: $purple;
 
 $textColor: #333;
 $linkColor: $pallette2;
@@ -225,6 +227,7 @@ form                                    {margin-bottom: 1rem;
                                             padding-right: 0;
                                             overflow-x: hidden;
                                             display: flex;
+                                            height: 100%;
             .content-view                   {width: 100%;
             }
             .row                            {margin-left: 0;
@@ -1251,6 +1254,7 @@ form                                    {margin-bottom: 1rem;
 
 .profile-component               {background-color: $cream;
                                   align-content: start;
+                                  height: 100%;
     h3                           {font-family: $title-fonts;
                                   color: $heading-color;
                                   font-size: 2rem;
@@ -1267,6 +1271,7 @@ form                                    {margin-bottom: 1rem;
         }
     }
     .profile-info                {flex-grow: 0;
+                                  height: 100%;
         >svg                    {float: left;
                                   font-size: 7rem;
                                   color: #e2d2af;
@@ -1280,202 +1285,277 @@ form                                    {margin-bottom: 1rem;
         .profile-timezone        {color: $heading-color;
                                   display: block;
         }
+        @media (max-width: map-get($grid-breakpoints, lg))  {height: auto;
+        }
     }
-    .profile-calendar            {
-      .calendar                  {border-radius: 0.25rem;
-                                  border: 1px solid $pallette1;
-                                  background-color: $white;
-                                  margin-right: 4rem;
-        .month-indicator         {text-align: center;
-                                  font-size: $font-size-lg;
-                                  line-height: 3rem;
-                                  color: $accent2;
-            a                    {cursor: pointer;
-                                  margin: 0 2rem;
-                                  color: $pallette2;
-                &.disabled       {opacity: 50%;
-                                  cursor: not-allowed;
-                }
-            }
-        }
-        .day-of-week,
-        .date-grid               {display: grid;
-                                  grid-template-columns: repeat(7, 1fr);
-        }
-        .day-of-week             {text-align: center;
-                                  color: $pallette2;
-                                  position: relative;
-            .summary             {position: absolute;
-                                  right: -2.5rem;
-            }
-        }
-        .date-grid               {position: relative;
-            div               {border: 1px solid $pallette1;
-                                      border-right: 0;
-                                      border-bottom: 0;
-                                      min-height: 2rem;
-                                      text-align: center;
-                                      position: relative;
-                                      color: $danger;
-            &.success                {color: $green;
-            }
-            &.summary                {position: absolute;
-                                      right: -2.5rem;
-                                      font-size: $font-size-lg;
-                                      line-height: 1.5rem;
-                                      text-align: center;
-                &.row1               {top: 2rem;
-                }
-                &.row2               {top: 4rem;
-                }
-                &.row3               {top: 6rem;
-                }
-                &.row4               {top: 8rem;
-                }
-            }
-            .datenum             {color: $pallette2;
-                                  font-size: $font-size-sm;
-                                  position: absolute;
-                                  left: 0.25rem;
-            }
-            .countnum            {font-size: $font-size-lg;
-            }
-            &.current             {
-                .datenum         {color: $heading-color;
-                }
-            }
-          }
-        }
-        @include neumorphism-shadow();
-      }
-    }
-    .profile-progress            {margin-top: 1rem;
-        .profile-progress-scale-container {width: 100%;
-                                           border-radius: 0.25rem;
-                                           position: relative;
-                                           border: 1px solid $pallette1;
-                                           @include neumorphism-shadow();
-            .profile-progress-scale,
-            .profile-progress-bar         {width: 100%;
-                                           height: 3rem;
-                                           display: flex;
-                                           flex-direction: row;
-                                           border-radius: 0.25rem;
-                .profile-progress-unit    {border-right: 1px solid $pallette1;
-                                           flex-basis: 5%;
-                                           flex-grow: 1;
-                                           height: 3rem;
-                                           text-align: center;
-                                           line-height: 3rem;
-                    .current-set          {position: absolute;
-                                           top: -4rem;
-                                           display: flex;
-                                           flex-direction: row;
-                                           background: $accent2;
-                                           color: $white;
-                                           padding: 0.25rem .75rem;
-                                           border-radius: 0.25rem;
-                                           box-shadow: $hard-shadow;
-                                           transform: translate(-50%, 0);
-                                           margin-left: 2.5%;
-                                           @include triangle-bottom($accent2);
-                                           @include triangle-bottom-shadow();
-                        .current-set-number     {font-size: 2rem;
-                        }
-                        .current-set-intro      {font-size: 0.75rem;
-                                                 max-width: 4rem;
-                                                 line-height: 1rem;
-                                                 text-align: left;
-                        }
+    .profile-content-column      {height: 100%;
+                                  overflow: auto;
+                                  padding-bottom: 2rem;
+        .profile-calendar            {
+        .calendar                  {border-radius: 0.25rem;
+                                    border: 1px solid $pallette1;
+                                    background-color: $white;
+                                    margin-right: 4rem;
+            .month-indicator         {text-align: center;
+                                    font-size: $font-size-lg;
+                                    line-height: 3rem;
+                                    color: $accent2;
+                a                    {cursor: pointer;
+                                    margin: 0 2rem;
+                                    color: $pallette2;
+                    &.disabled       {opacity: 50%;
+                                    cursor: not-allowed;
                     }
                 }
             }
-            .profile-progress-scale       {position: absolute;
-                                           background-color: $white;
-                                           color: darken($pallette2, 20%);
+            .day-of-week,
+            .date-grid               {display: grid;
+                                    grid-template-columns: repeat(7, 1fr);
             }
-            .profile-progress-bar         {background: linear-gradient($greenLight, $green);
-                                           transition: all 500ms ease-out;
-                &.badge-set-20                 {clip-path: inset(0 0 0 0);}
-                &.badge-set-19                 {clip-path: inset(0 5% 0 0);}
-                &.badge-set-18                 {clip-path: inset(0 10% 0 0);}
-                &.badge-set-17                 {clip-path: inset(0 15% 0 0);}
-                &.badge-set-16                 {clip-path: inset(0 20% 0 0);}
-                &.badge-set-15                 {clip-path: inset(0 25% 0 0);}
-                &.badge-set-14                 {clip-path: inset(0 30% 0 0);}
-                &.badge-set-13                 {clip-path: inset(0 35% 0 0);}
-                &.badge-set-12                 {clip-path: inset(0 40% 0 0);}
-                &.badge-set-11                 {clip-path: inset(0 55% 0 0);}
-                &.badge-set-10                 {clip-path: inset(0 50% 0 0);}
-                &.badge-set-9                  {clip-path: inset(0 55% 0 0);}
-                &.badge-set-8                  {clip-path: inset(0 60% 0 0);}
-                &.badge-set-7                  {clip-path: inset(0 65% 0 0);}
-                &.badge-set-6                  {clip-path: inset(0 70% 0 0);}
-                &.badge-set-5                  {clip-path: inset(0 75% 0 0);}
-                &.badge-set-4                  {clip-path: inset(0 80% 0 0);}
-                &.badge-set-3                  {clip-path: inset(0 85% 0 0);}
-                &.badge-set-2                  {clip-path: inset(0 90% 0 0);}
-                &.badge-set-1                  {clip-path: inset(0 95% 0 0);}
-                .profile-progress-unit    {color: $white;
+            .day-of-week             {text-align: center;
+                                    color: $pallette2;
+                                    position: relative;
+                .summary             {position: absolute;
+                                    right: -2.5rem;
                 }
             }
-        }
-    }
-    .profile-stages                         {margin-top: 1rem;
-        .nav-tabs                           {border-bottom: 1px solid $pallette1;
-            .nav-link                           {color: $heading-color;
-                &.active                        {@include neumorphism-shadow();
-                                                position: relative;
-                                                border-color: $pallette1 $pallette1 $white $pallette1;
-                    &:after                     {position: absolute;
-                                                width: 100%;
-                                                content: "";
-                                                box-shadow: 8px 3px 0 0 $white;
-                                                z-index: 9;
-                                                height: 0.5rem;
-                                                background-color: $white;
-                                                left: 0;
-                                                top: 2.4rem;
+            .date-grid               {position: relative;
+                div               {border: 1px solid $pallette1;
+                                        border-right: 0;
+                                        border-bottom: 0;
+                                        min-height: 2rem;
+                                        text-align: center;
+                                        position: relative;
+                                        color: $danger;
+                &.success                {color: $green;
+                }
+                &.summary                {position: absolute;
+                                        right: -2.5rem;
+                                        font-size: $font-size-lg;
+                                        line-height: 1.5rem;
+                                        text-align: center;
+                    &.row1               {top: 2rem;
+                    }
+                    &.row2               {top: 4rem;
+                    }
+                    &.row3               {top: 6rem;
+                    }
+                    &.row4               {top: 8rem;
                     }
                 }
-                .badge                          {color: $white;
-                                                 line-height: 1rem;
-                                                 width: 1.5rem;
-                                                 border-radius: 1.5rem;
+                .datenum             {color: $pallette2;
+                                    font-size: $font-size-sm;
+                                    position: absolute;
+                                    left: 0.25rem;
+                }
+                .countnum            {font-size: $font-size-lg;
+                }
+                &.current             {
+                    .datenum         {color: $heading-color;
+                    }
                 }
             }
-        }
-        #profile-stages-tabs-tab-level1     {
-            .badge                          {background-color: $pallette3;
-                                             color: $white;
             }
+            @include neumorphism-shadow();
         }
-        #profile-stages-tabs-tab-level2     {
-            .badge                          {background-color: $accent2;
+        }
+        .profile-progress            {margin-top: 1rem;
+            .profile-progress-scale-container {width: 100%;
+                                            border-radius: 0.25rem;
+                                            position: relative;
+                                            border: 1px solid $pallette1;
+                                            @include neumorphism-shadow();
+                .profile-progress-scale,
+                .profile-progress-bar         {width: 100%;
+                                            height: 3rem;
+                                            display: flex;
+                                            flex-direction: row;
+                                            border-radius: 0.25rem;
+                    .profile-progress-unit    {border-right: 1px solid $pallette1;
+                                            flex-basis: 5%;
+                                            flex-grow: 1;
+                                            height: 3rem;
+                                            text-align: center;
+                                            line-height: 3rem;
+                        .current-set          {position: absolute;
+                                            top: -4rem;
+                                            display: flex;
+                                            flex-direction: row;
+                                            background: $accent2;
                                             color: $white;
+                                            padding: 0.25rem .75rem;
+                                            border-radius: 0.25rem;
+                                            box-shadow: $hard-shadow;
+                                            transform: translate(-50%, 0);
+                                            margin-left: 2.5%;
+                                            @include triangle-bottom($accent2);
+                                            @include triangle-bottom-shadow();
+                            .current-set-number     {font-size: 2rem;
+                            }
+                            .current-set-intro      {font-size: 0.75rem;
+                                                    max-width: 4rem;
+                                                    line-height: 1rem;
+                                                    text-align: left;
+                            }
+                        }
+                    }
+                }
+                .profile-progress-scale       {position: absolute;
+                                            background-color: $white;
+                                            color: darken($pallette2, 20%);
+                }
+                .profile-progress-bar         {background: linear-gradient($greenLight, $green);
+                                            transition: all 500ms ease-out;
+                    &.badge-set-20                 {clip-path: inset(0 0 0 0);}
+                    &.badge-set-19                 {clip-path: inset(0 5% 0 0);}
+                    &.badge-set-18                 {clip-path: inset(0 10% 0 0);}
+                    &.badge-set-17                 {clip-path: inset(0 15% 0 0);}
+                    &.badge-set-16                 {clip-path: inset(0 20% 0 0);}
+                    &.badge-set-15                 {clip-path: inset(0 25% 0 0);}
+                    &.badge-set-14                 {clip-path: inset(0 30% 0 0);}
+                    &.badge-set-13                 {clip-path: inset(0 35% 0 0);}
+                    &.badge-set-12                 {clip-path: inset(0 40% 0 0);}
+                    &.badge-set-11                 {clip-path: inset(0 55% 0 0);}
+                    &.badge-set-10                 {clip-path: inset(0 50% 0 0);}
+                    &.badge-set-9                  {clip-path: inset(0 55% 0 0);}
+                    &.badge-set-8                  {clip-path: inset(0 60% 0 0);}
+                    &.badge-set-7                  {clip-path: inset(0 65% 0 0);}
+                    &.badge-set-6                  {clip-path: inset(0 70% 0 0);}
+                    &.badge-set-5                  {clip-path: inset(0 75% 0 0);}
+                    &.badge-set-4                  {clip-path: inset(0 80% 0 0);}
+                    &.badge-set-3                  {clip-path: inset(0 85% 0 0);}
+                    &.badge-set-2                  {clip-path: inset(0 90% 0 0);}
+                    &.badge-set-1                  {clip-path: inset(0 95% 0 0);}
+                    .profile-progress-unit    {color: $white;
+                    }
+                }
             }
         }
-        #profile-stages-tabs-tab-level3     {
-            .badge                          {background-color: $accent3;
-                                             color: $white;
+        .profile-classinfo           {
+            .profile-classinfo-body     {background-color: $white;
+                                         padding: 0.5rem;
+                                         padding-left: 1rem;
+                @include neumorphism-shadow();
+
+                .profile-classinfo-section          {font-weight: bold;
+                }
+                .profile-classinfo-institution-term {font-variant-caps: all-small-caps;
+                                                    font-variant-numeric: oldstyle-nums;
+                    .profile-classinfo-institution {color: $pallette4;
+                                                    margin-right: 1rem;
+                    }
+                    .profile-classinfo-term         {color: $heading-color;
+                    }
+                }
+                .profile-classinfo-dates            {font-size: $font-size-sm;
+                    .profile-classinfo-start        {margin-right: 1rem;
+                    }
+                    .label                          {background-color: $accent4;
+                        svg                         {position: relative;
+                                                    top: -0.5px;
+                        }
+                    }
+                }
+                .profile-classinfo-targets          {
+                    thead                           {
+                        tr                          {
+                            td                      {border-top: 0;
+                            }
+                        }
+                    }
+                    tfoot                           {
+                        tr                          {
+                            td                      {border-top: 0;
+                            }
+                        }
+                    }
+                    tbody                           {
+                        tr                          {
+                            td                      {border-top: 0;
+                                &:first-child       {font-weight: bold;
+                                }
+                            }
+                            &:first-child           {
+                                td:first-child,
+                                .target-set         {color: $accent2;
+                                }
+                            }
+                            &:nth-child(2)          {
+                                td:first-child,
+                                .target-set         {color: lighten($accent2, 5%);
+                                }
+                            }
+                            &:nth-child(3)          {
+                                td:first-child,
+                                .target-set         {color: lighten($accent2, 10%);
+                                }
+                            }
+                            &:nth-child(4)          {
+                                td:first-child,
+                                .target-set         {color: lighten($accent2, 15%);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        #profile-stages-tabs-tab-level4     {
-            .badge                          {background-color: $pallette4;
-                                             color: $white;
+        .profile-stages                         {margin-top: 1rem;
+            .nav-tabs                           {border-bottom: 1px solid $pallette1;
+                .nav-link                           {color: $heading-color;
+                    &.active                        {@include neumorphism-shadow();
+                                                    position: relative;
+                                                    border-color: $pallette1 $pallette1 $white $pallette1;
+                        &:after                     {position: absolute;
+                                                    width: 100%;
+                                                    content: "";
+                                                    box-shadow: 8px 3px 0 0 $white;
+                                                    z-index: 9;
+                                                    height: 0.5rem;
+                                                    background-color: $white;
+                                                    left: 0;
+                                                    top: 2.4rem;
+                        }
+                    }
+                    .badge                          {color: $white;
+                                                    line-height: 1rem;
+                                                    width: 1.5rem;
+                                                    border-radius: 1.5rem;
+                    }
+                }
             }
-        }
-        .tab-content                        {background-color: $white;
-                                             border: 1px solid $pallette1;
-                                             padding: 0.5rem;
-                                             @include neumorphism-shadow();
-            .badge                          {padding: 0.5rem;
-                                             font-weight: normal;
-                                             margin-right: 0.5rem;
-                                             margin-bottom: 0.5rem;
+            #profile-stages-tabs-tab-level1     {
+                .badge                          {background-color: $pallette3;
+                                                color: $white;
+                }
             }
-            // #profile-stages-tabs-tabpanel-level1 .badge {
-            // }
+            #profile-stages-tabs-tab-level2     {
+                .badge                          {background-color: $accent2;
+                                                color: $white;
+                }
+            }
+            #profile-stages-tabs-tab-level3     {
+                .badge                          {background-color: $accent3;
+                                                color: $white;
+                }
+            }
+            #profile-stages-tabs-tab-level4     {
+                .badge                          {background-color: $pallette4;
+                                                color: $white;
+                }
+            }
+            .tab-content                        {background-color: $white;
+                                                border: 1px solid $pallette1;
+                                                padding: 0.5rem;
+                                                @include neumorphism-shadow();
+                .badge                          {padding: 0.5rem;
+                                                font-weight: normal;
+                                                margin-right: 0.5rem;
+                                                margin-bottom: 0.5rem;
+                }
+                // #profile-stages-tabs-tabpanel-level1 .badge {
+                // }
+            }
         }
     }
 }
