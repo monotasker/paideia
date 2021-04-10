@@ -103,7 +103,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d =>
           <div key={d}>{d}</div>
         )}
-        <div className="summary">Days on target</div>
+        <div className="summary heading">Days on target</div>
       </div>
       <div className="date-grid">
           {(!updating && myMonthData) ? myMonthData.map((wk, index) => {

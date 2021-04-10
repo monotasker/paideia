@@ -214,19 +214,17 @@ const ProfileClassInfo = ({updating, classInfo}) => {
               {classInfo.term} {classInfo.academic_year}
               </span>
             </div>
+            <div className="profile-classinfo-instructor">
+              <FontAwesomeIcon icon="chalkboard-teacher" fixedWidth /> Led by&nbsp;
+              <span className="instructor-name">{classInfo.instructor.first_name} {classInfo.instructor.last_name}</span>
+            </div>
             <div className="profile-classinfo-dates">
+                <FontAwesomeIcon icon="calendar-day" fixedWidth />&nbsp;
                 <span className="profile-classinfo-start">
-                  <Badge variant="primary" className="label">
-                    <FontAwesomeIcon icon="calendar-day" size="sm" />
-                    Start
-                  </Badge>&nbsp;
                   {readableDate(!!classInfo.custom_start_date ? classInfo.custom_start_date : classInfo.start_date)}
                 </span>
+                <FontAwesomeIcon icon="long-arrow-alt-right" />
                 <span className="profile-classinfo-start">
-                  <Badge variant="primary" className="label">
-                    <FontAwesomeIcon icon="calendar-day" size="sm" />
-                    End
-                  </Badge>&nbsp;
                   {readableDate(!!classInfo.custom_end_date ? classInfo.custom_end_date : classInfo.end_date)}
                 </span>
             </div>
@@ -239,7 +237,7 @@ const ProfileClassInfo = ({updating, classInfo}) => {
           <Table className="profile-classinfo-targets" size="sm">
             <thead>
               <tr>
-                <td colSpan="2">I began the course at badge set {classInfo.starting_set}
+                <td colSpan="2">I began the course at <span className="starting-set">badge set {classInfo.starting_set}</span>
                 </td>
               </tr>
               <tr>
@@ -364,7 +362,7 @@ const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
           eventKey={blevel.slug}
           title={<React.Fragment><Badge variant="primary">{badgeLevels[blevel.index].length}</Badge> {blevel.title}</React.Fragment>}
         >
-          <span className="level-explanation">{blevel.text}. (Click a badge for details.)</span>
+          <span className="level-explanation">{blevel.text} (Click a badge for details.)</span>
           {badgeLevels[blevel.index].length!==0 &&
            badgeLevels[blevel.index].map(b => {
               if (!!badgeTableData) {

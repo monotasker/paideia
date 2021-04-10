@@ -1292,72 +1292,88 @@ form                                    {margin-bottom: 1rem;
                                   overflow: auto;
                                   padding-bottom: 2rem;
         .profile-calendar            {
-        .calendar                  {border-radius: 0.25rem;
-                                    border: 1px solid $pallette1;
-                                    background-color: $white;
-                                    margin-right: 4rem;
-            .month-indicator         {text-align: center;
-                                    font-size: $font-size-lg;
-                                    line-height: 3rem;
-                                    color: $accent2;
-                a                    {cursor: pointer;
-                                    margin: 0 2rem;
-                                    color: $pallette2;
-                    &.disabled       {opacity: 50%;
-                                    cursor: not-allowed;
-                    }
-                }
-            }
-            .day-of-week,
-            .date-grid               {display: grid;
-                                    grid-template-columns: repeat(7, 1fr);
-            }
-            .day-of-week             {text-align: center;
-                                    color: $pallette2;
-                                    position: relative;
-                .summary             {position: absolute;
-                                    right: -2.5rem;
-                }
-            }
-            .date-grid               {position: relative;
-                div               {border: 1px solid $pallette1;
-                                        border-right: 0;
-                                        border-bottom: 0;
-                                        min-height: 2rem;
-                                        text-align: center;
-                                        position: relative;
-                                        color: $danger;
-                &.success                {color: $green;
-                }
-                &.summary                {position: absolute;
-                                        right: -2.5rem;
+            .calendar                  {border-radius: 0.25rem;
+
+                                        border: 1px solid $pallette1;
+                                        background-color: $white;
+                                        margin-right: 4rem;
+                .month-indicator         {text-align: center;
                                         font-size: $font-size-lg;
-                                        line-height: 1.5rem;
-                                        text-align: center;
-                    &.row1               {top: 2rem;
-                    }
-                    &.row2               {top: 4rem;
-                    }
-                    &.row3               {top: 6rem;
-                    }
-                    &.row4               {top: 8rem;
-                    }
-                }
-                .datenum             {color: $pallette2;
-                                    font-size: $font-size-sm;
-                                    position: absolute;
-                                    left: 0.25rem;
-                }
-                .countnum            {font-size: $font-size-lg;
-                }
-                &.current             {
-                    .datenum         {color: $heading-color;
+                                        line-height: 3rem;
+                                        color: $accent2;
+                    a                    {cursor: pointer;
+                                        margin: 0 2rem;
+                                        color: $pallette2;
+                        &.disabled       {opacity: 50%;
+                                        cursor: not-allowed;
+                        }
                     }
                 }
+                .day-of-week,
+                .date-grid               {display: grid;
+                                        grid-template-columns: repeat(7, 1fr);
+                }
+                .day-of-week             {text-align: center;
+                                        color: $accent4;
+                                        position: relative;
+                                        font-variant: all-small-caps;
+                    .summary             {position: absolute;
+                                        right: -3.5rem;
+                                        top: -3rem;
+                                        max-width: 3rem;
+                                        color: $heading-color;
+                                        font-variant: normal;
+                    }
+                }
+                .date-grid               {position: relative;
+                    div               {border: 1px solid $pallette1;
+                                            border-right: 0;
+                                            border-bottom: 0;
+                                            min-height: 2rem;
+                                            text-align: center;
+                                            position: relative;
+                                            color: $danger;
+                        &.success                {color: $green;
+                        }
+                        &.summary                {position: absolute;
+                                                right: -2.5rem;
+                                                font-size: $font-size-lg;
+                                                line-height: 1.5rem;
+                                                text-align: center;
+                            &.row0               {top: 0;
+                            }
+                            &.row1               {top: 2rem;
+                            }
+                            &.row2               {top: 4rem;
+                            }
+                            &.row3               {top: 6rem;
+                            }
+                            &.row4               {top: 8rem;
+                            }
+                        }
+                        .datenum             {color: $pallette2;
+                                            font-size: $font-size-sm;
+                                            position: absolute;
+                                            left: 0.25rem;
+                        }
+                        .countnum            {font-size: $font-size-lg;
+                        }
+                        &.current             {
+                            .datenum         {color: $heading-color;
+                            }
+                        }
+                    }
+                }
+                @include neumorphism-shadow();
             }
+            .calendar-target-message    {color: $pallette4;
+                                         background-color: lighten(#96BC44, 30%);
+                                         border: 1px solid lighten(#96BC44, 20%);
+                                         border-top: 0;
+                                         padding: 0.25rem 0.5rem;
+                                         margin-right: 4rem;
+                                         display: block;
             }
-            @include neumorphism-shadow();
-        }
         }
         .profile-progress            {margin-top: 1rem;
             .profile-progress-scale-container {width: 100%;
@@ -1447,31 +1463,43 @@ form                                    {margin-bottom: 1rem;
                     .profile-classinfo-term         {color: $heading-color;
                     }
                 }
-                .profile-classinfo-dates            {font-size: $font-size-sm;
-                    .profile-classinfo-start        {margin-right: 1rem;
+                .profile-classinfo-instructor       {font-size: $font-size-sm;
+                    .instructor-name                {color: $accent2;
+
                     }
-                    .label                          {background-color: $accent4;
-                        svg                         {position: relative;
-                                                    top: -0.5px;
-                        }
+                }
+                .profile-classinfo-dates            {font-size: $font-size-sm;
+                                                     color: $accent4;
+                    .fa-long-arrow-alt-right        {margin-right: 0.5rem;
+                                                     margin-left: 0.5rem;
                     }
                 }
                 .profile-classinfo-targets          {
                     thead                           {
                         tr                          {
                             td                      {border-top: 0;
+                                .starting-set       {color: $success;
+                                }
+                            }
+                            &:last-of-type          {
+                                td                  {padding-top: 0;
+                                                     padding-bottom: 0;
+                                }
                             }
                         }
                     }
                     tfoot                           {
                         tr                          {
                             td                      {border-top: 0;
+                                                     padding-top: 0;
                             }
                         }
                     }
                     tbody                           {
                         tr                          {
                             td                      {border-top: 0;
+                                                     padding: 0 0.25rem;
+                                                     color: $heading-color;
                                 &:first-child       {font-weight: bold;
                                 }
                             }
@@ -1535,7 +1563,7 @@ form                                    {margin-bottom: 1rem;
                 }
             }
             #profile-stages-tabs-tab-level3     {
-                .badge                          {background-color: $accent3;
+                .badge                          {background-color: $accent4;
                                                 color: $white;
                 }
             }
@@ -1552,6 +1580,9 @@ form                                    {margin-bottom: 1rem;
                                                 font-weight: normal;
                                                 margin-right: 0.5rem;
                                                 margin-bottom: 0.5rem;
+                }
+                .level-explanation               {display: block;
+                                                 padding-bottom: 0.5rem;
                 }
                 // #profile-stages-tabs-tabpanel-level1 .badge {
                 // }
