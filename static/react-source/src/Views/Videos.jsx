@@ -162,7 +162,7 @@ const Videos = (props) => {
       console.log(`containerHeight: ${containerHeight}`);
       let remainingHeight = containerHeight - videoHeight;
       if (dimensions.width >= 768) {
-        remainingHeight = containerHeight;
+        remainingHeight = "100%";
       }
       console.log(`remainingHeight: ${remainingHeight}`);
       $listContainer.style.height = `${remainingHeight}px`;
