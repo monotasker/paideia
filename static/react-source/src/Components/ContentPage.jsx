@@ -11,7 +11,9 @@ import {
 const ContentPage = (props) => {
   return(
     <Col className='content-page-component' sm='8'>
-      <a onClick={props.backFunc}>
+      <a onClick={props.backFunc}
+        className="content-page-back-link"
+      >
         <FontAwesomeIcon icon={faChevronLeft} size="lg" pull="left" />
       </a>
       <h2 className='content-page-title'>{props.title}</h2>

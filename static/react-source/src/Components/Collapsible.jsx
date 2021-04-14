@@ -7,7 +7,8 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
-  faMinus
+  faMinus,
+  faNetworkWired
 } from '@fortawesome/free-solid-svg-icons';
 
 class Collapsible extends Component {
@@ -35,6 +36,9 @@ class Collapsible extends Component {
             aria-expanded={open}
           >
             <Tag>
+              {!!this.props.linkIcon &&
+                <FontAwesomeIcon icon={this.props.linkIcon} fixedWidth />
+              }
               {this.props.linkText}
               <FontAwesomeIcon icon={open ? faMinus : faPlus} pull="right" />
             </Tag>

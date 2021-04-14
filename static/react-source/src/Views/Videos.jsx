@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useLayoutEffect } from "react";
 import { useParams,
          Link
 } from "react-router-dom";
@@ -9,7 +9,8 @@ import {
   Card,
   Button,
   ListGroup,
-  Spinner
+  Spinner,
+  ResponsiveEmbed
 } from "react-bootstrap";
 import {
   CSSTransition,
@@ -113,6 +114,10 @@ const Videos = (props) => {
     (!!lessonParam && lessons.length !== 0) ? lessons.find(l => l.lesson_position === parseInt(lessonParam)).id
   : null);
   // console.log(`activeLessonId: ${activeLessonId}`);
+  const [dimensions, setDimensions] = useState({
+      height: window.innerHeight,
+      width: window.innerWidth
+  });
 
   const activeLessonSrc = !!activeLessonId ?
     lessons.find(l => l.id===activeLessonId).video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
@@ -144,6 +149,30 @@ const Videos = (props) => {
       }, 1500);
     }
   }, [loaded])
+
+  useLayoutEffect( () => {
+    const setListHeight = () => {
+
+      const $videoFrame = document.getElementsByClassName("embed-responsive")[0];
+      const videoHeight = $videoFrame.offsetHeight;
+      console.log(`videoHeight: ${videoHeight}`);
+      const $listContainer = document.getElementsByClassName("lessonlist")[0];
+      const $lessonsContainer = document.getElementsByClassName("lessons-display-container")[0];
+      const containerHeight = $lessonsContainer.offsetHeight;
+      console.log(`containerHeight: ${containerHeight}`);
+      let remainingHeight = containerHeight - videoHeight;
+      if (dimensions.width >= 768) {
+        remainingHeight = containerHeight;
+      }
+      console.log(`remainingHeight: ${remainingHeight}`);
+      $listContainer.style.height = `${remainingHeight}px`;
+    };
+    window.addEventListener('resize', setListHeight);
+
+    return _ => {
+      window.removeEventListener('resize', setListHeight);
+    }
+  }, [dimensions]);
 
   const setOpenVideo = (event, id) => {
     setLoaded(false);
@@ -200,14 +229,16 @@ const Videos = (props) => {
                     <div className="iframe-mask">
                       <Spinner animation="grow" variant="secondary" />
                     </div>
-                    <iframe
-                      title={`lesson display: lesson ${activeLessonId}`}
-                      src={activeLessonSrc}
-                      frameBorder="0"
-                      onLoad={() => setLoaded(true)}
-                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
-                    >
-                    </iframe>
+                    <ResponsiveEmbed aspectRatio="16by9">
+                      <iframe
+                        title={`lesson display: lesson ${activeLessonId}`}
+                        src={activeLessonSrc}
+                        frameBorder="0"
+                        onLoad={() => setLoaded(true)}
+                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                      >
+                      </iframe>
+                    </ResponsiveEmbed>
                   </div>
               </CSSTransition>
             </SwitchTransition>
