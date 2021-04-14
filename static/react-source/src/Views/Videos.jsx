@@ -153,16 +153,17 @@ const Videos = (props) => {
   useLayoutEffect( () => {
     const setListHeight = () => {
 
-      const $videoFrame = document.getElementsByClassName("embed-responsive")[0];
-      const videoHeight = $videoFrame.offsetHeight;
+      console.log(`width: ${window.innerWidth}`);
+      let $videoFrame = document.getElementsByClassName("embed-responsive")[0];
+      let videoHeight = $videoFrame.offsetHeight;
       console.log(`videoHeight: ${videoHeight}`);
-      const $listContainer = document.getElementsByClassName("lessonlist")[0];
-      const $lessonsContainer = document.getElementsByClassName("lessons-display-container")[0];
-      const containerHeight = $lessonsContainer.offsetHeight;
+      let $listContainer = document.getElementsByClassName("lessonlist")[0];
+      let $lessonsContainer = document.getElementsByClassName("lessons-display-container")[0];
+      let containerHeight = $lessonsContainer.offsetHeight;
       console.log(`containerHeight: ${containerHeight}`);
       let remainingHeight = containerHeight - videoHeight;
-      if (dimensions.width >= 768) {
-        remainingHeight = "100%";
+      if (window.innerWidth >= 768) {
+        remainingHeight = containerHeight;
       }
       console.log(`remainingHeight: ${remainingHeight}`);
       $listContainer.style.height = `${remainingHeight}px`;
