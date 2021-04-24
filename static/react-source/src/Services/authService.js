@@ -5,6 +5,7 @@ import { recaptchaKey } from "../variables";
 import { loadScriptByURL,
          doApiCall
        } from "../Services/utilityService";
+import { async } from 'regenerator-runtime';
 
 /**
  *
@@ -39,6 +40,24 @@ const doPasswordReset = async payload => await doApiCall(payload,
  */
 const register = async payload => await doApiCall(payload, "get_registration",
                                                   "form");
+
+/**
+ *
+ * expects payload with keys:
+ *   course_key
+ */
+const validateCourseKey = async payload => await doApiCall(
+  payload, "validate_class_key", "form");
+
+/**
+ *
+ * expects payload with keys:
+ *   token
+ *   order_items
+ *   course_key
+ */
+const createCheckoutIntent = async payload => await doApiCall(
+  payload, "create_checkout_intent", "form");
 
 /**
  * Expects payload with keys:
@@ -174,7 +193,9 @@ const withRecaptcha = (Component, actionName) => ({rkey=recaptchaKey,
   }, []);
 
   const submitAction = (event, myAction) => {
-    event.preventDefault();
+    if ( !!event ) {
+      event.preventDefault();
+    };
     window.grecaptcha.ready(() => {
         window.grecaptcha.execute(rkey, { action: actionName })
         .then(token => { myAction(token); });
@@ -210,6 +231,8 @@ export {
   startPasswordReset,
   doPasswordReset,
   register,
+  validateCourseKey,
+  createCheckoutIntent,
   login,
   logout,
   checkLogin,

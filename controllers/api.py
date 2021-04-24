@@ -618,11 +618,18 @@ def join_class_group():
     pass
 
 
-def create_checkout_session():
+def calculate_order_amount():
+    """
+    """
+    return 15
+
+
+def create_checkout_intent():
     """
     Create a Stripe payment checkout session for hosted checkout page.
     """
     response = current.response
+    order_items = request.vars['order_items']
     myclass_key = request.vars['course_key']
     myclass = None
     class_label = ""
@@ -645,24 +652,23 @@ def create_checkout_session():
             for line in keyfile:
                 k, v = line.split()
                 keydata[k] = v
-        stripe.api_key = keydata['stripe_secret_key']
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {'price_data': {'currency': 'cad',
-                                'unit_amount': 1500,
-                                'product_data': {'Student Membership, '
-                                                 }
-                                }
-                }
-            ]
-        )
+        # FIXME: use real api key in production
+        # stripe.api_key = keydata['stripe_secret_key']
+        stripe.api_key = "sk_test_51IYtbhCzY7JkMiXGFmXzguuMQHrNB40wpVI78TDjYWgJP5r3xahRDqVU3qKXnhMchItpWky45eSRBh0X7LtH1tCg00eOgWcggP"
+        checkout_intent = stripe.PaymentIntent.create(
+            amount=calculate_order_amount(order_items),
+            currency='cad'
+            )
+        return json_serializer(
+            {'clientSecret': checkout_intent['client_secret']}
+            )
 
     except Exception:
         response.status = 403
         return json_serializer({'status': 'insufficient privileges',
                     'reason': 'Stripe checkout session creation failed',
                     'error': print_exc()})
+
 
 def get_login():
     """
