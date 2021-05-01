@@ -277,29 +277,6 @@ const ProfileClassInfo = ({updating, classInfo}) => {
             <div className="profile-classinfo-signup">
             You're not currently part of a class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
             </div>
-            <Form>
-              <Form.Row>
-              <Form.Group controlId="profile_join_class_key">
-                <Col>
-                  <Form.Control type="text" placeholder="Enter key here"
-                    name="profile_join_class_key"
-                    onChange={e => setFormFieldValue(e.target.value,
-                                                     "profile_join_class_key")}
-                  />
-                </Col>
-                {!!flags.badRequestData.includes("profile_join_class_key") &&
-                  <Alert variant="danger" className="col col-sm-12">
-                    <FontAwesomeIcon icon="exclamation-triangle" /> Please enter a valid course key.
-                  </Alert>
-                }
-              </Form.Group>
-              <Col>
-                <Button variant="primary" type="submit"
-                  onClick={goToJoinPage}
-                >Join</Button>
-              </Col>
-              </Form.Row>
-            </Form>
           </div>
         )
     }
