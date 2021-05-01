@@ -40,7 +40,7 @@ const useQuery = () => {
 
 const doApiCall = async (payload, apiFunction,
                          format="none", method="POST") => {
-  console.log(`method: ${method}`);
+  // console.log(`method: ${method}`);
   let callObject = {method: method,
                     cache: "no-cache",
                     mode: "same-origin"
@@ -60,7 +60,7 @@ const doApiCall = async (payload, apiFunction,
       default:
         break;
   }
-  console.log(callObject);
+  // console.log(callObject);
   let response = await fetch(`/paideia/api/${apiFunction}`, callObject);
   let mydata;
   try {
@@ -78,12 +78,12 @@ function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
   switch (mydata.status_code) {
     case 200:
-      console.log("check succeeded!!!");
+      // console.log("check succeeded!!!");
       action(mydata);
       break;
 
     case 400:
-      console.log('400: Bad request');
+      // console.log('400: Bad request');
       if ( mydata.reason === 'Missing request data' ) {
         if ( otherActions.hasOwnProperty("missingRequestDataAction") ) {
                 otherActions.missingRequestDataAction(mydata);
@@ -105,7 +105,7 @@ function returnStatusCheck(mydata, history, action, reducer,
           history.push(`login`);
         }
       } else if ( mydata.reason === "Insufficient privileges" ) {
-        console.log('401: Insufficient privileges');
+        // console.log('401: Insufficient privileges');
         if ( otherActions.hasOwnProperty("insufficientPrivilegesAction") ) {
           otherActions.insufficientPrivilegesAction(mydata);
         }
@@ -144,7 +144,7 @@ function returnStatusCheck(mydata, history, action, reducer,
 
     default:
       console.log('Uncaught problem in returnStatusCheck:');
-      console.log(mydata);
+      // console.log(mydata);
       break;
   }
 }

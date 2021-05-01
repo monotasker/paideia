@@ -11,6 +11,7 @@ import {
 import { CSSTransition } from "react-transition-group";
 import { library } from '@fortawesome/fontawesome-svg-core';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStripe } from '@fortawesome/free-brands-svg-icons';
 import {
   faAngleDown,
   faArrowsAltH,
@@ -55,11 +56,13 @@ import {
   faLeaf,
   faLightbulb,
   faLink,
+  faLock,
   faLongArrowAltRight,
   faMobile,
   faMap,
   faPencilAlt,
   faPlus,
+  faPrint,
   faQuestionCircle,
   faRedoAlt,
   faReply,
@@ -67,6 +70,7 @@ import {
   faSearch,
   faSeedling,
   faShoePrints,
+  faShoppingCart,
   faSignInAlt,
   faSignOutAlt,
   faSlidersH,
@@ -82,6 +86,7 @@ import {
   faUndoAlt,
   faUser,
   faUserCircle,
+  faUserGraduate,
   faUserPlus,
   faUsers,
   faVideo,
@@ -154,10 +159,12 @@ library.add(
   faLeaf,
   faLightbulb,
   faLink,
+  faLock,
   faLongArrowAltRight,
   faMobile,
   faPencilAlt,
   faPlus,
+  faPrint,
   faQuestionCircle,
   faRedoAlt,
   faMap,
@@ -166,6 +173,7 @@ library.add(
   faSearch,
   faSeedling,
   faShoePrints,
+  faShoppingCart,
   faSignInAlt,
   faSignOutAlt,
   faSlidersH,
@@ -174,6 +182,7 @@ library.add(
   faSortUp,
   faSortDown,
   faSpinner,
+  faStripe,
   faTrashAlt,
   faThumbsUp,
   faThumbtack,
@@ -181,6 +190,7 @@ library.add(
   faUndoAlt,
   faUser,
   faUserCircle,
+  faUserGraduate,
   faUserPlus,
   faUsers,
   faVideo,
@@ -226,8 +236,8 @@ const MainPage = () => {
   });
 
   useEffect(() => {
-    console.log('=================================');
-    console.log('Checking login in Main');
+    // console.log('=================================');
+    // console.log('Checking login in Main');
     checkLogin(user, dispatch);
   }, []);
 

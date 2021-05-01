@@ -7,7 +7,8 @@ import {
   Button,
   Row,
   Col,
-  Alert
+  Alert,
+  Spinner
 } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -74,11 +75,15 @@ const LoginInner = ({submitAction}) => {
     <Row className="login-component content-view justify-content-sm-center">
       <Col xs sm={8} lg={6}>
         { user.userLoggedIn === true && (
+          (queryParams.get("joining_course")==="true" ?
+            history.push("join_course")
+            :
             ( queryParams.get("just_reset_password")==="true" ||
               queryParams.get("just_registered")==="true" ) ?
               history.push('home')
               :
               history.goBack()
+            )
           )
         }
         { user.userLoggedIn === false && (
@@ -159,8 +164,9 @@ const LoginInner = ({submitAction}) => {
             </Form.Group>
             <Button variant="primary"
               type="submit"
+              disabled={!!requestInProgress ? true : false }
             >
-              <FontAwesomeIcon icon="sign-in-alt" /> Log in
+                {!!requestInProgress ? <Spinner animation="grow" size="sm"  as="span" aria-hidden="true" role="status" /> : <FontAwesomeIcon icon="sign-in-alt" />} Log in
             </Button>
           </Form>
           {flags.loginFailed===true &&
@@ -194,7 +200,7 @@ const LoginInner = ({submitAction}) => {
                 variant="outline-success"
                 disabled={!!requestInProgress ? true : false }
               >
-                <FontAwesomeIcon icon="user-plus" /> Sign up!
+                {!!requestInProgress ? <Spinner animation="grow" size="sm"  as="span" aria-hidden="true" role="status" /> : <FontAwesomeIcon icon="user-plus" />} Sign up!
               </Button>
             </Alert>
             <Alert variant="primary" className="login-reset-message">

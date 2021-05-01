@@ -2206,3 +2206,102 @@ form                                    {margin-bottom: 1rem;
         }
     }
 }
+
+.Main .join-course-component                  {
+    #courseKeyForm                      {
+        label.col-form-label            {padding-bottom: 0;
+                                         color: $heading-color;
+        }
+        .btn                            {margin-top: 1rem;
+                                         margin-right: 0.5rem;
+        }
+        @media (min-width: map-get($grid-breakpoints, sm)) {
+            .row                        {margin-bottom: 0.5rem;
+
+            }
+        }
+    }
+    #joinClassPaymentForm               {border: 1px solid #ced4da;
+                                         border-radius: 0.25rem;
+                                         padding: 1rem;
+                                         margin-top: 0;
+        h5                              {font-variant: all-small-caps;
+                                         font-size: 1.25rem;
+            &:first-of-type             {margin-bottom: 1rem;
+            }
+        }
+        label                           {font-weight: bold;
+                                         margin-bottom: 0;
+                                         margin-top: .5rem;
+                                         width: 100%;
+                                         color: $accent2;
+        }
+        .purchase-item                  {margin-bottom: 1rem;
+            .purchase-item-img              {padding-left: 0;
+                .purchase-item-img-wrapper  {background-color: $pallette1;
+                                            width: 3rem;
+                                            height: 3rem;
+                                            border-radius: .25rem;
+                                            padding-top:0.5rem;
+                                            padding-left: 0.35rem;
+                                            margin-top: 0.25rem;
+                                            border: 1px solid darken($pallette1, 10%);
+                }
+            }
+            .purchase-item-desc             {padding-left: 0;
+                                            padding-right: 0;
+            }
+            .checkout-courselabel           {color: $heading-color;
+            }
+            .purchase-item-price            {font-weight: bold;
+                .old-price                      {text-decoration: line-through;
+                                                color: red;
+                                                font-weight: normal;
+                }
+                .discount-message               {color: red;
+                                                width: 100%;
+                                                line-height: 1rem;
+                                                font-size: $font-size-sm;
+                                                font-weight: normal;
+                                                display: block;
+                }
+            }
+        }
+        .form-text                      {color: $niceGrey;
+        }
+        #card-element                   {padding: 0.5rem;
+                                         border: 1px solid #ced4da;
+                                         border-radius: 0.25rem;
+        }
+        #submit,
+        #back,
+        #cancel                         {margin: 1rem 0.5rem 0 0;
+
+        }
+        .col                            {padding-left: 0;
+        }
+        .payment-success-alert          {margin-top: 1rem;
+        }
+    }
+    .row.payment-confirmation           {margin-bottom: 1rem;
+        .paid-amount                {font-weight: bold;
+        }
+        .paid-label                 {padding-left: 0;
+        }
+    }
+    .print-page-message             {font-size: $font-size-sm;
+                                     color: $niceGrey;
+    }
+    .powered-by-stripe              {font-size: $font-size-sm;
+                                     color: $niceGrey;
+        .fa-stripe                      {position: relative;
+                                         top: .4rem;
+                                         margin-left: .12rem;
+        }
+    }
+    .alert                          {
+        .icon-column                {padding-left: 0;
+                                        padding-top: 0.25rem;
+        }
+    }
+}

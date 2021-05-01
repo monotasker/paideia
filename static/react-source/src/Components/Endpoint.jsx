@@ -11,8 +11,8 @@ import { CSSTransition } from "react-transition-group";
 
 const Endpoint = ({path, branches}) => {
 
-  console.log(path);
-  console.log(branches);
+  // console.log(path);
+  // console.log(branches);
 
 
   return(

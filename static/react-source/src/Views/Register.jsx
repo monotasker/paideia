@@ -23,13 +23,14 @@ import { register,
        } from '../Services/authService';
 import { UserContext } from '../UserContext/UserProvider';
 
-// import { returnStatusCheck } from "../Services/utilityService";
+import { useQuery } from "../Services/utilityService";
 import { sendFormRequest,
          useFormManagement } from "../Services/formsService";
 
 const Register = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const myhistory = useHistory();
+  const queryParams = useQuery();
   // const [ myTimeZone, setMyTimeZone ] = useState("America/Toronto");
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
@@ -45,7 +46,9 @@ const Register = ({submitAction}) => {
   }
 
   myCallbacks.successAction = (data) => {
-      myhistory.push('login?just_registered=true');
+      let joining = queryParams.get("joining_course")==="true" ?
+        "&joining_course=true" : "";
+      myhistory.push(`login?just_registered=true${joining}`);
   }
 
   // create object with state field value and setter for each field

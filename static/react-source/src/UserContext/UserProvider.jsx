@@ -7,7 +7,7 @@ const UserContext = createContext();
 // const UserDispatchContext = createContext();
 const ls = window.localStorage
 
-console.log(ls.getItem('instructing'));
+// console.log(ls.getItem('instructing'));
 let userDefaults = {
   userId: parseInt(ls.getItem('userId')) || null,
   firstName: ls.getItem('firstName') || null,
@@ -121,7 +121,7 @@ function userReducer(state, action) {
       })
     }
     case 'setEvalResults': {
-      console.log(action.payload);
+      // console.log(action.payload);
       ls.setItem('currentAnswer', action.payload.answer);
       ls.setItem('currentScore', action.payload.score);
       ls.setItem('currentLogID', action.payload.logId);

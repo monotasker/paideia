@@ -60,6 +60,16 @@ const createCheckoutIntent = async payload => await doApiCall(
   payload, "create_checkout_intent", "form");
 
 /**
+ *
+ * expects payload with keys:
+ *   user_id
+ *   course_key
+ *   course_id
+ */
+const joinCourseGroup = async payload => await doApiCall(
+  payload, "join_class_group", "form");
+
+/**
  * Expects payload with keys:
  *   token
  *   email,
@@ -233,6 +243,7 @@ export {
   register,
   validateCourseKey,
   createCheckoutIntent,
+  joinCourseGroup,
   login,
   logout,
   checkLogin,

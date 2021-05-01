@@ -253,7 +253,7 @@ def _is_safe_string(mystring, length=0):
         mylength = "{},{}".format(str(length[0]), str(length[1]))
     else:
         mylength = str(length) if length!=0 else "1,64"
-    str_pat = re.compile(r'^[a-zA-Z0-9\s\-\/_]+{{{}}}$'.format(mylength))
+    str_pat = re.compile(r'^[a-zA-Z0-9\s\-\/_]{{{}}}$'.format(mylength))
 
     return re.search(str_pat, mystring)
 
@@ -558,44 +558,85 @@ def get_registration():
                         'error': None})
 
 
+def _check_class_key(myclass_key):
+    """
+    """
+    myclass = None
+    if (not myclass_key or myclass_key in ['null', 'undefined']
+            or not _is_safe_string(myclass_key)):
+        print('bad key')
+        return {"status": "bad key"}
+
+    myclass_rows = db((db.class_keys.class_key==myclass_key) &
+                (db.class_keys.class_section==db.classes.id)
+                ).select()
+    if len(myclass_rows) == 0:
+        print('no such key')
+        return {"status": "no such key"}
+
+    expiration_dt = datetime.now(timezone.utc) + timedelta(days=30)
+    time_valid_rows = myclass_rows.find(lambda r:
+        r.class_keys.created_date.replace(tzinfo=pytz.UTC) <= expiration_dt)
+    if len(time_valid_rows) == 0:
+        print('key expired')
+        return {"status": "key expired"}
+
+    valid_rows = time_valid_rows.find(lambda r:
+                                      r.class_keys.cancelled==False)
+    if len(valid_rows) == 0:
+        print('key cancelled')
+        return {"status": "key cancelled"}
+
+    myclass = valid_rows[0]
+    print('in check:')
+    pprint(myclass)
+
+    return {"status": "ok",
+            "class_row": myclass}
+
+
 def validate_class_key():
     """
     """
     response = current.response
     myclass_key = request.vars['course_key']
+    user_id = request.vars['user_id']
     myclass = None
 
     try:
-        if (not myclass_key or myclass_key in ['null', 'undefined']
-                or not _is_safe_string(myclass_key)):
+        myresult = _check_class_key(myclass_key)
+
+        if myresult['status'] == "bad key":
             response.status = 400
             return json_serializer({'status': 'bad request',
                         'reason': 'Missing request data',
                         'error': {'course_key': myclass_key}})
 
-        myclass_rows = db((db.class_keys.class_key==myclass_key) &
-                    (db.class_keys.class_section==db.classes.id)
-                    ).select()
-        if len(myclass_rows) == 0:
+        if myresult['status'] == "no such key":
             response.status = 404
             return json_serializer({'status': 'Not found',
                                     'reason': 'No matching record found'})
 
-        expiration_dt = datetime.now(timezone.utc) + timedelta(days=30)
-        time_valid_rows = myclass_rows.find(lambda r:
-            r.class_keys.created_date <= expiration_dt)
-        if len(time_valid_rows) == 0:
+        if myresult['status'] == "key expired":
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Class key is expired'})
 
-        valid_rows = time_valid_rows.find(lambda r:
-                                          r.class_keys.cancelled==False)
-        if len(valid_rows) == 0:
+        if myresult['status'] == "key cancelled":
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Class key was cancelled'})
-        myclass = valid_rows[0]
+
+        myclass = myresult['class_row']
+
+        my_memberships = db((db.class_membership.name==user_id) &
+                            (db.class_membership.class_section==myclass.classes.id)
+                            ).select()
+        if len(my_memberships) > 0:
+            response.status = 409
+            return json_serializer({'status': 'conflict',
+                                    'reason': 'Action blocked',
+                                    'error': "A membership for this user already exists in the course group"})
 
         class_label = "{}, {} {}, {}".format(myclass.classes.course_section,
                                         myclass.classes.term,
@@ -615,13 +656,55 @@ def validate_class_key():
 
 
 def join_class_group():
-    pass
+    event = None
+    class_key = request.vars['course_key']
+    class_id = int(request.vars['course_id'])
+    user_id = int(request.vars['user_id'])
+    try:
+        result = ""
+
+        validity = _check_class_key(class_key)
+        print('in join')
+        print(validity)
+        print(type(validity['class_row']['classes']['id']))
+        print(type(class_id))
+        if (validity['status'] != "ok") \
+                or (validity['class_row']['classes']['id'] != class_id):
+            print(validity['status'] != "ok")
+            print(validity['class_row']['classes']['id'] != class_id)
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Insufficient privileges',
+                                    'error': 'Could not validate the course key provided'})
+
+        my_memberships = db((db.class_membership.name==user_id) &
+                            (db.class_membership.class_section==class_id)
+                            ).select()
+        if len(my_memberships) > 0:
+            response.status = 409
+            return json_serializer({'status': 'conflict',
+                                    'reason': 'Action blocked',
+                                    'error': "A membership for this user already exists in the course group"})
+
+        result = db.class_membership.insert(**{'name': user_id,
+                                               'class_section': class_id
+                                               })
+
+        response.status = 200
+        return json_serializer({'status': "success",
+                                'result_row': result})
+    except Exception:
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function validate_class_key',
+                                'error': format_exc()})
 
 
-def calculate_order_amount():
+def calculate_order_amount(itemLabels):
     """
     """
-    return 15
+
+    return 1500
 
 
 def create_checkout_intent():
@@ -631,6 +714,8 @@ def create_checkout_intent():
     response = current.response
     order_items = request.vars['order_items']
     myclass_key = request.vars['course_key']
+    user_id = request.vars['user_id']
+    user_row = db.auth_user(user_id);
     myclass = None
     class_label = ""
     if myclass_key and myclass_key not in ['null', 'undefined']:
@@ -653,21 +738,28 @@ def create_checkout_intent():
                 k, v = line.split()
                 keydata[k] = v
         # FIXME: use real api key in production
-        # stripe.api_key = keydata['stripe_secret_key']
-        stripe.api_key = "sk_test_51IYtbhCzY7JkMiXGFmXzguuMQHrNB40wpVI78TDjYWgJP5r3xahRDqVU3qKXnhMchItpWky45eSRBh0X7LtH1tCg00eOgWcggP"
+        stripe.api_key = keydata['stripe_secret_key']
+        # stripe.api_key = "sk_test_51IYtbhCzY7JkMiXGFmXzguuMQHrNB40wpVI78TDjYWgJP5r3xahRDqVU3qKXnhMchItpWky45eSRBh0X7LtH1tCg00eOgWcggP"
         checkout_intent = stripe.PaymentIntent.create(
             amount=calculate_order_amount(order_items),
-            currency='cad'
+            currency='cad',
+            # customer='{}: {}, {}'.format(user_id,
+            #                              user_row['last_name'],
+            #                              user_row['first_name']),
+            description="Paideia student membership for {}".format(class_label),
+            receipt_email=user_row["email"],
+            statement_descriptor="Paideia course member"
             )
         return json_serializer(
-            {'clientSecret': checkout_intent['client_secret']}
+            {'clientSecret': checkout_intent['client_secret'],
+             'userId': user_id}
             )
 
     except Exception:
         response.status = 403
         return json_serializer({'status': 'insufficient privileges',
                     'reason': 'Stripe checkout session creation failed',
-                    'error': print_exc()})
+                    'error': format_exc()})
 
 
 def get_login():

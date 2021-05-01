@@ -1,7 +1,10 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import React, { useState, useEffect, useContext } from "react";
-import { useHistory, Link } from "react-router-dom";
+import { useHistory,
+         Link,
+         useLocation
+       } from "react-router-dom";
 
 import {
   Alert,
@@ -85,9 +88,9 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
 
   const updateStudentData = event => {
     event.preventDefault();
-    console.log("submitting--------");
-    console.log(formFieldValues);
-    console.log(Object.entries(formFieldValues));
+    // console.log("submitting--------");
+    // console.log(formFieldValues);
+    // console.log(Object.entries(formFieldValues));
     let submitValues = Object.entries(formFieldValues).map(
       ([key, value], i) => {
         // const newKey = key.split("%")[0];
@@ -96,8 +99,8 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
       }
     );
     let submitObject = Object.fromEntries(submitValues);
-    console.log('submitObject');
-    console.log(submitObject);
+    // console.log('submitObject');
+    // console.log(submitObject);
     submitObject.class_section = courseId;
     let myStartString = (!!submitObject.custom_start && submitObject.custom_start!=="Class default") ? submitObject.custom_start.toISOString() : null;
     let myEndString = (!!submitObject.custom_end && submitObject.custom_end!=="Class default") ? submitObject.custom_end.toISOString() : null;
@@ -404,6 +407,8 @@ const InstructorDashboard = () => {
 
     const { user, dispatch } = useContext(UserContext);
     const myhistory = useHistory();
+    const myLocation = useLocation();
+    const joiningLoc = myLocation.pathname.split('/').slice(0,-2).join('/') + '/join_course'
     const [ courseKey, setCourseKey ] = useState();
     const [ myClasses, setMyClasses ] = useState(!!user.instructing ?
       user.instructing.sort(
@@ -439,10 +444,10 @@ const InstructorDashboard = () => {
     let {formFieldValues, setFormFieldValue, setFormFieldValuesDirectly,
          flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
         } = useFormManagement(classFieldsAndValidators);
-    console.log("in main component: formFieldValues is:");
-    console.log(formFieldValues);
-    console.log("in main component: classMembers is:");
-    console.log(classMembers);
+    // console.log("in main component: formFieldValues is:");
+    // console.log(formFieldValues);
+    // console.log("in main component: classMembers is:");
+    // console.log(classMembers);
 
     useEffect(() => {
       if ( activeClassId!==0 ) {
@@ -451,13 +456,13 @@ const InstructorDashboard = () => {
         .then(info => {
           returnStatusCheck(info, history,
             info => {
-              console.log(info);
+              // console.log(info);
               if ( info.hasOwnProperty("institution") ) {
                 let currentValues = {...formFieldValues};
                 Object.keys(info).forEach(field => {
                   // console.log(`setting ${field} value: ${info[field]}`);
                   if (['start_date', 'end_date'].includes(field)) {
-                    console.log(`setting ${field} value: ${info[field]}`);
+                    // console.log(`setting ${field} value: ${info[field]}`);
                     currentValues = {...currentValues,
                                      [field]: moment(info[field]).toDate()};
                   } else if (!["members", "status_code"].includes(field)) {
@@ -509,8 +514,8 @@ const InstructorDashboard = () => {
          setInProgressAction: setFetchingClass
         });
     }
-    console.log("flags:");
-    console.log(flags);
+    // console.log("flags:");
+    // console.log(flags);
 
     return(
       <Row className="dashboard-component content-view">
@@ -605,7 +610,7 @@ const InstructorDashboard = () => {
                 <Form.Text>Give this key to students in your classes. To join this
                   course group in Paideia, they need to enter the key at this link:
                 </Form.Text>
-                <FontAwesomeIcon icon="link" size="sm" /><Link to="join_course">https://learngreek.ca/paideia/join_course</Link>
+                <FontAwesomeIcon icon="link" size="sm" /><Link to={joiningLoc}>https://learngreek.ca/paideia/join_course</Link>
                 <Alert variant="info">Note that each student will be required to upgrade their account to "Student" level (paid) to join the course group if they are not already a premium supporter.
                 </Alert>
               </Col>
