@@ -275,8 +275,7 @@ const ProfileClassInfo = ({updating, classInfo}) => {
           </div>
         : <div className="profile-classinfo-body">
             <div className="profile-classinfo-signup">
-            You're not currently part of a class group in Paideia. If you have a class enrollment key, you can enter it here to join the class group.
-              <Alert variant="warning" >This is not the same as registering for the course with your institution. You may already be registered for a course and not yet have joined the associated course group here on Paideia.</Alert>
+            You're not currently part of a class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
             </div>
             <Form>
               <Form.Row>
