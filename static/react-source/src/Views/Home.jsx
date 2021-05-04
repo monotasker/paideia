@@ -34,12 +34,9 @@ const modalContent = [
 
 const ModalTrigger = ({title, img, path, history}) => {
 
-  const myLocation = useLocation();
-  const locParts = myLocation.pathname.split('/');
-  const middlePath = locParts[locParts.length - 2]==="paideia" ? "" : "paideia/"
 
   const navigate = (event) => {
-    history.push(`${middlePath}info/${path}`);
+    history.push(`${path}`);
   };
 
 
@@ -64,6 +61,9 @@ const openmessage = "Paideia is a fun and interactive place to learn New Testame
 
 const Home = () => {
   const history = useHistory();
+  const myLocation = useLocation();
+  const locParts = myLocation.pathname.split('/');
+  const middlePath = locParts[locParts.length - 2]==="paideia" ? "" : "paideia/"
 
   return (
     <div className="home-component content-view">
@@ -118,7 +118,7 @@ const Home = () => {
         {modalContent.map( item => <ModalTrigger title={item.title}
                                       key={`modal_trigger_${item.title}`}
                                       img={item.img}
-                                      path={item.path}
+                                      path={`${middlePath}info/${item.path}`}
                                       history={history}
                                    />
          )
