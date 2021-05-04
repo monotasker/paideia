@@ -16,20 +16,21 @@ class Collapsible extends Component {
     super(props, context);
 
     this.state = {
-      open: false,
+      open: this.props.open,
     };
   }
 
   static defaultProps = {
     linkText: null,
-    linkElement: "h3"
+    linkElement: "h3",
+    open: false
   }
 
   render() {
     const { open } = this.state;
     const Tag = this.props.linkElement;
     return(
-      <Card>
+      <Card className={this.props.styleName}>
         <Card.Body>
           <a onClick={() => this.setState({open: !open})}
             aria-controls="collapse-pane"

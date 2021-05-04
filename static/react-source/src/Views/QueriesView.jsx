@@ -34,6 +34,7 @@ import { getQueries,
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
+import Collapsible from '../Components/Collapsible';
 
 const RoleIcon = ({icon}) => {
   const roles = {instructors: "chalkboard-teacher",
@@ -678,12 +679,17 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
     return (
         <Table>
         <tbody>
-          {queries!==[] && queries.map(({classId, institution, year, term, section, instructor, queries}) =>
+          {queries!==[] && queries.map(({classId, institution, year, term, section, instructor, queries}, index) =>
+
             <tr key={`${institution}_${year}_${term}_${section}_${instructor}`} >
               <td>
-                <span className="query-display-class-header">
-                  {`${institution}, ${year}, ${term}, ${section}, ${instructor}`}
-                </span>
+                <Badge>{queries.length}</Badge>
+                <Collapsible
+                  linkText={`${institution}, ${year}, ${term}, ${section}, ${instructor}`}
+                  className="query-display-class-header"
+                  linkElement="h5"
+                  open={index===0 ? true : false}
+                >
                 <ul className="query-list">
                   {!!queries.length && queries.map(
                     q => <DisplayRow key={`${classId}_${q.queryId}`}
@@ -701,6 +707,7 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                          />
                   )}
                   </ul>
+                </Collapsible>
               </td>
             </tr>
           )}
