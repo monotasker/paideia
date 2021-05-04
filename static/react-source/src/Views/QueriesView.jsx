@@ -536,7 +536,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           {!!sampleAnswers &&
             <React.Fragment>
               Good answers could include these...
-              <p className="query-display-samples">{SampleList}</p>
+              <div className="query-display-samples">{SampleList}</div>
             </React.Fragment>
           }
           <SwitchTransition>
@@ -678,11 +678,11 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
     return (
         <Table>
         <tbody>
-          {queries!==[] && queries.map(({classId, institution, year, section, queries}) =>
-            <tr key={`${institution}_${year}_${section}`} >
+          {queries!==[] && queries.map(({classId, institution, year, term, section, instructor, queries}) =>
+            <tr key={`${institution}_${year}_${term}_${section}_${instructor}`} >
               <td>
                 <span className="query-display-class-header">
-                  {`${institution}, ${year}, ${section}`}
+                  {`${institution}, ${year}, ${term}, ${section}, ${instructor}`}
                 </span>
                 <ul className="query-list">
                   {!!queries.length && queries.map(
@@ -731,6 +731,10 @@ const QueriesView = () => {
     console.log(otherQueries);
     console.log("userQueries");
     console.log(userQueries);
+    console.log("classQueries");
+    console.log(classQueries);
+    console.log("studentsQueries");
+    console.log(studentsQueries);
 
     const [loading, setLoading] = useState(!queries ? true : false);
 
@@ -879,11 +883,13 @@ const QueriesView = () => {
       )
     }
 
-    const _formatClassData = ({id, institution, section, year, queries}) => {
+    const _formatClassData = ({id, institution, section, year, term, instructor, queries}) => {
       return ({classId: id,
                institution: institution,
                section: section,
                year: year,
+               term: term,
+               instructor: instructor,
                queries: queries.map(q => _formatQueryData(q))
               }
       )
