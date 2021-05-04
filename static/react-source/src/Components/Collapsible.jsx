@@ -15,26 +15,28 @@ const Collapsible = ({linkElement="h3",
                       linkIcon,
                       linkText,
                       children,
+                      open=false,
+                      styleName,
                       ...otherProps}) => {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(open);
   const Tag = linkElement;
 
   return (
-    <Card {...otherProps} >
+    <Card {...otherProps} className={styleName} >
       <Card.Body>
-        <a onClick={() => setOpen(!open)}
+        <a onClick={() => setOpen(!isOpen)}
           aria-controls="collapse-pane"
-          aria-expanded={open}
+          aria-expanded={isOpen}
         >
           <Tag>
             {!!linkIcon &&
               <FontAwesomeIcon icon={linkIcon} fixedWidth />
             }
             {linkText}
-            <FontAwesomeIcon icon={open ? faMinus : faPlus} pull="right" />
+            <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} pull="right" />
           </Tag>
         </a>
-        <Collapse in={open}>
+        <Collapse in={isOpen}>
           <div id="switching-pane">
             {children}
           </div>
