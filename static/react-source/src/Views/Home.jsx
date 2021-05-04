@@ -5,7 +5,9 @@ import {
   Button,
   Card
 } from "react-bootstrap";
-import { Link, useHistory } from 'react-router-dom';
+import { Link,
+         useHistory,
+         useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamationTriangle,
@@ -30,14 +32,16 @@ const modalContent = [
    path: "faq"}
 ];
 
-
-
-
 const ModalTrigger = ({title, img, path, history}) => {
 
+  const myLocation = useLocation();
+  const locParts = myLocation.pathname.split('/');
+  const middlePath = locParts[locParts.length - 2]==="paideia" ? "" : "paideia/"
+
   const navigate = (event) => {
-    history.push(`info/${path}`);
+    history.push(`${middlePath}info/${path}`);
   };
+
 
   return (
     <Col key={title} className='info-pane' md
