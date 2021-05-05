@@ -16,7 +16,7 @@ const Collapsible = ({linkElement="h3",
                       linkText,
                       children,
                       open=false,
-                      styleName,
+                      styleName="",
                       ...otherProps}) => {
   const [isOpen, setOpen] = useState(open);
   const Tag = linkElement;
