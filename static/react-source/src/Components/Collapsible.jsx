@@ -23,7 +23,8 @@ class Collapsible extends Component {
   static defaultProps = {
     linkText: null,
     linkElement: "h3",
-    open: false
+    open: false,
+    styleName: ""
   }
 
   render() {

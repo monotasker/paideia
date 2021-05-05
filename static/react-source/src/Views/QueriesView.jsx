@@ -32,15 +32,17 @@ import { getQueries,
          updateReadStatus
  } from "../Services/stepFetchService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { findIndex } from "core-js/es/array";
+import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
 import Collapsible from '../Components/Collapsible';
 
+
+const roles = {instructors: "chalkboard-teacher",
+               administrators: "hard-hat",
+               students: "graduation-cap"
+               }
+
 const RoleIcon = ({icon}) => {
-  const roles = {instructors: "chalkboard-teacher",
-                 administrators: "hard-hat",
-                 students: "graduation-cap"
-                 }
   return ( <OverlayTrigger placement="top"
              className={`role-icon-${icon}`}
              overlay={
@@ -48,6 +50,7 @@ const RoleIcon = ({icon}) => {
              }
            >
              <FontAwesomeIcon icon={roles[icon]} />
+             {/* <span>{icon}</span> */}
            </OverlayTrigger>
   )
 }
@@ -144,7 +147,8 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
             updateAction({...defaultUpdateArgs, helpfulness: myHelp, event: e})
           }}
         >
-          <FontAwesomeIcon icon="lightbulb" /> {myHelp.length}
+          <FontAwesomeIcon icon="lightbulb" />
+          {myHelp.length}
         </Button>
       }
     </div>
@@ -321,6 +325,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      score=null, adjustedScore=null,
                      children=null, threadIndex=0
                     }) => {
+  console.log('starting display row');
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
   // console.log(`DisplayRow: read: ${read}`);
@@ -439,7 +444,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 idArgs={idArgs}
                 updateAction={updateThisAction[level]}
                 updateField="queryStatus"
-                currentText={DOMPurify.sanitize(queryStatus)}
+                currentText={queryStatus}
+                // currentText={DOMPurify.sanitize(queryStatus)}
                 setEditingAction={setEditing}
                 autosize={false}
                 optionList={queryStatusList}
@@ -468,7 +474,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     updateAction={updateThisAction[level]}
                     updateField="score"
                     labels={true}
-                    currentText={!activeScore==="0" ? DOMPurify.sanitize(activeScore) : activeScore}
+                    currentText={!activeScore==="0" ? activeScore : activeScore}
+                    // currentText={!activeScore==="0" ? DOMPurify.sanitize(activeScore) : activeScore}
                     setEditingAction={setEditing}
                     autosize={false}
                     inline={true}
@@ -482,7 +489,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 </span>
               }
               <span className={`${level}-display-op-privatemessage display-op-privatemessage`}>
-                <FontAwesomeIcon icon="eye-slash" />this score is private
+                <FontAwesomeIcon icon="eye-slash" />
+                this score is private
               </span>
             </div>
           }
@@ -520,8 +528,11 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             <React.Fragment>
               The step asked...
               <p className="query-display-prompt"
+                // FIXME: do I need sanitize in all the places it's commented out?
+                // dangerouslySetInnerHTML={{
+                //   __html: !!stepPrompt ? DOMPurify.sanitize(marked(stepPrompt)) : ""}}
                 dangerouslySetInnerHTML={{
-                  __html: !!stepPrompt ? DOMPurify.sanitize(marked(stepPrompt)) : ""}}
+                  __html: !!stepPrompt ? marked(stepPrompt) : ""}}
               />
             </React.Fragment>
           }
@@ -529,8 +540,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             <React.Fragment>
               And I responded...
               <p className="query-display-response"
+                // dangerouslySetInnerHTML={{
+                  // __html: !!opResponseText ? DOMPurify.sanitize(marked(opResponseText)) : ""}}
                 dangerouslySetInnerHTML={{
-                  __html: !!opResponseText ? DOMPurify.sanitize(marked(opResponseText)) : ""}}
+                  __html: !!opResponseText ? marked(opResponseText) : ""}}
               />
             </React.Fragment>
           }
@@ -552,7 +565,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                   <UpdateForm level={level}
                     idArgs={idArgs}
                     updateAction={updateThisAction[level]}
-                    currentText={opText ? DOMPurify.sanitize(opText) : ""}
+                    // currentText={opText ? DOMPurify.sanitize(opText) : ""}
+                    currentText={opText ? opText : ""}
                     setEditingAction={setEditing}
                   />
                 </div>
@@ -560,8 +574,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 <React.Fragment>
                 <div className={`${level}-display-body-text display-body-text`}>
                   <p className={`${level}-display-op-question display-op-question`}
+                    // dangerouslySetInnerHTML={{
+                    //   __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
                     dangerouslySetInnerHTML={{
-                      __html: opText ? DOMPurify.sanitize(marked(opText)) : ""}}
+                      __html: opText ? marked(opText) : ""}}
                   />
                 </div>
                 <span className={`${level}-display-date display-date`}>
@@ -569,12 +585,14 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 </span>
                 {!!dateUpdated && (dateUpdated !== dateSubmitted) &&
                   <span className={`${level}-display-edited-date display-edited-date`}>
-                    <FontAwesomeIcon icon="clock" size="sm" />last edited {readableDateAndTime(dateUpdated)}
+                    <FontAwesomeIcon icon="clock" size="sm" />
+                    last edited {readableDateAndTime(dateUpdated)}
                   </span>
                 }
                 {!!queryStep && (!!viewingAsAdmin || !!viewingAsInstructor) &&
                   <span className={`${level}-display-query-step dispay-query-step`}>
-                    <FontAwesomeIcon icon="shoe-prints" size="sm" />for step {queryStep} in path {queryPath}
+                    <FontAwesomeIcon icon="shoe-prints" size="sm" />
+                    for step {queryStep} in path {queryPath}
                   </span>
                 }
                 <ControlRow
@@ -654,7 +672,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 
 const DisplayTable = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
-                       updateCommentAction, setReadStatusAction, viewingAsAdmin}) => {
+                       updateCommentAction, setReadStatusAction, viewingAsAdmin,viewCourse, viewStudents, scope}) => {
+  const viewGroup = scope==="class" ? viewCourse : viewStudents;
   const { user, } = useContext(UserContext);
   if (!!queries && !!queries[0] && !queries[0].section) {
     return (<ul className="query-list">
@@ -677,42 +696,30 @@ const DisplayTable = ({queries, updateQueryAction, newReplyAction,
       )
   } else if (!!queries && !!queries[0] && !!queries[0].section) {
     return (
-        <Table>
-        <tbody>
+        <>
           {queries!==[] && queries.map(({classId, institution, year, term, section, instructor, queries}, index) =>
-
-            <tr key={`${institution}_${year}_${term}_${section}_${instructor}`} >
-              <td>
-                <Badge>{queries.length}</Badge>
-                <Collapsible
-                  linkText={`${institution}, ${year}, ${term}, ${section}, ${instructor}`}
-                  className="query-display-class-header"
-                  linkElement="h5"
-                  open={index===0 ? true : false}
-                >
-                <ul className="query-list">
-                  {!!queries.length && queries.map(
-                    q => <DisplayRow key={`${classId}_${q.queryId}`}
-                           level="query"
-                           updateQueryAction={updateQueryAction}
-                           newReplyAction={newReplyAction}
-                           newCommentAction={newCommentAction}
-                           updateReplyAction={updateReplyAction}
-                           updateCommentAction={updateCommentAction}
-                           setReadStatusAction={setReadStatusAction}
-                           viewingAsAdmin={viewingAsAdmin}
-                           viewingAsInstructor={!!user.instructing && user.instructing.find(c => c.id === classId)}
-                           classId={classId}
-                           {...q}
-                         />
-                  )}
-                  </ul>
-                </Collapsible>
-              </td>
-            </tr>
+            <div key={`${institution}_${year}_${term}_${section}_${instructor}`} >
+              <Badge>{queries.length}</Badge>
+              <ul className="query-list">
+                {!!queries.length && queries.map(
+                  q => <DisplayRow key={`${classId}_${q.queryId}`}
+                          level="query"
+                          updateQueryAction={updateQueryAction}
+                          newReplyAction={newReplyAction}
+                          newCommentAction={newCommentAction}
+                          updateReplyAction={updateReplyAction}
+                          updateCommentAction={updateCommentAction}
+                          setReadStatusAction={setReadStatusAction}
+                          viewingAsAdmin={viewingAsAdmin}
+                          viewingAsInstructor={!!user.instructing && user.instructing.find(c => c.id === classId)}
+                          classId={classId}
+                          {...q}
+                        />
+                )}
+              </ul>
+            </div>
           )}
-        </tbody>
-        </Table>
+        </>
     )
   } else {
     return <Table />
@@ -752,9 +759,17 @@ const QueriesView = () => {
       !["map", undefined].includes(urlParams.walkPage) &&
       !!user.currentStep);
 
-    const [singleStep, setSingleStep] = useState(!onStep ? false : true)
-    const [nonStep, setNonStep] = useState(true)
+    const [singleStep, setSingleStep] = useState(!onStep ? false : true);
+    const [nonStep, setNonStep] = useState(true);
     const [viewScope, setViewScope] = useState('public');
+    const [viewCourse, setViewCourse] = useState();
+    console.log('viewCourse');
+    console.log(viewCourse);
+    const [viewStudents, setViewStudents] = useState();
+    console.log('viewStudents');
+    console.log(viewStudents);
+    const courseChangeFunctions = {class: setViewCourse,
+                                  students: setViewStudents};
     const [filterUnanswered, setFilterUnanswered] = useState(false);
     const [filterUnread, setFilterUnread] = useState(false);
     const [viewingAsAdmin, ] = useState(
@@ -1173,7 +1188,7 @@ const QueriesView = () => {
                   nonstep: nonStep,
                   unread: filterUnread,
                   unanswered: filterUnanswered,
-                  pagesize: 50,
+                  pagesize: 20,
                   page: 0,
                   orderby: "modified_on"
                 })
@@ -1370,17 +1385,7 @@ const QueriesView = () => {
       <Spinner animation="grow" variant="secondary"
         className="align-self-center map-spinner" />
     );
-    console.log("in QueriesView----------------------")
-    // console.log("class queries");
-    // console.log(classQueries);
-    // console.log("user queries");
-    // console.log(userQueries);
-    // console.log("student queries");
-    // console.log(studentsQueries);
-    console.log("other queries");
-    console.log(otherQueries);
-    console.log("user queries");
-    console.log(userQueries);
+
     const myScopes = [
       {scope: 'user',
        list: userQueries,
@@ -1480,6 +1485,25 @@ const QueriesView = () => {
                 </span>
               )
               : ''}
+              {['class', 'students'].includes(scope) ?
+                <Form>
+                  <Form.Control
+                      id={`${scope}SelectorForm`}
+                      as="select"
+                      onChange={e => courseChangeFunctions[scope](e.target.value)}
+                  >
+                      {list.map( c =>
+                          <option key={c.classId}
+                           value={c.classId}
+                          >
+                            {`${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`}
+                          </option>
+                      )}
+                  </Form.Control>
+                </Form>
+                :
+                " "
+              }
               <DisplayTable
                 queries={list}
                 updateQueryAction={updateQueryAction}
@@ -1489,6 +1513,9 @@ const QueriesView = () => {
                 updateCommentAction={updateCommentAction}
                 setReadStatusAction={setReadStatusAction}
                 viewingAsAdmin={viewingAsAdmin}
+                viewCourse={viewCourse}
+                viewStudents={viewStudents}
+                scope={scope}
               />
             </div>
           </CSSTransition>
@@ -1541,7 +1568,7 @@ const QueriesView = () => {
             </Button>
           </h2>
 
-          <Form controlId={`filterUnansweredCheckbox`}
+          <Form id={`filterUnansweredCheckbox`}
             inline
             className="query-filter-form"
           >

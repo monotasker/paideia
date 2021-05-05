@@ -1040,7 +1040,7 @@ def _fetch_unread_queries(user_id):
 
 
 def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
-                   unanswered=False, pagesize=50, page=0,
+                   unanswered=False, pagesize=20, page=0,
                    orderby="date_submitted"):
     """
     Return a list of student queries from the db.bugs table.
