@@ -21,7 +21,7 @@ import marked from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { UserContext } from "../UserContext/UserProvider";
+import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { getQueries,
          addQuery,
          updateQuery,
@@ -670,60 +670,260 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 }
 
 
-const DisplayTable = ({queries, updateQueryAction, newReplyAction,
+const QueriesList = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
                        updateCommentAction, setReadStatusAction, viewingAsAdmin,viewCourse, viewStudents, scope}) => {
   const viewGroup = scope==="class" ? viewCourse : viewStudents;
   const { user, } = useContext(UserContext);
-  if (!!queries && !!queries[0] && !queries[0].section) {
-    return (<ul className="query-list">
-              {queries.map(
-                q => <DisplayRow key={`query-row-${q.queryId}`}
-                       level="query"
-                       updateQueryAction={updateQueryAction}
-                       newReplyAction={newReplyAction}
-                       newCommentAction={newCommentAction}
-                       updateReplyAction={updateReplyAction}
-                       updateCommentAction={updateCommentAction}
-                       setReadStatusAction={setReadStatusAction}
-                       viewingAsAdmin={viewingAsAdmin}
-                       viewingAsInstructor={false}
-                       classId={null}
-                       {...q}
-                     />
-              )}
-            </ul>
+  const byClass = ["class", "students"].includes(scope);
+  const queryArray = !!byClass ?
+    queries.find(c => c.classId===viewGroup) : queries;
+  const instructorState = scope==="students" ?
+    user.instructing.find(c => c.id === viewGroup) : false;
+  return (<>
+    {!!byClass && !!queryArray && <Badge>{queryArray.length}</Badge>}
+    {( !!queryArray && queryArray!==[] ) ?
+          <ul className="query-list">
+            {queryArray.map(
+              q => <DisplayRow key={`query-row-${q.queryId}`}
+                      level="query"
+                      updateQueryAction={updateQueryAction}
+                      newReplyAction={newReplyAction}
+                      newCommentAction={newCommentAction}
+                      updateReplyAction={updateReplyAction}
+                      updateCommentAction={updateCommentAction}
+                      setReadStatusAction={setReadStatusAction}
+                      viewingAsAdmin={viewingAsAdmin}
+                      viewingAsInstructor={instructorState}
+                      classId={!!byClass ? viewGroup : 0}
+                      {...q}
+                    />
+            )}
+          </ul>
+    :
+    <ul />
+    }
+  </>)
+}
+
+const ScopeView = ({scope, nonStep, singleStep,
+                    newQueryAction,
+                    updateQueryAction,
+                    newReplyAction,
+                    updateReplyAction,
+                    newCommentAction,
+                    updateCommentAction,
+                    setReadStatusAction,
+                    viewingAsAdmin,
+                    viewCourse,
+                    viewStudents,
+                    courseChangeFunctions, list}) => {
+
+  const {user, } = useContext(UserContext);
+
+  return (
+    <div className="queries-view-pane" key={scope}>
+      {scope==='user' ? (
+        !!user.userLoggedIn ? (
+          (nonStep===false && singleStep===false) ?
+            <Alert variant="warning" className="me-new-query-info">
+              <p>{"Asking a question that's not about a specific path or step? Select 'General' at top."}</p>
+              <p>To ask about a specific step you must be attempting that step when you submit your question.</p>
+            </Alert>
+          :
+            <NewQueryForm
+              answer={user.currentAnswer}
+              score={user.currentScore}
+              action={newQueryAction}
+              nonStep={nonStep}
+              singleStep={singleStep}
+            />
+        )
+        : <span className="queries-view-login-message">
+          Log in to ask a question or offer a comment.
+        </span>
       )
-  } else if (!!queries && !!queries[0] && !!queries[0].section) {
-    return (
-        <>
-          {queries!==[] && queries.map(({classId, institution, year, term, section, instructor, queries}, index) =>
-            <div key={`${institution}_${year}_${term}_${section}_${instructor}`} >
-              <Badge>{queries.length}</Badge>
-              <ul className="query-list">
-                {!!queries.length && queries.map(
-                  q => <DisplayRow key={`${classId}_${q.queryId}`}
-                          level="query"
-                          updateQueryAction={updateQueryAction}
-                          newReplyAction={newReplyAction}
-                          newCommentAction={newCommentAction}
-                          updateReplyAction={updateReplyAction}
-                          updateCommentAction={updateCommentAction}
-                          setReadStatusAction={setReadStatusAction}
-                          viewingAsAdmin={viewingAsAdmin}
-                          viewingAsInstructor={!!user.instructing && user.instructing.find(c => c.id === classId)}
-                          classId={classId}
-                          {...q}
-                        />
-                )}
-              </ul>
-            </div>
-          )}
-        </>
-    )
-  } else {
-    return <Table />
-  }
+      : ''}
+      {['class', 'students'].includes(scope) ?
+        <Form>
+          <Form.Control
+              id={`${scope}SelectorForm`}
+              as="select"
+              onChange={e => courseChangeFunctions[scope](e.target.value)}
+          >
+              {list.map( c =>
+                  <option key={c.classId}
+                    value={c.classId}
+                  >
+                    {`${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`}
+                  </option>
+              )}
+          </Form.Control>
+        </Form>
+        :
+        " "
+      }
+      <QueriesList
+        queries={list}
+        updateQueryAction={updateQueryAction}
+        newReplyAction={newReplyAction}
+        updateReplyAction={updateReplyAction}
+        newCommentAction={newCommentAction}
+        updateCommentAction={updateCommentAction}
+        setReadStatusAction={setReadStatusAction}
+        viewingAsAdmin={viewingAsAdmin}
+        viewCourse={viewCourse}
+        viewStudents={viewStudents}
+        scope={scope}
+      />
+    </div>
+  )
+}
+
+const LoadingContent = () => {
+  return (
+    <Spinner animation="grow" variant="secondary"
+      className="align-self-center map-spinner" />
+  )
+}
+
+const ScopesFrame = ({viewScope,
+                      nonStep,
+                      singleStep,
+                      viewingAsAdmin,
+                      viewCourse,
+                      viewStudents,
+                      courseChangeFunctions,
+                      userQueries,
+                      userUnreadCount,
+                      setUserQueries,
+                      classQueries,
+                      classTotalCount,
+                      classUnreadCount,
+                      setClassQueries,
+                      setViewScope,
+                      studentsQueries,
+                      studentsTotalCount,
+                      studentsUnreadCount,
+                      setStudentsQueries,
+                      otherQueries,
+                      otherUnreadCount,
+                      setOtherQueries,
+                      newQueryAction,
+                      updateQueryAction,
+                      newReplyAction,
+                      updateReplyAction,
+                      newCommentAction,
+                      updateCommentAction,
+                      setReadStatusAction,
+                      myScopes
+                      }) => {
+
+  const {user,} = useContext(UserContext);
+
+  return (
+    <React.Fragment>
+      <div className="queries-view-changer-wrapper">
+        <Button
+          className={`queries-view-changer ${viewScope==='user' ? "in" : "out"}`}
+          variant="outline-secondary"
+          onClick={() => setViewScope('user')}
+        >
+          <FontAwesomeIcon icon="user" />Me
+          <Badge variant="secondary">{userQueries ? userQueries.length : "0"}</Badge>
+          {!!userUnreadCount &&
+            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
+          }
+        </Button>
+        {!!user.userLoggedIn && !!user.classInfo &&
+        <Button
+          className={`queries-view-changer ${viewScope==='class' ? "in" : "out"}`}
+          variant="outline-secondary"
+          onClick={() => setViewScope('class')}
+        >
+          <FontAwesomeIcon icon="users" />Classmates
+          <Badge variant="secondary">{classTotalCount}</Badge>
+          {!!classUnreadCount &&
+            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classUnreadCount}</Badge>
+          }
+        </Button>
+        }
+        {!!user.userRoles.some(v => ["instructors", "administrators"].includes(v)) &&
+          <Button
+            className={`queries-view-changer ${viewScope==='students' ? "in" : "out"}`}
+            variant="outline-secondary"
+            onClick={() => setViewScope('students')}
+          >
+            <FontAwesomeIcon icon="users" />Students
+            <Badge variant="secondary">{studentsTotalCount}</Badge>
+            {!!studentsUnreadCount &&
+              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {studentsUnreadCount}</Badge>
+            }
+          </Button>
+        }
+        <Button
+          className={`queries-view-changer ${viewScope==='public' ? "in" : "out"}`}
+          variant="outline-secondary"
+          onClick={() => setViewScope('public')}
+        >
+          <FontAwesomeIcon icon="globe-americas" />Others
+          <Badge variant="secondary">{otherQueries ? otherQueries.length : "0"}</Badge>
+          {!!otherUnreadCount &&
+            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
+          }
+        </Button>
+      </div>
+
+      {myScopes.map(({scope, list}) =>
+        <CSSTransition
+          key={scope}
+          timeout={250}
+          in={scope === viewScope}
+          classNames="queries-view-pane"
+          appear={true}
+          unmountOnExit={true}
+        >
+          <ScopeView
+            scope={scope}
+            nonStep={nonStep}
+            singleStep={singleStep}
+            newQueryAction={newQueryAction}
+            updateQueryAction={updateQueryAction}
+            newReplyAction={newReplyAction}
+            updateReplyAction={updateReplyAction}
+            newCommentAction={newCommentAction}
+            updateCommentAction={updateCommentAction}
+            setReadStatusAction={setReadStatusAction}
+            viewingAsAdmin={viewingAsAdmin}
+            viewCourse={viewCourse}
+            viewStudents={viewStudents}
+            courseChangeFunctions ={courseChangeFunctions}
+            list={list}
+          />
+
+        </CSSTransition>
+      )}
+
+      {/* { ( !userQueries || userQueries == [] ) ? (
+        "You haven\'t asked any questions yet about this step."
+      ) : (
+        <Table>
+        </Table>
+      )}
+
+      { ( !classQueries || classQueries == {} ) ? (
+        "You haven\'t asked any questions yet about this step."
+      ) : (
+        <Table>
+        </Table>
+      )}
+
+      { ( !otherQueries || otherQueries == [] ) ? (
+        "No one else has asked a question about this step. Why not be the first?"
+      ) : (
+      )} */}
+    </React.Fragment>
+  )
 }
 
 const QueriesView = () => {
@@ -749,6 +949,21 @@ const QueriesView = () => {
     console.log(classQueries);
     console.log("studentsQueries");
     console.log(studentsQueries);
+
+    const myScopes = [
+      {scope: 'user',
+       list: userQueries,
+       action: setUserQueries},
+      {scope: 'class',
+       list: classQueries,
+       action: setClassQueries},
+      {scope: 'students',
+       list: studentsQueries,
+       action: setStudentsQueries},
+      {scope: 'public',
+       list: otherQueries,
+       action: setOtherQueries}
+    ];
 
     const [loading, setLoading] = useState(!queries ? true : false);
 
@@ -1381,167 +1596,6 @@ const QueriesView = () => {
       });
     }
 
-    const LoadingContent = () => (
-      <Spinner animation="grow" variant="secondary"
-        className="align-self-center map-spinner" />
-    );
-
-    const myScopes = [
-      {scope: 'user',
-       list: userQueries,
-       action: setUserQueries},
-      {scope: 'class',
-       list: classQueries,
-       action: setClassQueries},
-      {scope: 'students',
-       list: studentsQueries,
-       action: setStudentsQueries},
-      {scope: 'public',
-       list: otherQueries,
-       action: setOtherQueries}
-    ];
-
-    const DisplayContent = () => (
-      <React.Fragment>
-        <div className="queries-view-changer-wrapper">
-          <Button
-            className={`queries-view-changer ${viewScope==='user' ? "in" : "out"}`}
-            variant="outline-secondary"
-            onClick={() => setViewScope('user')}
-          >
-            <FontAwesomeIcon icon="user" />Me
-            <Badge variant="secondary">{userQueries ? userQueries.length : "0"}</Badge>
-            {!!userUnreadCount &&
-              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
-            }
-          </Button>
-          {!!user.userLoggedIn && !!user.classInfo &&
-          <Button
-            className={`queries-view-changer ${viewScope==='class' ? "in" : "out"}`}
-            variant="outline-secondary"
-            onClick={() => setViewScope('class')}
-          >
-            <FontAwesomeIcon icon="users" />Classmates
-            <Badge variant="secondary">{classTotalCount}</Badge>
-            {!!classUnreadCount &&
-              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classUnreadCount}</Badge>
-            }
-          </Button>
-          }
-          {!!user.userRoles.some(v => ["instructors", "administrators"].includes(v)) &&
-            <Button
-              className={`queries-view-changer ${viewScope==='students' ? "in" : "out"}`}
-              variant="outline-secondary"
-              onClick={() => setViewScope('students')}
-            >
-              <FontAwesomeIcon icon="users" />Students
-              <Badge variant="secondary">{studentsTotalCount}</Badge>
-              {!!studentsUnreadCount &&
-                <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {studentsUnreadCount}</Badge>
-              }
-            </Button>
-          }
-          <Button
-            className={`queries-view-changer ${viewScope==='public' ? "in" : "out"}`}
-            variant="outline-secondary"
-            onClick={() => setViewScope('public')}
-          >
-            <FontAwesomeIcon icon="globe-americas" />Others
-            <Badge variant="secondary">{otherQueries ? otherQueries.length : "0"}</Badge>
-            {!!otherUnreadCount &&
-              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
-            }
-          </Button>
-        </div>
-
-        {myScopes.map(({scope, list}) =>
-          <CSSTransition
-            key={scope}
-            timeout={250}
-            in={scope === viewScope}
-            classNames="queries-view-pane"
-            appear={true}
-            unmountOnExit={true}
-          >
-            <div className="queries-view-pane" key={scope}>
-              {scope==='user' ? (
-                !!user.userLoggedIn ? (
-                  (nonStep===false && singleStep===false) ?
-                    <Alert variant="warning" className="me-new-query-info">
-                      <p>{"Asking a question that's not about a specific path or step? Select 'General' at top."}</p>
-                      <p>To ask about a specific step you must be attempting that step when you submit your question.</p>
-                    </Alert>
-                  :
-                    <NewQueryForm
-                      answer={user.currentAnswer}
-                      score={user.currentScore}
-                      action={newQueryAction}
-                      nonStep={nonStep}
-                      singleStep={singleStep}
-                    />
-                )
-                : <span className="queries-view-login-message">
-                  Log in to ask a question or offer a comment.
-                </span>
-              )
-              : ''}
-              {['class', 'students'].includes(scope) ?
-                <Form>
-                  <Form.Control
-                      id={`${scope}SelectorForm`}
-                      as="select"
-                      onChange={e => courseChangeFunctions[scope](e.target.value)}
-                  >
-                      {list.map( c =>
-                          <option key={c.classId}
-                           value={c.classId}
-                          >
-                            {`${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`}
-                          </option>
-                      )}
-                  </Form.Control>
-                </Form>
-                :
-                " "
-              }
-              <DisplayTable
-                queries={list}
-                updateQueryAction={updateQueryAction}
-                newReplyAction={newReplyAction}
-                updateReplyAction={updateReplyAction}
-                newCommentAction={newCommentAction}
-                updateCommentAction={updateCommentAction}
-                setReadStatusAction={setReadStatusAction}
-                viewingAsAdmin={viewingAsAdmin}
-                viewCourse={viewCourse}
-                viewStudents={viewStudents}
-                scope={scope}
-              />
-            </div>
-          </CSSTransition>
-        )}
-
-        {/* { ( !userQueries || userQueries == [] ) ? (
-          "You haven\'t asked any questions yet about this step."
-        ) : (
-          <Table>
-          </Table>
-        )}
-
-        { ( !classQueries || classQueries == {} ) ? (
-          "You haven\'t asked any questions yet about this step."
-        ) : (
-          <Table>
-          </Table>
-        )}
-
-        { ( !otherQueries || otherQueries == [] ) ? (
-          "No one else has asked a question about this step. Why not be the first?"
-        ) : (
-        )} */}
-    </React.Fragment>
-    );
-
     return(
       <Row key="QueriesView" className="queriesview-component panel-view">
         <Col>
@@ -1596,7 +1650,42 @@ const QueriesView = () => {
                 unmountOnExit
                 mountOnEnter
               >
-                { !!loading ? <LoadingContent /> : <DisplayContent /> }
+                { !!loading ?
+                  <LoadingContent />
+                  :
+                  <ScopesFrame
+                      viewScope={viewScope}
+                      nonStep={nonStep}
+                      singleStep={singleStep}
+                      viewingAsAdmin={viewingAsAdmin}
+                      viewCourse={viewCourse}
+                      viewStudents={viewStudents}
+                      courseChangeFunctions={courseChangeFunctions}
+                      userQueries={userQueries}
+                      userUnreadCount={userUnreadCount}
+                      setUserQueries={setUserQueries}
+                      classQueries={classQueries}
+                      classTotalCount={classTotalCount}
+                      classUnreadCount={classUnreadCount}
+                      setClassQueries={setClassQueries}
+                      setViewScope={setViewScope}
+                      studentsQueries={studentsQueries}
+                      studentsTotalCount={studentsTotalCount}
+                      studentsUnreadCount={studentsUnreadCount}
+                      setStudentsQueries={setStudentsQueries}
+                      otherQueries={otherQueries}
+                      otherUnreadCount={otherUnreadCount}
+                      setOtherQueries={setOtherQueries}
+                      newQueryAction={newQueryAction}
+                      updateQueryAction={updateQueryAction}
+                      newReplyAction={newReplyAction}
+                      updateReplyAction={updateReplyAction}
+                      newCommentAction={newCommentAction}
+                      updateCommentAction={updateCommentAction}
+                      setReadStatusAction={setReadStatusAction}
+                      myScopes={myScopes}
+                  />
+                }
               </CSSTransition>
             </SwitchTransition>
           </div>
