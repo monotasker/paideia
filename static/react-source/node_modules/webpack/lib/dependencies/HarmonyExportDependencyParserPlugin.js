@@ -16,10 +16,11 @@ const {
 } = require("./HarmonyImportDependencyParserPlugin");
 const HarmonyImportSideEffectDependency = require("./HarmonyImportSideEffectDependency");
 
+const { HarmonyStarExportsList } = HarmonyExportImportedSpecifierDependency;
+
 module.exports = class HarmonyExportDependencyParserPlugin {
 	constructor(options) {
-		const { module: moduleOptions } = options;
-		this.strictExportPresence = moduleOptions.strictExportPresence;
+		this.strictExportPresence = options.strictExportPresence;
 	}
 
 	apply(parser) {
@@ -125,7 +126,8 @@ module.exports = class HarmonyExportDependencyParserPlugin {
 						name,
 						harmonyNamedExports,
 						null,
-						this.strictExportPresence
+						this.strictExportPresence,
+						null
 					);
 				} else {
 					dep = new HarmonyExportSpecifierDependency(id, name);
@@ -146,7 +148,7 @@ module.exports = class HarmonyExportDependencyParserPlugin {
 					harmonyNamedExports.add(name);
 				} else {
 					harmonyStarExports = parser.state.harmonyStarExports =
-						parser.state.harmonyStarExports || [];
+						parser.state.harmonyStarExports || new HarmonyStarExportsList();
 				}
 				const dep = new HarmonyExportImportedSpecifierDependency(
 					source,
@@ -155,7 +157,8 @@ module.exports = class HarmonyExportDependencyParserPlugin {
 					name,
 					harmonyNamedExports,
 					harmonyStarExports && harmonyStarExports.slice(),
-					this.strictExportPresence
+					this.strictExportPresence,
+					harmonyStarExports
 				);
 				if (harmonyStarExports) {
 					harmonyStarExports.push(dep);

@@ -5,15 +5,28 @@
 
 "use strict";
 
-const { validate } = require("schema-utils");
-const schema = require("../schemas/plugins/WatchIgnorePlugin.json");
+const createSchemaValidation = require("./util/create-schema-validation");
 
 /** @typedef {import("../declarations/plugins/WatchIgnorePlugin").WatchIgnorePluginOptions} WatchIgnorePluginOptions */
 /** @typedef {import("./Compiler")} Compiler */
+/** @typedef {import("./util/fs").WatchFileSystem} WatchFileSystem */
+
+const validate = createSchemaValidation(
+	require("../schemas/plugins/WatchIgnorePlugin.check.js"),
+	() => require("../schemas/plugins/WatchIgnorePlugin.json"),
+	{
+		name: "Watch Ignore Plugin",
+		baseDataPath: "options"
+	}
+);
 
 const IGNORE_TIME_ENTRY = "ignore";
 
 class IgnoringWatchFileSystem {
+	/**
+	 * @param {WatchFileSystem} wfs original file system
+	 * @param {(string|RegExp)[]} paths ignored paths
+	 */
 	constructor(wfs, paths) {
 		this.wfs = wfs;
 		this.paths = paths;
@@ -63,7 +76,7 @@ class IgnoringWatchFileSystem {
 			close: () => watcher.close(),
 			pause: () => watcher.pause(),
 			getContextTimeInfoEntries: () => {
-				const dirTimestamps = watcher.getContextInfoEntries();
+				const dirTimestamps = watcher.getContextTimeInfoEntries();
 				for (const path of ignoredDirs) {
 					dirTimestamps.set(path, IGNORE_TIME_ENTRY);
 				}
@@ -85,10 +98,7 @@ class WatchIgnorePlugin {
 	 * @param {WatchIgnorePluginOptions} options options
 	 */
 	constructor(options) {
-		validate(schema, options, {
-			name: "Watch Ignore Plugin",
-			baseDataPath: "options"
-		});
+		validate(options);
 		this.paths = options.paths;
 	}
 
