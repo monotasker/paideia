@@ -670,16 +670,18 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 }
 
 
-const QueriesList = ({queries, updateQueryAction, newReplyAction,
+const QueriesList = ({queryArray, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
-                       updateCommentAction, setReadStatusAction, viewingAsAdmin,viewCourse, viewStudents, scope}) => {
-  const viewGroup = scope==="class" ? viewCourse : viewStudents;
+                       updateCommentAction, setReadStatusAction, viewingAsAdmin, scope, byClass, viewGroup}) => {
   const { user, } = useContext(UserContext);
-  const byClass = ["class", "students"].includes(scope);
-  const queryArray = !!byClass ?
-    queries.find(c => c.classId===viewGroup) : queries;
+  console.log("in QueriesList:");
+  console.log(`byClass: ${byClass}`);
+  console.log("queryArray");
+  console.log(queryArray);
   const instructorState = scope==="students" ?
     user.instructing.find(c => c.id === viewGroup) : false;
+
+
   return (<>
     {!!byClass && !!queryArray && <Badge>{queryArray.length}</Badge>}
     {( !!queryArray && queryArray!==[] ) ?
@@ -720,6 +722,27 @@ const ScopeView = ({scope, nonStep, singleStep,
                     courseChangeFunctions, list}) => {
 
   const {user, } = useContext(UserContext);
+  console.log("in ScopeView:");
+  console.log(`viewCourse: ${viewCourse}`);
+  console.log(`viewStudents: ${viewStudents}`);
+  console.log(`list:`);
+  console.log(list);
+  const byClass = ["class", "students"].includes(scope);
+  const viewGroup = scope==="class" ? viewCourse :
+    (scope==="students" ? viewStudents : null);
+
+  useEffect(() => {
+    if (!!byClass && !viewGroup) {
+      courseChangeFunctions[scope](list[0].classId);
+    }
+  }, [byClass, viewGroup, scope, list]);
+
+
+  let queryArray = list;
+  if (!!byClass) {
+    const myClass = list.find(c => c.classId===parseInt(viewGroup));
+    queryArray = !!myClass ? myClass.queries : [];
+  }
 
   return (
     <div className="queries-view-pane" key={scope}>
@@ -764,7 +787,7 @@ const ScopeView = ({scope, nonStep, singleStep,
         " "
       }
       <QueriesList
-        queries={list}
+        queryArray={queryArray}
         updateQueryAction={updateQueryAction}
         newReplyAction={newReplyAction}
         updateReplyAction={updateReplyAction}
@@ -774,6 +797,8 @@ const ScopeView = ({scope, nonStep, singleStep,
         viewingAsAdmin={viewingAsAdmin}
         viewCourse={viewCourse}
         viewStudents={viewStudents}
+        viewGroup={viewGroup}
+        byClass={byClass}
         scope={scope}
       />
     </div>
