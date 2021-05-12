@@ -213,8 +213,8 @@ class Bug(object):
                 #  FIXME: no longer works 'admin_comment': comment,
 
         if bugstatus == "allowance_given":
-            bugrows = db.bugs(bug_id)
-            bugrows.update_record(**newvals)
+            bugrows = [db.bugs(bug_id)]
+            bugrows[0].update_record(**newvals)
         else:
             # Find all equivalent bug reports
             thisuser_bug_query = db((db.bugs.step == self.step_id) &
@@ -233,6 +233,9 @@ class Bug(object):
             general_bug_query.update(**newvals)
 
         # Update those bug reports with the new values
+        for b in bugrows:
+            print(b)
+            print(type(b))
         bugusers = list(set([b.user_name for b in bugrows]))
         message += "\nUpdated {} bug reports for {} users. ".format(len(bugrows),
                                                                   len(bugusers))

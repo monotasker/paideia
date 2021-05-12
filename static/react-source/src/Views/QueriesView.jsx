@@ -719,7 +719,8 @@ const ScopeView = ({scope, nonStep, singleStep,
                     viewingAsAdmin,
                     viewCourse,
                     viewStudents,
-                    courseChangeFunctions, list}) => {
+                    courseChangeFunctions,
+                    list}) => {
 
   const {user, } = useContext(UserContext);
   console.log("in ScopeView:");
@@ -730,9 +731,17 @@ const ScopeView = ({scope, nonStep, singleStep,
   const byClass = ["class", "students"].includes(scope);
   const viewGroup = scope==="class" ? viewCourse :
     (scope==="students" ? viewStudents : null);
+  let noGroupsAvailable = false;
+  if ( scope==="class" &&
+      (!user.classInfo || !Object.keys(user.classInfo).length > 0 )) {
+    noGroupsAvailable = true;
+  } else if (scope==="students" &&
+      (!user.instructing || !Object.keys(user.instructing).length > 0 )) {
+    noGroupsAvailable = true;
+  }
 
   useEffect(() => {
-    if (!!byClass && !viewGroup) {
+    if (!!byClass && !viewGroup && list.length > 0) {
       courseChangeFunctions[scope](list[0].classId);
     }
   }, [byClass, viewGroup, scope, list]);
@@ -767,40 +776,48 @@ const ScopeView = ({scope, nonStep, singleStep,
         </span>
       )
       : ''}
-      {['class', 'students'].includes(scope) ?
-        <Form>
-          <Form.Control
-              id={`${scope}SelectorForm`}
-              as="select"
-              onChange={e => courseChangeFunctions[scope](e.target.value)}
-          >
-              {list.map( c =>
-                  <option key={c.classId}
-                    value={c.classId}
-                  >
-                    {`${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`}
-                  </option>
-              )}
-          </Form.Control>
-        </Form>
+      {['class', 'students'].includes(scope) ? (
+          !noGroupsAvailable ?
+          <Form>
+            <Form.Control
+                id={`${scope}SelectorForm`}
+                as="select"
+                onChange={e => courseChangeFunctions[scope](e.target.value)}
+            >
+                {list.map( c =>
+                    <option key={c.classId}
+                      value={c.classId}
+                    >
+                      {`${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`}
+                    </option>
+                )}
+            </Form.Control>
+          </Form>
+          :
+          <span>You aren't part of any course groups.</span>
+        )
         :
-        " "
+        ""
       }
-      <QueriesList
-        queryArray={queryArray}
-        updateQueryAction={updateQueryAction}
-        newReplyAction={newReplyAction}
-        updateReplyAction={updateReplyAction}
-        newCommentAction={newCommentAction}
-        updateCommentAction={updateCommentAction}
-        setReadStatusAction={setReadStatusAction}
-        viewingAsAdmin={viewingAsAdmin}
-        viewCourse={viewCourse}
-        viewStudents={viewStudents}
-        viewGroup={viewGroup}
-        byClass={byClass}
-        scope={scope}
-      />
+      {!!queryArray.length > 0 ?
+        <QueriesList
+          queryArray={queryArray}
+          updateQueryAction={updateQueryAction}
+          newReplyAction={newReplyAction}
+          updateReplyAction={updateReplyAction}
+          newCommentAction={newCommentAction}
+          updateCommentAction={updateCommentAction}
+          setReadStatusAction={setReadStatusAction}
+          viewingAsAdmin={viewingAsAdmin}
+          viewCourse={viewCourse}
+          viewStudents={viewStudents}
+          viewGroup={viewGroup}
+          byClass={byClass}
+          scope={scope}
+        />
+        :
+        <span>No {scope} questions to view.</span>
+      }
     </div>
   )
 }
@@ -821,19 +838,13 @@ const ScopesFrame = ({viewScope,
                       courseChangeFunctions,
                       userQueries,
                       userUnreadCount,
-                      setUserQueries,
-                      classQueries,
                       classTotalCount,
                       classUnreadCount,
-                      setClassQueries,
                       setViewScope,
-                      studentsQueries,
                       studentsTotalCount,
                       studentsUnreadCount,
-                      setStudentsQueries,
                       otherQueries,
                       otherUnreadCount,
-                      setOtherQueries,
                       newQueryAction,
                       updateQueryAction,
                       newReplyAction,
@@ -845,6 +856,10 @@ const ScopesFrame = ({viewScope,
                       }) => {
 
   const {user,} = useContext(UserContext);
+
+  const activeScope = myScopes.find(s => s.scope===viewScope);
+  console.log('activeScope');
+  console.log(activeScope);
 
   return (
     <React.Fragment>
@@ -899,35 +914,49 @@ const ScopesFrame = ({viewScope,
         </Button>
       </div>
 
-      {myScopes.map(({scope, list}) =>
+            <SwitchTransition>
+              <CSSTransition
+                key={viewScope}
+                timeout={250}
+                classNames="queries-view-pane"
+                appear={true}
+                mountOnEnter
+                unmountOnExit={true}
+              >
+                <ScopeView
+                  scope={viewScope}
+                  nonStep={nonStep}
+                  singleStep={singleStep}
+                  newQueryAction={newQueryAction}
+                  updateQueryAction={updateQueryAction}
+                  newReplyAction={newReplyAction}
+                  updateReplyAction={updateReplyAction}
+                  newCommentAction={newCommentAction}
+                  updateCommentAction={updateCommentAction}
+                  setReadStatusAction={setReadStatusAction}
+                  viewingAsAdmin={viewingAsAdmin}
+                  viewCourse={viewCourse}
+                  viewStudents={viewStudents}
+                  courseChangeFunctions ={courseChangeFunctions}
+                  list={activeScope.list}
+                />
+              </CSSTransition>
+            </SwitchTransition>
+
+      {/* {myScopes.map(({scope, list}) =>
         <CSSTransition
           key={scope}
           timeout={250}
           in={scope === viewScope}
           classNames="queries-view-pane"
           appear={true}
+          mountOnEnter
           unmountOnExit={true}
         >
-          <ScopeView
-            scope={scope}
-            nonStep={nonStep}
-            singleStep={singleStep}
-            newQueryAction={newQueryAction}
-            updateQueryAction={updateQueryAction}
-            newReplyAction={newReplyAction}
-            updateReplyAction={updateReplyAction}
-            newCommentAction={newCommentAction}
-            updateCommentAction={updateCommentAction}
-            setReadStatusAction={setReadStatusAction}
-            viewingAsAdmin={viewingAsAdmin}
-            viewCourse={viewCourse}
-            viewStudents={viewStudents}
-            courseChangeFunctions ={courseChangeFunctions}
-            list={list}
-          />
-
-        </CSSTransition>
-      )}
+          <span>{scope}</span> */}
+{/*
+        </CSSTransition> */}
+      {/* )} */}
 
       {/* { ( !userQueries || userQueries == [] ) ? (
         "You haven\'t asked any questions yet about this step."
@@ -1672,12 +1701,13 @@ const QueriesView = () => {
               <CSSTransition
                 key={!!queries ? "loaded" : "loading"}
                 timeout={250}
-                unmountOnExit
+                // unmountOnExit
                 mountOnEnter
               >
                 { !!loading ?
                   <LoadingContent />
                   :
+                  // <span>{viewScope}</span>
                   <ScopesFrame
                       viewScope={viewScope}
                       nonStep={nonStep}
