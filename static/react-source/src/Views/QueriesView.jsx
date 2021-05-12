@@ -334,8 +334,10 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const [ showAdder, setShowAdder ] = useState(false);
   const [ editing, setEditing ] = useState(false);
   const [ isPublic, setIsPublic ] = useState(showPublic);
-  const [ activeScore, ] =
-    useState(adjustedScore!=null ? adjustedScore : score)
+  const [ myStatus, setMyStatus ] = useState(queryStatus);
+  const [ myScore, setMyScore ] = useState(
+    adjustedScore!=null ? adjustedScore : score)
+
   const showEditingForm = (e) => {
     e.preventDefault();
     setEditing(true);
@@ -389,6 +391,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   };
   const idArgs = updateArgs[level];  // for building unique keys
   idArgs['classId'] = classId;
+  const idString = Object.values(idArgs).join("-");
   const updateThisAction = {query: updateQueryAction,
                             reply: updateReplyAction,
                             comment: updateCommentAction
@@ -411,9 +414,22 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                          readStatus: !read});
   }
 
+  const sendUpdate = e => {
+    e.preventDefault();
+    updateThisAction[level]({...idArgs,
+                             score: parseFloat(myScore),
+                             queryStatus: myStatus});
+  }
+
   return (
     <li key={`${uid}-display-row`}
       className={`${level}-display-row`}
+    >
+
+    <Form id={`update-${level}-form-${idString}`}
+      className={`update-${level}-form update-form`}
+      inline={true}
+      onSubmit={sendUpdate}
     >
       <Row className={`${level}-display-wrapper display-wrapper ${readClass} ${myRoles}`} >
         <Col xs={3} className={`${level}-display-op display-op`}>
@@ -440,17 +456,25 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
           } */}
           {!!queryStatus ? (
             (!!viewingAsAdmin || !!viewingAsInstructor) ?
-              <UpdateForm level={level}
-                idArgs={idArgs}
-                updateAction={updateThisAction[level]}
-                updateField="queryStatus"
-                currentText={queryStatus}
+
+
+            <Form.Group controlId={`update-${level}-queryStatus-input-${idString}`}>
+              <FormControl
+                as="select"
+                defaultValue={parseInt(myStatus)}
                 // currentText={DOMPurify.sanitize(queryStatus)}
-                setEditingAction={setEditing}
-                autosize={false}
-                optionList={queryStatusList}
-                submitButton={false}
-              />
+                onChange={e => setMyStatus(e.target.value)}
+                size="sm"
+              >
+                {queryStatusList.map((label, index) =>
+                    <option value={index} key={label}
+                      // selected={index===parseInt(currentText) ? "selected" : false}
+                    >
+                      {label.replace("_", " ")}
+                    </option>
+                 )}
+              </FormControl>
+            </Form.Group>
             : <Badge pill
                 variant={queryStatusVariants[queryStatusList[queryStatus]]}
                 className={`${level}-display-op-status display-op-status`}
@@ -469,18 +493,15 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             <div className={`${level}-display-op-privateinfo display-op-privateinfo instructor-view`}>
               {(!!viewingAsAdmin || !!viewingAsInstructor) ?
                 <span className={`${level}-display-op-points display-op-points`}>
-                  <UpdateForm level={level}
-                    idArgs={idArgs}
-                    updateAction={updateThisAction[level]}
-                    updateField="score"
-                    labels={true}
-                    currentText={!activeScore==="0" ? activeScore : activeScore}
-                    // currentText={!activeScore==="0" ? DOMPurify.sanitize(activeScore) : activeScore}
-                    setEditingAction={setEditing}
-                    autosize={false}
-                    inline={true}
-                    // submitButton={false}
-                  />
+                  <Form.Group>
+                    <FormLabel>score</FormLabel>
+                    <FormControl
+                      as="input"
+                      defaultValue={myScore}
+                      onChange={e => setMyScore(e.target.value)}
+                      size="sm"
+                    />
+                  </Form.Group>
                   {!!adjustedScore && `(previously ${score})`}
                 </span>
               :
@@ -493,6 +514,12 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 this score is private
               </span>
             </div>
+          }
+          {level==="query" &&
+            (user.userId===opId || !!viewingAsAdmin || !!viewingAsInstructor) &&
+            <Button variant="primary"
+              type="submit"
+            >Update Query</Button>
           }
           {user.userId===opId ?
             <Button className={`${level}-display-op-public display-op-public`}
@@ -623,6 +650,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
             </Col>
           </Row>
 
+    </Form>
           {level !== "comment" && !!user.userLoggedIn &&
             <span className={`${level}-display-add-child display-add-child`}>
               {/* <a className="label"
