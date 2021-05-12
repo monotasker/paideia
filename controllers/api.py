@@ -1631,7 +1631,7 @@ def update_query():
     A value of None for a parameter indicates that no update is requested. A value of False is a negative boolean value to be updated.
     ...
     """
-    vbs = False
+    vbs = True
     response = current.response
 
     user_id = request.vars['user_id']
@@ -1640,11 +1640,15 @@ def update_query():
     adjusted_score = request.vars['adjusted_score']
     op_id = db.bugs[query_id].user_name
 
+    if vbs: print("administrator?", auth.has_membership('administrators'))
+    if vbs: print("instructor?", auth.has_membership('instructors'))
+    if vbs: print("my student?", _is_my_student(auth.user_id, op_id))
+
     if (auth.is_logged_in() and
         (auth.user_id == op_id
          or auth.has_membership('administrators')
          or (auth.has_membership('instructors')
-             and _is_my_student(auth.user_id, user_id))
+             and _is_my_student(auth.user_id, op_id))
          )
     ):
         new_data = {k: v for k, v in request.vars.items()
@@ -2793,7 +2797,11 @@ def _is_my_student(user, student):
     mystudents = db((db.classes.instructor == user) &
                     (db.classes.id == db.class_membership.class_section)
                     ).select(db.class_membership.name).as_list()
+    print("mystudents")
+    pprint(mystudents)
     mystudent_ids = list(set(s['name'] for s in mystudents))
+    pprint(mystudent_ids)
+    pprint(student)
     return True if student in mystudent_ids else False
 
 
