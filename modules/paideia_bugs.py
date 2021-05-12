@@ -233,9 +233,6 @@ class Bug(object):
             general_bug_query.update(**newvals)
 
         # Update those bug reports with the new values
-        for b in bugrows:
-            print(b)
-            print(type(b))
         bugusers = list(set([b.user_name for b in bugrows]))
         message += "\nUpdated {} bug reports for {} users. ".format(len(bugrows),
                                                                   len(bugusers))
