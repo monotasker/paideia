@@ -4,15 +4,16 @@ import {
     CSSTransition
 } from "react-transition-group";
 import {
-    Row,
+    Button,
     Col,
-    Table,
-    Form
+    Form,
+    Row,
+    Table
 } from "react-bootstrap";
 import { useHistory, Link } from "react-router-dom";
 import { urlBase } from "../variables";
 
-const CaseEndings = () => (
+const CaseEndings = ({navigateAwayHandler}) => (
     <React.Fragment>
         <Table className="case-endings-table" size="sm">
             <thead>
@@ -132,12 +133,11 @@ const CaseEndings = () => (
             </tr>
             </tbody>
         </Table>
-        <p>The full set of case endings is introduced for the first time in <Link to={`/${urlBase}/videos/81`}>lesson 8.1, "The Dative Case"</Link></p>
+        <p>The full set of case endings is introduced for the first time in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/81`)}>lesson 8.1, "The Dative Case"</Button></p>
     </React.Fragment>
-
 )
 
-const SquareOfStops = () => (
+const SquareOfStops = ({navigateAwayHandler}) => (
     <React.Fragment>
         <Table className="square-of-stops-table">
             <thead>
@@ -180,13 +180,11 @@ const SquareOfStops = () => (
                 </tr>
             </tbody>
         </Table>
-        <p>Discussed in <Link to={`/${urlBase}/videos/101`}>lesson 10.1, "The Aorist Tense"</Link></p>
+        <p>Discussed in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/101`)}>lesson 10.1, "The Aorist Tense"</Button></p>
     </React.Fragment>
 )
 
-const VowelContractions = () => {
-    const history = useHistory();
-
+const VowelContractions = ({navigateAwayHandler}) => {
     return (
         <React.Fragment>
             <Table className="vowel-contractions-tableA" size="sm">
@@ -256,22 +254,22 @@ const VowelContractions = () => {
                 </tbody>
             </Table>
             <p>
-                Discussed in <Link to={`/${urlBase}/videos/52`}>lesson 5.2, "The Real Stems of 3rd Declension Nouns"</Link> and in <Link to={`/${urlBase}/videos/73`}>lesson 7.3, "Contract Verbs"</Link>
+                Discussed in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/52`)}>lesson 5.2, "The Real Stems of 3rd Declension Nouns"</Button> and in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/73`)}>lesson 7.3, "Contract Verbs"</Button>
             </p>
         </React.Fragment>
     )
 }
 
-const ReferenceView = () => {
+const ReferenceView = ({navigateAwayHandler}) => {
 
     const sections = {
         'general': [{label: 'square of stops',
-                    component: <SquareOfStops />},
+                    component: <SquareOfStops navigateAwayHandler={navigateAwayHandler} />},
                     {label: 'vowel contractions',
-                    component: <VowelContractions />},
+                    component: <VowelContractions navigateAwayHandler={navigateAwayHandler} />},
                    ],
         'nominals': [{label: 'case endings',
-                     component: <CaseEndings />},
+                     component: <CaseEndings  navigateAwayHandler={navigateAwayHandler} />},
                     ]
     }
     const [ sectionChosen, setSectionChosen ] = useState('general');

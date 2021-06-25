@@ -1030,6 +1030,9 @@ form                                    {margin-bottom: 1rem;
                                         padding-right: 2rem;
         @include react-transition-fade('reference-view-pane');
     }
+    .btn-link                          {padding: 0;
+                                        vertical-align: baseline;
+    }
 
     .case-endings-table,
     .square-of-stops-table,
