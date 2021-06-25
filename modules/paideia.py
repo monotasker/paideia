@@ -1160,8 +1160,10 @@ class Step(object):
             try:
                 lessons = db(db.lessons.lesson_tags.contains(
                     [t['id'] for t in tags])
-                    ).select(db.lessons.id, db.lessons.title)
-                decks = {l.id: l.title for l in lessons if lessons}
+                    ).select(db.lessons.id, db.lessons.lesson_position,
+                             db.lessons.title)
+                decks = {l.lesson_position: l.title for l in lessons
+                         if lessons}
                 if debug:
                     print('decks:', decks)
                 return decks
