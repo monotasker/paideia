@@ -465,6 +465,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                 // currentText={DOMPurify.sanitize(queryStatus)}
                 onChange={e => setMyStatus(e.target.value)}
                 size="sm"
+                className={`update-${level}-queryStatus-input`}
               >
                 {queryStatusList.map((label, index) =>
                     <option value={index} key={label}
