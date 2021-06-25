@@ -55,7 +55,7 @@ const Step = (props) => {
   useEffect(() => {
     dispatch({type: 'setCurrentStep',
               payload: {step: stepData.sid, path: stepData.pid}});
-  }, [stepData.sid, stepData.pid]);
+  }, [stepData.sid, stepData.pid, dispatch]);
 
   useEffect(() => {
     dispatch({type: 'setEvalResults',
@@ -199,9 +199,9 @@ const Step = (props) => {
     "Remember to vary the word order in your Greek clauses"]
 
   const make_instructions = () => {
-    const icons = stepData.instructions.map( inst => {
-      if ( Object.keys(inst_set).includes(inst) ) {
-        return(
+    const icons = stepData.instructions.map( inst =>
+      Object.keys(inst_set).includes(inst) ?
+        (
           <OverlayTrigger key={inst} placement="top"
             overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
           >
@@ -212,8 +212,9 @@ const Step = (props) => {
                 )
               }
           </OverlayTrigger>
-        )}
-    });
+        )
+        : ""
+    );
     const extra_strs = stepData.instructions.filter( inst => {
       return !Object.keys(inst_set).includes(inst);
     });

@@ -1,6 +1,11 @@
-import React, { useState, useContext, useEffect, useLayoutEffect } from "react";
-import { useParams,
-         Link
+import React,
+       { useState,
+         useContext,
+         useEffect,
+         useLayoutEffect,
+         useMemo
+       } from "react";
+import { useParams
 } from "react-router-dom";
 import {
   Row,
@@ -23,10 +28,13 @@ import { fetchLessons } from "../Services/stepFetchService";
 import { urlBase } from "../variables";
 
 const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
-  const setnums = lessons.map(
+  const setnums = useMemo(() => lessons.map(
     item => parseInt(item.lesson_position.toString().slice(0, -1))
+    ), [lessons]
   );
-  const sets = [...new Set(setnums.filter(i => !!i))];
+  const sets = useMemo(() => [...new Set(setnums.filter(i => !!i))],
+    [setnums]
+  );
   const setTitles = {
     1: ["Alphabet, Nouns, Nominative", "First Words"],
     2: ["Alphabet, Article, Clauses", "Household, Town, Pronouns"],
@@ -49,21 +57,21 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
     19: ["Perfect", "Names, Religion, Marketplace, Geography"],
     20: ["Optative", "Motion, Power, Knowledge, Perception"]
   }
-  const [ loading, setLoading ] = useState(true);
+  // const [ loading, setLoading ] = useState(true);
 
   useEffect(() => {
-    if ( !!defaultSet && sets.length != 0) {
+    if ( !!defaultSet && sets.length !== 0) {
       const $myCard = document.getElementById(`badgeset_header_${defaultSet}`);
       $myCard.scrollIntoView();
     }
-  }, [lessons]);
+  }, [lessons, defaultSet, sets]);
 
-  const downloadPdf = (filename) => {
-    downloadFile({ filename: filename })
-    .then(info => {
-        console.log(info);
-    });
-  }
+  // const downloadPdf = (filename) => {
+  //   downloadFile({ filename: filename })
+  //   .then(info => {
+  //       console.log(info);
+  //   });
+  // }
 
   return  (
     <Accordion defaultActiveKey={!!defaultSet ? defaultSet : 0}>
@@ -79,9 +87,9 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
           <Accordion.Collapse eventKey={myset}>
             <Card.Body>
               <ListGroup>
-                {lessons.filter(l => l.lesson_position.toString().slice(0, -1) == myset.toString()).map(i =>
+                {lessons.filter(l => l.lesson_position.toString().slice(0, -1) === myset.toString()).map(i =>
                     <ListGroup.Item key={i.title}
-                      active={i.id == activeLesson ? true : false}
+                      active={i.id === activeLesson ? true : false}
                       action
                       onClick={e => setVideoHandler(e, i.id)}
                     >
@@ -106,14 +114,15 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
 
 const Videos = (props) => {
   const { lessonParam } = useParams();
+  console.log(`lessonParam: ${lessonParam}`);
   const { user, dispatch } = useContext(UserContext);
   const [lessons, setLessons ] = useState([]);
-  // console.log(`lessons.length: ${lessons.length}`);
-  // console.log(lessons);
+  console.log(`lessons.length: ${lessons.length}`);
+  console.log(lessons);
   const [activeLessonId, setActiveLessonId] = useState(
     (!!lessonParam && lessons.length !== 0) ? lessons.find(l => l.lesson_position === parseInt(lessonParam)).id
   : null);
-  // console.log(`activeLessonId: ${activeLessonId}`);
+  console.log(`activeLessonId: ${activeLessonId}`);
   const [dimensions, setDimensions] = useState({
       height: window.innerHeight,
       width: window.innerWidth
