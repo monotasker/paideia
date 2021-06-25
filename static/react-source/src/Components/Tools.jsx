@@ -3,6 +3,8 @@ import {
     ButtonGroup,
     Button
 } from "react-bootstrap";
+import { useHistory
+} from "react-router-dom";
 import {
     TransitionGroup,
     SwitchTransition,
@@ -17,6 +19,7 @@ import SettingsView from "../Views/SettingsView";
 const Tools = () => {
 
     const [openPanel, setOpenPanel] = useState(null);
+    const myHistory = useHistory();
 
     useEffect(() => {
       const handleClick = (event) => {
@@ -28,19 +31,24 @@ const Tools = () => {
       return () => window.removeEventListener("click", handleClick);
     });
 
+    const navigateAway = (location) => {
+        setOpenPanel(null);
+        myHistory.push(location);
+    }
+
     const panels = [
         {label: 'Queries',
          icon: "comment",
-         component: <QueriesView />},
+         component: <QueriesView navigateAwayHandler={navigateAway} />},
         {label: 'Reference',
          icon: "bolt",
-         component: <ReferenceView />},
+         component: <ReferenceView navigateAwayHandler={navigateAway}/>},
         {label: 'Vocab',
          icon: "sort-alpha-down",
-         component: <VocabView />},
+         component: <VocabView navigateAwayHandler={navigateAway}/>},
         {label: 'Settings',
          icon: "sliders-h",
-         component: <SettingsView />},
+         component: <SettingsView navigateAwayHandler={navigateAway}/>},
         // {label: 'Notes',
         //  icon: faPencilAlt,
         //  component: NotesPanel},

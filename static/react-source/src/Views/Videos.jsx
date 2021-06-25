@@ -127,13 +127,22 @@ const Videos = (props) => {
       height: window.innerHeight,
       width: window.innerWidth
   });
+  const [loaded, setLoaded] = useState(false);
 
   const activeLessonSrc = !!activeLessonId ?
     lessons.find(l => l.id===activeLessonId).video_url.replace("https://youtu.be/", "https://www.youtube.com/embed/")
   : null ;
 
   const [defaultSet, setDefaultSet ] = useState(!!lessonParam ? parseInt(lessonParam.slice(0, -1)) : user.currentBadgeSet);
-  const [loaded, setLoaded] = useState(false);
+
+  // Refresh video when param changes even if already on video page
+  useEffect(() => {
+    setLoaded(false);
+    setActiveLessonId(
+      (!!lessonParam && lessons.length !== 0) ? lessons.find(l => l.lesson_position === parseInt(lessonParam)).id
+      : null
+    );
+  }, [lessonParam, lessons]);
 
   useEffect( () => {
     fetchLessons()
