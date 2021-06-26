@@ -5,13 +5,20 @@
 "use strict";
 
 const { Tracer } = require("chrome-trace-event");
-const { validate } = require("schema-utils");
-const schema = require("../../schemas/plugins/debug/ProfilingPlugin.json");
+const createSchemaValidation = require("../util/create-schema-validation");
 const { dirname, mkdirpSync } = require("../util/fs");
 
 /** @typedef {import("../../declarations/plugins/debug/ProfilingPlugin").ProfilingPluginOptions} ProfilingPluginOptions */
 /** @typedef {import("../util/fs").IntermediateFileSystem} IntermediateFileSystem */
 
+const validate = createSchemaValidation(
+	require("../../schemas/plugins/debug/ProfilingPlugin.check.js"),
+	() => require("../../schemas/plugins/debug/ProfilingPlugin.json"),
+	{
+		name: "Profiling Plugin",
+		baseDataPath: "options"
+	}
+);
 let inspector = undefined;
 
 try {
@@ -25,6 +32,7 @@ class Profiler {
 	constructor(inspector) {
 		this.session = undefined;
 		this.inspector = inspector;
+		this._startTime = 0;
 	}
 
 	hasSession() {
@@ -43,6 +51,9 @@ class Profiler {
 			this.session = undefined;
 			return Promise.resolve();
 		}
+
+		const hrtime = process.hrtime();
+		this._startTime = hrtime[0] * 1000000 + Math.round(hrtime[1] / 1000);
 
 		return Promise.all([
 			this.sendCommand("Profiler.setSamplingInterval", {
@@ -78,7 +89,22 @@ class Profiler {
 	}
 
 	stopProfiling() {
-		return this.sendCommand("Profiler.stop");
+		return this.sendCommand("Profiler.stop").then(({ profile }) => {
+			const hrtime = process.hrtime();
+			const endTime = hrtime[0] * 1000000 + Math.round(hrtime[1] / 1000);
+			if (profile.startTime < this._startTime || profile.endTime > endTime) {
+				// In some cases timestamps mismatch and we need to adjust them
+				// Both process.hrtime and the inspector timestamps claim to be relative
+				// to a unknown point in time. But they do not guarantee that this is the
+				// same point in time.
+				const duration = profile.endTime - profile.startTime;
+				const ownDuration = endTime - this._startTime;
+				const untracked = Math.max(0, ownDuration - duration);
+				profile.startTime = this._startTime + untracked / 2;
+				profile.endTime = endTime - untracked / 2;
+			}
+			return { profile };
+		});
 	}
 }
 
@@ -164,10 +190,7 @@ class ProfilingPlugin {
 	 * @param {ProfilingPluginOptions=} options options object
 	 */
 	constructor(options = {}) {
-		validate(schema, options, {
-			name: "Profiling Plugin",
-			baseDataPath: "options"
-		});
+		validate(options);
 		this.outputPath = options.outputPath || "events.json";
 	}
 
@@ -309,9 +332,10 @@ const interceptAllParserHooks = (moduleFactory, tracer) => {
 const interceptAllJavascriptModulesPluginHooks = (compilation, tracer) => {
 	interceptAllHooksFor(
 		{
-			hooks: require("../javascript/JavascriptModulesPlugin").getCompilationHooks(
-				compilation
-			)
+			hooks:
+				require("../javascript/JavascriptModulesPlugin").getCompilationHooks(
+					compilation
+				)
 		},
 		tracer,
 		"JavascriptModulesPlugin"

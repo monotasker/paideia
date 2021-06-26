@@ -32,13 +32,28 @@ const runCommand = (command, args) => {
  * @returns {boolean} is the package installed?
  */
 const isInstalled = packageName => {
-	try {
-		require.resolve(packageName);
-
+	if (process.versions.pnp) {
 		return true;
-	} catch (err) {
-		return false;
 	}
+
+	const path = require("path");
+	const fs = require("graceful-fs");
+
+	let dir = __dirname;
+
+	do {
+		try {
+			if (
+				fs.statSync(path.join(dir, "node_modules", packageName)).isDirectory()
+			) {
+				return true;
+			}
+		} catch (_error) {
+			// Nothing
+		}
+	} while (dir !== (dir = path.dirname(dir)));
+
+	return false;
 };
 
 /**
@@ -97,7 +112,7 @@ if (!cli.installed) {
 	console.error(
 		`We will use "${packageManager}" to install the CLI via "${packageManager} ${installOptions.join(
 			" "
-		)}".`
+		)} ${cli.package}".`
 	);
 
 	const question = `Do you want to install 'webpack-cli' (yes/no): `;

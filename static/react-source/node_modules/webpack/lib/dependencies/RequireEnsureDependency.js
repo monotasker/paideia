@@ -53,7 +53,9 @@ makeSerializable(
 	"webpack/lib/dependencies/RequireEnsureDependency"
 );
 
-RequireEnsureDependency.Template = class RequireEnsureDependencyTemplate extends NullDependency.Template {
+RequireEnsureDependency.Template = class RequireEnsureDependencyTemplate extends (
+	NullDependency.Template
+) {
 	/**
 	 * @param {Dependency} dependency the dependency for which the template should be applied
 	 * @param {ReplaceSource} source the current replace source which can be modified
@@ -66,9 +68,9 @@ RequireEnsureDependency.Template = class RequireEnsureDependencyTemplate extends
 		{ runtimeTemplate, moduleGraph, chunkGraph, runtimeRequirements }
 	) {
 		const dep = /** @type {RequireEnsureDependency} */ (dependency);
-		const depBlock = /** @type {AsyncDependenciesBlock} */ (moduleGraph.getParentBlock(
-			dep
-		));
+		const depBlock = /** @type {AsyncDependenciesBlock} */ (
+			moduleGraph.getParentBlock(dep)
+		);
 		const promise = runtimeTemplate.blockPromise({
 			chunkGraph,
 			block: depBlock,

@@ -7,9 +7,11 @@
 
 const Hash = require("./Hash");
 
-const BULK_SIZE = 1000;
+const BULK_SIZE = 2000;
 
-const digestCache = new Map();
+// We are using an object instead of a Map as this will stay static during the runtime
+// so access to it can be optimized by v8
+const digestCaches = {};
 
 class BulkUpdateDecorator extends Hash {
 	/**
@@ -64,22 +66,27 @@ class BulkUpdateDecorator extends Hash {
 	 * @returns {string|Buffer} digest
 	 */
 	digest(encoding) {
-		let cacheKey;
+		let digestCache;
+		const buffer = this.buffer;
 		if (this.hash === undefined) {
 			// short data for hash, we can use caching
-			cacheKey = `${this.hashKey}-${encoding}-${this.buffer}`;
-			const cacheEntry = digestCache.get(cacheKey);
+			const cacheKey = `${this.hashKey}-${encoding}`;
+			digestCache = digestCaches[cacheKey];
+			if (digestCache === undefined) {
+				digestCache = digestCaches[cacheKey] = new Map();
+			}
+			const cacheEntry = digestCache.get(buffer);
 			if (cacheEntry !== undefined) return cacheEntry;
 			this.hash = this.hashFactory();
 		}
-		if (this.buffer.length > 0) {
-			this.hash.update(this.buffer);
+		if (buffer.length > 0) {
+			this.hash.update(buffer);
 		}
 		const digestResult = this.hash.digest(encoding);
 		const result =
 			typeof digestResult === "string" ? digestResult : digestResult.toString();
-		if (cacheKey !== undefined) {
-			digestCache.set(cacheKey, result);
+		if (digestCache !== undefined) {
+			digestCache.set(buffer, result);
 		}
 		return result;
 	}

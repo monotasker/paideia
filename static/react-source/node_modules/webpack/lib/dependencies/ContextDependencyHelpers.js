@@ -8,7 +8,8 @@
 const { parseResource } = require("../util/identifier");
 
 /** @typedef {import("estree").Node} EsTreeNode */
-/** @typedef {import("../../declarations/WebpackOptions").ModuleOptions} ModuleOptions */
+/** @typedef {import("../../declarations/WebpackOptions").JavascriptParserOptions} JavascriptParserOptions */
+/** @typedef {import("../../declarations/WebpackOptions").ModuleOptionsNormalized} ModuleOptions */
 /** @typedef {import("../javascript/BasicEvaluatedExpression")} BasicEvaluatedExpression */
 /** @typedef {import("../javascript/JavascriptParser")} JavascriptParser */
 /** @typedef {import("./ContextDependency")} ContextDependency */
@@ -45,7 +46,7 @@ const splitContextFromPrefix = prefix => {
  * @param {[number, number]} range source range
  * @param {BasicEvaluatedExpression} param context param
  * @param {EsTreeNode} expr expr
- * @param {ModuleOptions} options options for context creation
+ * @param {Pick<JavascriptParserOptions, `${"expr"|"wrapped"}Context${"Critical"|"Recursive"|"RegExp"}` | "exprContextRequest">} options options for context creation
  * @param {PartialContextDependencyOptions} contextOptions options for the ContextModule
  * @param {JavascriptParser} parser the parser
  * @returns {ContextDependency} the created Dependency
@@ -60,10 +61,11 @@ exports.create = (Dep, range, param, expr, options, contextOptions, parser) => {
 
 		const valueRange = param.range;
 		const { context, prefix } = splitContextFromPrefix(prefixRaw);
-		const { path: postfix, query, fragment } = parseResource(
-			postfixRaw,
-			parser
-		);
+		const {
+			path: postfix,
+			query,
+			fragment
+		} = parseResource(postfixRaw, parser);
 
 		// When there are more than two quasis, the generated RegExp can be more precise
 		// We join the quasis with the expression regexp
@@ -159,10 +161,11 @@ exports.create = (Dep, range, param, expr, options, contextOptions, parser) => {
 			param.postfix && param.postfix.isString() ? param.postfix.range : null;
 		const valueRange = param.range;
 		const { context, prefix } = splitContextFromPrefix(prefixRaw);
-		const { path: postfix, query, fragment } = parseResource(
-			postfixRaw,
-			parser
-		);
+		const {
+			path: postfix,
+			query,
+			fragment
+		} = parseResource(postfixRaw, parser);
 		const regExp = new RegExp(
 			`^${quoteMeta(prefix)}${options.wrappedContextRegExp.source}${quoteMeta(
 				postfix

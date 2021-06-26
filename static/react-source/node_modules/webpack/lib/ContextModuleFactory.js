@@ -10,6 +10,7 @@ const { AsyncSeriesWaterfallHook, SyncWaterfallHook } = require("tapable");
 const ContextModule = require("./ContextModule");
 const ModuleFactory = require("./ModuleFactory");
 const ContextElementDependency = require("./dependencies/ContextElementDependency");
+const LazySet = require("./util/LazySet");
 const { cachedSetProperty } = require("./util/cleverMerge");
 const { createFakeHook } = require("./util/deprecation");
 const { join } = require("./util/fs");
@@ -87,9 +88,9 @@ module.exports = class ContextModuleFactory extends ModuleFactory {
 		const dependencies = data.dependencies;
 		const resolveOptions = data.resolveOptions;
 		const dependency = /** @type {ContextDependency} */ (dependencies[0]);
-		const fileDependencies = new Set();
-		const missingDependencies = new Set();
-		const contextDependencies = new Set();
+		const fileDependencies = new LazySet();
+		const missingDependencies = new LazySet();
+		const contextDependencies = new LazySet();
 		this.hooks.beforeResolve.callAsync(
 			{
 				context: context,
@@ -272,7 +273,8 @@ module.exports = class ContextModuleFactory extends ModuleFactory {
 			include,
 			exclude,
 			referencedExports,
-			category
+			category,
+			typePrefix
 		} = options;
 		if (!regExp || !resource) return callback(null, []);
 
@@ -298,11 +300,13 @@ module.exports = class ContextModuleFactory extends ModuleFactory {
 		const addDirectory = (directory, addSubDirectory, callback) => {
 			fs.readdir(directory, (err, files) => {
 				if (err) return callback(err);
-				files = files.map(file => file.normalize("NFC"));
-				files = cmf.hooks.contextModuleFiles.call(files);
-				if (!files || files.length === 0) return callback(null, []);
+				const processedFiles = cmf.hooks.contextModuleFiles.call(
+					/** @type {string[]} */ (files).map(file => file.normalize("NFC"))
+				);
+				if (!processedFiles || processedFiles.length === 0)
+					return callback(null, []);
 				asyncLib.map(
-					files.filter(p => p.indexOf(".") !== 0),
+					processedFiles.filter(p => p.indexOf(".") !== 0),
 					(segment, callback) => {
 						const subResource = join(fs, directory, segment);
 
@@ -343,6 +347,7 @@ module.exports = class ContextModuleFactory extends ModuleFactory {
 													const dep = new ContextElementDependency(
 														obj.request + resourceQuery + resourceFragment,
 														obj.request,
+														typePrefix,
 														category,
 														referencedExports
 													);

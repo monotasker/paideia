@@ -8,9 +8,9 @@
 const Factory = require("enhanced-resolve").ResolverFactory;
 const { HookMap, SyncHook, SyncWaterfallHook } = require("tapable");
 const {
-	cleverMerge,
 	cachedCleverMerge,
-	removeOperations
+	removeOperations,
+	resolveByProperty
 } = require("./util/cleverMerge");
 
 /** @typedef {import("enhanced-resolve").ResolveOptions} ResolveOptions */
@@ -34,12 +34,7 @@ const EMPTY_RESOLVE_OPTIONS = {};
  * @returns {ResolveOptions} merged options
  */
 const convertToResolveOptions = resolveOptionsWithDepType => {
-	const {
-		dependencyType,
-		byDependency,
-		plugins,
-		...remaining
-	} = resolveOptionsWithDepType;
+	const { dependencyType, plugins, ...remaining } = resolveOptionsWithDepType;
 
 	// check type compat
 	/** @type {Partial<ResolveOptions>} */
@@ -47,9 +42,9 @@ const convertToResolveOptions = resolveOptionsWithDepType => {
 		...remaining,
 		plugins:
 			plugins &&
-			/** @type {ResolvePluginInstance[]} */ (plugins.filter(
-				item => item !== "..."
-			))
+			/** @type {ResolvePluginInstance[]} */ (
+				plugins.filter(item => item !== "...")
+			)
 	};
 
 	if (!partialOptions.fileSystem) {
@@ -58,18 +53,14 @@ const convertToResolveOptions = resolveOptionsWithDepType => {
 		);
 	}
 	// These weird types validate that we checked all non-optional properties
-	const options = /** @type {Partial<ResolveOptions> & Pick<ResolveOptions, "fileSystem">} */ (partialOptions);
+	const options =
+		/** @type {Partial<ResolveOptions> & Pick<ResolveOptions, "fileSystem">} */ (
+			partialOptions
+		);
 
-	if (!resolveOptionsWithDepType.byDependency) {
-		return options;
-	}
-
-	const usedDependencyType =
-		dependencyType in byDependency ? `${dependencyType}` : "default";
-
-	const depDependentOptions = byDependency[usedDependencyType];
-	if (!depDependentOptions) return options;
-	return removeOperations(cleverMerge(options, depDependentOptions));
+	return removeOperations(
+		resolveByProperty(options, "byDependency", dependencyType)
+	);
 };
 
 /**
@@ -136,9 +127,9 @@ module.exports = class ResolverFactory {
 		const resolveOptions = convertToResolveOptions(
 			this.hooks.resolveOptions.for(type).call(resolveOptionsWithDepType)
 		);
-		const resolver = /** @type {ResolverWithOptions} */ (Factory.createResolver(
-			resolveOptions
-		));
+		const resolver = /** @type {ResolverWithOptions} */ (
+			Factory.createResolver(resolveOptions)
+		);
 		if (!resolver) {
 			throw new Error("No resolver created");
 		}

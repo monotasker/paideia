@@ -19,10 +19,6 @@ const SystemRuntimeModule = require("./SystemRuntimeModule");
 /** @typedef {import("../Compiler")} Compiler */
 
 class SystemPlugin {
-	constructor(options) {
-		this.options = options;
-	}
-
 	/**
 	 * Apply the plugin
 	 * @param {Compiler} compiler the compiler instance
@@ -131,8 +127,6 @@ class SystemImportDeprecationWarning extends WebpackError {
 		this.name = "SystemImportDeprecationWarning";
 
 		this.loc = loc;
-
-		Error.captureStackTrace(this, this.constructor);
 	}
 }
 

@@ -31,12 +31,7 @@ const {
 const CommonJsExportRequireDependency = require("./CommonJsExportRequireDependency");
 
 class CommonJsPlugin {
-	constructor(options) {
-		this.options = options;
-	}
-
 	apply(compiler) {
-		const options = this.options;
 		compiler.hooks.compilation.tap(
 			"CommonJsPlugin",
 			(compilation, { contextModuleFactory, normalModuleFactory }) => {
@@ -212,7 +207,7 @@ class CommonJsPlugin {
 						evaluateToIdentifier("module.hot", "module", () => ["hot"], null)
 					);
 
-					new CommonJsImportsParserPlugin(options).apply(parser);
+					new CommonJsImportsParserPlugin(parserOptions).apply(parser);
 					new CommonJsExportsParserPlugin(compilation.moduleGraph).apply(
 						parser
 					);
@@ -270,13 +265,14 @@ class NodeModuleDecoratorRuntimeModule extends RuntimeModule {
 	generate() {
 		const { runtimeTemplate } = this.compilation;
 		return Template.asString([
-			`${
-				RuntimeGlobals.nodeModuleDecorator
-			} = ${runtimeTemplate.basicFunction("module", [
-				"module.paths = [];",
-				"if (!module.children) module.children = [];",
-				"return module;"
-			])};`
+			`${RuntimeGlobals.nodeModuleDecorator} = ${runtimeTemplate.basicFunction(
+				"module",
+				[
+					"module.paths = [];",
+					"if (!module.children) module.children = [];",
+					"return module;"
+				]
+			)};`
 		]);
 	}
 }

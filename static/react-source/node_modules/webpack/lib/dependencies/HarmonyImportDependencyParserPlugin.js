@@ -33,9 +33,8 @@ const harmonySpecifierTag = Symbol("harmony import");
 
 module.exports = class HarmonyImportDependencyParserPlugin {
 	constructor(options) {
-		const { module: moduleOptions } = options;
-		this.strictExportPresence = moduleOptions.strictExportPresence;
-		this.strictThisContextOnImports = moduleOptions.strictThisContextOnImports;
+		this.strictExportPresence = options.strictExportPresence;
+		this.strictThisContextOnImports = options.strictThisContextOnImports;
 	}
 
 	/**
@@ -153,10 +152,8 @@ module.exports = class HarmonyImportDependencyParserPlugin {
 				InnerGraph.onUsage(parser.state, e => (dep.usedByExports = e));
 				return true;
 			});
-		const {
-			hotAcceptCallback,
-			hotAcceptWithoutCallback
-		} = HotModuleReplacementPlugin.getParserHooks(parser);
+		const { hotAcceptCallback, hotAcceptWithoutCallback } =
+			HotModuleReplacementPlugin.getParserHooks(parser);
 		hotAcceptCallback.tap(
 			"HarmonyImportDependencyParserPlugin",
 			(expr, requests) => {
