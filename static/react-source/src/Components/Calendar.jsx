@@ -118,7 +118,8 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
                   </div>
                 )}
                  <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
-                   {weekCounts[index][0]} {weekCounts[index][1] && <FontAwesomeIcon icon="check-circle" />}
+                   {weekCounts[index][0]} {weekCounts[index][1] ? <FontAwesomeIcon icon="check-circle" />
+                   : <FontAwesomeIcon icon="exclamation-triangle" />}
                  </div>
                 </React.Fragment>
               )
