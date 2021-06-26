@@ -2246,7 +2246,7 @@ def get_calendar_month():
     ::data
 
     """
-    stats = Stats(request.vars.user_id)
+    stats = Stats(request.vars.userId)
     calendar = stats.monthcal(year=request.vars.year,
                               month=request.vars.month)
     return json_serializer(calendar, default=my_custom_json)

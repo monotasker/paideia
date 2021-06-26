@@ -922,6 +922,7 @@ class Stats(object):
          }
 
         '''
+        debug = 0
         db = current.db
         # get utc equivalents of start and stop in user's time zone
         offset = get_offset(self.user)
@@ -934,7 +935,9 @@ class Stats(object):
         stopwtz = tz.localize(naivestop)
         startwtz = tz.localize(naivestart)
         ustop = stopwtz.astimezone(utc)
+        if debug: print("ustop:", ustop)
         ustart = startwtz.astimezone(utc)
+        if debug: print("ustart:", ustart)
         usrows = None
         # usrows = db((db.weekly_user_stats.name == self.user_id) &
         #             (db.weekly_user_stats.week_end > ustart) &
@@ -973,6 +976,8 @@ class Stats(object):
         newlogs = db((db.attempt_log.name == self.user_id) &
                      (db.attempt_log.dt_attempted < ustop) &
                      (db.attempt_log.dt_attempted > updated)).select()
+        if debug: print("userid:", self.user_id)
+        if debug: print("newlogs:", len(newlogs))
         if newlogs:
             # print('newlogs:', len(newlogs))
             newus = self._make_logs_into_weekstats(logs=newlogs)
@@ -992,7 +997,7 @@ class Stats(object):
         The returned data is a list of lists, each of which represents one calendar week (starting on Sunday). Within each week list, each day is represented by a 2-member tuple. The first member of the tuple is the datetime.date object for that day. The second member is a list of attempt log ids attempted by the current user on that date (adjusted for their time zone).
 
         '''
-        debug = 1
+        debug = 0
 
         month = datetime.date.today().month if not month else int(month)
         if debug: print("MONTH", month)
@@ -1001,15 +1006,21 @@ class Stats(object):
         monthlists = calendar.Calendar(firstweekday=6
                                        ).monthdatescalendar(year, month)
         first = monthlists[0][0]
+        if debug: print("first:", first)
         last = monthlists[-1][-1]
+        if debug: print("last:", last)
         # monthname = calendar.month_name[month]
         rangelogs = self._get_logs_for_range(
             datetime.datetime(first.year, first.month, first.day, 0, 0),
             datetime.datetime(last.year, last.month, last.day, 23, 59)
             )
+        if debug: pprint("rangelogs *****************************")
+        if debug: pprint(rangelogs)
         flatrangelogs = {myday: mylist for year, yval in rangelogs.items()
                          for weeknum, wval in yval.items()
                          for myday, mylist in wval[0].items()}
+        if debug: pprint("flatrangelogs +++++++++++++++++++++++++++++")
+        if debug: pprint(flatrangelogs)
 
         for i, week in enumerate(monthlists):
             for daynum, day in enumerate(week):
