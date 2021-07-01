@@ -20,7 +20,7 @@ from paideia_stats import Stats, get_set_at_date, make_classlist, \
     get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
-from paideia_user_management import do_user_promotion
+from paideia_user_management import do_user_promotion, do_user_demotion
 import pytz
 import re
 import stripe
@@ -2370,6 +2370,7 @@ def update_student_data():
 
 def promote_user():
     debug = 1
+    if debug: print("in api::promote_user ----------------------------")
     uid = request.vars.uid
     if debug: print("uid:", uid)
     classid = request.vars.classid
@@ -2411,6 +2412,55 @@ def promote_user():
         response.status = 500
         return json_serializer({'status': 'internal server error',
                     'reason': 'Unknown error in function promote_user',
+                    'error': format_exc()})
+
+    return json_serializer({"status": 'success',
+                            "updated_record": myresult}, default=my_custom_json)
+
+def demote_user():
+    debug = 1
+    if debug: print("in api::demote_user ----------------------------")
+    uid = request.vars.uid
+    if debug: print("uid:", uid)
+    classid = request.vars.classid
+    if debug: print("classid:", classid)
+    db = current.db
+    auth = current.auth
+    try:
+        if (uid in ["undefined", "none", None, "null", 0, "0"]) or \
+                (classid in ["undefined", "none", None, "null", 0, "0"]):
+            response.status = 400
+            return json_serializer({'status': 'bad request',
+                                    'reason': 'Missing request data'})
+
+        tp_rec = db(db.tag_progress.name==uid).select()
+
+        if not len(tp_rec) > 0:
+            response.status = 404
+            return json_serializer({'status': 'not found',
+                                    'reason': 'No such user progress record'})
+
+        if not auth.is_logged_in():
+            response.status = 401
+            return json_serializer({'status': 'unauthorized',
+                                    'reason': 'Not logged in'})
+
+        instructor = db.classes(classid).instructor
+        if not (auth.has_membership('administrators') or
+                (auth.has_membership('instructors') and
+                instructor == auth.user_id)
+                ):
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Insufficient privileges'})
+
+        myresult = do_user_demotion(uid=uid, classid=classid)
+
+    except Exception:
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                    'reason': 'Unknown error in function demote_user',
                     'error': format_exc()})
 
     return json_serializer({"status": 'success',
