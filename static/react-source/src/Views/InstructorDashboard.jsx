@@ -142,9 +142,9 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
             setShowPromotionConfirm(false);
           },
           dispatch,
-          {serverErrorAction: () => setPromotionFailed("serverError"),
-           missingRequestDataAction: () => setPromotionFailed("missingRequestData"),
-           insufficientPrivilegesAction: () => setPromotionFailed("insufficientPrivileges")
+          {serverErrorAction: () => setPromotionFailed("Unknown server error"),
+           missingRequestDataAction: () => setPromotionFailed("The user information was not sent properly"),
+           insufficientPrivilegesAction: () => setPromotionFailed("You don't have permission to perform promotions")
           }
         );
     })
@@ -159,9 +159,9 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
             setShowDemotionConfirm(false);
           },
           dispatch,
-          {serverErrorAction: () => setDemotionFailed("serverError"),
-           missingRequestDataAction: () => setDemotionFailed("missingRequestData"),
-           insufficientPrivilegesAction: () => setDemotionFailed("insufficientPrivileges")
+          {serverErrorAction: () => setDemotionFailed("Unknown server error"),
+           missingRequestDataAction: () => setDemotionFailed("The user information was not sent properly"),
+           insufficientPrivilegesAction: () => setDemotionFailed("You don't have permission to perform demotions")
           }
         );
     })
@@ -177,7 +177,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
         <b>Warning: This action cannot be undone.</b> If you later demote them again they will be placed at the <i>beginning</i> of the badge set, not their original position.
         {promotionFailed !== "" &&
           <Alert variant="danger">
-            {promotionFailed}
+            Something went wrong trying to promote this user: {promotionFailed}
           </Alert>
         }
       </Modal.Body>
@@ -210,8 +210,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
       <Modal.Body>Are you sure you want to move this student back to the next badge set? <br/><br/>
         <b>Warning: This action cannot be undone.</b> If you later promote them again they will be placed at the <i>beginning</i> of the badge set, not their original position.
         {demotionFailed !== "" &&
-          <Alert variant="danger">
-            {demotionFailed}
+          <Alert variant="danger">Something went wrong trying to demote this user: {demotionFailed}
           </Alert>
         }
       </Modal.Body>

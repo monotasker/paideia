@@ -2370,7 +2370,7 @@ def update_student_data():
 
 def promote_user():
     debug = 1
-    uid = request.vars.user_id
+    uid = request.vars.uid
     if debug: print("uid:", uid)
     classid = request.vars.classid
     if debug: print("classid:", classid)
@@ -2404,7 +2404,7 @@ def promote_user():
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
-        myresult = do_user_promotion(uid=uid, classid=classid, rec=tp_rec["id"])
+        myresult = do_user_promotion(uid=uid, classid=classid)
 
     except Exception:
         print_exc()
