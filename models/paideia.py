@@ -64,7 +64,7 @@ db.define_table('classes',
                 Field('d_cap', 'integer'),
                 Field('f_target', 'integer'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(institution)s, %(academic_year)s %(term)s '
                        '%(course_section)s, %(instructor)s'
                 )
@@ -87,7 +87,7 @@ db.define_table('class_keys',
                 Field('created_date', 'datetime', default=dtnow),
                 Field('cancelled', 'boolean', default=False),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 )
 
 db.define_table('class_membership',
@@ -103,7 +103,7 @@ db.define_table('class_membership',
                 Field('custom_d_cap', 'integer'),
                 Field('final_grade', 'list:string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s, %(class_section)s'
                 )
 db.class_membership.final_grade.requires = IS_EMPTY_OR(IS_IN_SET(('A+', 'A',
@@ -121,7 +121,7 @@ db.define_table('images',
                 Field('title', 'string', length=256),
                 Field('description', 'string', length=256),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(title)s')
 
 db.define_table('audio',
@@ -137,28 +137,28 @@ db.define_table('audio',
                 Field('title', 'string', length=256),
                 Field('description', 'string', length=256),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(title)s')
 
 db.define_table('journals',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('journal_pages', 'list:reference journal_pages'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s')
 db.journals.name.requires = IS_NOT_IN_DB(db, 'journals.name')
 
 db.define_table('journal_pages',
                 Field('journal_page', 'text'),  # was page (reserved term)
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(page)s')
 
 db.define_table('categories',
                 Field('category', unique=True),
                 Field('description'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(category)s')
 
 db.define_table('tags',
@@ -166,7 +166,7 @@ db.define_table('tags',
                 Field('tag_position', 'integer'),  # was position (reserved)
                 Field('slides', 'list:reference plugin_slider_decks'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format=lambda row: row['tag'])
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag,
 # tag_position);')
@@ -204,7 +204,7 @@ db.define_table('lemmas',
                 Field('other_irregular', 'string', default='none'),
                 Field('extra_tags', 'list:reference tags'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(lemma)s')
 db.lemmas.part_of_speech.requires = IS_IN_SET(('verb', 'adverb', 'noun',
                                                'pronoun', 'proper_noun',
@@ -234,7 +234,7 @@ db.define_table('step_instructions',
                 Field('instruction_label'),  # was label (reserved term)
                 Field('instruction_text', 'text'),  # was text (reserved term)
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(instruction_label)s')
 
 db.define_table('constructions',
@@ -246,7 +246,7 @@ db.define_table('constructions',
                 Field('instructions', 'list:reference step_instructions'),
                 Field('tags', 'list:reference tags'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(construction_label)s')
 db.constructions.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
                                                   db.step_instructions._format,
@@ -285,7 +285,7 @@ db.define_table('word_forms',
                 Field('construction', db.constructions),
                 Field('tags', 'list:reference tags'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(word_form)s')
 db.word_forms.source_lemma.widget = \
     lambda fld, val: SortedOptionsWidget().widget(fld, val, collation='el')
@@ -326,7 +326,7 @@ db.define_table('badges',
                 Field('tag', 'reference tags'),
                 Field('description', 'text'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(badge_name)s')
 db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
@@ -338,7 +338,7 @@ db.define_table('locations',
                 Field('bg_image', 'reference images'),
                 Field('loc_active', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(map_location)s')
 db.locations.map_location.requires = IS_NOT_IN_DB(db, 'locations.map_location')
 db.locations.loc_alias.requires = IS_NOT_IN_DB(db, 'locations.loc_alias')
@@ -351,7 +351,7 @@ db.define_table('npcs',
                 Field('npc_image', 'reference images'),
                 Field('notes', 'text'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s')
 db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
 db.npcs.map_location.requires = IS_IN_DB(db, 'locations.id',
@@ -367,21 +367,21 @@ db.define_table('step_types',
                 Field('widget'),
                 Field('step_class'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(step_type)s')
 
 db.define_table('step_hints',
                 Field('hint_label'),  # was label (reserved term)
                 Field('hint_text', 'text'),   # was text (reserved term)
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(hint_label)s')
 
 db.define_table('step_status',
                 Field('status_num', 'integer', unique=True),
                 Field('status_label', 'text', unique=True),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(status_label)s')
 
 db.define_table('steps',
@@ -407,7 +407,7 @@ db.define_table('steps',
                 Field('locations', 'list:integer'),
                 Field('status', 'reference step_status', default=1),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(id)s: %(prompt)s')
 db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
                                                       db.audio._format))
@@ -505,7 +505,7 @@ db.define_table('badges_begun',
                 Field('cat3', 'datetime'),
                 Field('cat4', 'datetime'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s, %(tag)s')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1
 #   ON badges_begun (name)')
@@ -529,7 +529,7 @@ db.define_table('tag_progress',
                 Field('all_choices', 'integer', default=0),
                 Field('cat1_choices', 'integer', default=0),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s, %(latest_new)s')
 db.tag_progress.name.requires = IS_NOT_IN_DB(db, db.tag_progress.name)
 
@@ -537,7 +537,7 @@ db.define_table('path_styles',
                 Field('style_label', unique=True),
                 Field('components', 'list:string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(style_label)s')
 
 db.define_table('paths',
@@ -552,7 +552,7 @@ db.define_table('paths',
                                                if (db.steps[s].status != 2) and
                                                db.steps[s].locations])),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(label)s')
 
 # FIXME
@@ -604,7 +604,7 @@ db.define_table('attempt_log',
                 Field('selection_category', 'string'),
                 Field('new_content', 'string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 )
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name,
@@ -625,7 +625,7 @@ db.define_table('tag_records',
                 Field('step', 'reference steps'),
                 Field('secondary_right', 'list:string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 Field('first_attempt', 'datetime'),
                 )
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name,
@@ -636,7 +636,7 @@ db.define_table('tag_records',
 db.define_table('bug_status',
                 Field('status_label'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(status_label)s')
 
 db.define_table('bugs',
@@ -665,7 +665,7 @@ db.define_table('bugs',
                 Field('posts', 'list:reference bug_posts'),
                 Field('user_role', 'list:string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(step)s')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name,
 # bug_status);')
@@ -681,7 +681,7 @@ db.define_table('bugs_read_by_user',
                 Field('read_item_id', 'reference bugs'),
                 Field('read_status', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow))
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow))
 
 db.define_table('bug_posts',
                 Field('poster', 'reference auth_user', default=auth.user_id),
@@ -699,7 +699,7 @@ db.define_table('bug_posts',
                 Field('helpfulness', 'list:reference auth_user'),
                 Field('comments', 'list:reference bug_post_comments'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
 )
 
 db.define_table('posts_read_by_user',
@@ -708,7 +708,7 @@ db.define_table('posts_read_by_user',
                 Field('on_bug', 'reference bugs'),
                 Field('read_status', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow))
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow))
 
 db.define_table('bug_post_comments',
                 Field('commenter', 'reference auth_user', default=auth.user_id),
@@ -725,7 +725,7 @@ db.define_table('bug_post_comments',
                 Field('popularity', 'list:reference auth_user'),
                 Field('helpfulness', 'list:reference auth_user'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 )
 
 db.define_table('comments_read_by_user',
@@ -735,7 +735,7 @@ db.define_table('comments_read_by_user',
                 Field('on_bug', 'reference bugs'),
                 Field('read_status', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow))
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow))
 
 db.define_table('session_data',
                 Field('name', 'reference auth_user'),  # default=auth.user_id
@@ -770,7 +770,7 @@ db.define_table('session_data',
                 Field('quota', 'integer'),
                 Field('inventory', 'text'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s')
 
 db.define_table('weekly_user_stats',
@@ -797,7 +797,7 @@ db.define_table('weekly_user_stats',
                 Field('day7_wrong', 'list:reference attempt_log'),
                 Field('done', 'integer', default=0),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(name)s, %(year)s, %(month)s, %(week)s')
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 #              'ON user_stats (week, year, name);')
@@ -825,7 +825,7 @@ db.define_table('lessons',
                 Field('lesson_position', 'integer'),
                 Field('active', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(title)s')
 # db.lessons.title.requires = IS_NOT_IN_DB(db, 'lessons.title')
 db.lessons.lesson_tags.widget = lambda field, value: AjaxSelect(field, value,
@@ -840,7 +840,7 @@ db.lessons.lesson_tags.widget = lambda field, value: AjaxSelect(field, value,
 db.define_table('topics',
                 Field('topic', 'string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(topic)s')
 
 db.define_table('content_pages',
@@ -851,7 +851,7 @@ db.define_table('content_pages',
                 Field('author', 'reference auth_user', default=auth.user_id),
                 Field('topics', 'list:reference topics'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow),
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow),
                 format='%(title)s')
 
 
@@ -864,13 +864,13 @@ Joseph Boakye <jboakye@bwachi.com> Oct 10 2014
 db.define_table('step2tags',
                 Field('step_id', 'reference steps'),
                 Field('tag_id', 'reference tags'),
-                Field('modified_on', 'datetime', default=dtnow))
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow))
 
 
 db.define_table('path2steps',
                 Field('path_id', 'reference paths'),
                 Field('step_id', 'reference steps'),
-                Field('modified_on', 'datetime', default=dtnow))
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow))
 
 def insert_trigger_for_steps(f, given_step_id):
     # given_step_id is of <class 'gluon.dal.Reference'>
@@ -1070,7 +1070,7 @@ db.define_table('exceptions',
                 Field('admin_comment', 'text'),
                 Field('hidden', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=dtnow)
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow)
                 )
 
 # exception_steps  .... steps with all inactive locations
@@ -1080,7 +1080,7 @@ db.define_table('steps_inactive_locations',
                 Field('step_desc', 'text'),
                 Field('loc_desc', 'text'),
                 Field('in_paths', 'list:integer'),
-                Field('modified_on', 'datetime', default=dtnow))
+                Field('modified_on', 'datetime', default=dtnow, update=dtnow))
 
 """
 These functions create step2tags and path2steps data for
