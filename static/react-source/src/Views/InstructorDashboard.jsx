@@ -9,11 +9,13 @@ import { useHistory,
 import {
   Alert,
   Button,
+  ButtonGroup,
   Col,
   Collapse,
   Form,
   FormGroup,
   InputGroup,
+  Modal,
   Row,
   Spinner,
   Tab,
@@ -40,6 +42,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
   const [ showStudentDetails, setShowStudentDetails ] = useState(false);
   const [ fetchingStudent, setFetchingStudent ] = useState(false);
   const [ clearingValue, setClearingValue ] = useState(false);
+  const [ showPromotionConfirm, setShowPromotionConfirm ] = useState(false);
+  const [ showDemotionConfirm, setShowDemotionConfirm ] = useState(false);
+  const [ promotingInProgress, setPromotingInProgress ] = useState(false);
+  const [ demotingInProgress, setDemotingInProgress ] = useState(false);
+  const [ promotionFailed, setPromotionFailed ] = useState("");
+  const [ demotionFailed, setDemotionFailed ] = useState("");
 
   let {uid, first_name, last_name, current_set, starting_set, ending_set,
         final_grade, grade, counts, start_date, end_date, custom_start, custom_end, previous_end_date, progress, custom_a_cap, custom_b_cap, custom_c_cap, custom_d_cap, tp_id} = studentData;
@@ -78,7 +86,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
         successCallback: myCallbacks.successAction,
         otherCallbacks: {
           serverErrorAction: myCallbacks.serverErrorAction,
-          badRequestAction: myCallbacks.badRequestAction,
+          badRequestDataAction: myCallbacks.badRequestDataAction,
           insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
           notLoggedInAction: myCallbacks.notLoggedInAction
         },
@@ -117,7 +125,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
         successCallback: myCallbacks.successAction,
         otherCallbacks: {
           serverErrorAction: myCallbacks.serverErrorAction,
-          badRequestAction: myCallbacks.badRequestAction,
+          badRequestDataAction: myCallbacks.badRequestDataAction,
           insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
           notLoggedInAction: myCallbacks.notLoggedInAction
         },
@@ -125,7 +133,110 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
       });
   }
 
+  const doPromotion = () => {
+    doApiCall({uid: uid, classid: courseId}, "promote_user", "JSON")
+    .then( respdata => {
+        returnStatusCheck(respdata, history,
+          (mydata) => {
+            setPromotingInProgress(false);
+            setShowPromotionConfirm(false);
+          },
+          dispatch,
+          {serverErrorAction: () => setPromotionFailed("serverError"),
+           missingRequestDataAction: () => setPromotionFailed("missingRequestData"),
+           insufficientPrivilegesAction: () => setPromotionFailed("insufficientPrivileges")
+          }
+        );
+    })
+  }
+
+  const doDemotion = () => {
+    doApiCall({uid: uid, classid: courseId}, "demote_user", "JSON")
+    .then( respdata => {
+        returnStatusCheck(respdata, history,
+          (mydata) => {
+            setDemotingInProgress(false);
+            setShowDemotionConfirm(false);
+          },
+          dispatch,
+          {serverErrorAction: () => setDemotionFailed("serverError"),
+           missingRequestDataAction: () => setDemotionFailed("missingRequestData"),
+           insufficientPrivilegesAction: () => setDemotionFailed("insufficientPrivileges")
+          }
+        );
+    })
+  }
+
   return(
+    <>
+    <Modal show={showPromotionConfirm} onHide={() => setShowPromotionConfirm(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>Confirm promotion</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Are you sure you want to promote this student ahead to the next badge set?<br /><br/>
+        <b>Warning: This action cannot be undone.</b> If you later demote them again they will be placed at the <i>beginning</i> of the badge set, not their original position.
+        {promotionFailed !== "" &&
+          <Alert variant="danger">
+            {promotionFailed}
+          </Alert>
+        }
+      </Modal.Body>
+      <Modal.Footer>
+        {!promotingInProgress ?
+          <Button variant="warning" onClick={doPromotion}>
+            Yes
+          </Button>
+        :
+          <Button variant="warning" disabled>
+            <Spinner animation="grow" />
+          </Button>
+        }
+        {!promotingInProgress ?
+        <Button variant="danger" onClick={() => setShowPromotionConfirm(false)}>
+          Cancel promoting
+        </Button>
+        :
+          <Button variant="danger" disabled>
+            <Spinner animation="grow" />
+          </Button>
+        }
+      </Modal.Footer>
+    </Modal>
+
+    <Modal show={showDemotionConfirm} onHide={() => setShowDemotionConfirm(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>Confirm demotion</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Are you sure you want to move this student back to the next badge set? <br/><br/>
+        <b>Warning: This action cannot be undone.</b> If you later promote them again they will be placed at the <i>beginning</i> of the badge set, not their original position.
+        {demotionFailed !== "" &&
+          <Alert variant="danger">
+            {demotionFailed}
+          </Alert>
+        }
+      </Modal.Body>
+      <Modal.Footer>
+        {!demotingInProgress ?
+          <Button variant="warning" onClick={doDemotion}>
+            Yes
+          </Button>
+        :
+          <Button variant="warning" disabled>
+            <Spinner animation="grow" />
+          </Button>
+        }
+        {!demotingInProgress ?
+        <Button variant="danger" onClick={() => setShowDemotionConfirm(false)}>
+          Cancel Demoting
+        </Button>
+        :
+          <Button variant="danger" disabled>
+            <Spinner animation="grow" />
+          </Button>
+        }
+      </Modal.Footer>
+    </Modal>
+
     <Form role="form"
       id={`dashboard-student-info-${first_name}_${last_name}_${uid}`}
     >
@@ -159,13 +270,27 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
             {progress} sets
           </span>
         </Col>
-        <Col md={2}>
+        <Col md={1}>
           <span className="dashboard-student-info-letter">
             <span className="dashboard-student-info-letter-label">
               Earned{!!classInProcess ? " so far" : ""}
             </span>
             {grade}
           </span>
+        </Col>
+        <Col md={1}>
+          <ButtonGroup>
+            <Button className="dashboard-student-info-promote"
+              onClick={() => setShowPromotionConfirm(true)} size="sm" variant="warning"
+            >
+              <FontAwesomeIcon icon="arrow-up" size="sm" />
+            </Button>
+            <Button className="dashboard-student-info-demote"
+              onClick={() => setShowDemotionConfirm(true)} size="sm" variant="warning"
+            >
+              <FontAwesomeIcon icon="arrow-down" size="sm" />
+            </Button>
+          </ButtonGroup>
         </Col>
         <Col md={1}>
           <Button className="dashboard-student-info-show-details"
@@ -400,6 +525,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
 
     </Collapse>
   </Form>
+  </>
   );
 }
 
@@ -440,7 +566,7 @@ const InstructorDashboard = () => {
 
     // flags are unauthorized, serverError, badRequest, noRecord, success
     // callbacks are serErrorAction, unauthorizedAction,
-    // badRequestAction, noRecordAction, successAction
+    // badRequestDataAction, noRecordAction, successAction
     let {formFieldValues, setFormFieldValue, setFormFieldValuesDirectly,
          flags, setFlags, myCallbacks, showErrorDetails, setShowErrorDetails
         } = useFormManagement(classFieldsAndValidators);
@@ -507,7 +633,7 @@ const InstructorDashboard = () => {
          successCallback: myCallbacks.successAction,
          otherCallbacks: {
            serverErrorAction: myCallbacks.serverErrorAction,
-           badRequestAction: myCallbacks.badRequestAction,
+           badRequestDataAction: myCallbacks.badRequestDataAction,
            insufficientPrivilegesAction: myCallbacks.insufficientPrivilegesAction,
            notLoggedInAction: myCallbacks.notLoggedInAction
          },

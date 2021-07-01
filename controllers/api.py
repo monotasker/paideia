@@ -20,6 +20,7 @@ from paideia_stats import Stats, get_set_at_date, make_classlist, \
     get_term_bounds
 from paideia_stats import get_current_class, get_chart1_data, my_custom_json
 from paideia_bugs import Bug, trigger_bug_undo
+from paideia_user_management import do_user_promotion
 import pytz
 import re
 import stripe
@@ -1770,8 +1771,6 @@ def mark_read_status():
             if post_level != 'query' and read_status == False:
                 _mark_parents_read(post_level, post_id, user_id)
 
-            assert my_record
-
             return json_serializer({'status': 'success',
                                     'result': my_record})
         except:
@@ -2137,8 +2136,14 @@ def get_profile_info():
     mystudents = db((db.classes.instructor == auth.user_id) &
                     (db.classes.id == db.class_membership.class_section)
                     ).select(db.class_membership.name).as_list()
+
+
+    if not auth.is_logged_in():
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
+
     try:
-        assert auth.is_logged_in();
         now = datetime.now(timezone.utc)
         # Allow passing explicit user but default to current user
         if 'userId' in request.vars.keys():
@@ -2158,8 +2163,8 @@ def get_profile_info():
         # Return proper response code if no user with requested id
         if not user:
             response.status = 404
-            return json_serializer({'status': 'Not found',
-                         'reason': 'No matching record found'})
+            return json_serializer({'status': 'not found',
+                                    'reason': 'No matching record found'})
 
         stats = Stats(user.id)
 
@@ -2206,10 +2211,10 @@ def get_profile_info():
             badge_set_dict[myset] = set_tags_info
     except Exception:
         print(format_exc(5))
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function get_profile_info',
+                                'error': format_exc()})
 
     return json_serializer({'the_name': name,
             'user_id': user.id,
@@ -2329,21 +2334,15 @@ def update_student_data():
             response.status = 404
             return json_serializer({'status': 'No such record'})
 
-        try:
-            assert auth.is_logged_in()
-        except AssertionError:
-            print(format_exc(5))
+        if not auth.is_logged_in():
             response.status = 401
             return json_serializer({'status': 'Not logged in'})
 
-        try:
-            instructor = db.classes(course_id).instructor
-            assert (auth.has_membership('administrators') or
-                    (auth.has_membership('instructors') and
-                    instructor == auth.user_id)
-                    )
-        except AssertionError:
-            print(format_exc(5))
+        instructor = db.classes(course_id).instructor
+        if not (auth.has_membership('administrators') or
+                (auth.has_membership('instructors') and
+                instructor == auth.user_id)
+                ):
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges'})
@@ -2355,7 +2354,8 @@ def update_student_data():
         myresult = member_rec.update_record(**update_data)
         if debug: print('api::update_student_data: myresult:')
         if debug: print(myresult)
-        assert myresult
+        if not myresult:
+            raise ValueError("Class membership record was not updated")
         db.commit()
 
     except Exception:
@@ -2367,6 +2367,55 @@ def update_student_data():
 
     return json_serializer({"status": 'success',
                             "updated_record": myresult}, default=my_custom_json)
+
+def promote_user():
+    debug = 1
+    uid = request.vars.user_id
+    if debug: print("uid:", uid)
+    classid = request.vars.classid
+    if debug: print("classid:", classid)
+    db = current.db
+    auth = current.auth
+    try:
+        if (uid in ["undefined", "none", None, "null", 0, "0"]) or \
+                (classid in ["undefined", "none", None, "null", 0, "0"]):
+            response.status = 400
+            return json_serializer({'status': 'bad request',
+                                    'reason': 'Missing request data'})
+
+        tp_rec = db(db.tag_progress.name==uid).select()
+
+        if not len(tp_rec) > 0:
+            response.status = 404
+            return json_serializer({'status': 'not found',
+                                    'reason': 'No such user progress record'})
+
+        if not auth.is_logged_in():
+            response.status = 401
+            return json_serializer({'status': 'unauthorized',
+                                    'reason': 'Not logged in'})
+
+        instructor = db.classes(classid).instructor
+        if not (auth.has_membership('administrators') or
+                (auth.has_membership('instructors') and
+                instructor == auth.user_id)
+                ):
+            response.status = 403
+            return json_serializer({'status': 'forbidden',
+                                    'reason': 'Insufficient privileges'})
+
+        myresult = do_user_promotion(uid=uid, classid=classid, rec=tp_rec["id"])
+
+    except Exception:
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                    'reason': 'Unknown error in function promote_user',
+                    'error': format_exc()})
+
+    return json_serializer({"status": 'success',
+                            "updated_record": myresult}, default=my_custom_json)
+
 
 def update_course_data():
     """
@@ -2442,22 +2491,18 @@ def update_course_data():
         except AttributeError:
             print(format_exc(5))
             response.status = 404
-            return json_serializer({'status': 'No such record'})
+            return json_serializer({'status': 'not found',
+                                    'reason': 'No such record'})
 
-        try:
-            assert auth.is_logged_in()
-        except AssertionError:
-            print(format_exc(5))
+        if not auth.is_logged_in():
             response.status = 401
-            return json_serializer({'status': 'Not logged in'})
+            return json_serializer({'status': 'unauthorized',
+                                    'reason': 'Not logged in'})
 
-        try:
-            assert (auth.has_membership('administrators') or
-                    (auth.has_membership('instructors') and
-                    course_rec['instructor'] == auth.user_id)
-                    )
-        except AssertionError:
-            print(format_exc(5))
+        if not (auth.has_membership('administrators') or
+                (auth.has_membership('instructors') and
+                course_rec['instructor'] == auth.user_id)
+                ):
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges'})
@@ -2469,7 +2514,8 @@ def update_course_data():
         myresult = course_rec.update_record(**update_data)
         if debug: print('api::update_course_data: myresult:')
         if debug: print(myresult)
-        assert myresult
+        if not myresult:
+            raise ValueError("Course record was not updated")
         db.commit()
 
     except Exception:
@@ -2543,33 +2589,26 @@ def get_course_data():
     debug = False
     auth = current.auth
     session = current.session
+    response = current.response
     db = current.db
     try:
         if debug: print('getting course', request.vars.course_id)
         course_rec = db.classes(request.vars.course_id)
     except AttributeError:
         print(format_exc(5))
-        response = current.response
         response.status = 404
-        return json_serializer({'status': 'No such record'})
+        return json_serializer({'status': 'not found',
+                                'reason': 'No such class record'})
 
-    try:
-        assert auth.is_logged_in()
-    except AssertionError:
-        print(format_exc(5))
-        response = current.response
+    if not auth.is_logged_in():
         response.status = 401
         return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
+                                'reason': 'Not logged in'})
 
-    try:
-        assert (auth.has_membership('administrators') or
-                (auth.has_membership('instructors') and
-                course_rec['instructor'] == auth.user_id)
-                )
-    except AssertionError:
-        print(format_exc(5))
-        response = current.response
+    if not (auth.has_membership('administrators') or
+            (auth.has_membership('instructors') and
+            course_rec['instructor'] == auth.user_id)
+            ):
         response.status = 403
         return json_serializer({'status': 'forbidden',
                      'reason': 'Insufficient privileges'})

@@ -14,7 +14,9 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { faStripe } from '@fortawesome/free-brands-svg-icons';
 import {
   faAngleDown,
+  faArrowDown,
   faArrowsAltH,
+  faArrowUp,
   faBalanceScale,
   faBolt,
   faBug,
@@ -118,6 +120,8 @@ import ResetPassword from './ResetPassword';
 library.add(
   faAngleDown,
   faArrowsAltH,
+  faArrowUp,
+  faArrowDown,
   faBalanceScale,
   faBolt,
   faBug,
