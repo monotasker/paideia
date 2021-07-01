@@ -1,8 +1,9 @@
 # coding: utf8
 import datetime
-import traceback
 from gluon import current
 from pprint import pprint
+import traceback
+from itertools import chain
 
 if 0:
     from web2py.gluon import current, URL
@@ -27,7 +28,8 @@ def do_user_promotion(uid=0, classid=0):
     if debug: print('level2', level2)
 
     # make sure no tags previously missed being activated
-    all_active_tags = old_level1 + level2 + tp['cat3'] + tp['cat4']
+    # if so, add to level2
+    all_active_tags = chain(old_level1, level2, tp['cat3'], tp['cat4'])
     should_be_active = db(db.tags.tag_position < (oldrank + 1)).select()
     missing = [t.id for t in should_be_active if t.id not in all_active_tags]
     if debug: print('earlier missed activating tags:', missing)
@@ -59,9 +61,11 @@ def do_user_promotion(uid=0, classid=0):
 
     db.commit()
 
-    changed_tags = to_newly_activate + old_level1 + missing
+    changed_tags = chain(to_newly_activate, old_level1, missing)
     bb_result = db((db.badges_begun.tag.belongs(changed_tags)) &
                    (db.badges_begun.name == uid)).select()
+    if debug: print("changed badges_begun records:")
+    if debug: pprint(bb_result)
 
     return({'tag_progress': tp_result,
             'badges_begun': bb_result})
