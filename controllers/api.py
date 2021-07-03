@@ -150,6 +150,11 @@ def _fetch_other_coursedata(uid, current_class, mydatetime):
                    (db.class_membership.class_section != current_class) &
                    (db.class_membership.class_section == db.classes.id)
                    ).select(orderby=db.classes.academic_year|db.classes.end_date).as_list()
+    for idx, c in enumerate(myclasses):
+        myprof = db.auth_user(c['classes']['instructor'])
+        myclasses[idx]['classes']['instructor'] = {'first_name': myprof['first_name'],
+                                             'last_name': myprof['last_name'],
+                                             'id': myprof['id']}
     myclasses_prior = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) < mydatetime]
     myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) >= mydatetime]
     if debug:
@@ -160,6 +165,7 @@ def _fetch_other_coursedata(uid, current_class, mydatetime):
         print ("-------------------------------------------------------")
         for c in myclasses_latter:
             print (c['classes']['id'], c['class_membership']['id'], c['classes']['academic_year'], c['classes']['course_section'], c['classes']['term'])
+
 
     return {"prior_classes": myclasses_prior,
             "latter_classes": myclasses_latter}

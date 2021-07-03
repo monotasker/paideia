@@ -281,6 +281,7 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
         }
           <Collapsible linkIcon={"history"} linkText="my past classes"
             linkElement="h5"
+            className="profile-classinfo-prior-classes"
           >
             <Table>
               <thead>
@@ -296,9 +297,9 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               <tbody>
                 {otherClassInfo.prior_classes.map(c =>
                   <tr key={`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}>
-                    <td>{`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}</td>
-                    <td>{c.classes.start_date}</td>
-                    <td>{c.classes.end_date}</td>
+                    <td>{`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor.first_name}  ${c.classes.instructor.last_name} (${c.classes.academic_year}, ${c.classes.term})`}</td>
+                    <td>{readableDate(c.classes.start_date)}</td>
+                    <td>{readableDate(c.classes.end_date)}</td>
                     <td>{c.class_membership.starting_set}</td>
                     <td>{c.class_membership.ending_set}</td>
                     <td>{c.class_membership.final_grade}</td>
@@ -310,6 +311,7 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
           </Collapsible>
           <Collapsible linkIcon={"hourglass-half"} linkText="my upcoming classes"
             linkElement="h5"
+            className="profile-classinfo-latter-classes"
           >
             <Table>
               <thead>
@@ -324,9 +326,9 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
                 {otherClassInfo.latter_classes.map(c =>
                   <tr key={`${c.classes.course_section}, ${c.classes.institution} (${c.classes.academic_year}, ${c.classes.term})`}>
                     <td>{`${c.classes.course_section}, ${c.classes.institution} (${c.classes.academic_year}, ${c.classes.term})`}</td>
-                    <td>{c.classes.start_date}</td>
-                    <td>{c.classes.end_date}</td>
-                    <td>{c.classes.instructor}</td>
+                    <td>{readableDate(c.classes.start_date)}</td>
+                    <td>{readableDate(c.classes.end_date)}</td>
+                    <td>{c.classes.instructor.first_name} {c.classes.instructor.last_name}</td>
                   </tr>
                 )
                 }

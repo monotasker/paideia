@@ -27,9 +27,13 @@ const readableDate = myString => {
   } else if ( theDate.isSame(now.subtract(1, 'days'), 'day') ) {
     output = theDate.local().format("[yesterday]");
   } else if ( theDate.isSame(now, 'week') ) {
-    output = theDate.local().format("ddd ");
+    if ( theDate.isBefore(now, 'day') ) {
+      output = theDate.local().format("[this past] ddd");
+    } else {
+      output = theDate.local().format("[this coming] ddd");
+    }
   } else if ( theDate.isSame(now, 'year') ) {
-    output = theDate.local().format("MMM ");
+    output = theDate.local().format("MMM Do");
   } else if ( !!myString && myString !== "" ) {
     output = theDate.local().format("MMM Do YYYY");
   }
