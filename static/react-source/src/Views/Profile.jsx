@@ -204,9 +204,9 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
     {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
     {!!updating ?
       <Spinner animation="grow" variant="secondary" />
-      : <>
+      : <div className="profile-classinfo-body">
         {classInfo !== null && Object.keys(classInfo).length > 0 ?
-          <div className="profile-classinfo-body">
+          <>
             <div className="profile-classinfo-section">
               {classInfo.course_section}
             </div>
@@ -274,68 +274,66 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               </tr>
             </tfoot>
           </Table>
-          </div>
-        : <div className="profile-classinfo-body">
-            <div className="profile-classinfo-signup">
+          </>
+        : <div className="profile-classinfo-signup">
             You're not part of a currently active class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
-            </div>
           </div>
         }
-        <Collapsible linkIcon={"history"} linkText="my past classes"
-          linkElement="h5"
-        >
-          <Table>
-            <thead>
-              <tr>
-                <td>Class group</td>
-                <td>Start date</td>
-                <td>End date</td>
-                <td>Start badge set</td>
-                <td>End badge set</td>
-                <td>Final grade</td>
-              </tr>
-            </thead>
-            <tbody>
-              {otherClassInfo.prior_classes.map(c =>
+          <Collapsible linkIcon={"history"} linkText="my past classes"
+            linkElement="h5"
+          >
+            <Table>
+              <thead>
                 <tr>
-                  <td>{`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}</td>
-                  <td>{c.classes.start_date}</td>
-                  <td>{c.classes.end_date}</td>
-                  <td>{c.class_membership.starting_set}</td>
-                  <td>{c.class_membership.ending_set}</td>
-                  <td>{c.class_membership.final_grade}</td>
+                  <td>Class group</td>
+                  <td>Start date</td>
+                  <td>End date</td>
+                  <td>Start badge set</td>
+                  <td>End badge set</td>
+                  <td>Final grade</td>
                 </tr>
-              )
-              }
-            </tbody>
-          </Table>
-        </Collapsible>
-        <Collapsible linkIcon={"hourglass-half"} linkText="my upcoming classes"
-          linkElement="h5"
-        >
-          <Table>
-            <thead>
-              <tr>
-                <td>Class group</td>
-                <td>Start date</td>
-                <td>End date</td>
-                <td>Instructor</td>
-              </tr>
-            </thead>
-            <tbody>
-              {otherClassInfo.latter_classes.map(c =>
+              </thead>
+              <tbody>
+                {otherClassInfo.prior_classes.map(c =>
+                  <tr key={`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}>
+                    <td>{`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}</td>
+                    <td>{c.classes.start_date}</td>
+                    <td>{c.classes.end_date}</td>
+                    <td>{c.class_membership.starting_set}</td>
+                    <td>{c.class_membership.ending_set}</td>
+                    <td>{c.class_membership.final_grade}</td>
+                  </tr>
+                )
+                }
+              </tbody>
+            </Table>
+          </Collapsible>
+          <Collapsible linkIcon={"hourglass-half"} linkText="my upcoming classes"
+            linkElement="h5"
+          >
+            <Table>
+              <thead>
                 <tr>
-                  <td>{`${c.classes.course_section}, ${c.classes.institution} (${c.classes.academic_year}, ${c.classes.term})`}</td>
-                  <td>{c.classes.start_date}</td>
-                  <td>{c.classes.end_date}</td>
-                  <td>{c.classes.instructor}</td>
+                  <td>Class group</td>
+                  <td>Start date</td>
+                  <td>End date</td>
+                  <td>Instructor</td>
                 </tr>
-              )
-              }
-            </tbody>
-          </Table>
-        </Collapsible>
-        </>
+              </thead>
+              <tbody>
+                {otherClassInfo.latter_classes.map(c =>
+                  <tr key={`${c.classes.course_section}, ${c.classes.institution} (${c.classes.academic_year}, ${c.classes.term})`}>
+                    <td>{`${c.classes.course_section}, ${c.classes.institution} (${c.classes.academic_year}, ${c.classes.term})`}</td>
+                    <td>{c.classes.start_date}</td>
+                    <td>{c.classes.end_date}</td>
+                    <td>{c.classes.instructor}</td>
+                  </tr>
+                )
+                }
+              </tbody>
+            </Table>
+          </Collapsible>
+        </div>
     }
   </>)
 }
