@@ -134,6 +134,7 @@ const getProfileInfo = async ({forSelf=false,
       endDate: response.end_date,
       startingSet: response.starting_set,
       classInfo: response.class_info,
+      otherClassInfo: response.other_class_info,
       status_code: response.status_code
     }
     if ( !!forSelf ) {

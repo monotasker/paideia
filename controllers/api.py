@@ -138,6 +138,33 @@ def evaluate_answer():
                      'reason': 'Not logged in'})
 
 
+def _fetch_other_coursedata(uid, current_class, mydatetime):
+    """
+    Private function to gather course data other than the current one.
+
+    Called by get_profile_info.
+
+    """
+    debug = 0
+    myclasses = db((db.class_membership.name == uid) &
+                   (db.class_membership.class_section != current_class) &
+                   (db.class_membership.class_section == db.classes.id)
+                   ).select(orderby=db.classes.academic_year|db.classes.end_date).as_list()
+    myclasses_prior = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) < mydatetime]
+    myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) >= mydatetime]
+    if debug:
+        print ("=======================================================")
+        for c in myclasses_prior:
+            print (c['classes']['id'], c['class_membership']['id'], c['classes']['academic_year'], c['classes']['course_section'], c['classes']['term'])
+
+        print ("-------------------------------------------------------")
+        for c in myclasses_latter:
+            print (c['classes']['id'], c['class_membership']['id'], c['classes']['academic_year'], c['classes']['course_section'], c['classes']['term'])
+
+    return {"prior_classes": myclasses_prior,
+            "latter_classes": myclasses_latter}
+
+
 def _fetch_current_coursedata(uid, mydatetime):
     """
     Private function called by _fetch_userdata and get_profile_info
@@ -2170,6 +2197,9 @@ def get_profile_info():
 
         # get user's current course
         myc = _fetch_current_coursedata(user.id, datetime.now(timezone.utc))
+        myc_id = myc['classes']['id'] if 'classes' in myc else 0
+        myc_other = _fetch_other_coursedata(user.id, myc_id,
+                                            datetime.now(timezone.utc))
         if debug: print('myc=============')
         if debug: print(myc)
         if myc['class_info']:
@@ -2233,7 +2263,8 @@ def get_profile_info():
             'chart1_data': chart1_data,
             'reviewing_set': session.set_review,
             'badge_set_dict': badge_set_dict,
-            'class_info': myc['class_info'] if myc['class_info'] else None
+            'class_info': myc['class_info'] if myc['class_info'] else None,
+            'other_class_info': myc_other
             },
             default=my_custom_json)
 

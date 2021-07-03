@@ -31,6 +31,7 @@ import Calendar from "../Components/Calendar";
 import { withinOneDay,
          readableDate
        } from "../Services/dateTimeService";
+import Collapsible from "../Components/Collapsible";
 
 const UpdateNotice = ({status}) => {
   return (status ? <span className="update-msg">
@@ -186,7 +187,7 @@ const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
     )
 }
 
-const ProfileClassInfo = ({updating, classInfo}) => {
+const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
 
   let history = useHistory();
   let { formFieldValues, setFormFieldValue, flags, setFlags, ...rest
@@ -203,7 +204,8 @@ const ProfileClassInfo = ({updating, classInfo}) => {
     {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
     {!!updating ?
       <Spinner animation="grow" variant="secondary" />
-      : (classInfo !== null && Object.keys(classInfo).length > 0 ?
+      : <>
+        {classInfo !== null && Object.keys(classInfo).length > 0 ?
           <div className="profile-classinfo-body">
             <div className="profile-classinfo-section">
               {classInfo.course_section}
@@ -275,10 +277,65 @@ const ProfileClassInfo = ({updating, classInfo}) => {
           </div>
         : <div className="profile-classinfo-body">
             <div className="profile-classinfo-signup">
-            You're not currently part of a class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
+            You're not part of a currently active class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
             </div>
           </div>
-        )
+        }
+        <Collapsible linkIcon={"history"} linkText="my past classes"
+          linkElement="h5"
+        >
+          <Table>
+            <thead>
+              <tr>
+                <td>Class group</td>
+                <td>Start date</td>
+                <td>End date</td>
+                <td>Start badge set</td>
+                <td>End badge set</td>
+                <td>Final grade</td>
+              </tr>
+            </thead>
+            <tbody>
+              {otherClassInfo.prior_classes.map(c =>
+                <tr>
+                  <td>{`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}</td>
+                  <td>{c.classes.start_date}</td>
+                  <td>{c.classes.end_date}</td>
+                  <td>{c.class_membership.starting_set}</td>
+                  <td>{c.class_membership.ending_set}</td>
+                  <td>{c.class_membership.final_grade}</td>
+                </tr>
+              )
+              }
+            </tbody>
+          </Table>
+        </Collapsible>
+        <Collapsible linkIcon={"hourglass-half"} linkText="my upcoming classes"
+          linkElement="h5"
+        >
+          <Table>
+            <thead>
+              <tr>
+                <td>Class group</td>
+                <td>Start date</td>
+                <td>End date</td>
+                <td>Instructor</td>
+              </tr>
+            </thead>
+            <tbody>
+              {otherClassInfo.latter_classes.map(c =>
+                <tr>
+                  <td>{`${c.classes.course_section}, ${c.classes.institution} (${c.classes.academic_year}, ${c.classes.term})`}</td>
+                  <td>{c.classes.start_date}</td>
+                  <td>{c.classes.end_date}</td>
+                  <td>{c.classes.instructor}</td>
+                </tr>
+              )
+              }
+            </tbody>
+          </Table>
+        </Collapsible>
+        </>
     }
   </>)
 }
@@ -418,6 +475,7 @@ const Profile = (props) => {
     !!viewingSelf ? user.chart1Data : null);
   const [ classInfo, setClassInfo ] = useState(
     !!viewingSelf ? user.classInfo : null);
+  const [ otherClassInfo, setOtherClassInfo ] = useState(null);
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
 
@@ -460,6 +518,7 @@ const Profile = (props) => {
           setBadgeSetMilestones(info.badgeSetMilestones);
           setChart1Data(info.chart1Data);
           setClassInfo(info.classInfo);
+          setOtherClassInfo(info.otherClassInfo);
           setUpdating(false);
           /* FIXME: update course data in provider if viewing self and changed */
         },
@@ -539,7 +598,9 @@ const Profile = (props) => {
             </Col>
 
             <Col className="profile-classinfo" xs={12} xl={6}>
-              <ProfileClassInfo updating={updating} classInfo={classInfo} />
+              <ProfileClassInfo updating={updating} classInfo={classInfo}
+                otherClassInfo={otherClassInfo}
+              />
             </Col>
 
             <Col className="profile-stages" xs={12} lg={12}>
