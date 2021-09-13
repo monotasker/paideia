@@ -1548,6 +1548,20 @@ form                                    {margin-bottom: 1rem;
                         }
                     }
                 }
+                .profile-classinfo-prior-classes,
+                .profile-classinfo-latter-classes   {border: 0;
+                    .card-body                      {padding-left: 0;
+                                                     padding-right: 0;
+                                                     padding-bottom: 0;
+                        table thead td              {color: $accent4;
+
+                        }
+                        h5                          {color: $accent2;
+                            &:hover                 {cursor: pointer;
+                            }
+                        }
+                    }
+                }
             }
         }
         .profile-stages                         {margin-top: 1rem;
