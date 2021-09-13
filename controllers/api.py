@@ -1087,7 +1087,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     pagination, via the "page" parameter, is zero indexed
     """
-    vbs=False
+    vbs=True
     offset_start = pagesize * page
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
@@ -1136,17 +1136,21 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
             db(db.bugs.id > 0).count()
             ))
 
+    if vbs: print('A')
+
     step_term = (db.bugs.step == stepid) # queries tied to specified step
     if nonstep==True:  # queries not tied to step
         step_term = (db.bugs.step == None)
     elif stepid==0:  #  queries on all steps, not just one
         step_term = (db.bugs.step != None)
 
+    if vbs: print('b')
     #  requesting queries not marked as read
     unread_term = True
     if unread is True:
         unread_term = (db.bugs.id.belongs(unread_queries))
 
+    if vbs: print('c')
     queries = db((step_term) &
                  (db.bugs.user_name == db.auth_user.id) &
                  ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
@@ -1156,20 +1160,27 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                           limitby=(offset_start, offset_end),
                           orderby=~db.bugs[orderby]
                           )
+
+    if vbs: print('d')
     queries_list = queries.as_list()
+    if vbs: print('e')
     for q in queries_list:
         q['read'] = False if q['bugs']['id'] in unread_queries else True
+    if vbs: print('f')
     if vbs: print("in _fetch_queries===============================")
     if vbs: print("got {} query rows".format(len(queries_list)))
+    if vbs: print('g')
     queries_recs = _add_posts_to_queries(queries_list,
                                          unread_posts, unread_comments)
 
+    if vbs: print('h')
     #  collect queries posted by current user
     user_queries = []
     if userid and userid > 0:
         user_queries = [q for q in queries_recs
                         if q['auth_user']['id'] == userid]
 
+    if vbs: print('i')
     #  collect queries posted by user's class members
     #  and queries posted by those outside the user's classes
     myclasses = db((db.class_membership.name == userid) &
@@ -1179,6 +1190,8 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                                 db.classes.academic_year,
                                 db.classes.course_section, orderby=~db.classes.start_date
                                 )
+
+    if vbs: print('j')
     myclasses_queries = []
     external_queries = copy(queries_recs)
     member_queries = copy(queries_recs)
@@ -1201,6 +1214,8 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                                       'queries': member_queries}
                                     )
 
+    if vbs: print('k')
+
     # collect queries posted by the user's students
 
     mycourses_queries = []
@@ -1220,12 +1235,18 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                                if s['auth_user']['id'] in students]
             # print([s['auth_user']['id'] for s in student_queries])
             # print('found {} student queries'.format(len(student_queries)))
+            instructor_row = db.auth_user(course.instructor)
+            instructor_name = " ".join([instructor_row['first_name'],
+                                        instructor_row['last_name']])
             mycourses_queries.append({'id': course.id,
                                       'institution': course.institution,
                                       'year': course.academic_year,
                                       'section': course.course_section,
+                                      'term': course.term,
+                                      'instructor': instructor_name,
                                       'queries': student_queries})
 
+    if vbs: print('l')
     #  collect queries posted by other users
 
     if not auth.has_membership('administrators'):
@@ -1239,6 +1260,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                 lambda x: x['bugs']['public'] is True,
                 external_queries))
 
+    if vbs: print('m')
     return {'user_queries': user_queries,
             'class_queries': myclasses_queries,
             'course_queries': mycourses_queries,
