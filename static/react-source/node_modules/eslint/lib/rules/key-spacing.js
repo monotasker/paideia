@@ -8,7 +8,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-const astUtils = require("../util/ast-utils");
+const astUtils = require("./utils/ast-utils");
 
 //------------------------------------------------------------------------------
 // Helpers
@@ -40,6 +40,18 @@ function last(arr) {
  */
 function isSingleLine(node) {
     return (node.loc.end.line === node.loc.start.line);
+}
+
+/**
+ * Checks whether the properties on a single line.
+ * @param {ASTNode[]} properties List of Property AST nodes.
+ * @returns {boolean} True if all properties is on a single line.
+ */
+function isSingleLineProperties(properties) {
+    const [firstProp] = properties,
+        lastProp = last(properties);
+
+    return firstProp.loc.start.line === lastProp.loc.end.line;
 }
 
 /**
@@ -120,11 +132,6 @@ function initOptions(toOptions, fromOptions) {
 //------------------------------------------------------------------------------
 // Rule Definition
 //------------------------------------------------------------------------------
-
-const messages = {
-    key: "{{error}} space after {{computed}}key '{{key}}'.",
-    value: "{{error}} space before value for {{computed}}key '{{key}}'."
-};
 
 module.exports = {
     meta: {
@@ -297,7 +304,13 @@ module.exports = {
                     additionalProperties: false
                 }
             ]
-        }]
+        }],
+        messages: {
+            extraKey: "Extra space after {{computed}}key '{{key}}'.",
+            extraValue: "Extra space before value for {{computed}}key '{{key}}'.",
+            missingKey: "Missing space after {{computed}}key '{{key}}'.",
+            missingValue: "Missing space before value for {{computed}}key '{{key}}'."
+        }
     },
 
     create(context) {
@@ -401,8 +414,7 @@ module.exports = {
             if (property.computed) {
                 return sourceCode.getText().slice(key.range[0], key.range[1]);
             }
-
-            return property.key.name || property.key.value;
+            return astUtils.getStaticPropertyName(property);
         }
 
         /**
@@ -421,10 +433,14 @@ module.exports = {
                 tokenBeforeColon = sourceCode.getTokenBefore(nextColon, { includeComments: true }),
                 tokenAfterColon = sourceCode.getTokenAfter(nextColon, { includeComments: true }),
                 isKeySide = side === "key",
-                locStart = isKeySide ? tokenBeforeColon.loc.start : tokenAfterColon.loc.start,
                 isExtra = diff > 0,
                 diffAbs = Math.abs(diff),
                 spaces = Array(diffAbs + 1).join(" ");
+
+            const locStart = isKeySide ? tokenBeforeColon.loc.end : nextColon.loc.start;
+            const locEnd = isKeySide ? nextColon.loc.start : tokenAfterColon.loc.start;
+            const missingLoc = isKeySide ? tokenBeforeColon.loc : tokenAfterColon.loc;
+            const loc = isExtra ? { start: locStart, end: locEnd } : missingLoc;
 
             if ((
                 diff && mode === "strict" ||
@@ -460,12 +476,19 @@ module.exports = {
                     }
                 }
 
+                let messageId = "";
+
+                if (isExtra) {
+                    messageId = side === "key" ? "extraKey" : "extraValue";
+                } else {
+                    messageId = side === "key" ? "missingKey" : "missingValue";
+                }
+
                 context.report({
                     node: property[side],
-                    loc: locStart,
-                    message: messages[side],
+                    loc,
+                    messageId,
                     data: {
-                        error: isExtra ? "Extra" : "Missing",
                         computed: property.computed ? "computed " : "",
                         key: getKey(property)
                     },
@@ -493,7 +516,7 @@ module.exports = {
          * @returns {Object} Whitespace before and after the property's colon.
          */
         function getPropertyWhitespace(property) {
-            const whitespace = /(\s*):(\s*)/.exec(sourceCode.getText().slice(
+            const whitespace = /(\s*):(\s*)/u.exec(sourceCode.getText().slice(
                 property.key.range[1], property.value.range[0]
             ));
 
@@ -576,17 +599,6 @@ module.exports = {
         }
 
         /**
-         * Verifies vertical alignment, taking into account groups of properties.
-         * @param  {ASTNode} node ObjectExpression node being evaluated.
-         * @returns {void}
-         */
-        function verifyAlignment(node) {
-            createGroups(node).forEach(group => {
-                verifyGroupAlignment(group.filter(isKeyValueProperty));
-            });
-        }
-
-        /**
          * Verifies spacing of property conforms to specified options.
          * @param  {ASTNode} node Property node being evaluated.
          * @param {Object} lineOptions Configured singleLine or multiLine options
@@ -603,15 +615,33 @@ module.exports = {
 
         /**
          * Verifies spacing of each property in a list.
-         * @param  {ASTNode[]} properties List of Property AST nodes.
+         * @param {ASTNode[]} properties List of Property AST nodes.
+         * @param {Object} lineOptions Configured singleLine or multiLine options
          * @returns {void}
          */
-        function verifyListSpacing(properties) {
+        function verifyListSpacing(properties, lineOptions) {
             const length = properties.length;
 
             for (let i = 0; i < length; i++) {
-                verifySpacing(properties[i], singleLineOptions);
+                verifySpacing(properties[i], lineOptions);
             }
+        }
+
+        /**
+         * Verifies vertical alignment, taking into account groups of properties.
+         * @param  {ASTNode} node ObjectExpression node being evaluated.
+         * @returns {void}
+         */
+        function verifyAlignment(node) {
+            createGroups(node).forEach(group => {
+                const properties = group.filter(isKeyValueProperty);
+
+                if (properties.length > 0 && isSingleLineProperties(properties)) {
+                    verifyListSpacing(properties, multiLineOptions);
+                } else {
+                    verifyGroupAlignment(properties);
+                }
+            });
         }
 
         //--------------------------------------------------------------------------
@@ -623,7 +653,7 @@ module.exports = {
             return {
                 ObjectExpression(node) {
                     if (isSingleLine(node)) {
-                        verifyListSpacing(node.properties.filter(isKeyValueProperty));
+                        verifyListSpacing(node.properties.filter(isKeyValueProperty), singleLineOptions);
                     } else {
                         verifyAlignment(node);
                     }

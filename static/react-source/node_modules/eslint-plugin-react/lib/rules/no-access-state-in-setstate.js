@@ -6,6 +6,7 @@
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
+const Components = require('../util/Components');
 
 // ------------------------------------------------------------------------------
 // Rule Definition
@@ -18,15 +19,19 @@ module.exports = {
       category: 'Possible Errors',
       recommended: false,
       url: docsUrl('no-access-state-in-setstate')
+    },
+
+    messages: {
+      useCallback: 'Use callback in setState when referencing the previous state.'
     }
   },
 
-  create: function(context) {
+  create: Components.detect((context, components, utils) => {
     function isSetStateCall(node) {
-      return node.type === 'CallExpression' &&
-        node.callee.property &&
-        node.callee.property.name === 'setState' &&
-        node.callee.object.type === 'ThisExpression';
+      return node.type === 'CallExpression'
+        && node.callee.property
+        && node.callee.property.name === 'setState'
+        && node.callee.object.type === 'ThisExpression';
     }
 
     function isFirstArgumentInSetStateCall(current, node) {
@@ -39,6 +44,10 @@ module.exports = {
       return current.arguments[0] === node;
     }
 
+    function isClassComponent() {
+      return !!(utils.getParentES6Component() || utils.getParentES5Component());
+    }
+
     // The methods array contains all methods or functions that are using this.state
     // or that are calling another method or function using this.state
     const methods = [];
@@ -46,9 +55,12 @@ module.exports = {
     const vars = [];
     return {
       CallExpression(node) {
+        if (!isClassComponent()) {
+          return;
+        }
         // Appends all the methods that are calling another
         // method containing this.state to the methods array
-        methods.map(method => {
+        methods.forEach((method) => {
           if (node.callee.name === method.methodName) {
             let current = node.parent;
             while (current.type !== 'Program') {
@@ -70,12 +82,12 @@ module.exports = {
         while (current.type !== 'Program') {
           if (isFirstArgumentInSetStateCall(current, node)) {
             const methodName = node.callee.name;
-            methods.map(method => {
+            methods.forEach((method) => {
               if (method.methodName === methodName) {
-                context.report(
-                  method.node,
-                  'Use callback in setState when referencing the previous state.'
-                );
+                context.report({
+                  node: method.node,
+                  messageId: 'useCallback'
+                });
               }
             });
 
@@ -87,17 +99,18 @@ module.exports = {
 
       MemberExpression(node) {
         if (
-          node.property.name === 'state' &&
-          node.object.type === 'ThisExpression'
+          node.property.name === 'state'
+          && node.object.type === 'ThisExpression'
+          && isClassComponent()
         ) {
           let current = node;
           while (current.type !== 'Program') {
             // Reporting if this.state is directly within this.setState
             if (isFirstArgumentInSetStateCall(current, node)) {
-              context.report(
+              context.report({
                 node,
-                'Use callback in setState when referencing the previous state.'
-              );
+                messageId: 'useCallback'
+              });
               break;
             }
 
@@ -105,13 +118,13 @@ module.exports = {
             if (current.type === 'MethodDefinition') {
               methods.push({
                 methodName: current.key.name,
-                node: node
+                node
               });
               break;
             } else if (current.type === 'FunctionExpression' && current.parent.key) {
               methods.push({
                 methodName: current.parent.key.name,
-                node: node
+                node
               });
               break;
             }
@@ -119,7 +132,7 @@ module.exports = {
             // Storing all variables containg this.state
             if (current.type === 'VariableDeclarator') {
               vars.push({
-                node: node,
+                node,
                 scope: context.getScope(),
                 variableName: current.id.name
               });
@@ -138,17 +151,19 @@ module.exports = {
           current = current.parent;
         }
         if (
-          current.parent.value === current ||
-          current.parent.object === current
+          current.parent.value === current
+          || current.parent.object === current
         ) {
           while (current.type !== 'Program') {
             if (isFirstArgumentInSetStateCall(current, node)) {
               vars
-                .filter(v => v.scope === context.getScope() && v.variableName === node.name)
-                .map(v => context.report(
-                  v.node,
-                  'Use callback in setState when referencing the previous state.'
-                ));
+                .filter((v) => v.scope === context.getScope() && v.variableName === node.name)
+                .forEach((v) => {
+                  context.report({
+                    node: v.node,
+                    messageId: 'useCallback'
+                  });
+                });
             }
             current = current.parent;
           }
@@ -157,7 +172,7 @@ module.exports = {
 
       ObjectPattern(node) {
         const isDerivedFromThis = node.parent.init && node.parent.init.type === 'ThisExpression';
-        node.properties.forEach(property => {
+        node.properties.forEach((property) => {
           if (property && property.key && property.key.name === 'state' && isDerivedFromThis) {
             vars.push({
               node: property.key,
@@ -168,5 +183,5 @@ module.exports = {
         });
       }
     };
-  }
+  })
 };

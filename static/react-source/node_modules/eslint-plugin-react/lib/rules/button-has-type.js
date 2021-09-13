@@ -2,6 +2,7 @@
  * @fileoverview Forbid "button" element without an explicit "type" attribute
  * @author Filipp Riabchun
  */
+
 'use strict';
 
 const getProp = require('jsx-ast-utils/getProp');
@@ -41,6 +42,14 @@ module.exports = {
       recommended: false,
       url: docsUrl('button-has-type')
     },
+
+    messages: {
+      missingType: 'Missing an explicit type attribute for button',
+      complexType: 'The button type attribute must be specified by a static string or a trivial ternary expression',
+      invalidValue: '"{{value}}" is an invalid value for button type attribute',
+      forbiddenValue: '"{{value}}" is an invalid value for button type attribute'
+    },
+
     schema: [{
       type: 'object',
       properties: {
@@ -61,33 +70,66 @@ module.exports = {
     }]
   },
 
-  create: function(context) {
+  create(context) {
     const configuration = Object.assign({}, optionDefaults, context.options[0]);
 
     function reportMissing(node) {
       context.report({
-        node: node,
-        message: 'Missing an explicit type attribute for button'
+        node,
+        messageId: 'missingType'
       });
     }
 
-    function checkValue(node, value, quoteFn) {
-      const q = quoteFn || (x => `"${x}"`);
+    function reportComplex(node) {
+      context.report({
+        node,
+        messageId: 'complexType'
+      });
+    }
+
+    function checkValue(node, value) {
       if (!(value in configuration)) {
         context.report({
-          node: node,
-          message: `${q(value)} is an invalid value for button type attribute`
+          node,
+          messageId: 'invalidValue',
+          data: {
+            value
+          }
         });
       } else if (!configuration[value]) {
         context.report({
-          node: node,
-          message: `${q(value)} is a forbidden value for button type attribute`
+          node,
+          messageId: 'forbiddenValue',
+          data: {
+            value
+          }
         });
       }
     }
 
+    function checkExpression(node, expression) {
+      switch (expression.type) {
+        case 'Literal':
+          checkValue(node, expression.value);
+          return;
+        case 'TemplateLiteral':
+          if (expression.expressions.length === 0) {
+            checkValue(node, expression.quasis[0].value.raw);
+          } else {
+            reportComplex(expression);
+          }
+          return;
+        case 'ConditionalExpression':
+          checkExpression(node, expression.consequent);
+          checkExpression(node, expression.alternate);
+          return;
+        default:
+          reportComplex(expression);
+      }
+    }
+
     return {
-      JSXElement: function(node) {
+      JSXElement(node) {
         if (node.openingElement.name.name !== 'button') {
           return;
         }
@@ -99,14 +141,15 @@ module.exports = {
           return;
         }
 
-        const propValue = getLiteralPropValue(typeProp);
-        if (!propValue && typeProp.value && typeProp.value.expression) {
-          checkValue(node, typeProp.value.expression.name, x => `\`${x}\``);
-        } else {
-          checkValue(node, propValue);
+        if (typeProp.value.type === 'JSXExpressionContainer') {
+          checkExpression(node, typeProp.value.expression);
+          return;
         }
+
+        const propValue = getLiteralPropValue(typeProp);
+        checkValue(node, propValue);
       },
-      CallExpression: function(node) {
+      CallExpression(node) {
         if (!isCreateElement(node, context)) {
           return;
         }
@@ -121,14 +164,14 @@ module.exports = {
         }
 
         const props = node.arguments[1].properties;
-        const typeProp = props.find(prop => prop.key && prop.key.name === 'type');
+        const typeProp = props.find((prop) => prop.key && prop.key.name === 'type');
 
-        if (!typeProp || typeProp.value.type !== 'Literal') {
+        if (!typeProp) {
           reportMissing(node);
           return;
         }
 
-        checkValue(node, typeProp.value.value);
+        checkExpression(node, typeProp.value);
       }
     };
   }

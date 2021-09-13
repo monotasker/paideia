@@ -1,4 +1,5 @@
-'use strict';
+/* jshint esversion: 6 */
+/* jshint browser: true */
 
 import Velocity from "velocity-animate";
 import svgPanZoom from "svg-pan-zoom";
@@ -32,7 +33,7 @@ function svg_show_guide(evt){
 function svg_hide_guide(evt){
     let $guide = evt.target.closest('svg').querySelector('#hotspot_guide');
     Velocity($guide, {opacity: '0'}, 500, function(){
-        $guide.display = 'none';
+        $guide.style.display = 'none';
     });
 }
 
@@ -51,12 +52,11 @@ function set_svg_interactions(select_string, navFunction) {
         loc.addEventListener('touchstart', svg_mask_other);
         loc.addEventListener('mouseleave', svg_show_other);
         loc.addEventListener('click', (evt) => {
-          navFunction(evt.currentTarget.id);
-          console.log(evt.currentTarget.id);
+          navFunction({newLoc: evt.currentTarget.id});
           evt.preventDefault();
         });
         loc.addEventListener('touchstart', (evt) => {
-          navFunction(evt.currentTarget.id);
+          navFunction({newLoc: evt.currentTarget.id});
           evt.preventDefault();
         });
     });
@@ -102,10 +102,10 @@ function make_map_pan(select_string, navFunction) {
                         });
             mymap.contain();
             mymap.pan({x: 0, y: 0});
-        }
+        };
         mapInit();
         set_svg_interactions(select_string, navFunction);
-    }
+    };
 }
 
 export { make_map_pan };

@@ -21,6 +21,10 @@ module.exports = {
       url: docsUrl('jsx-no-duplicate-props')
     },
 
+    messages: {
+      noDuplicateProps: 'No duplicate props allowed'
+    },
+
     schema: [{
       type: 'object',
       properties: {
@@ -32,15 +36,15 @@ module.exports = {
     }]
   },
 
-  create: function (context) {
+  create(context) {
     const configuration = context.options[0] || {};
     const ignoreCase = configuration.ignoreCase || false;
 
     return {
-      JSXOpeningElement: function (node) {
+      JSXOpeningElement(node) {
         const props = {};
 
-        node.attributes.forEach(decl => {
+        node.attributes.forEach((decl) => {
           if (decl.type === 'JSXSpreadAttribute') {
             return;
           }
@@ -58,7 +62,7 @@ module.exports = {
           if (has(props, name)) {
             context.report({
               node: decl,
-              message: 'No duplicate props allowed'
+              messageId: 'noDuplicateProps'
             });
           } else {
             props[name] = 1;

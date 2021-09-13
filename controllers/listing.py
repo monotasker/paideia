@@ -275,7 +275,6 @@ def querylist():
                     if num != q['bug_status']]
             if isinstance(q['bug_status'], int):
                 vals.insert(0, q['bug_status'])
-            print(vals)
             statuses = ((r['id'], r['status_label']) for v in vals
                         for r in status_rows
                         if r['id'] == v)
@@ -434,7 +433,7 @@ def lessons():
         active_set = None
     lessons = db(db.lessons.active == True
                  ).select(orderby=db.lessons.lesson_position
-                          ).as_list() 
+                          ).as_list()
     for l in lessons:
         mybadges = db(db.badges.tag.belongs(l['lesson_tags'])).select()
         l['badges'] = mybadges.as_list()

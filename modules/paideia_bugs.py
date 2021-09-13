@@ -26,7 +26,7 @@ class Bug(object):
             self.loc_id = db(db.locations.loc_alias == loc_id
                              ).select(db.locations.id).first()
 
-    def log_new(self, answer, log_id, score, user_comment):
+    def log_new(self, answer, log_id, score, user_comment, show_public):
         """
         creates a new bug report and provides confirmation to the user.
         """
@@ -41,13 +41,18 @@ class Bug(object):
                        "user_response": answer,
                        "sample_answers": self.readable_response,
                        "user_comment": user_comment,
-                       "score": score}
+                       "score": score,
+                       "public": show_public}
 
             if log_id not in [None, False, 'None']:  # to allow for queries on repeating (unrecorded) steps
                 argdict['log_id'] = log_id
 
-            db.bugs.insert(**argdict)
-            return True
+            # if self.step_id and not self.prompt:  # for queries before step V
+            #     argdict['prompt'] = db.steps(self.step_id).prompt
+
+            pprint(argdict)
+            my_id = db.bugs.insert(**argdict)
+            return my_id
         except Exception:
             print(traceback.format_exc(5))
             mail = current.mail
@@ -116,8 +121,8 @@ class Bug(object):
                         if newscore >= right_threshold:
                             seclist = tr2.secondary_right
                             seclist.extend(newdates)
-                        tr2.update_record(**{'secondary_right': seclist})
-                        db.commit()
+                            tr2.update_record(**{'secondary_right': seclist})
+                            db.commit()
                     for tr in myrecs:
                         if newscore >= right_threshold:
                             # print '\ntrying to update tag_record {}'.format(tr.id)
@@ -148,17 +153,17 @@ class Bug(object):
                                     updates['tlast_wrong'] = max(odates)
                             # print 'done with tag record', tr.id
 
-                        # correct counts for times right and wrong
-                        rightsum = sum(scoredif for l in new_logs_right)
-                        updates['times_right'] = tr.times_right + rightsum
-                        updates['times_wrong'] = tr.times_wrong - rightsum
-                        if updates['times_wrong'] < 0:
-                            updates['times_wrong'] = 0
-                        # print 'updates: ', updates
-                        # commit the updates to db
-                        updated_list.append(tr.id)
-                        tr.update_record(**updates)
-                        db.commit()
+                            # correct counts for times right and wrong
+                            rightsum = sum(scoredif for l in new_logs_right)
+                            updates['times_right'] = tr.times_right + rightsum
+                            updates['times_wrong'] = tr.times_wrong - rightsum
+                            if updates['times_wrong'] < 0:
+                                updates['times_wrong'] = 0
+                            # print 'updates: ', updates
+                            # commit the updates to db
+                            updated_list.append(tr.id)
+                            tr.update_record(**updates)
+                            db.commit()
 
                 else:  # user has no wrong logs to be changed
                     print('user has no wrong logs to be changed')
@@ -178,58 +183,70 @@ class Bug(object):
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
+        vbs = False
+        if vbs: print("in Bug.undo*****************")
+        if vbs: print("score", score)
+        if vbs: print("adjusted_score", adjusted_score)
+        if vbs: print("status", bugstatus)
         db = current.db
         response = current.response
         message = ''
         newscore = adjusted_score if adjusted_score != None else 1.0
-        comments = {'confirmed': 'You\'re right. There was a problem with the '
-                                 'evaluation of your answer. We\'ll work on fixing '
-                                 'it. When the problem is resolved this report '
-                                 'will be marked "fixed" and we will adjust any '
-                                 'other affected step attempts in your record. '
-                                 'Thanks for helping to make Paideia even better.',
-                    'fixed': 'The problem with this step has now been fixed and '
-                             'any negative affects on your performance record '
-                             'have been reversed. Thanks again for your help.'
-                    }
-        admin_comment = comment if comment else comments[bugstatus]
+        #  FIXME: this automated commenting doesn't work with new query replies
+        # comments = {'confirmed': 'You\'re right. There was a problem with the '
+        #                          'evaluation of your answer. We\'ll work on fixing '
+        #                          'it. When the problem is resolved this report '
+        #                          'will be marked "fixed" and we will adjust any '
+        #                          'other affected step attempts in your record. '
+        #                          'Thanks for helping to make Paideia even better.',
+        #             'fixed': 'The problem with this step has now been fixed and '
+        #                      'any negative affects on your performance record '
+        #                      'have been reversed. Thanks again for your help.'
+        #             }
+        # admin_comment = comment if comment else comments[bugstatus]
 
-        # Find all equivalent bug reports
-        thisuser_bug_query = db((db.bugs.step == self.step_id) &
+
+        statusid = db(db.bug_status.status_label == bugstatus
+                      ).select().first().id
+        newvals = {'adjusted_score': newscore,
+                   'bug_status': statusid}
+                #  FIXME: no longer works 'admin_comment': comment,
+
+        if bugstatus == "allowance_given":
+            bugrows = [db.bugs(bug_id)]
+            bugrows[0].update_record(**newvals)
+        else:
+            # Find all equivalent bug reports
+            thisuser_bug_query = db((db.bugs.step == self.step_id) &
+                                    (db.bugs.in_path == self.path_id) &
+                                    (db.bugs.user_response == user_response) &
+                                    (db.bugs.user_name == int(user_id)) &
+                                    (db.bugs.score != newscore))
+            general_bug_query = db((db.bugs.step == self.step_id) &
                                 (db.bugs.in_path == self.path_id) &
                                 (db.bugs.user_response == user_response) &
-                                (db.bugs.user_name == int(user_id)) &
                                 (db.bugs.score != newscore))
-        general_bug_query = db((db.bugs.step == self.step_id) &
-                               (db.bugs.in_path == self.path_id) &
-                               (db.bugs.user_response == user_response) &
-                               (db.bugs.user_comment == user_comment) &
-                               (db.bugs.score != newscore))
-        general_bugrows = general_bug_query.select()
-        user_bugrows = thisuser_bug_query.select()
-        bugrows = general_bugrows & user_bugrows
+            general_bugrows = general_bug_query.select()
+            user_bugrows = thisuser_bug_query.select()
+            bugrows = general_bugrows & user_bugrows
+            thisuser_bug_query.update(**newvals)
+            general_bug_query.update(**newvals)
 
         # Update those bug reports with the new values
-        statusid = db(db.bug_status.status_label == bugstatus).select().first().id
-        newvals = {'adjusted_score': newscore,
-                   'admin_comment': comment,
-                   'bug_status': statusid}
-        thisuser_bug_query.update(**newvals)
-        general_bug_query.update(**newvals)
         bugusers = list(set([b.user_name for b in bugrows]))
         message += "\nUpdated {} bug reports for {} users. ".format(len(bugrows),
                                                                   len(bugusers))
         # don't adjust records if no score change
-        if score < adjusted_score and abs(score - adjusted_score) > 0.0000009:
+        if score < newscore and abs(score - newscore) > 0.0000009:
             # Find and fix affected attempt log rows
             logrows, message = self._fix_attempt_logs(bugrows, newscore,
                                                       message, bug_id)
 
             # Find and fix tag_records for affected users
-            scoredif = adjusted_score - score
+            scoredif = newscore - score
             recids, message = self._fix_tag_records(bugusers, logrows,
                                                     message, bug_id, scoredif,
-                                                    adjusted_score)
+                                                    newscore)
 
         # print message
         return message
@@ -318,26 +335,186 @@ class Bug(object):
         '''
         db = current.db
         new_content['modified_on'] = datetime.datetime.utcnow()
+
+        if 'adjusted_score' in new_content.keys() \
+                and new_content['adjusted_score'] > 1.0:
+            new_content['adjusted_score'] = 1.0
+
         try:
             myrow = db.bugs(log_id)
             myrow.update_record(**new_content)
             db.commit()
-            return myrow.id
+            return db.bugs(log_id).as_dict()
         except Exception as e:
             print('Error in Bug::update_bug()')
             print(e)
             return 'false'
 
+    @staticmethod
+    def record_post_comment(uid=None, commenter_role=None, post_id=None,
+                            comment_body=None, public=None, flagged=None,
+                            deleted=None, hidden=None, pinned=None, popularity=None, helpfulness=None, comment_id=None
+                            ):
+        """
+        Internal method to add/update a comment on an existing bug answer post.
+
+        This is called by the public API methods add_post_comment and update_post_comment.
+
+        params
+            uid (int)
+            post_id (int)* required
+            comment_text(str)
+            public(bool)
+            deleted(bool)
+            hidden(bool)
+            pinned(bool)
+            popularity(double)
+            helpfulness(double)
+            comment_id(int) OPTIONAL
+
+        If no value is supplied for comment_id this method creates a new comment
+        for the specified bug post. If a comment_id is supplied that
+        bug_post_comments record is updated with the new comment_text string.
+        Returns a dictionary with the keys
+            post_comment_list (list): A list of the ids for all posts on this bug.
+            new_comment (dict): A dictionary containing the record data for the
+                newly inserted or updated post.
+
+        """
+        db = current.db
+        mypost = db(db.bug_posts.id == post_id).select().first()
+        post_comments = mypost['comments'] if 'comments' in mypost.keys() \
+            and mypost['comments'] else []
+        newdata = {k:v for k, v in {"comment_body": comment_body,
+                                    "public": public,
+                                    "deleted": deleted,
+                                    "hidden": hidden,
+                                    "flagged": flagged,
+                                    "pinned": pinned,
+                                    "popularity": popularity,
+                                    "helpfulness": helpfulness}.items()
+                if v is not None}
+        if comment_id:
+            assert comment_id in post_comments
+            db(db.bug_post_comments.id == comment_id).update(
+            modified_on=datetime.datetime.utcnow(),
+            **newdata
+            )
+        else:
+            comment_id = db.bug_post_comments.insert(
+                commenter=uid,
+                commenter_role=commenter_role,
+                on_post=post_id,
+                thread_index=len(post_comments) if post_comments else 0,
+                **newdata
+                )
+            post_comments.append(comment_id)
+            mypost.update_record(comments = post_comments)
+        db.commit()
+
+        newpost = db.bug_posts(post_id)
+        newcomment = db.bug_post_comments(comment_id)
+
+        return {'post_comment_list': newpost['comments'],
+                'new_comment': newcomment.as_dict()}
+
+    @staticmethod
+    def record_bug_post(uid=None, bug_id=None, poster_role=None, post_body=None,
+                        public=True, deleted=None, hidden=None, pinned=None,
+                        flagged=None, helpfulness=None, popularity=None,
+                        post_id=None
+                        ):
+        """
+        Internal method to add/update a discussion post on an existing bug.
+
+        This is called by both public API methods add_query_post and
+        log_new_query.
+
+        params
+            uid (int) *required
+            bug_id (int) *required if no post_id
+            post_id(int) *required if no bug_id
+            poster_role(list)
+            post_text(str)
+            public(bool)
+            deleted(bool)
+            hidden(bool)
+            pinned(bool)
+            flagged(bool)
+            helpfulness(double)
+            popularity(double)
+
+        If no value is supplied for post_id this method creates a new post
+        for the specified bug. If a post_id is supplied that bug_posts record
+        is updated with the new post_text string.
+
+        Returns a dictionary with the keys
+            bug_post_list (list): A list of the ids for all posts on this bug.
+            new_post (dict): A dictionary containing the record data for the
+                newly inserted or updated post.
+
+        """
+        vbs = False
+        db = current.db
+        request = current.request
+        if vbs: print('in paideia_bugs::record_bug_post')
+        if vbs: print('uid:', uid)
+        if vbs: print('post_id:', post_id)
+        if vbs: print('bug_id:', bug_id)
+        mybug = db(db.bugs.id == bug_id).select().first()
+        bug_posts = mybug['posts'] if mybug['posts'] else []
+        newdata = {k:v for k, v in {"post_body": post_body,
+                                    "poster_role": poster_role,
+                                    "public": public,
+                                    "deleted": deleted,
+                                    "hidden": hidden,
+                                    "pinned": pinned,
+                                    "flagged": flagged,
+                                    "helpfulness": helpfulness,
+                                    "popularity": popularity}.items()
+                if v not in [None, "null"]}
+        if post_id:
+            assert post_id in bug_posts
+            db(db.bug_posts.id == post_id).update(
+                modified_on=datetime.datetime.utcnow(),
+                **newdata
+                )
+            db.commit()
+        else:
+            if vbs: print('paideia_bugs::record_bug_post')
+            if vbs: print('bug_id:', bug_id)
+            post_id = db.bug_posts.insert(
+                poster=uid,
+                on_bug=bug_id,
+                thread_index=len(bug_posts) if bug_posts else 0,
+                **newdata
+                )
+            bug_posts.append(post_id)
+            mybug.update_record(posts=bug_posts)
+            db.commit()
+        if vbs: print('paideia_bugs::record_bug_post')
+        if vbs: print('post_id:', post_id)
+        if vbs: print('post_id:', db.bug_posts[post_id].id)
+        if vbs: print('post_on_bug:', db.bug_posts[post_id].on_bug)
+
+        newbug = db.bugs(bug_id)
+        newpost = db.bug_posts(post_id)
+
+        return {'bug_post_list': newbug['posts'],
+                'new_post': newpost.as_dict()}
+
 
 def trigger_bug_undo(*args, **kwargs):
     """
     """
+    vbs = False
     db = current.db
     mystatus = db(db.bug_status.id == kwargs['bug_status']).select().first()
     result = "No records reversed."
 
-    pprint(kwargs)
-    pprint(args)
+    if vbs: print("in paideia_bugs.trigger_bug_undo:")
+    if vbs: pprint(kwargs)
+    if vbs: pprint(args)
     if mystatus['status_label'] in ['fixed', 'confirmed', 'allowance_given']:
         # print 'undoing bug!'
         # print 'args'
@@ -350,8 +527,8 @@ def trigger_bug_undo(*args, **kwargs):
         bug_id = kwargs['id']
         log_id = kwargs['log_id']
         score = kwargs['score']
-        # below needed to avoid error updating non-existent log entry
-        adjusted_score = kwargs['adjusted_score'] if kwargs['log_id'] else 0
+        adjusted_score = kwargs['adjusted_score'] \
+            if not (kwargs['adjusted_score'] > 1.0) else 1.0
         bugstatus = mystatus['status_label']
         user_id = kwargs['user_name']
         comment = kwargs['admin_comment']
@@ -361,3 +538,4 @@ def trigger_bug_undo(*args, **kwargs):
         result = mybug.undo(bug_id, log_id, score, bugstatus, user_id, comment,
                             user_response, user_comment, adjusted_score)
     return result
+

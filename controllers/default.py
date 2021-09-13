@@ -4,10 +4,13 @@
 from copy import copy
 import datetime
 from memory_profiler import profile
+from pprint import pprint
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class
 from paideia_bugs import Bug, trigger_bug_undo
 from gluon.serializers import json
+from gluon.tools import Service
+service = Service()
 if 0:
     from web2py.applications.paideia.modules.paideia_stats import Stats, get_set_at_date, get_term_bounds
     from web2py.applications.paideia.modules.paideia_stats import get_current_class
@@ -27,33 +30,9 @@ mail = current.mail
 
 def index():
     """    """
-    mod_topic = db(db.topics.topic == 'index-modals'
-                   ).select(db.topics.id).first()
-    typing_topic = db(db.topics.topic == 'typing greek'
-                      ).select(db.topics.id).first()
-    comment_topic = db(db.topics.topic == 'student comment'
-                       ).select(db.topics.id).first()
-    modals = db(db.content_pages.topics.contains([mod_topic.id])
-                ).select().as_list()
-    typing = db(db.content_pages.topics.contains([typing_topic.id])
-                ).select().as_list()
-    typing_text = '### {}  \n\n{}\n\n### {}  \n\n{}' \
-                  ''.format(typing[1]['title'],
-                            typing[1]['content'],
-                            typing[0]['title'],
-                            typing[0]['content'])
-    modals.append({'title': 'How Do I Type Greek?',
-                   'content': typing_text})
-    hero_topic = db(db.topics.topic == 'hero').select(db.topics.id).first()
-    hero = db(db.content_pages.topics.contains([hero_topic.id])
-              ).select().as_list()
+    redirect("paideia")
 
-    comments = db(db.content_pages.topics.contains([comment_topic.id])
-                  ).select(db.content_pages.title,
-                           db.content_pages.content,
-                           orderby='<random>').as_list()
-
-    return {'modals': modals, 'hero': hero, 'comments': comments}
+    return {}
 
 
 def faqs():
@@ -498,9 +477,6 @@ def download():
     return response.download(request, db)
 
 
-auth.settings.allow_basic_login = True
-
-
 @auth.requires_login()
 def call():
     '''
@@ -516,12 +492,6 @@ def call():
     response.headers['Access-Control-Allow-Credentials'] = 'true'
 
     return service()
-
-
-@service.json
-def get_login():
-
-    return json({"myword": "gotcha"})
 
 
 """

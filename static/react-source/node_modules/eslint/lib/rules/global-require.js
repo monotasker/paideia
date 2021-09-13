@@ -13,7 +13,8 @@ const ACCEPTABLE_PARENTS = [
     "CallExpression",
     "ConditionalExpression",
     "Program",
-    "VariableDeclaration"
+    "VariableDeclaration",
+    "ChainExpression"
 ];
 
 /**
@@ -48,6 +49,10 @@ function isShadowed(scope, node) {
 
 module.exports = {
     meta: {
+        deprecated: true,
+
+        replacedBy: [],
+
         type: "suggestion",
 
         docs: {
@@ -57,7 +62,10 @@ module.exports = {
             url: "https://eslint.org/docs/rules/global-require"
         },
 
-        schema: []
+        schema: [],
+        messages: {
+            unexpected: "Unexpected require()."
+        }
     },
 
     create(context) {
@@ -69,7 +77,7 @@ module.exports = {
                     const isGoodRequire = context.getAncestors().every(parent => ACCEPTABLE_PARENTS.indexOf(parent.type) > -1);
 
                     if (!isGoodRequire) {
-                        context.report({ node, message: "Unexpected require()." });
+                        context.report({ node, messageId: "unexpected" });
                     }
                 }
             }

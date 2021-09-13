@@ -11,6 +11,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'app.js',
     publicPath: '/paideia/static/react-source/dist/'
+    // publicPath: '/'
   },
   mode: 'development',
   devtool: 'cheap-module-source-map',
@@ -22,7 +23,13 @@ module.exports = {
       {test: /\.(eot|ttf|woff)$/,
        use: [{loader: 'file-loader', options: {outputPath: 'fonts'}}],
       },
-      {test: /\.(js|jsx)$/, exclude: /node_modules/, use: 'babel-loader'},
+      {test: /\.(js|jsx)$/, exclude: /node_modules/,
+       use: [
+         {loader: 'babel-loader',
+          options: {presets: ['@babel/react']}
+          }
+       ]
+      },
       {test: /\.css$/, use: ['style-loader', 'css-loader']},
       {test: /\.scss$/,
        use: [
@@ -31,7 +38,7 @@ module.exports = {
           'sass-loader'
         ]
       },
-      { test: /\.json$/, loader: 'json-loader' }
+      // { test: /\.json$/, loader: 'json-loader' }
     ]
   },
   resolve: {extensions: ['.js', '.jsx']},
@@ -43,7 +50,7 @@ module.exports = {
   // },
   devServer: {
     historyApiFallback: true,
-    contentBase: './src/'
+    // contentBase: './'
   },
   plugins: [
     new HTMLWebpackPlugin({

@@ -2,6 +2,7 @@
  * @fileoverview Forbid certain props on DOM Nodes
  * @author David Vázquez
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -25,13 +26,29 @@ module.exports = {
       url: docsUrl('forbid-dom-props')
     },
 
+    messages: {
+      propIsForbidden: 'Prop "{{prop}}" is forbidden on DOM Nodes'
+    },
+
     schema: [{
       type: 'object',
       properties: {
         forbid: {
           type: 'array',
           items: {
-            type: 'string',
+            oneOf: [{
+              type: 'string'
+            }, {
+              type: 'object',
+              properties: {
+                propName: {
+                  type: 'string'
+                },
+                message: {
+                  type: 'string'
+                }
+              }
+            }],
             minLength: 1
           },
           uniqueItems: true
@@ -41,19 +58,25 @@ module.exports = {
     }]
   },
 
-  create: function(context) {
-    function isForbidden(prop) {
-      const configuration = context.options[0] || {};
+  create(context) {
+    const configuration = context.options[0] || {};
+    const forbid = new Map((configuration.forbid || DEFAULTS).map((value) => {
+      const propName = typeof value === 'string' ? value : value.propName;
+      const options = {
+        message: typeof value === 'string' ? null : value.message
+      };
+      return [propName, options];
+    }));
 
-      const forbid = configuration.forbid || DEFAULTS;
-      return forbid.indexOf(prop) >= 0;
+    function isForbidden(prop) {
+      return forbid.has(prop);
     }
 
     return {
-      JSXAttribute: function(node) {
+      JSXAttribute(node) {
         const tag = node.parent.name.name;
-        if (!(tag && tag[0] !== tag[0].toUpperCase())) {
-          // This is a Component, not  a DOM node, so exit.
+        if (!(tag && typeof tag === 'string' && tag[0] !== tag[0].toUpperCase())) {
+          // This is a Component, not a DOM node, so exit.
           return;
         }
 
@@ -63,10 +86,14 @@ module.exports = {
           return;
         }
 
-        context.report({
-          node: node,
-          message: `Prop \`${prop}\` is forbidden on DOM Nodes`
-        });
+        const customMessage = forbid.get(prop).message;
+
+        context.report(Object.assign({
+          node,
+          data: {
+            prop
+          }
+        }, customMessage ? {message: customMessage} : {messageId: 'propIsForbidden'}));
       }
     };
   }

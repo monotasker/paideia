@@ -2,6 +2,7 @@
  * @fileoverview Prevent usage of isMounted
  * @author Joe Lencioni
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -18,17 +19,22 @@ module.exports = {
       recommended: true,
       url: docsUrl('no-is-mounted')
     },
+
+    messages: {
+      noIsMounted: 'Do not use isMounted'
+    },
+
     schema: []
   },
 
-  create: function(context) {
+  create(context) {
     // --------------------------------------------------------------------------
     // Public
     // --------------------------------------------------------------------------
 
     return {
 
-      CallExpression: function(node) {
+      CallExpression(node) {
         const callee = node.callee;
         if (callee.type !== 'MemberExpression') {
           return;
@@ -41,7 +47,7 @@ module.exports = {
           if (ancestors[i].type === 'Property' || ancestors[i].type === 'MethodDefinition') {
             context.report({
               node: callee,
-              message: 'Do not use isMounted'
+              messageId: 'noIsMounted'
             });
             break;
           }

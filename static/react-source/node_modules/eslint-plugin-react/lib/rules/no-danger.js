@@ -2,6 +2,7 @@
  * @fileoverview Prevent usage of dangerous JSX props
  * @author Scott Andrews
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -10,8 +11,6 @@ const jsxUtil = require('../util/jsx');
 // ------------------------------------------------------------------------------
 // Constants
 // ------------------------------------------------------------------------------
-
-const DANGEROUS_MESSAGE = 'Dangerous property \'{{name}}\' found';
 
 const DANGEROUS_PROPERTY_NAMES = [
   'dangerouslySetInnerHTML'
@@ -47,17 +46,22 @@ module.exports = {
       recommended: false,
       url: docsUrl('no-danger')
     },
+
+    messages: {
+      dangerousProp: 'Dangerous property \'{{name}}\' found'
+    },
+
     schema: []
   },
 
-  create: function(context) {
+  create(context) {
     return {
 
-      JSXAttribute: function(node) {
+      JSXAttribute(node) {
         if (jsxUtil.isDOMComponent(node.parent) && isDangerous(node.name.name)) {
           context.report({
-            node: node,
-            message: DANGEROUS_MESSAGE,
+            node,
+            messageId: 'dangerousProp',
             data: {
               name: node.name.name
             }

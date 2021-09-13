@@ -24,7 +24,11 @@ module.exports = {
 
         schema: [
             { enum: ["always", "never"] }
-        ]
+        ],
+        messages: {
+            unexpected: "Unexpected space between template tag and template literal.",
+            missing: "Missing space between template tag and template literal."
+        }
     },
 
     create(context) {
@@ -45,8 +49,11 @@ module.exports = {
             if (never && hasWhitespace) {
                 context.report({
                     node,
-                    loc: tagToken.loc.start,
-                    message: "Unexpected space between template tag and template literal.",
+                    loc: {
+                        start: tagToken.loc.end,
+                        end: literalToken.loc.start
+                    },
+                    messageId: "unexpected",
                     fix(fixer) {
                         const comments = sourceCode.getCommentsBefore(node.quasi);
 
@@ -64,8 +71,11 @@ module.exports = {
             } else if (!never && !hasWhitespace) {
                 context.report({
                     node,
-                    loc: tagToken.loc.start,
-                    message: "Missing space between template tag and template literal.",
+                    loc: {
+                        start: node.loc.start,
+                        end: literalToken.loc.start
+                    },
+                    messageId: "missing",
                     fix(fixer) {
                         return fixer.insertTextAfter(tagToken, " ");
                     }

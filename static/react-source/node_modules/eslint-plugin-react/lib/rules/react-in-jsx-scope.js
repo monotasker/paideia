@@ -2,6 +2,7 @@
  * @fileoverview Prevent missing React when using JSX
  * @author Glen Mailer
  */
+
 'use strict';
 
 const variableUtil = require('../util/variable');
@@ -20,12 +21,16 @@ module.exports = {
       recommended: true,
       url: docsUrl('react-in-jsx-scope')
     },
+
+    messages: {
+      notInScope: '\'{{name}}\' must be in scope when using JSX'
+    },
+
     schema: []
   },
 
-  create: function(context) {
+  create(context) {
     const pragma = pragmaUtil.getFromContext(context);
-    const NOT_DEFINED_MESSAGE = '\'{{name}}\' must be in scope when using JSX';
 
     function checkIfReactIsInScope(node) {
       const variables = variableUtil.variablesInScope(context);
@@ -33,8 +38,8 @@ module.exports = {
         return;
       }
       context.report({
-        node: node,
-        message: NOT_DEFINED_MESSAGE,
+        node,
+        messageId: 'notInScope',
         data: {
           name: pragma
         }

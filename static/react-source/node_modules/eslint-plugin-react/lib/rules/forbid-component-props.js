@@ -2,6 +2,7 @@
  * @fileoverview Forbid certain props on components
  * @author Joe Lencioni
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -25,6 +26,10 @@ module.exports = {
       url: docsUrl('forbid-component-props')
     },
 
+    messages: {
+      propIsForbidden: 'Prop "{{prop}}" is forbidden on Components'
+    },
+
     schema: [{
       type: 'object',
       properties: {
@@ -45,6 +50,9 @@ module.exports = {
                   items: {
                     type: 'string'
                   }
+                },
+                message: {
+                  type: 'string'
                 }
               }
             }]
@@ -54,24 +62,31 @@ module.exports = {
     }]
   },
 
-  create: function(context) {
+  create(context) {
     const configuration = context.options[0] || {};
-    const forbid = new Map((configuration.forbid || DEFAULTS).map(value => {
+    const forbid = new Map((configuration.forbid || DEFAULTS).map((value) => {
       const propName = typeof value === 'string' ? value : value.propName;
-      const whitelist = typeof value === 'string' ? [] : (value.allowedFor || []);
-      return [propName, whitelist];
+      const options = {
+        allowList: typeof value === 'string' ? [] : (value.allowedFor || []),
+        message: typeof value === 'string' ? null : value.message
+      };
+      return [propName, options];
     }));
 
     function isForbidden(prop, tagName) {
-      const whitelist = forbid.get(prop);
+      const options = forbid.get(prop);
+      const allowList = options ? options.allowList : undefined;
       // if the tagName is undefined (`<this.something>`), we assume it's a forbidden element
-      return typeof whitelist !== 'undefined' && (typeof tagName === 'undefined' || whitelist.indexOf(tagName) === -1);
+      return typeof allowList !== 'undefined' && (typeof tagName === 'undefined' || allowList.indexOf(tagName) === -1);
     }
 
     return {
-      JSXAttribute: function(node) {
-        const tag = node.parent.name.name;
-        if (tag && tag[0] !== tag[0].toUpperCase()) {
+      JSXAttribute(node) {
+        const parentName = node.parent.name;
+        // Extract a component name when using a "namespace", e.g. `<AntdLayout.Content />`.
+        const tag = parentName.name || `${parentName.object.name}.${parentName.property.name}`;
+        const componentName = parentName.name || parentName.property.name;
+        if (componentName && typeof componentName[0] === 'string' && componentName[0] !== componentName[0].toUpperCase()) {
           // This is a DOM node, not a Component, so exit.
           return;
         }
@@ -82,10 +97,14 @@ module.exports = {
           return;
         }
 
-        context.report({
-          node: node,
-          message: `Prop \`${prop}\` is forbidden on Components`
-        });
+        const customMessage = forbid.get(prop).message;
+
+        context.report(Object.assign({
+          node,
+          data: {
+            prop
+          }
+        }, customMessage ? {message: customMessage} : {messageId: 'propIsForbidden'}));
       }
     };
   }

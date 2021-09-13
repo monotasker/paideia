@@ -1,6 +1,7 @@
 'use strict';
 
 exports.__esModule = true;
+exports.LinkContainer = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -30,7 +31,7 @@ var isModifiedEvent = function isModifiedEvent(event) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 };
 
-var LinkContainer = function (_Component) {
+var LinkContainer = exports.LinkContainer = function (_Component) {
   _inherits(LinkContainer, _Component);
 
   function LinkContainer() {
@@ -62,10 +63,10 @@ var LinkContainer = function (_Component) {
       ) {
           event.preventDefault();
 
-          var history = _this.context.router.history;
           var _this$props2 = _this.props,
               replace = _this$props2.replace,
-              to = _this$props2.to;
+              to = _this$props2.to,
+              history = _this$props2.history;
 
 
           if (replace) {
@@ -81,6 +82,10 @@ var LinkContainer = function (_Component) {
     var _this2 = this;
 
     var _props = this.props,
+        history = _props.history,
+        _location = _props.location,
+        _match = _props.match,
+        _staticContext = _props.staticContext,
         children = _props.children,
         replace = _props.replace,
         to = _props.to,
@@ -91,9 +96,9 @@ var LinkContainer = function (_Component) {
         activeStyle = _props.activeStyle,
         style = _props.style,
         getIsActive = _props.isActive,
-        props = _objectWithoutProperties(_props, ['children', 'replace', 'to', 'exact', 'strict', 'activeClassName', 'className', 'activeStyle', 'style', 'isActive']);
+        props = _objectWithoutProperties(_props, ['history', 'location', 'match', 'staticContext', 'children', 'replace', 'to', 'exact', 'strict', 'activeClassName', 'className', 'activeStyle', 'style', 'isActive']);
 
-    var href = this.context.router.history.createHref(typeof to === 'string' ? { pathname: to } : to);
+    var href = history.createHref(typeof to === 'string' ? { pathname: to } : to);
 
     var child = _react2.default.Children.only(children);
 
@@ -120,16 +125,15 @@ var LinkContainer = function (_Component) {
   return LinkContainer;
 }(_react.Component);
 
-LinkContainer.contextTypes = {
-  router: _propTypes2.default.shape({
-    history: _propTypes2.default.shape({
-      push: _propTypes2.default.func.isRequired,
-      replace: _propTypes2.default.func.isRequired,
-      createHref: _propTypes2.default.func.isRequired
-    }).isRequired
-  }).isRequired
-};
 LinkContainer.propTypes = {
+  history: _propTypes2.default.shape({
+    push: _propTypes2.default.func.isRequired,
+    replace: _propTypes2.default.func.isRequired,
+    createHref: _propTypes2.default.func.isRequired
+  }).isRequired,
+  location: _propTypes2.default.object,
+  match: _propTypes2.default.object,
+  staticContext: _propTypes2.default.object,
   children: _propTypes2.default.element.isRequired,
   onClick: _propTypes2.default.func,
   replace: _propTypes2.default.bool,
@@ -148,5 +152,4 @@ LinkContainer.defaultProps = {
   strict: false,
   activeClassName: 'active'
 };
-exports.default = LinkContainer;
-module.exports = exports['default'];
+exports.default = (0, _reactRouterDom.withRouter)(LinkContainer);

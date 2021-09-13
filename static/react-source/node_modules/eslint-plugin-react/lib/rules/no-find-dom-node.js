@@ -2,6 +2,7 @@
  * @fileoverview Prevent usage of findDOMNode
  * @author Yannick Croissant
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -18,31 +19,33 @@ module.exports = {
       recommended: true,
       url: docsUrl('no-find-dom-node')
     },
+
+    messages: {
+      noFindDOMNode: 'Do not use findDOMNode. It doesn’t work with function components and is deprecated in StrictMode. See https://reactjs.org/docs/react-dom.html#finddomnode'
+    },
+
     schema: []
   },
 
-  create: function(context) {
+  create(context) {
     // --------------------------------------------------------------------------
     // Public
     // --------------------------------------------------------------------------
 
     return {
 
-      CallExpression: function(node) {
+      CallExpression(node) {
         const callee = node.callee;
 
-        const isfindDOMNode =
-          (callee.name === 'findDOMNode') ||
-          (callee.property && callee.property.name === 'findDOMNode')
-        ;
-
+        const isfindDOMNode = (callee.name === 'findDOMNode')
+          || (callee.property && callee.property.name === 'findDOMNode');
         if (!isfindDOMNode) {
           return;
         }
 
         context.report({
           node: callee,
-          message: 'Do not use findDOMNode'
+          messageId: 'noFindDOMNode'
         });
       }
     };

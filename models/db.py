@@ -7,16 +7,18 @@ Paideia web-app.
 
 Third-party python packages required for this app:
     - pytz
-    - pyicu (icu)
+    - pyicu (icu -- need to install c library via apt first)
     - kitchen
     - python-dateutil (dateutil, six)
+    - memory_profiler
+    - pytest
 """
 
 import logging
 import uuid  # or gluon.utils.web2py_uuid ?
 import datetime
 from pytz import common_timezones
-from pytz import timezone
+import pytz
 from gluon.tools import Recaptcha2, Auth, Mail, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
@@ -81,12 +83,13 @@ postgre['host'] = keydata['postgre_host']
 postgre['db_name'] = keydata['postgre_dbname']
 
 
-# set the postgres dbase to the test dbase 
+# set the postgres dbase to the test dbase
 if _i_am_running_under_test():
     postgre['db_name'] = keydata['postgre_testdbname']
 # print(('--- using dbase: ', postgre['db_name'], ' ---'))
 # check_reserved makes sure no column names conflict with back-end db's
-connect_string = 'postgres:psycopg2://{}:{}@{}/{}'.format(postgre['username'],
+# connect_string = 'postgres:psycopg2://{}:{}@{}/{}'.format(postgre['username'],
+connect_string = 'postgres:psycopg2://{}:{}@{}:5434/{}'.format(postgre['username'],
                                                           postgre['password'],
                                                           postgre['host'],
                                                           postgre['db_name'])
@@ -141,6 +144,7 @@ current.auth = auth
 auth.settings.create_user_groups = False
 auth.settings.label_separator = ''
 auth.settings.email_case_sensitive = True
+auth.settings.allow_basic_login = True
 
 # -------------------------------------------------------------
 # Customizing auth tables
@@ -156,7 +160,7 @@ auth.settings.extra_fields['auth_user'] = [
           ),
     Field.Virtual('tz_obj',
                   lambda row:
-                  timezone(row.auth_user.time_zone.replace('|', ''))
+                  pytz.timezone(row.auth_user.time_zone.replace('|', ''))
                   if (hasattr(row.auth_user, 'time_zone') and
                       row.auth_user.time_zone)
                   else 'America/Toronto'
@@ -214,6 +218,7 @@ mail.settings.server = keydata['email_server']  # 'logging' # SMTP server
 mail.settings.sender = keydata['email_address']  # email
 mail.settings.login = '{}:{}'.format(keydata['email_user'],
                                      keydata['email_pass'])
+mail.settings.hostname = keydata['email_hostname']
 mail.settings.tls = True
 current.mail = mail
 
@@ -232,12 +237,12 @@ auth.messages.reset_password = 'Click on the link http://' \
 # enable recaptcha anti-spam for selected actions
 # -------------------------------------------------------------
 
-mycaptcha = Recaptcha2(request, keydata['captcha_public_key'],
-                       keydata['captcha_private_key'])
-auth.settings.login_captcha = None
-auth.settings.register_captcha = mycaptcha
-auth.settings.retrieve_username_captcha = mycaptcha
-auth.settings.retrieve_password_captcha = mycaptcha
+# mycaptcha = Recaptcha2(request, keydata['captcha_public_key'],
+#                        keydata['captcha_private_key'])
+# auth.settings.login_captcha = None
+# auth.settings.register_captcha = mycaptcha
+# auth.settings.retrieve_username_captcha = mycaptcha
+# auth.settings.retrieve_password_captcha = mycaptcha
 
 # -------------------------------------------------------------
 # crud settings

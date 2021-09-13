@@ -4,6 +4,7 @@
  * @author Daniel Lo Nigro <dan.cx>
  * @author Jacky Ho
  */
+
 'use strict';
 
 const propName = require('jsx-ast-utils/propName');
@@ -15,13 +16,6 @@ const jsxUtil = require('../util/jsx');
 // Rule Definition
 // -----------------------------------------------------------------------------
 
-const violationMessageStore = {
-  bindCall: 'JSX props should not use .bind()',
-  arrowFunc: 'JSX props should not use arrow functions',
-  bindExpression: 'JSX props should not use ::',
-  func: 'JSX props should not use functions'
-};
-
 module.exports = {
   meta: {
     docs: {
@@ -29,6 +23,13 @@ module.exports = {
       category: 'Best Practices',
       recommended: false,
       url: docsUrl('jsx-no-bind')
+    },
+
+    messages: {
+      bindCall: 'JSX props should not use .bind()',
+      arrowFunc: 'JSX props should not use arrow functions',
+      bindExpression: 'JSX props should not use ::',
+      func: 'JSX props should not use functions'
     },
 
     schema: [{
@@ -59,7 +60,7 @@ module.exports = {
     }]
   },
 
-  create: Components.detect(context => {
+  create: Components.detect((context) => {
     const configuration = context.options[0] || {};
 
     // Keep track of all the variable names pointing to a bind call,
@@ -79,33 +80,26 @@ module.exports = {
       const nodeType = node.type;
 
       if (
-        !configuration.allowBind &&
-        nodeType === 'CallExpression' &&
-        node.callee.type === 'MemberExpression' &&
-        node.callee.property.type === 'Identifier' &&
-        node.callee.property.name === 'bind'
+        !configuration.allowBind
+        && nodeType === 'CallExpression'
+        && node.callee.type === 'MemberExpression'
+        && node.callee.property.type === 'Identifier'
+        && node.callee.property.name === 'bind'
       ) {
         return 'bindCall';
-      } else if (
-        nodeType === 'ConditionalExpression'
-      ) {
-        return getNodeViolationType(node.test) ||
-               getNodeViolationType(node.consequent) ||
-               getNodeViolationType(node.alternate);
-      } else if (
-        !configuration.allowArrowFunctions &&
-        nodeType === 'ArrowFunctionExpression'
-      ) {
+      }
+      if (nodeType === 'ConditionalExpression') {
+        return getNodeViolationType(node.test)
+               || getNodeViolationType(node.consequent)
+               || getNodeViolationType(node.alternate);
+      }
+      if (!configuration.allowArrowFunctions && nodeType === 'ArrowFunctionExpression') {
         return 'arrowFunc';
-      } else if (
-        !configuration.allowFunctions &&
-        nodeType === 'FunctionExpression'
-      ) {
+      }
+      if (!configuration.allowFunctions && nodeType === 'FunctionExpression') {
         return 'func';
-      } else if (
-        !configuration.allowBind &&
-        nodeType === 'BindExpression'
-      ) {
+      }
+      if (!configuration.allowBind && nodeType === 'BindExpression') {
         return 'bindExpression';
       }
 
@@ -118,7 +112,7 @@ module.exports = {
 
     function getBlockStatementAncestors(node) {
       return context.getAncestors(node).reverse().filter(
-        ancestor => ancestor.type === 'BlockStatement'
+        (ancestor) => ancestor.type === 'BlockStatement'
       );
     }
 
@@ -126,9 +120,12 @@ module.exports = {
       const blockSets = blockVariableNameSets[blockStart];
       const violationTypes = Object.keys(blockSets);
 
-      return violationTypes.find(type => {
+      return violationTypes.find((type) => {
         if (blockSets[type].has(name)) {
-          context.report({node: node, message: violationMessageStore[type]});
+          context.report({
+            node,
+            messageId: type
+          });
           return true;
         }
 
@@ -138,13 +135,13 @@ module.exports = {
 
     function findVariableViolation(node, name) {
       getBlockStatementAncestors(node).find(
-        block => reportVariableViolation(node, name, block.start)
+        (block) => reportVariableViolation(node, name, block.range[0])
       );
     }
 
     return {
       BlockStatement(node) {
-        setBlockVariableNameSet(node.start);
+        setBlockVariableNameSet(node.range[0]);
       },
 
       VariableDeclarator(node) {
@@ -155,17 +152,17 @@ module.exports = {
         const variableViolationType = getNodeViolationType(node.init);
 
         if (
-          blockAncestors.length > 0 &&
-          variableViolationType &&
-          node.parent.kind === 'const' // only support const right now
+          blockAncestors.length > 0
+          && variableViolationType
+          && node.parent.kind === 'const' // only support const right now
         ) {
           addVariableNameToSet(
-            variableViolationType, node.id.name, blockAncestors[0].start
+            variableViolationType, node.id.name, blockAncestors[0].range[0]
           );
         }
       },
 
-      JSXAttribute: function (node) {
+      JSXAttribute(node) {
         const isRef = configuration.ignoreRefs && propName(node) === 'ref';
         if (isRef || !node.value || !node.value.expression) {
           return;
@@ -182,7 +179,8 @@ module.exports = {
           findVariableViolation(node, valueNode.name);
         } else if (nodeViolationType) {
           context.report({
-            node: node, message: violationMessageStore[nodeViolationType]
+            node,
+            messageId: nodeViolationType
           });
         }
       }

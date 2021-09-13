@@ -28,17 +28,24 @@ module.exports = {
                 type: "object",
                 properties: {
                     properties: {
-                        type: "boolean"
+                        type: "boolean",
+                        default: false
                     },
                     onlyDeclarations: {
-                        type: "boolean"
+                        type: "boolean",
+                        default: false
                     },
                     ignoreDestructuring: {
-                        type: "boolean"
+                        type: "boolean",
+                        default: false
                     }
-                }
+                },
+                additionalProperties: false
             }
-        ]
+        ],
+        messages: {
+            notMatch: "Identifier '{{name}}' does not match the pattern '{{pattern}}'."
+        }
     },
 
     create(context) {
@@ -47,7 +54,7 @@ module.exports = {
         // Options
         //--------------------------------------------------------------------------
         const pattern = context.options[0] || "^.+$",
-            regexp = new RegExp(pattern);
+            regexp = new RegExp(pattern, "u");
 
         const options = context.options[1] || {},
             properties = !!options.properties,
@@ -116,7 +123,7 @@ module.exports = {
             if (!reported.has(node)) {
                 context.report({
                     node,
-                    message: "Identifier '{{name}}' does not match the pattern '{{pattern}}'.",
+                    messageId: "notMatch",
                     data: {
                         name: node.name,
                         pattern

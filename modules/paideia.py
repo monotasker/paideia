@@ -21,13 +21,12 @@ from inspect import getargvalues, stack
 from itertools import chain
 import json
 from memory_profiler import profile
-from memprof import *
 import os
 from paideia_utils import GreekNormalizer
 import pickle
 from plugin_utils import flatten, ErrorReport, deep_getsizeof
 from pprint import pprint
-from pympler import muppy, summary
+# from pympler import muppy, summary
 from pytz import timezone
 from random import randint, randrange
 import re
@@ -140,7 +139,7 @@ class Walk(object):
         '''
         Initialize User object.
 
-        The new User object is returned and is also assigned to the "user" 
+        The new User object is returned and is also assigned to the "user"
         attribute of the current class instance.
 
         All keyword arguments are optional and used only for testing.
@@ -271,7 +270,7 @@ class Walk(object):
             if debug: print('Walk::ask: path chosen is', p.get_id())
             if (not p):
                 # no paths for this location for this category
-                break  
+                break
             user.active_cat = category
             user.new_content = new_content
 
@@ -316,7 +315,7 @@ class Walk(object):
 
             # deactivate step from the role of prompt provider
             # shift it to the role of reply provider
-            # NOTE: if the next request has no answer string, and ask is 
+            # NOTE: if the next request has no answer string, and ask is
             # run again directly, this reply provider will be ignored.
             p.end_prompt(s.get_id())  # send id to tell whether a block step
 
@@ -800,11 +799,11 @@ class Walk(object):
                 'prev_npc': user.prev_npc,
                 'past_quota': user.past_quota,
                 'viewed_slides': user.viewed_slides,
-                'reported_badges': user.reported_badges, 
+                'reported_badges': user.reported_badges,
                 'reported_promotions': user.reported_promotions,
-                'repeating': user.repeating, 
-                'new_content': user.new_content, 
-                'active_cat': user.active_cat, 
+                'repeating': user.repeating,
+                'new_content': user.new_content,
+                'active_cat': user.active_cat,
                 'quota': user.quota
             }
             print('storing************************')
@@ -918,11 +917,9 @@ class Npc(object):
 
     def get_image(self, db=None):
         """
-        Return a web2py IMG helper object with the image for the current
-        npc character.
+        Return a URL string for the current npc character image.
         """
-        img = IMG(_src=URL('paideia', 'static', 'images/{}'.format(self.image))
-                  )
+        img = URL('paideia', 'static', 'images/{}'.format(self.image))
         return img
 
     def get_locations(self):
@@ -1163,8 +1160,10 @@ class Step(object):
             try:
                 lessons = db(db.lessons.lesson_tags.contains(
                     [t['id'] for t in tags])
-                    ).select(db.lessons.id, db.lessons.title)
-                decks = {l.id: l.title for l in lessons if lessons}
+                    ).select(db.lessons.id, db.lessons.lesson_position,
+                             db.lessons.title)
+                decks = {l.lesson_position: l.title for l in lessons
+                         if lessons}
                 if debug:
                     print('decks:', decks)
                 return decks
@@ -1203,30 +1202,11 @@ class Step(object):
                 if not aud_row['clip_m4a']:
                     break
                 audio = {'title': aud_row['title'],
-                         'mp3': aud_row['clip'],
-                         'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg']
+                         'download_path': "/paideia/default/download.load/",
+                         'm4a': aud_row['clip_m4a'] if aud_row['clip_m4a'] else None,
+                         'mp3': aud_row['clip'] if aud_row['clip'] else None,
+                         'oga': aud_row['clip_ogg'] if aud_row['clip_ogg']
                          else None}
-                audio_args_for_js = {'title': ''}
-                media_supplied = ""
-                if aud_row['clip_m4a']:
-                    audio_args_for_js['m4a'] = "/paideia/default/download." \
-                        "load/{}".format(aud_row['clip_m4a'])
-                    media_supplied = "m4a"
-                """
-                only doing m4a for now
-                if aud_row['clip']:
-                    audio_args_for_js['mp3'] = "/paideia/default/" \
-                        "download.load/" + aud_row['clip']
-                    if media_supplied: media_supplied += ",mp3"
-                    else:media_supplied = "mp3"
-                if aud_row['clip_ogg']:
-                    audio_args_for_js['ogg'] = "/paideia/default/" \
-                        "download.load/" + aud_row['clip_ogg']
-                    if media_supplied: media_supplied += ",ogg"
-                    else:media_supplied = "ogg"
-                """
-                audio['audio_args_for_js'] = str(audio_args_for_js)
-                audio['media_supplied'] = media_supplied
                 return audio
         else:
             return None
@@ -1618,13 +1598,16 @@ class StepText(Step):
         """
         # TODO: needs test
         # JOB ... added step id for bug tracing ... oct 18, 2014
+        """
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_NOT_EMPTY()),
                                Field('pre_bug_step_id', 'string',
                                      readable=False, writable=False),
                                hidden=dict(pre_bug_step_id=self.get_id()),
                                _autocomplete='off')
-        return form
+        """
+        return {'form_type': 'text',
+                'values': None}
 
     def get_reply(self, user_response=None, loc=None, npc=None):
         """
@@ -1648,11 +1631,11 @@ class StepText(Step):
         reply_text = '{}\nYou said\n- {}'.format(result['reply'],
                                                  user_response)
         if len(readable['readable_short']) > 1:
-            reply_text += '\nCorrect responses would include'
+            reply_text += '\n\nCorrect responses would include'
             for r in readable['readable_short']:
                 reply_text += '\n- {}'.format(r)
         elif abs(result['score'] - 1) > 0.001:
-            reply_text += '\nThe correct response ' \
+            reply_text += '\n\nThe correct response ' \
                           'is\n- {}'.format(readable['readable_short'][0])
 
         reply = {'sid': self.get_id(),
@@ -1699,15 +1682,18 @@ class StepMultiple(StepText):
 
     def _get_response_form(self):
         """Return an html form for responding to the current prompt."""
+        vals = self.data['step_options']
+        """
         request = current.request
         session = current.session
-        vals = self.data['step_options']
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_IN_SET(v for v in vals),
                                      widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
-        return form
+        """
+        return {'form_type': 'radio',
+                'values': vals}
 
 
 class StepEvaluator(object):
@@ -1763,41 +1749,41 @@ class StepEvaluator(object):
 
             if re.match(regex1, clean_user_response):
                 score = 1
-                reply = "Right. Κάλον."
+                reply = "Right. Κάλον.\n"
             elif re.match(regex1, clean_user_response + '.'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
-                        "a period on the end of a full clause."
+                        "a period on the end of a full clause.\n"
             elif re.match(regex1, clean_user_response + '?'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
-                        "a question mark on the end of a question."
+                        "a question mark on the end of a question.\n"
             elif re.match(regex1, clean_user_response + ';'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
-                        "a question mark on the end of a question."
+                        "a question mark on the end of a question.\n"
             elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
                     re.match(regex1, clean_user_response[:-1]):
                 score = 0.9
                 reply = "Ού κάκον. You're very close. Just remember not to " \
                         "put a final punctuation mark on your answer if " \
-                        "it's not a complete clause"
+                        "it's not a complete clause.\n"
             elif 'response2' in list(responses.keys()) and \
                     re.match(regex2, clean_user_response):
                 score = float(responses['outcome2']) if 'outcome2' in responses.keys() else 0.5
-                reply = "Οὐ κάκον. You're close."
+                reply = "Οὐ κάκον. You're close.\n"
                 #  TODO: Vary the replies
 
             elif 'response3' in list(responses.keys()) and \
                     re.match(regex3, clean_user_response):
                 score = float(responses['outcome3']) if 'outcome3' in responses.keys() else 0.3
-                reply = "Οὐ κάκον. You're close."
+                reply = "Οὐ κάκον. You're close.\n"
                 #  TODO: Vary the replies
             else:
                 score = 0
-                replies = ["That's not it. Try again!", 
-                           "Hm. Give it another try!",
-                           "Good effort, but that's not right. Try again!"]
+                replies = ["That's not it. Try again!\n",
+                           "Hm. Give it another try!\n",
+                           "Good effort, but that's not right. Try again!\n"]
                 r_index = randrange(0, len(replies))
                 reply = replies[r_index]
                 #  TODO: Vary the replies
@@ -1897,12 +1883,12 @@ class Path(object):
                          step_for_prompt, step_for_reply):
         """
         Restore a path to a particular point in the progress through its steps.
-        
+
         :param list remaining_steps: A list of ints representing the ids of
                         steps that should remain uncompleted in the restored
                         state.
-        :param int step_for_reply: The id of the step that should be assigned 
-                        to self.step_for_reply if the restored state is mid-way 
+        :param int step_for_reply: The id of the step that should be assigned
+                        to self.step_for_reply if the restored state is mid-way
                         through completing a step.
         """
         print('restore_position: steps are', [s.get_id() for s in self.steps])
@@ -2194,7 +2180,7 @@ class PathChooser(object):
                 if debug:
                     print('PathChooser::_paths_by_cateogry: using taglist',
                           taglist)
-                deactivated = [row['id'] for row in 
+                deactivated = [row['id'] for row in
                                db(db.steps.status == 2
                                   ).iterselect(db.steps.id)
                                ]
@@ -2539,16 +2525,16 @@ class User(object):
                             condition.
         :attr list tag_records: A list of dictionaries, each representing a
                             db.tag_records row. Each dictionary has the keys
-                            'tag' (int), tlast_right: (datetime), tlast_wrong 
-                            (datetime), times_right (float), 
+                            'tag' (int), tlast_right: (datetime), tlast_wrong
+                            (datetime), times_right (float),
                             times_wrong (float).
         :attr dict tag_progress: A dictionary representing the user's single
                             db.tag_progress record. Includes the keys 'cat1' (list), 'rev1' (list), 'cat2' (list), 'rev2' (list),
-                            'cat3' (list), 'rev3' (list), 'cat4' (list), 
-                            'rev4' (list), 'latest_new' (int), 
+                            'cat3' (list), 'rev3' (list), 'cat4' (list),
+                            'rev4' (list), 'latest_new' (int),
                             'cat1_choices' (int), 'all_choices' (int).
         :attr dict old_categories: Keys are 'cat1', 'cat2', 'cat3', 'cat4'.
-        :attr dict promoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4' 
+        :attr dict promoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4'
         :attr dict demoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4'
         :attr dict new_tags: Keys are 'rev1', 'rev2', 'rev3', 'rev4'
         :attr dict completed_paths: A dictionary with the keys "latest" and
@@ -2576,7 +2562,7 @@ class User(object):
         :attr bool reported_promotions: A True/False flag indicating whether
                             the user
         :attr bool repeating: A True/False flag indicating whether
-                            the user is currently repeating a step for which 
+                            the user is currently repeating a step for which
                             they gave an incorrect answer.
         :attr bool new_content:
         :attr int active_cat: An integer representing the category of tags from
@@ -2600,8 +2586,8 @@ class User(object):
             self.completed_paths = {'latest': None, 'paths': {}}
             self.cats_counter = 0  # timing re-cat in get_categories()
             self.old_categories = None
-            if not self.tag_records: 
-                tag_records = db(db.tag_records.name == self.user_id).select() 
+            if not self.tag_records:
+                tag_records = db(db.tag_records.name == self.user_id).select()
                 self.tag_records = tag_records.as_list()
             if not self.tag_progress:
                 try:
@@ -2614,7 +2600,7 @@ class User(object):
                     self.tag_progress = db(db.tag_progress.name == self.user_id
                                            ).select().first().as_dict()
             # FIXME: return don't set in method?
-            self._set_user_rank(self.tag_progress, 1)  
+            self._set_user_rank(self.tag_progress, 1)
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
 
             if debug: print('Q')
@@ -2656,9 +2642,9 @@ class User(object):
                 for k in ['completed_paths', 'old_categories', 'promoted',
                         'demoted', 'new_tags']:
                     setattr(self, k, json.loads(sd[k]))
-                for k in ['cats_counter', 'rank', 
+                for k in ['cats_counter', 'rank',
                         'session_start', 'prev_loc', 'prev_npc', 'past_quota',
-                        'viewed_slides', 'reported_badges', 'reported_promotions', 'reviewing', 
+                        'viewed_slides', 'reported_badges', 'reported_promotions', 'reviewing',
                         'repeating', 'new_content', 'active_cat', 'quota']:
                     if k in list(sd.keys()):
                         setattr(self, k, sd[k])
@@ -2670,7 +2656,7 @@ class User(object):
                 for condition, kwargs in json.loads(sd['blocks']).items():
                     print(sd['blocks'])
                     print('got blocks===================================')
-                    print(condition) 
+                    print(condition)
                     print(kwargs)
                     self.set_block(condition, kwargs=kwargs)
                 if debug: print('B')
@@ -2678,7 +2664,7 @@ class User(object):
                 if not tag_records:
                     try:
                         rec_ids = json.loads(sd['tag_records'])
-                        self.tag_records = db(db.tag_records.id.belongs(rec_ids) 
+                        self.tag_records = db(db.tag_records.id.belongs(rec_ids)
                                             ).select().as_list()
                     except ValueError:
                         traceback.print_exc()
@@ -2688,7 +2674,7 @@ class User(object):
                 if not tag_progress:
                     self.tag_progress = json.loads(sd['tag_progress'])
                 if debug: print('G')
-                assert not self.is_stale()  
+                assert not self.is_stale()
                 if debug: print('H')
             except (TypeError, AttributeError, AssertionError):  # one of the JSON fields is None
                 traceback.print_exc()
@@ -2957,7 +2943,7 @@ class User(object):
         """
         if not self.loc:
             self.loc = Location(localias)
-        return self.loc 
+        return self.loc
 
     # @profile
     def _make_path_choice(self, loc, set_review=None):

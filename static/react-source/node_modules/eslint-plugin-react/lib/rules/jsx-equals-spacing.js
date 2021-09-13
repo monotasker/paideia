@@ -2,6 +2,7 @@
  * @fileoverview Disallow or enforce spaces around equal signs in JSX attributes.
  * @author ryym
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -20,14 +21,20 @@ module.exports = {
     },
     fixable: 'code',
 
+    messages: {
+      noSpaceBefore: 'There should be no space before \'=\'',
+      noSpaceAfter: 'There should be no space after \'=\'',
+      needSpaceBefore: 'A space is required before \'=\'',
+      needSpaceAfter: 'A space is required after \'=\''
+    },
+
     schema: [{
       enum: ['always', 'never']
     }]
   },
 
-  create: function(context) {
+  create(context) {
     const config = context.options[0];
-    const sourceCode = context.getSourceCode();
 
     /**
      * Determines a given attribute node has an equal sign.
@@ -43,12 +50,13 @@ module.exports = {
     // --------------------------------------------------------------------------
 
     return {
-      JSXOpeningElement: function(node) {
-        node.attributes.forEach(attrNode => {
+      JSXOpeningElement(node) {
+        node.attributes.forEach((attrNode) => {
           if (!hasEqual(attrNode)) {
             return;
           }
 
+          const sourceCode = context.getSourceCode();
           const equalToken = sourceCode.getTokenAfter(attrNode.name);
           const spacedBefore = sourceCode.isSpaceBetweenTokens(attrNode.name, equalToken);
           const spacedAfter = sourceCode.isSpaceBetweenTokens(equalToken, attrNode.value);
@@ -60,8 +68,8 @@ module.exports = {
                 context.report({
                   node: attrNode,
                   loc: equalToken.loc.start,
-                  message: 'There should be no space before \'=\'',
-                  fix: function(fixer) {
+                  messageId: 'noSpaceBefore',
+                  fix(fixer) {
                     return fixer.removeRange([attrNode.name.range[1], equalToken.range[0]]);
                   }
                 });
@@ -70,8 +78,8 @@ module.exports = {
                 context.report({
                   node: attrNode,
                   loc: equalToken.loc.start,
-                  message: 'There should be no space after \'=\'',
-                  fix: function(fixer) {
+                  messageId: 'noSpaceAfter',
+                  fix(fixer) {
                     return fixer.removeRange([equalToken.range[1], attrNode.value.range[0]]);
                   }
                 });
@@ -82,8 +90,8 @@ module.exports = {
                 context.report({
                   node: attrNode,
                   loc: equalToken.loc.start,
-                  message: 'A space is required before \'=\'',
-                  fix: function(fixer) {
+                  messageId: 'needSpaceBefore',
+                  fix(fixer) {
                     return fixer.insertTextBefore(equalToken, ' ');
                   }
                 });
@@ -92,8 +100,8 @@ module.exports = {
                 context.report({
                   node: attrNode,
                   loc: equalToken.loc.start,
-                  message: 'A space is required after \'=\'',
-                  fix: function(fixer) {
+                  messageId: 'needSpaceAfter',
+                  fix(fixer) {
                     return fixer.insertTextAfter(equalToken, ' ');
                   }
                 });

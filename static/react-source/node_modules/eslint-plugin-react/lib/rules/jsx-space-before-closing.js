@@ -3,6 +3,7 @@
  * @author ryym
  * @deprecated
  */
+
 'use strict';
 
 const getTokenBeforeClosingBracket = require('../util/getTokenBeforeClosingBracket');
@@ -26,27 +27,30 @@ module.exports = {
     },
     fixable: 'code',
 
+    messages: {
+      noSpaceBeforeClose: 'A space is forbidden before closing bracket',
+      needSpaceBeforeClose: 'A space is required before closing bracket'
+    },
+
     schema: [{
       enum: ['always', 'never']
     }]
   },
 
-  create: function(context) {
+  create(context) {
     const configuration = context.options[0] || 'always';
-    const sourceCode = context.getSourceCode();
-
-    const NEVER_MESSAGE = 'A space is forbidden before closing bracket';
-    const ALWAYS_MESSAGE = 'A space is required before closing bracket';
 
     // --------------------------------------------------------------------------
     // Public
     // --------------------------------------------------------------------------
 
     return {
-      JSXOpeningElement: function(node) {
+      JSXOpeningElement(node) {
         if (!node.selfClosing) {
           return;
         }
+
+        const sourceCode = context.getSourceCode();
 
         const leftToken = getTokenBeforeClosingBracket(node);
         const closingSlash = sourceCode.getTokenAfter(leftToken);
@@ -58,16 +62,16 @@ module.exports = {
         if (configuration === 'always' && !sourceCode.isSpaceBetweenTokens(leftToken, closingSlash)) {
           context.report({
             loc: closingSlash.loc.start,
-            message: ALWAYS_MESSAGE,
-            fix: function(fixer) {
+            messageId: 'needSpaceBeforeClose',
+            fix(fixer) {
               return fixer.insertTextBefore(closingSlash, ' ');
             }
           });
         } else if (configuration === 'never' && sourceCode.isSpaceBetweenTokens(leftToken, closingSlash)) {
           context.report({
             loc: closingSlash.loc.start,
-            message: NEVER_MESSAGE,
-            fix: function(fixer) {
+            messageId: 'noSpaceBeforeClose',
+            fix(fixer) {
               const previousToken = sourceCode.getTokenBefore(closingSlash);
               return fixer.removeRange([previousToken.range[1], closingSlash.range[0]]);
             }
@@ -75,14 +79,14 @@ module.exports = {
         }
       },
 
-      Program: function() {
+      Program() {
         if (isWarnedForDeprecation) {
           return;
         }
 
-        log('The react/jsx-space-before-closing rule is deprecated. ' +
-            'Please use the react/jsx-tag-spacing rule with the ' +
-            '"beforeSelfClosing" option instead.');
+        log('The react/jsx-space-before-closing rule is deprecated. '
+            + 'Please use the react/jsx-tag-spacing rule with the '
+            + '"beforeSelfClosing" option instead.');
         isWarnedForDeprecation = true;
       }
     };

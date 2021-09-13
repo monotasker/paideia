@@ -2,6 +2,7 @@
  * @fileoverview Prevent passing of children as props
  * @author Benjamin Stepp
  */
+
 'use strict';
 
 const docsUrl = require('../util/docsUrl');
@@ -36,32 +37,38 @@ module.exports = {
       recommended: true,
       url: docsUrl('no-children-prop')
     },
+
+    messages: {
+      nestChildren: 'Do not pass children as props. Instead, nest children between the opening and closing tags.',
+      passChildrenAsArgs: 'Do not pass children as props. Instead, pass them as additional arguments to React.createElement.'
+    },
+
     schema: []
   },
-  create: function(context) {
+  create(context) {
     return {
-      JSXAttribute: function(node) {
+      JSXAttribute(node) {
         if (node.name.name !== 'children') {
           return;
         }
 
         context.report({
-          node: node,
-          message: 'Do not pass children as props. Instead, nest children between the opening and closing tags.'
+          node,
+          messageId: 'nestChildren'
         });
       },
-      CallExpression: function(node) {
+      CallExpression(node) {
         if (!isCreateElementWithProps(node)) {
           return;
         }
 
         const props = node.arguments[1].properties;
-        const childrenProp = props.find(prop => prop.key && prop.key.name === 'children');
+        const childrenProp = props.find((prop) => prop.key && prop.key.name === 'children');
 
         if (childrenProp) {
           context.report({
-            node: node,
-            message: 'Do not pass children as props. Instead, pass them as additional arguments to React.createElement.'
+            node,
+            messageId: 'passChildrenAsArgs'
           });
         }
       }

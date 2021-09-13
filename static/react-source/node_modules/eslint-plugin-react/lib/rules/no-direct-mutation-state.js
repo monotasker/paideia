@@ -3,6 +3,7 @@
  * @author David Petersen
  * @author Nicolas Fernandez <@burabure>
  */
+
 'use strict';
 
 const Components = require('../util/Components');
@@ -19,6 +20,10 @@ module.exports = {
       category: 'Possible Errors',
       recommended: true,
       url: docsUrl('no-direct-mutation-state')
+    },
+
+    messages: {
+      noDirectMutation: 'Do not mutate state directly. Use setState().'
     }
   },
 
@@ -42,7 +47,7 @@ module.exports = {
         mutation = component.mutations[i];
         context.report({
           node: mutation,
-          message: 'Do not mutate state directly. Use setState().'
+          messageId: 'noDirectMutation'
         });
       }
     }
@@ -57,15 +62,6 @@ module.exports = {
         node = node.object;
       }
       return node;
-    }
-
-    /**
-     * Determine if this MemberExpression is for `this.state`
-     * @param {Object} node The node to process
-     * @returns {Boolean}
-     */
-    function isStateMemberExpression(node) {
-      return node.object.type === 'ThisExpression' && node.property.name === 'state';
     }
 
     /**
@@ -89,7 +85,7 @@ module.exports = {
         }
       },
 
-      CallExpression: function(node) {
+      CallExpression(node) {
         components.set(node, {
           inCallExpression: true
         });
@@ -101,7 +97,7 @@ module.exports = {
           return;
         }
         const item = getOuterMemberExpression(node.left);
-        if (isStateMemberExpression(item)) {
+        if (utils.isStateMemberExpression(item)) {
           const mutations = (component && component.mutations) || [];
           mutations.push(node.left.object);
           components.set(node, {
@@ -117,7 +113,7 @@ module.exports = {
           return;
         }
         const item = getOuterMemberExpression(node.argument);
-        if (isStateMemberExpression(item)) {
+        if (utils.isStateMemberExpression(item)) {
           const mutations = (component && component.mutations) || [];
           mutations.push(item);
           components.set(node, {
@@ -127,13 +123,13 @@ module.exports = {
         }
       },
 
-      'CallExpression:exit': function(node) {
+      'CallExpression:exit'(node) {
         components.set(node, {
           inCallExpression: false
         });
       },
 
-      'MethodDefinition:exit': function (node) {
+      'MethodDefinition:exit'(node) {
         if (node.kind === 'constructor') {
           components.set(node, {
             inConstructor: false
@@ -141,10 +137,10 @@ module.exports = {
         }
       },
 
-      'Program:exit': function () {
+      'Program:exit'() {
         const list = components.list();
 
-        Object.keys(list).forEach(key => {
+        Object.keys(list).forEach((key) => {
           if (!isValid(list[key])) {
             reportMutations(list[key]);
           }

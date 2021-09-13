@@ -1,15 +1,12 @@
 /**
  * @fileoverview Flag shouldComponentUpdate when extending PureComponent
  */
+
 'use strict';
 
 const Components = require('../util/Components');
 const astUtil = require('../util/ast');
 const docsUrl = require('../util/docsUrl');
-
-function errorMessage(node) {
-  return `${node} does not need shouldComponentUpdate when extending React.PureComponent.`;
-}
 
 // ------------------------------------------------------------------------------
 // Rule Definition
@@ -23,6 +20,11 @@ module.exports = {
       recommended: false,
       url: docsUrl('no-redundant-should-component-update')
     },
+
+    messages: {
+      noShouldCompUpdate: '{{component}} does not need shouldComponentUpdate when extending React.PureComponent.'
+    },
+
     schema: []
   },
 
@@ -34,7 +36,7 @@ module.exports = {
      */
     function hasShouldComponentUpdate(node) {
       const properties = astUtil.getComponentProperties(node);
-      return properties.some(property => {
+      return properties.some((property) => {
         const name = astUtil.getPropertyName(property);
         return name === 'shouldComponentUpdate';
       });
@@ -48,7 +50,8 @@ module.exports = {
     function getNodeName(node) {
       if (node.id) {
         return node.id.name;
-      } else if (node.parent && node.parent.id) {
+      }
+      if (node.parent && node.parent.id) {
         return node.parent.id.name;
       }
       return '';
@@ -64,8 +67,11 @@ module.exports = {
         if (hasScu) {
           const className = getNodeName(node);
           context.report({
-            node: node,
-            message: errorMessage(className)
+            node,
+            messageId: 'noShouldCompUpdate',
+            data: {
+              component: className
+            }
           });
         }
       }

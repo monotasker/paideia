@@ -2,6 +2,7 @@
  * @fileoverview Validates whitespace in and around the JSX opening and closing brackets
  * @author Diogo Franco (Kovensky)
  */
+
 'use strict';
 
 const getTokenBeforeClosingBracket = require('../util/getTokenBeforeClosingBracket');
@@ -14,11 +15,6 @@ const docsUrl = require('../util/docsUrl');
 function validateClosingSlash(context, node, option) {
   const sourceCode = context.getSourceCode();
 
-  const SELF_CLOSING_NEVER_MESSAGE = 'Whitespace is forbidden between `/` and `>`; write `/>`';
-  const SELF_CLOSING_ALWAYS_MESSAGE = 'Whitespace is required between `/` and `>`; write `/ >`';
-  const NEVER_MESSAGE = 'Whitespace is forbidden between `<` and `/`; write `</`';
-  const ALWAYS_MESSAGE = 'Whitespace is required between `<` and `/`; write `< /`';
-
   let adjacent;
 
   if (node.selfClosing) {
@@ -29,26 +25,26 @@ function validateClosingSlash(context, node, option) {
     if (option === 'never') {
       if (!adjacent) {
         context.report({
-          node: node,
+          node,
           loc: {
             start: lastTokens[0].loc.start,
             end: lastTokens[1].loc.end
           },
-          message: SELF_CLOSING_NEVER_MESSAGE,
-          fix: function(fixer) {
+          messageId: 'selfCloseSlashNoSpace',
+          fix(fixer) {
             return fixer.removeRange([lastTokens[0].range[1], lastTokens[1].range[0]]);
           }
         });
       }
     } else if (option === 'always' && adjacent) {
       context.report({
-        node: node,
+        node,
         loc: {
           start: lastTokens[0].loc.start,
           end: lastTokens[1].loc.end
         },
-        message: SELF_CLOSING_ALWAYS_MESSAGE,
-        fix: function(fixer) {
+        messageId: 'selfCloseSlashNeedSpace',
+        fix(fixer) {
           return fixer.insertTextBefore(lastTokens[1], ' ');
         }
       });
@@ -61,26 +57,26 @@ function validateClosingSlash(context, node, option) {
     if (option === 'never') {
       if (!adjacent) {
         context.report({
-          node: node,
+          node,
           loc: {
             start: firstTokens[0].loc.start,
             end: firstTokens[1].loc.end
           },
-          message: NEVER_MESSAGE,
-          fix: function(fixer) {
+          messageId: 'closeSlashNoSpace',
+          fix(fixer) {
             return fixer.removeRange([firstTokens[0].range[1], firstTokens[1].range[0]]);
           }
         });
       }
     } else if (option === 'always' && adjacent) {
       context.report({
-        node: node,
+        node,
         loc: {
           start: firstTokens[0].loc.start,
           end: firstTokens[1].loc.end
         },
-        message: ALWAYS_MESSAGE,
-        fix: function(fixer) {
+        messageId: 'closeSlashNeedSpace',
+        fix(fixer) {
           return fixer.insertTextBefore(firstTokens[1], ' ');
         }
       });
@@ -90,10 +86,6 @@ function validateClosingSlash(context, node, option) {
 
 function validateBeforeSelfClosing(context, node, option) {
   const sourceCode = context.getSourceCode();
-
-  const NEVER_MESSAGE = 'A space is forbidden before closing bracket';
-  const ALWAYS_MESSAGE = 'A space is required before closing bracket';
-
   const leftToken = getTokenBeforeClosingBracket(node);
   const closingSlash = sourceCode.getTokenAfter(leftToken);
 
@@ -103,19 +95,19 @@ function validateBeforeSelfClosing(context, node, option) {
 
   if (option === 'always' && !sourceCode.isSpaceBetweenTokens(leftToken, closingSlash)) {
     context.report({
-      node: node,
+      node,
       loc: closingSlash.loc.start,
-      message: ALWAYS_MESSAGE,
-      fix: function(fixer) {
+      messageId: 'beforeSelfCloseNeedSpace',
+      fix(fixer) {
         return fixer.insertTextBefore(closingSlash, ' ');
       }
     });
   } else if (option === 'never' && sourceCode.isSpaceBetweenTokens(leftToken, closingSlash)) {
     context.report({
-      node: node,
+      node,
       loc: closingSlash.loc.start,
-      message: NEVER_MESSAGE,
-      fix: function(fixer) {
+      messageId: 'beforeSelfCloseNoSpace',
+      fix(fixer) {
         const previousToken = sourceCode.getTokenBefore(closingSlash);
         return fixer.removeRange([previousToken.range[1], closingSlash.range[0]]);
       }
@@ -125,10 +117,6 @@ function validateBeforeSelfClosing(context, node, option) {
 
 function validateAfterOpening(context, node, option) {
   const sourceCode = context.getSourceCode();
-
-  const NEVER_MESSAGE = 'A space is forbidden after opening bracket';
-  const ALWAYS_MESSAGE = 'A space is required after opening bracket';
-
   const openingToken = sourceCode.getTokenBefore(node.name);
 
   if (option === 'allow-multiline') {
@@ -142,26 +130,26 @@ function validateAfterOpening(context, node, option) {
   if (option === 'never' || option === 'allow-multiline') {
     if (!adjacent) {
       context.report({
-        node: node,
+        node,
         loc: {
           start: openingToken.loc.start,
           end: node.name.loc.start
         },
-        message: NEVER_MESSAGE,
-        fix: function(fixer) {
+        messageId: 'afterOpenNoSpace',
+        fix(fixer) {
           return fixer.removeRange([openingToken.range[1], node.name.range[0]]);
         }
       });
     }
   } else if (option === 'always' && adjacent) {
     context.report({
-      node: node,
+      node,
       loc: {
         start: openingToken.loc.start,
         end: node.name.loc.start
       },
-      message: ALWAYS_MESSAGE,
-      fix: function(fixer) {
+      messageId: 'afterOpenNeedSpace',
+      fix(fixer) {
         return fixer.insertTextBefore(node.name, ' ');
       }
     });
@@ -172,10 +160,6 @@ function validateBeforeClosing(context, node, option) {
   // Don't enforce this rule for self closing tags
   if (!node.selfClosing) {
     const sourceCode = context.getSourceCode();
-
-    const NEVER_MESSAGE = 'A space is forbidden before closing bracket';
-    const ALWAYS_MESSAGE = 'Whitespace is required before closing bracket';
-
     const lastTokens = sourceCode.getLastTokens(node, 2);
     const closingToken = lastTokens[1];
     const leftToken = lastTokens[0];
@@ -188,25 +172,25 @@ function validateBeforeClosing(context, node, option) {
 
     if (option === 'never' && !adjacent) {
       context.report({
-        node: node,
+        node,
         loc: {
           start: leftToken.loc.end,
           end: closingToken.loc.start
         },
-        message: NEVER_MESSAGE,
-        fix: function(fixer) {
+        messageId: 'beforeCloseNoSpace',
+        fix(fixer) {
           return fixer.removeRange([leftToken.range[1], closingToken.range[0]]);
         }
       });
     } else if (option === 'always' && adjacent) {
       context.report({
-        node: node,
+        node,
         loc: {
           start: leftToken.loc.end,
           end: closingToken.loc.start
         },
-        message: ALWAYS_MESSAGE,
-        fix: function(fixer) {
+        messageId: 'beforeCloseNeedSpace',
+        fix(fixer) {
           return fixer.insertTextBefore(closingToken, ' ');
         }
       });
@@ -234,6 +218,20 @@ module.exports = {
       url: docsUrl('jsx-tag-spacing')
     },
     fixable: 'whitespace',
+
+    messages: {
+      selfCloseSlashNoSpace: 'Whitespace is forbidden between `/` and `>`; write `/>`',
+      selfCloseSlashNeedSpace: 'Whitespace is required between `/` and `>`; write `/ >`',
+      closeSlashNoSpace: 'Whitespace is forbidden between `<` and `/`; write `</`',
+      closeSlashNeedSpace: 'Whitespace is required between `<` and `/`; write `< /`',
+      beforeSelfCloseNoSpace: 'A space is forbidden before closing bracket',
+      beforeSelfCloseNeedSpace: 'A space is required before closing bracket',
+      afterOpenNoSpace: 'A space is forbidden after opening bracket',
+      afterOpenNeedSpace: 'A space is required after opening bracket',
+      beforeCloseNoSpace: 'A space is forbidden before closing bracket',
+      beforeCloseNeedSpace: 'Whitespace is required before closing bracket'
+    },
+
     schema: [
       {
         type: 'object',
@@ -256,11 +254,11 @@ module.exports = {
       }
     ]
   },
-  create: function (context) {
+  create(context) {
     const options = Object.assign({}, optionDefaults, context.options[0]);
 
     return {
-      JSXOpeningElement: function (node) {
+      JSXOpeningElement(node) {
         if (options.closingSlash !== 'allow' && node.selfClosing) {
           validateClosingSlash(context, node, options.closingSlash);
         }
@@ -274,7 +272,7 @@ module.exports = {
           validateBeforeClosing(context, node, options.beforeClosing);
         }
       },
-      JSXClosingElement: function (node) {
+      JSXClosingElement(node) {
         if (options.afterOpening !== 'allow') {
           validateAfterOpening(context, node, options.afterOpening);
         }

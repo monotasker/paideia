@@ -1,12 +1,12 @@
 /*eslint new-cap: ["error", {"capIsNewExceptions": ["Color"]}]*/
 
-var assert = require('assert'),
+var assert = require('assert').strict,
   fs = require('fs'),
   path = require('path'),
   read = fs.readFileSync,
   sassPath = process.env.NODESASS_COV
-      ? require.resolve('../lib-cov')
-      : require.resolve('../lib'),
+    ? require.resolve('../lib-cov')
+    : require.resolve('../lib'),
   sass = require(sassPath),
   fixture = path.join.bind(null, __dirname, 'fixtures'),
   resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
@@ -25,7 +25,7 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss')
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -36,7 +36,7 @@ describe('api', function() {
         sourceMap: true,
         outFile: fixture('simple/index-test.css')
       }, function(error, result) {
-        assert.equal(JSON.parse(result.map).file, 'index-test.css');
+        assert.strictEqual(JSON.parse(result.map).file, 'index-test.css');
         done();
       });
     });
@@ -47,7 +47,7 @@ describe('api', function() {
         sourceMap: true,
         outFile: './index-test.css'
       }, function(error, result) {
-        assert.equal(JSON.parse(result.map).file, 'index-test.css');
+        assert.strictEqual(JSON.parse(result.map).file, 'index-test.css');
         done();
       });
     });
@@ -58,7 +58,27 @@ describe('api', function() {
         sourceMap: './deep/nested/index.map',
         outFile: './index-test.css'
       }, function(error, result) {
-        assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+        assert.strictEqual(JSON.parse(result.map).file, '../../index-test.css');
+        done();
+      });
+    });
+
+    it('should not generate source map when not requested', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        sourceMap: false
+      }, function(error, result) {
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
+        done();
+      });
+    });
+
+    it('should not generate source map without outFile and no explicit path given', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        sourceMap: true
+      }, function(error, result) {
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
         done();
       });
     });
@@ -70,7 +90,7 @@ describe('api', function() {
         sourceMapRoot: 'http://test.com/',
         outFile: './index-test.css'
       }, function(error, result) {
-        assert.equal(JSON.parse(result.map).sourceRoot, 'http://test.com/');
+        assert.strictEqual(JSON.parse(result.map).sourceRoot, 'http://test.com/');
         done();
       });
     });
@@ -82,7 +102,7 @@ describe('api', function() {
       sass.render({
         data: src
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -95,7 +115,7 @@ describe('api', function() {
         data: src,
         indentedSyntax: true
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -104,14 +124,14 @@ describe('api', function() {
       sass.render({
         data: ''
       }, function(error) {
-        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        assert.strictEqual(error.message, 'No input specified: provide a file name or a source string to process');
         done();
       });
     });
 
     it('should NOT compile without any input', function(done) {
       sass.render({ }, function(error) {
-        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        assert.strictEqual(error.message, 'No input specified: provide a file name or a source string to process');
         done();
       });
     });
@@ -121,7 +141,7 @@ describe('api', function() {
         data: '#navbar width 80%;'
       }, function(error) {
         assert(error.message);
-        assert.equal(error.status, 1);
+        assert.strictEqual(error.status, 1);
         done();
       });
     });
@@ -137,7 +157,7 @@ describe('api', function() {
           fixture('include-path/lib')
         ]
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -152,7 +172,7 @@ describe('api', function() {
         file: src,
         includePaths: []
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
 
         process.chdir(cwd);
         done();
@@ -174,7 +194,7 @@ describe('api', function() {
         data: src,
         includePaths: []
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
       });
 
       process.env.SASS_PATH = envIncludes.reverse().join(path.delimiter);
@@ -182,7 +202,7 @@ describe('api', function() {
         data: src,
         includePaths: []
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -201,13 +221,13 @@ describe('api', function() {
         data: src,
         includePaths: []
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
       });
       sass.render({
         data: src,
         includePaths: [fixture('sass-path/orange')]
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -220,7 +240,7 @@ describe('api', function() {
         data: src,
         precision: 10
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
         done();
       });
     });
@@ -236,7 +256,7 @@ describe('api', function() {
         data: src,
         includePaths: [fixture('include-files')]
       }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, expected);
+        assert.deepStrictEqual(result.stats.includedFiles, expected);
         done();
       });
     });
@@ -247,7 +267,7 @@ describe('api', function() {
         indentWidth: 7,
         indentType: 'tab'
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
         done();
       });
     });
@@ -257,7 +277,7 @@ describe('api', function() {
         data: 'div { color: transparent; }',
         linefeed: 'lfcr'
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
         done();
       });
     });
@@ -289,9 +309,9 @@ describe('api', function() {
           });
         }
       }, function(err, data) {
-        assert.equal(err, null);
+        assert.strictEqual(err, null);
 
-        assert.equal(
+        assert.strictEqual(
           data.css.toString().trim(),
           'body {\n  color: "red"; }'
         );
@@ -310,7 +330,7 @@ describe('api', function() {
               contents: '@import "b"'
             });
           } else {
-            assert.equal(prev, '/Users/me/sass/lib/a.scss');
+            assert.strictEqual(prev, '/Users/me/sass/lib/a.scss');
             done({
               file: '/Users/me/sass/lib/b.scss',
               contents: 'div {color: yellow;}'
@@ -332,7 +352,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -342,7 +362,7 @@ describe('api', function() {
       var expectedImportOrder = [
         'a', '_common', 'vars', 'struct', 'a1', 'common', 'vars', 'struct', 'b', 'b1'
       ];
-      var expected = read(fixture('depth-first/expected.css'));
+      var expected = read(fixture('depth-first/expected.css'), 'utf-8');
 
       sass.render({
         file: fixture('depth-first/index.scss'),
@@ -351,8 +371,8 @@ describe('api', function() {
           done();
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), expected);
-        assert.deepEqual(actualImportOrder, expectedImportOrder);
+        assert.strictEqual(result.css.toString().trim(), expected);
+        assert.deepStrictEqual(actualImportOrder, expectedImportOrder);
         done();
       });
     });
@@ -367,7 +387,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -382,7 +402,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -397,7 +417,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -411,7 +431,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -425,7 +445,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -439,7 +459,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -453,7 +473,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -465,7 +485,7 @@ describe('api', function() {
           done(sass.NULL);
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -477,7 +497,7 @@ describe('api', function() {
           done(null);
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -489,7 +509,7 @@ describe('api', function() {
           done(undefined);
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -501,7 +521,7 @@ describe('api', function() {
           done(false);
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+        assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
         done();
       });
     });
@@ -515,7 +535,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -529,7 +549,7 @@ describe('api', function() {
           });
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -543,7 +563,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -557,7 +577,7 @@ describe('api', function() {
           };
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -576,7 +596,7 @@ describe('api', function() {
           }
         ]
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
         done();
       });
     });
@@ -586,11 +606,11 @@ describe('api', function() {
       sass.render({
         file: fxt,
         importer: function() {
-          assert.equal(fxt, this.options.file);
+          assert.strictEqual(fxt, this.options.file);
           return {};
         }
       }, function() {
-        assert.equal(fxt, this.options.file);
+        assert.strictEqual(fxt, this.options.file);
         done();
       });
     });
@@ -606,7 +626,7 @@ describe('api', function() {
           };
         }
       }, function() {
-        assert.equal(this.state, 2);
+        assert.strictEqual(this.state, 2);
         done();
       });
     });
@@ -634,7 +654,7 @@ describe('api', function() {
           done(new Error('doesn\'t exist!'));
         }
       }, function(error) {
-        assert(/doesn\'t exist!/.test(error.message));
+        assert(/doesn't exist!/.test(error.message));
         done();
       });
     });
@@ -646,7 +666,7 @@ describe('api', function() {
           return new Error('doesn\'t exist!');
         }
       }, function(error) {
-        assert(/doesn\'t exist!/.test(error.message));
+        assert(/doesn't exist!/.test(error.message));
         done();
       });
     });
@@ -674,7 +694,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: 42px; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: 42px; }');
         done();
       });
     });
@@ -688,7 +708,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: 126px; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: 126px; }');
         done();
       });
     });
@@ -704,7 +724,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: 66em; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: 66em; }');
         done();
       });
     });
@@ -723,7 +743,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  width: 42rem;\n  height: 84px; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  width: 42rem;\n  height: 84px; }');
         done();
       });
     });
@@ -738,7 +758,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: "barbar"; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: "barbar"; }');
         done();
       });
     });
@@ -754,7 +774,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  width: "barbar"; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  width: "barbar"; }');
         done();
       });
     });
@@ -764,10 +784,10 @@ describe('api', function() {
         data: 'div { color: foo(#f00); background-color: bar(); border-color: baz(); }',
         functions: {
           'foo($a)': function(color) {
-            assert.equal(color.getR(), 255);
-            assert.equal(color.getG(), 0);
-            assert.equal(color.getB(), 0);
-            assert.equal(color.getA(), 1.0);
+            assert.strictEqual(color.getR(), 255);
+            assert.strictEqual(color.getG(), 0);
+            assert.strictEqual(color.getB(), 0);
+            assert.strictEqual(color.getA(), 1.0);
 
             return new sass.types.Color(255, 255, 0, 0.5);
           },
@@ -779,7 +799,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(
+        assert.strictEqual(
           result.css.toString().trim(),
           'div {\n  color: rgba(255, 255, 0, 0.5);' +
           '\n  background-color: rgba(255, 0, 255, 0.2);' +
@@ -799,7 +819,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: #000;\n  background-color: #fff; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: #000;\n  background-color: #fff; }');
         done();
       });
     });
@@ -813,7 +833,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: #fff;\n  background-color: #000; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: #fff;\n  background-color: #000; }');
         done();
       });
     });
@@ -823,16 +843,16 @@ describe('api', function() {
         data: '$test-list: (bar, #f00, 123em); @each $item in foo($test-list) { .#{$item} { color: #fff; } }',
         functions: {
           'foo($l)': function(list) {
-            assert.equal(list.getLength(), 3);
+            assert.strictEqual(list.getLength(), 3);
             assert.ok(list.getValue(0) instanceof sass.types.String);
-            assert.equal(list.getValue(0).getValue(), 'bar');
+            assert.strictEqual(list.getValue(0).getValue(), 'bar');
             assert.ok(list.getValue(1) instanceof sass.types.Color);
-            assert.equal(list.getValue(1).getR(), 0xff);
-            assert.equal(list.getValue(1).getG(), 0);
-            assert.equal(list.getValue(1).getB(), 0);
+            assert.strictEqual(list.getValue(1).getR(), 0xff);
+            assert.strictEqual(list.getValue(1).getG(), 0);
+            assert.strictEqual(list.getValue(1).getB(), 0);
             assert.ok(list.getValue(2) instanceof sass.types.Number);
-            assert.equal(list.getValue(2).getValue(), 123);
-            assert.equal(list.getValue(2).getUnit(), 'em');
+            assert.strictEqual(list.getValue(2).getValue(), 123);
+            assert.strictEqual(list.getValue(2).getUnit(), 'em');
 
             var out = new sass.types.List(3);
             out.setValue(0, new sass.types.String('foo'));
@@ -842,7 +862,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(
+        assert.strictEqual(
           result.css.toString().trim(),
           '.foo {\n  color: #fff; }\n\n.bar {\n  color: #fff; }\n\n.baz {\n  color: #fff; }'
         );
@@ -856,15 +876,15 @@ describe('api', function() {
           'span { color: map-get($test-map, baz); }',
         functions: {
           'foo($m)': function(map) {
-            assert.equal(map.getLength(), 2);
+            assert.strictEqual(map.getLength(), 2);
             assert.ok(map.getKey(0) instanceof sass.types.String);
             assert.ok(map.getKey(1) instanceof sass.types.Color);
             assert.ok(map.getValue(0) instanceof sass.types.Number);
             assert.ok(map.getValue(1) instanceof sass.types.Boolean);
-            assert.equal(map.getKey(0).getValue(), 'abc');
-            assert.equal(map.getValue(0).getValue(), 123);
-            assert.equal(map.getKey(1).getR(), 0xdd);
-            assert.equal(map.getValue(1).getValue(), true);
+            assert.strictEqual(map.getKey(0).getValue(), 'abc');
+            assert.strictEqual(map.getValue(0).getValue(), 123);
+            assert.strictEqual(map.getKey(1).getR(), 0xdd);
+            assert.strictEqual(map.getValue(1).getValue(), true);
 
             var out = new sass.types.Map(3);
             out.setKey(0, new sass.types.String('hello'));
@@ -877,7 +897,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: #fff; }\n\nspan {\n  color: qux; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: #fff; }\n\nspan {\n  color: qux; }');
         done();
       });
     });
@@ -896,7 +916,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(
+        assert.strictEqual(
           result.css.toString().trim(),
           'div {\n  color: #000; }\n\nspan {\n  color: #fff; }\n\ntable {\n  color: #fff; }'
         );
@@ -927,7 +947,7 @@ describe('api', function() {
             }
           }
         }, function(errror, result) {
-          assert.equal(result.css.toString().trim(), 'div {\n  color: #112233;\n  background-color: #ddeeff; }');
+          assert.strictEqual(result.css.toString().trim(), 'div {\n  color: #112233;\n  background-color: #ddeeff; }');
           done();
         });
       });
@@ -942,7 +962,7 @@ describe('api', function() {
           }
         }
       }, function(error, result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  color: 42em; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  color: 42em; }');
         done();
       });
     });
@@ -991,7 +1011,7 @@ describe('api', function() {
 
     it('should call custom functions with correct context', function(done) {
       function assertExpected(result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  foo1: 1;\n  foo2: 2; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  foo1: 1;\n  foo2: 2; }');
       }
       var options = {
         data: 'div { foo1: foo(); foo2: foo(); }',
@@ -1176,7 +1196,7 @@ describe('api', function() {
           },
           bar: function(a) {
             assert.strictEqual(a, sass.NULL,
-                'Supplied value should be the same instance as sass.NULL');
+              'Supplied value should be the same instance as sass.NULL');
 
             assert.throws(function() {
               return new sass.types.Null();
@@ -1245,7 +1265,7 @@ describe('api', function() {
       }, function(error, result) {
         assert(!error);
         assert.strictEqual(typeof result.stats.duration, 'number');
-        assert.equal(result.stats.end - result.stats.start, result.stats.duration);
+        assert.strictEqual(result.stats.end - result.stats.start, result.stats.duration);
         done();
       });
     });
@@ -1255,7 +1275,7 @@ describe('api', function() {
         file: fixture('include-files/index.scss')
       }, function(error, result) {
         assert(!error);
-        assert.equal(result.stats.entry, fixture('include-files/index.scss'));
+        assert.strictEqual(result.stats.entry, fixture('include-files/index.scss'));
         done();
       });
     });
@@ -1271,7 +1291,7 @@ describe('api', function() {
         file: fixture('include-files/index.scss')
       }, function(error, result) {
         assert(!error);
-        assert.deepEqual(result.stats.includedFiles.sort(), expected.sort());
+        assert.deepStrictEqual(result.stats.includedFiles.sort(), expected.sort());
         done();
       });
     });
@@ -1282,7 +1302,7 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss')
       }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, [expected]);
+        assert.deepStrictEqual(result.stats.includedFiles, [expected]);
         done();
       });
     });
@@ -1291,7 +1311,7 @@ describe('api', function() {
       sass.render({
         data: read(fixture('simple/index.scss'), 'utf8')
       }, function(error, result) {
-        assert.equal(result.stats.entry, 'data');
+        assert.strictEqual(result.stats.entry, 'data');
         done();
       });
     });
@@ -1300,7 +1320,7 @@ describe('api', function() {
       sass.render({
         data: read(fixture('simple/index.scss'), 'utf8')
       }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, []);
+        assert.deepStrictEqual(result.stats.includedFiles, []);
         done();
       });
     });
@@ -1311,7 +1331,7 @@ describe('api', function() {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var result = sass.renderSync({ file: fixture('simple/index.scss') });
 
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1322,7 +1342,7 @@ describe('api', function() {
         outFile: fixture('simple/index-test.css')
       });
 
-      assert.equal(JSON.parse(result.map).file, 'index-test.css');
+      assert.strictEqual(JSON.parse(result.map).file, 'index-test.css');
       done();
     });
 
@@ -1333,7 +1353,7 @@ describe('api', function() {
         outFile: './index-test.css'
       });
 
-      assert.equal(JSON.parse(result.map).file, 'index-test.css');
+      assert.strictEqual(JSON.parse(result.map).file, 'index-test.css');
       done();
     });
 
@@ -1344,7 +1364,27 @@ describe('api', function() {
         outFile: './index-test.css'
       });
 
-      assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+      assert.strictEqual(JSON.parse(result.map).file, '../../index-test.css');
+      done();
+    });
+
+    it('should not generate source map when not requested', function(done) {
+      var result =  sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: false
+      });
+
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
+      done();
+    });
+
+    it('should not generate source map without outFile and no explicit path given', function(done) {
+      var result =  sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: true
+      });
+
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
       done();
     });
 
@@ -1356,7 +1396,7 @@ describe('api', function() {
         outFile: './index-test.css'
       });
 
-      assert.equal(JSON.parse(result.map).sourceRoot, 'http://test.com/');
+      assert.strictEqual(JSON.parse(result.map).sourceRoot, 'http://test.com/');
       done();
     });
 
@@ -1365,7 +1405,7 @@ describe('api', function() {
       var expected = read(fixture('simple/expected.css'), 'utf8').trim();
       var result = sass.renderSync({ data: src });
 
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1377,7 +1417,7 @@ describe('api', function() {
         indentedSyntax: true
       });
 
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1417,7 +1457,7 @@ describe('api', function() {
         ]
       });
 
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1436,7 +1476,7 @@ describe('api', function() {
       });
       process.chdir(cwd);
 
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1456,7 +1496,7 @@ describe('api', function() {
         includePaths: []
       });
 
-      assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
 
       process.env.SASS_PATH = envIncludes.reverse().join(path.delimiter);
       result = sass.renderSync({
@@ -1464,7 +1504,7 @@ describe('api', function() {
         includePaths: []
       });
 
-      assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1483,14 +1523,14 @@ describe('api', function() {
         includePaths: []
       });
 
-      assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
 
       result = sass.renderSync({
         data: src,
         includePaths: [fixture('sass-path/orange')]
       });
 
-      assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1502,7 +1542,7 @@ describe('api', function() {
         precision: 10
       });
 
-      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      assert.strictEqual(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       done();
     });
 
@@ -1518,7 +1558,7 @@ describe('api', function() {
         includePaths: [fixture('include-files')]
       });
 
-      assert.deepEqual(result.stats.includedFiles, expected);
+      assert.deepStrictEqual(result.stats.includedFiles, expected);
       done();
     });
 
@@ -1529,7 +1569,7 @@ describe('api', function() {
         indentType: 'tab'
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
       done();
     });
 
@@ -1539,7 +1579,7 @@ describe('api', function() {
         linefeed: 'lfcr'
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
       done();
     });
   });
@@ -1558,7 +1598,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -1573,7 +1613,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -1587,7 +1627,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1601,7 +1641,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1615,7 +1655,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -1629,7 +1669,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -1643,7 +1683,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1655,7 +1695,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1667,7 +1707,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1679,7 +1719,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
+      assert.strictEqual(result.css.toString().trim(), '/* foo.scss */\n/* bar.scss */');
       done();
     });
 
@@ -1698,7 +1738,7 @@ describe('api', function() {
         ]
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
       done();
     });
 
@@ -1708,12 +1748,12 @@ describe('api', function() {
       sass.renderSync({
         file: fixture('include-files/index.scss'),
         importer: function() {
-          assert.equal(fxt, this.options.file);
+          assert.strictEqual(fxt, this.options.file);
           sync = true;
           return {};
         }
       });
-      assert.equal(sync, true);
+      assert.strictEqual(sync, true);
       done();
     });
 
@@ -1725,7 +1765,7 @@ describe('api', function() {
             return new Error('doesn\'t exist!');
           }
         });
-      }, /doesn\'t exist!/);
+      }, /doesn't exist!/);
 
       done();
     });
@@ -1758,7 +1798,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  width: 50px; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  width: 50px; }');
       done();
     });
 
@@ -1779,7 +1819,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'h2, h3, h4, h5 {\n  color: #08c; }');
+      assert.strictEqual(result.css.toString().trim(), 'h2, h3, h4, h5 {\n  color: #08c; }');
       done();
     });
 
@@ -1793,7 +1833,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: 42em; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: 42em; }');
       done();
     });
 
@@ -1807,7 +1847,7 @@ describe('api', function() {
         }
       });
 
-      assert.equal(result.css.toString().trim(), 'div {\n  color: 42em; }');
+      assert.strictEqual(result.css.toString().trim(), 'div {\n  color: 42em; }');
       done();
     });
 
@@ -1886,7 +1926,7 @@ describe('api', function() {
 
     it('should call custom functions with correct context', function(done) {
       function assertExpected(result) {
-        assert.equal(result.css.toString().trim(), 'div {\n  foo1: 1;\n  foo2: 2; }');
+        assert.strictEqual(result.css.toString().trim(), 'div {\n  foo1: 1;\n  foo2: 2; }');
       }
       var options = {
         data: 'div { foo1: foo(); foo2: foo(); }',
@@ -1924,12 +1964,12 @@ describe('api', function() {
 
     it('should provide a duration', function(done) {
       assert.strictEqual(typeof result.stats.duration, 'number');
-      assert.equal(result.stats.end - result.stats.start, result.stats.duration);
+      assert.strictEqual(result.stats.end - result.stats.start, result.stats.duration);
       done();
     });
 
     it('should contain the given entry file', function(done) {
-      assert.equal(result.stats.entry, resolveFixture('include-files/index.scss'));
+      assert.strictEqual(result.stats.entry, resolveFixture('include-files/index.scss'));
       done();
     });
 
@@ -1941,9 +1981,9 @@ describe('api', function() {
       ].sort();
       var actual = result.stats.includedFiles.sort();
 
-      assert.equal(actual[0], expected[0]);
-      assert.equal(actual[1], expected[1]);
-      assert.equal(actual[2], expected[2]);
+      assert.strictEqual(actual[0], expected[0]);
+      assert.strictEqual(actual[1], expected[1]);
+      assert.strictEqual(actual[2], expected[2]);
       done();
     });
 
@@ -1954,7 +1994,7 @@ describe('api', function() {
         file: fixture('simple/index.scss')
       });
 
-      assert.deepEqual(result.stats.includedFiles, [expected]);
+      assert.deepStrictEqual(result.stats.includedFiles, [expected]);
       done();
     });
 
@@ -1963,7 +2003,7 @@ describe('api', function() {
         data: read(fixture('simple/index.scss'), 'utf8')
       });
 
-      assert.equal(result.stats.entry, 'data');
+      assert.strictEqual(result.stats.entry, 'data');
       done();
     });
 
@@ -1972,7 +2012,7 @@ describe('api', function() {
         data: read(fixture('simple/index.scss'), 'utf8')
       });
 
-      assert.deepEqual(result.stats.includedFiles, []);
+      assert.deepStrictEqual(result.stats.includedFiles, []);
       done();
     });
   });

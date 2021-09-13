@@ -20,6 +20,11 @@ module.exports = {
       url: docsUrl('jsx-max-props-per-line')
     },
     fixable: 'code',
+
+    messages: {
+      newLine: 'Prop `{{prop}}` must be placed on a new line'
+    },
+
     schema: [{
       type: 'object',
       properties: {
@@ -35,20 +40,20 @@ module.exports = {
     }]
   },
 
-  create: function (context) {
-    const sourceCode = context.getSourceCode();
+  create(context) {
     const configuration = context.options[0] || {};
     const maximum = configuration.maximum || 1;
     const when = configuration.when || 'always';
 
     function getPropName(propNode) {
       if (propNode.type === 'JSXSpreadAttribute') {
-        return sourceCode.getText(propNode.argument);
+        return context.getSourceCode().getText(propNode.argument);
       }
       return propNode.name.name;
     }
 
     function generateFixFunction(line, max) {
+      const sourceCode = context.getSourceCode();
       const output = [];
       const front = line[0].range[0];
       const back = line[line.length - 1].range[1];
@@ -62,13 +67,13 @@ module.exports = {
         }, ''));
       }
       const code = output.join('\n');
-      return function(fixer) {
+      return function fix(fixer) {
         return fixer.replaceTextRange([front, back], code);
       };
     }
 
     return {
-      JSXOpeningElement: function (node) {
+      JSXOpeningElement(node) {
         if (!node.attributes.length) {
           return;
         }
@@ -89,12 +94,15 @@ module.exports = {
           return decl;
         });
 
-        linePartitionedProps.forEach(propsInLine => {
+        linePartitionedProps.forEach((propsInLine) => {
           if (propsInLine.length > maximum) {
             const name = getPropName(propsInLine[maximum]);
             context.report({
               node: propsInLine[maximum],
-              message: `Prop \`${name}\` must be placed on a new line`,
+              messageId: 'newLine',
+              data: {
+                prop: name
+              },
               fix: generateFixFunction(propsInLine, maximum)
             });
           }

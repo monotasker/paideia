@@ -2,6 +2,7 @@
  * @fileoverview Enforce ES5 or ES6 class for React Components
  * @author Dan Hamilton
  */
+
 'use strict';
 
 const Components = require('../util/Components');
@@ -20,6 +21,11 @@ module.exports = {
       url: docsUrl('prefer-es6-class')
     },
 
+    messages: {
+      shouldUseES6Class: 'Component should use es6 class instead of createClass',
+      shouldUseCreateClass: 'Component should use createClass instead of es6 class'
+    },
+
     schema: [{
       enum: ['always', 'never']
     }]
@@ -29,19 +35,19 @@ module.exports = {
     const configuration = context.options[0] || 'always';
 
     return {
-      ObjectExpression: function(node) {
+      ObjectExpression(node) {
         if (utils.isES5Component(node) && configuration === 'always') {
           context.report({
-            node: node,
-            message: 'Component should use es6 class instead of createClass'
+            node,
+            messageId: 'shouldUseES6Class'
           });
         }
       },
-      ClassDeclaration: function(node) {
+      ClassDeclaration(node) {
         if (utils.isES6Component(node) && configuration === 'never') {
           context.report({
-            node: node,
-            message: 'Component should use createClass instead of es6 class'
+            node,
+            messageId: 'shouldUseCreateClass'
           });
         }
       }

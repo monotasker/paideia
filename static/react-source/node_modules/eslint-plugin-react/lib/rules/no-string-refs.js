@@ -2,6 +2,7 @@
  * @fileoverview Prevent string definitions for references and prevent referencing this.refs
  * @author Tom Hastjarjanto
  */
+
 'use strict';
 
 const Components = require('../util/Components');
@@ -19,10 +20,25 @@ module.exports = {
       recommended: true,
       url: docsUrl('no-string-refs')
     },
-    schema: []
+
+    messages: {
+      thisRefsDeprecated: 'Using this.refs is deprecated.',
+      stringInRefDeprecated: 'Using string literals in ref attributes is deprecated.'
+    },
+
+    schema: [{
+      type: 'object',
+      properties: {
+        noTemplateLiterals: {
+          type: 'boolean'
+        }
+      },
+      additionalProperties: false
+    }]
   },
 
   create: Components.detect((context, components, utils) => {
+    const detectTemplateLiterals = context.options[0] ? context.options[0].noTemplateLiterals : false;
     /**
      * Checks if we are using refs
      * @param {ASTNode} node The AST node being checked.
@@ -31,11 +47,11 @@ module.exports = {
     function isRefsUsage(node) {
       return Boolean(
         (
-          utils.getParentES6Component() ||
-          utils.getParentES5Component()
-        ) &&
-        node.object.type === 'ThisExpression' &&
-        node.property.name === 'refs'
+          utils.getParentES6Component()
+          || utils.getParentES5Component()
+        )
+        && node.object.type === 'ThisExpression'
+        && node.property.name === 'refs'
       );
     }
 
@@ -46,9 +62,9 @@ module.exports = {
      */
     function isRefAttribute(node) {
       return Boolean(
-        node.type === 'JSXAttribute' &&
-        node.name &&
-        node.name.name === 'ref'
+        node.type === 'JSXAttribute'
+        && node.name
+        && node.name.name === 'ref'
       );
     }
 
@@ -59,9 +75,9 @@ module.exports = {
      */
     function containsStringLiteral(node) {
       return Boolean(
-        node.value &&
-        node.value.type === 'Literal' &&
-        typeof node.value.value === 'string'
+        node.value
+        && node.value.type === 'Literal'
+        && typeof node.value.value === 'string'
       );
     }
 
@@ -72,31 +88,31 @@ module.exports = {
      */
     function containsStringExpressionContainer(node) {
       return Boolean(
-        node.value &&
-        node.value.type === 'JSXExpressionContainer' &&
-        node.value.expression &&
-        node.value.expression.type === 'Literal' &&
-        typeof node.value.expression.value === 'string'
+        node.value
+        && node.value.type === 'JSXExpressionContainer'
+        && node.value.expression
+        && ((node.value.expression.type === 'Literal' && typeof node.value.expression.value === 'string')
+        || (node.value.expression.type === 'TemplateLiteral' && detectTemplateLiterals))
       );
     }
 
     return {
-      MemberExpression: function(node) {
+      MemberExpression(node) {
         if (isRefsUsage(node)) {
           context.report({
-            node: node,
-            message: 'Using this.refs is deprecated.'
+            node,
+            messageId: 'thisRefsDeprecated'
           });
         }
       },
-      JSXAttribute: function(node) {
+      JSXAttribute(node) {
         if (
-          isRefAttribute(node) &&
-          (containsStringLiteral(node) || containsStringExpressionContainer(node))
+          isRefAttribute(node)
+          && (containsStringLiteral(node) || containsStringExpressionContainer(node))
         ) {
           context.report({
-            node: node,
-            message: 'Using string literals in ref attributes is deprecated.'
+            node,
+            messageId: 'stringInRefDeprecated'
           });
         }
       }

@@ -2,6 +2,7 @@
  * @fileoverview Forbid certain elements
  * @author Kenneth Chung
  */
+
 'use strict';
 
 const has = require('has');
@@ -18,6 +19,11 @@ module.exports = {
       category: 'Best Practices',
       recommended: false,
       url: docsUrl('forbid-elements')
+    },
+
+    messages: {
+      forbiddenElement: '<{{element}}> is forbidden',
+      forbiddenElement_message: '<{{element}}> is forbidden, {{message}}'
     },
 
     schema: [{
@@ -45,31 +51,19 @@ module.exports = {
     }]
   },
 
-  create: function(context) {
-    const sourceCode = context.getSourceCode();
+  create(context) {
     const configuration = context.options[0] || {};
     const forbidConfiguration = configuration.forbid || [];
 
     const indexedForbidConfigs = {};
 
-    forbidConfiguration.forEach(item => {
+    forbidConfiguration.forEach((item) => {
       if (typeof item === 'string') {
         indexedForbidConfigs[item] = {element: item};
       } else {
         indexedForbidConfigs[item.element] = item;
       }
     });
-
-    function errorMessageForElement(name) {
-      const message = `<${name}> is forbidden`;
-      const additionalMessage = indexedForbidConfigs[name].message;
-
-      if (additionalMessage) {
-        return `${message}, ${additionalMessage}`;
-      }
-
-      return message;
-    }
 
     function isValidCreateElement(node) {
       return node.callee
@@ -81,19 +75,25 @@ module.exports = {
 
     function reportIfForbidden(element, node) {
       if (has(indexedForbidConfigs, element)) {
+        const message = indexedForbidConfigs[element].message;
+
         context.report({
-          node: node,
-          message: errorMessageForElement(element)
+          node,
+          messageId: message ? 'forbiddenElement_message' : 'forbiddenElement',
+          data: {
+            element,
+            message
+          }
         });
       }
     }
 
     return {
-      JSXOpeningElement: function(node) {
-        reportIfForbidden(sourceCode.getText(node.name), node.name);
+      JSXOpeningElement(node) {
+        reportIfForbidden(context.getSourceCode().getText(node.name), node.name);
       },
 
-      CallExpression: function(node) {
+      CallExpression(node) {
         if (!isValidCreateElement(node)) {
           return;
         }
@@ -103,10 +103,10 @@ module.exports = {
 
         if (argType === 'Identifier' && /^[A-Z_]/.test(argument.name)) {
           reportIfForbidden(argument.name, argument);
-        } else if (argType === 'Literal' && /^[a-z][^\.]*$/.test(argument.value)) {
+        } else if (argType === 'Literal' && /^[a-z][^.]*$/.test(argument.value)) {
           reportIfForbidden(argument.value, argument);
         } else if (argType === 'MemberExpression') {
-          reportIfForbidden(sourceCode.getText(argument), argument);
+          reportIfForbidden(context.getSourceCode().getText(argument), argument);
         }
       }
     };
