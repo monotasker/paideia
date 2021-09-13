@@ -1216,7 +1216,8 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     if vbs: print('k')
 
-    # collect queries posted by the user's students
+    # collect queries posted by the user's students and remove from
+    # external queries as well
 
     mycourses_queries = []
     if auth.has_membership('instructors') or \
@@ -1245,6 +1246,9 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                                       'term': course.term,
                                       'instructor': instructor_name,
                                       'queries': student_queries})
+            external_queries = list(filter(lambda x: x['auth_user']['id']
+                                           not in students + [userid],
+                                           external_queries))
 
     if vbs: print('l')
     #  collect queries posted by other users
