@@ -59,6 +59,43 @@ const evaluateAnswer = async ({location=null,
   return response_json
 }
 
+const getViewQueries = async ({step_id=0,
+                           user_id=0,
+                           nonstep=true,
+                           unread=false,
+                           unanswered=false,
+                           pagesize=50,
+                           page=0,
+                           orderby="modified_on",
+                           classmates_course=0,
+                           students_course=0,
+                           own_queries=false
+                          }) => {
+  let response = await fetch('/paideia/api/get_view_queries', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        step_id: step_id,
+        user_id: user_id,
+        nonstep: nonstep,
+        unread: unread,
+        unanswered: unanswered,
+        pagesize: pagesize,
+        page: page,
+        orderby: orderby,
+        classmates_course: classmates_course,
+        students_course: students_course,
+        own_queries: own_queries
+      })
+  })
+  return await response.json();
+}
+
+
 const getQueries = async ({step_id=null,
                            user_id=null,
                            nonstep=true,
@@ -369,6 +406,7 @@ const setServerReviewMode = async (mylevel) => {
 export { getPromptData,
          evaluateAnswer,
          getQueries,
+         getViewQueries,
          addQuery,
          updateQuery,
          addQueryReply,

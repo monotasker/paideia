@@ -23,6 +23,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { getQueries,
+         getViewQueries,
          addQuery,
          updateQuery,
          addQueryReply,
@@ -1060,11 +1061,7 @@ const QueriesView = () => {
     const [nonStep, setNonStep] = useState(true);
     const [viewScope, setViewScope] = useState('public');
     const [viewCourse, setViewCourse] = useState();
-    console.log('viewCourse');
-    console.log(viewCourse);
     const [viewStudents, setViewStudents] = useState();
-    console.log('viewStudents');
-    console.log(viewStudents);
     const courseChangeFunctions = {class: setViewCourse,
                                   students: setViewStudents};
     const [filterUnanswered, setFilterUnanswered] = useState(false);
@@ -1478,6 +1475,27 @@ const QueriesView = () => {
       }
     }
 
+    const fetchViewQueriesAction = () => {
+      setLoading(true);
+      getViewQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
+                  user_id: user.userId,
+                  nonstep: nonStep,
+                  unread: filterUnread,
+                  unanswered: filterUnanswered,
+                  pagesize: 20,
+                  page: 0,
+                  orderby: "modified_on",
+                  classmates_course: viewStudents,
+                  students_course: viewCourse,
+                  own_queries: own_queries
+                })
+      .then(queryfetch => {
+        const formatted_queries = queryfetch.map( q => _formatQueryData(q));
+        setQueries(formatted_queries);
+        setLoading(false);
+      });
+    }
+
     const fetchAction = () => {
       setLoading(true);
       getQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
@@ -1514,7 +1532,7 @@ const QueriesView = () => {
       });
     }
 
-    useEffect(() => fetchAction(),
+    useEffect(() => fetchViewQueriesAction(),
               [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
 
     const newQueryAction = (myComment, showPublic, event) => {

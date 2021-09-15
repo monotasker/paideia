@@ -11,6 +11,7 @@ from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
 from gluon.serializers import json as json_serializer
 from gluon.utils import web2py_uuid
+from itertools import chain
 import json
 import os
 from pprint import pprint
@@ -1050,28 +1051,190 @@ def _fetch_unread_queries(user_id):
     """
     db = current.db
     unread_queries = db((db.bugs_read_by_user.user_id==user_id) &
-                         (db.bugs_read_by_user.read_status==False)
-                         ).select(db.bugs_read_by_user.read_item_id).as_list()
+                        (db.bugs_read_by_user.read_status==False)
+                        ).select(db.bugs_read_by_user.read_item_id).as_list()
     unread_posts = db((db.posts_read_by_user.user_id==user_id) &
-                      (db.posts_read_by_user.read_status==False)
-                      ).select(db.posts_read_by_user.read_item_id,
-                               db.posts_read_by_user.read_status,
-                               db.posts_read_by_user.on_bug).as_list()
+                    (db.posts_read_by_user.read_status==False)
+                    ).select(db.posts_read_by_user.read_item_id,
+                            db.posts_read_by_user.read_status,
+                            db.posts_read_by_user.on_bug).as_list()
     unread_comments = db((db.comments_read_by_user.user_id==user_id) &
-                         (db.comments_read_by_user.read_status==False)
-                         ).select(db.comments_read_by_user.read_item_id,
-                                  db.comments_read_by_user.read_status,
-                                  db.comments_read_by_user.on_bug,
-                                  db.comments_read_by_user.on_bug_post
-                                  ).as_list()
+                        (db.comments_read_by_user.read_status==False)
+                        ).select(db.comments_read_by_user.read_item_id,
+                                db.comments_read_by_user.read_status,
+                                db.comments_read_by_user.on_bug,
+                                db.comments_read_by_user.on_bug_post
+                                ).as_list()
     unread_queries = [i['read_item_id'] for i in unread_queries] \
         if unread_queries else []
     unread_posts = [p['read_item_id'] for p in unread_posts] \
         if unread_posts else []
     unread_comments = [p['read_item_id'] for p in unread_comments] \
         if unread_comments else []
+
     return unread_queries, unread_posts, unread_comments
 
+def get_view_queries():
+    """
+
+    Page request parameter is indexed from 1. A value of 0 indicates the request
+    is not paginated.
+    """
+    vbs=True
+    stepid = request.vars['step_id'],
+    userid = request.vars['user_id'],
+    own_queries = request.vars['own_queries']
+    nonstep = request.vars['nonstep'],
+    unanswered = request.vars['unanswered'],
+    unread = request.vars['unread'],
+    pagesize = request.vars['pagesize'],
+    page = request.vars['page'],
+    orderby = request.vars['orderby'],
+    classmates_course = request.vars['classmates_course'],
+    students_course = request.vars['students_course']
+
+    vbs=True
+    offset_start = pagesize * (page - 1)
+    offset_end = offset_start + pagesize
+    table_fields = [db.bugs.id,
+                    db.bugs.user_name,
+                    db.bugs.step,
+                    db.bugs.in_path,
+                    db.bugs.prompt,
+                    db.bugs.step_options,
+                    db.bugs.user_response,
+                    db.bugs.sample_answers,
+                    db.bugs.score,
+                    db.bugs.adjusted_score,
+                    db.bugs.log_id,
+                    db.bugs.user_comment,
+                    db.bugs.date_submitted,
+                    db.bugs.bug_status,
+                    db.bugs.admin_comment,
+                    db.bugs.deleted,
+                    db.bugs.public,
+                    db.bugs.posts,
+                    db.bugs.pinned,
+                    db.bugs.popularity,
+                    db.bugs.helpfulness,
+                    db.bugs.user_role,
+                    db.auth_user.id,
+                    db.auth_user.first_name,
+                    db.auth_user.last_name]
+                    # FIXME:  re-add db.bugs.hidden here and in model,
+
+    queries = []
+    unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
+    if vbs: print("api::_fetch_queries: unread_queries")
+    if vbs: print(unread_posts)
+    if vbs: print("api::_fetch_queries: unread_posts")
+    if vbs: print(unread_posts)
+    if vbs: print("api::_fetch_queries: unread_queries")
+    if vbs: print(unread_posts)
+
+    unanswered_term = True
+    if unanswered==True:
+        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
+        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
+        # if vbs: print("filtering for unanswered")
+        # if vbs: print("raw unanswered finds {} of {} rows".format(
+            # db(unanswered_term).count(),
+            # db(db.bugs.id > 0).count()
+            # ))
+
+    if vbs: print('A')
+
+    step_term = (db.bugs.step == stepid) # queries tied to specified step
+    if nonstep==True:  # queries not tied to step
+        step_term = (db.bugs.step == None)
+    elif stepid==0:  #  queries on all steps, not just one
+        step_term = (db.bugs.step != None)
+
+    if vbs: print('b')
+    #  requesting queries not marked as read
+    unread_term = True
+    if unread is True:
+        unread_term = (db.bugs.id.belongs(unread_queries))
+
+
+    own_queries_term = (db.bugs.name != userid)
+    if own_queries is True:
+        own_queries_term = (db.bugs.name == userid)
+
+    #  requesting queries for own class's students
+    students_term = True
+    if students_course not in [None, 0]:
+        assert userid == db.classes[students_course].instructor
+        members = list(set([m.name for m in
+                            db(db.class_membership.class_section ==
+                               students_course).iterselect()
+                            if m.name != userid]
+                            ))
+        students_term = (db.bugs.user_name.belongs(members))
+
+    #  requesting queries for own classmates
+    classmates_term = True
+    if classmates_course not in [None, 0]:
+        members = list(set([m.name for m in
+                            db(db.class_membership.class_section ==
+                               classmates_course).iterselect()
+                            ]))
+        assert userid in members
+        other_members = [m for m in members if m != userid]
+        classmates_term = (db.bugs.user_name.belongs(other_members))
+
+    # requesting queries not by self, student, or classmates
+    # FIXME: make current class?
+    external_term = True
+    if (not own_queries) and \
+            students_course in [None, 0] and classmates_course in [None, 0]:
+        myclasses = list(set(db(db.class_membership.name == userid
+                                ).iterselect(db.class_membership.class_section)))
+        classmembers = list(set([m.name for m in
+            db(db.class_membership.class_section.belongs(myclasses)
+               ).iterselect(db.class_membership.name)]
+            ))
+
+        instructing = list(set(db(db.classes.instructor == userid
+                                  ).iterselect(db.classes.id)))
+        instructingmembers = list(set([m.name for m in
+            db(db.class_membership.class_section.belongs(instructing)
+               ).iterselect(db.class_membership.name)]
+            ))
+
+        external_term = ~(db.bugs.user_name.belongs(chain(classmembers,
+                                                          instructingmembers)))
+
+
+    if vbs: print('c')
+    queries = db((step_term) &
+                 (db.bugs.user_name == db.auth_user.id) &
+                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                 (unread_term) &
+                 (unanswered_term) &
+                 (classmates_term) &
+                 (students_term) &
+                 (own_queries_term) &
+                 (external_term)
+                 ).select(*table_fields,
+                          orderby=~db.bugs[orderby]
+                          )  #   limitby=(offset_start, offset_end),
+
+    if vbs: print('d')
+    queries_list = queries.as_list()
+    if vbs: print('e')
+    for q in queries_list:
+        q['read'] = False if q['bugs']['id'] in unread_queries else True
+    if vbs: print('f')
+    if vbs: print("in _fetch_queries===============================")
+    if vbs: print("got {} query rows".format(len(queries_list)))
+    if vbs: print('g')
+    queries = _add_posts_to_queries(queries_list,
+                                    unread_posts, unread_comments)
+    if page != 0:
+        queries = queries.slice(offset_start, offset_end)
+
+    return json_serializer(queries)
 
 def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                    unanswered=False, pagesize=20, page=0,
@@ -1130,11 +1293,11 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
     if unanswered==True:
         answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
         unanswered_term = ~(db.bugs.id.belongs(answered_rows))
-        if vbs: print("filtering for unanswered")
-        if vbs: print("raw unanswered finds {} of {} rows".format(
-            db(unanswered_term).count(),
-            db(db.bugs.id > 0).count()
-            ))
+        # if vbs: print("filtering for unanswered")
+        # if vbs: print("raw unanswered finds {} of {} rows".format(
+            # db(unanswered_term).count(),
+            # db(db.bugs.id > 0).count()
+            # ))
 
     if vbs: print('A')
 
@@ -1157,9 +1320,8 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                  (unread_term) &
                  (unanswered_term)
                  ).select(*table_fields,
-                          limitby=(offset_start, offset_end),
                           orderby=~db.bugs[orderby]
-                          )
+                          )  #   limitby=(offset_start, offset_end),
 
     if vbs: print('d')
     queries_list = queries.as_list()
@@ -1255,9 +1417,15 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     if not auth.has_membership('administrators'):
         if auth.has_membership('instructors'):
-            external_queries = list(filter(lambda x: (
-                x['bugs']['public'] is True)
-                or _is_my_student(auth.user_id, x['auth_user']['id']),
+
+            mystudents = db((db.classes.instructor == userid) &
+                            (db.classes.id == db.class_membership.class_section)
+                            ).select(db.class_membership.name).as_list()
+            mystudent_ids = list(set(s['name'] for s in mystudents))
+
+            external_queries = list(filter(lambda x:
+                (x['bugs']['public'] is True)
+                or auth.user_id in mystudent_ids,
                 external_queries))
         else:
             external_queries = list(filter(
