@@ -22,7 +22,7 @@ import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
-import { getQueries,
+import { getQueriesMetadata,
          getViewQueries,
          addQuery,
          updateQuery,
@@ -748,15 +748,16 @@ const ScopeView = ({scope, nonStep, singleStep,
                     viewingAsAdmin,
                     viewCourse,
                     viewStudents,
+                    myCourses,
                     courseChangeFunctions,
-                    list}) => {
+                    queriesList}) => {
 
   const {user, } = useContext(UserContext);
   console.log("in ScopeView:");
   console.log(`viewCourse: ${viewCourse}`);
   console.log(`viewStudents: ${viewStudents}`);
-  console.log(`list:`);
-  console.log(list);
+  console.log(`queriesList:`);
+  console.log(queriesList);
   const byClass = ["class", "students"].includes(scope);
   const viewGroup = scope==="class" ? viewCourse :
     (scope==="students" ? viewStudents : null);
@@ -770,17 +771,11 @@ const ScopeView = ({scope, nonStep, singleStep,
   }
 
   useEffect(() => {
-    if (!!byClass && !viewGroup && list.length > 0) {
-      courseChangeFunctions[scope](list[0].classId);
+    if (!!byClass && !viewGroup && queriesList.length > 0) {
+      courseChangeFunctions[scope](queriesList[0].classId);
     }
-  }, [byClass, viewGroup, scope, list]);
+  }, [byClass, viewGroup, scope, queriesList]);
 
-
-  let queryArray = list;
-  if (!!byClass) {
-    const myClass = list.find(c => c.classId===parseInt(viewGroup));
-    queryArray = !!myClass ? myClass.queries : [];
-  }
 
   return (
     <div className="queries-view-pane" key={scope}>
@@ -813,7 +808,7 @@ const ScopeView = ({scope, nonStep, singleStep,
                 as="select"
                 onChange={e => courseChangeFunctions[scope](e.target.value)}
             >
-                {list.map( c =>
+                {myCourses.map( c =>
                     <option key={c.classId}
                       value={c.classId}
                     >
@@ -828,9 +823,9 @@ const ScopeView = ({scope, nonStep, singleStep,
         :
         ""
       }
-      {!!queryArray.length > 0 ?
+      {!!queriesList.length > 0 ?
         <QueriesList
-          queryArray={queryArray}
+          queryArray={queriesList}
           updateQueryAction={updateQueryAction}
           newReplyAction={newReplyAction}
           updateReplyAction={updateReplyAction}
@@ -864,15 +859,17 @@ const ScopesFrame = ({viewScope,
                       viewingAsAdmin,
                       viewCourse,
                       viewStudents,
+                      myCourses,
                       courseChangeFunctions,
-                      userQueries,
+                      queriesList,
+                      userTotalCount,
                       userUnreadCount,
                       classTotalCount,
                       classUnreadCount,
                       setViewScope,
                       studentsTotalCount,
                       studentsUnreadCount,
-                      otherQueries,
+                      otherTotalCount,
                       otherUnreadCount,
                       newQueryAction,
                       updateQueryAction,
@@ -880,15 +877,13 @@ const ScopesFrame = ({viewScope,
                       updateReplyAction,
                       newCommentAction,
                       updateCommentAction,
-                      setReadStatusAction,
-                      myScopes
+                      setReadStatusAction
                       }) => {
 
   const {user,} = useContext(UserContext);
 
-  const activeScope = myScopes.find(s => s.scope===viewScope);
-  console.log('activeScope');
-  console.log(activeScope);
+  console.log('viewScope');
+  console.log(viewScope);
 
   return (
     <React.Fragment>
@@ -899,7 +894,7 @@ const ScopesFrame = ({viewScope,
           onClick={() => setViewScope('user')}
         >
           <FontAwesomeIcon icon="user" />Me
-          <Badge variant="secondary">{userQueries ? userQueries.length : "0"}</Badge>
+          <Badge variant="secondary">{userTotalCount || "0"}</Badge>
           {!!userUnreadCount &&
             <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
           }
@@ -931,12 +926,12 @@ const ScopesFrame = ({viewScope,
           </Button>
         }
         <Button
-          className={`queries-view-changer ${viewScope==='public' ? "in" : "out"}`}
+          className={`queries-view-changer ${viewScope==='other' ? "in" : "out"}`}
           variant="outline-secondary"
           onClick={() => setViewScope('public')}
         >
           <FontAwesomeIcon icon="globe-americas" />Others
-          <Badge variant="secondary">{otherQueries ? otherQueries.length : "0"}</Badge>
+          <Badge variant="secondary">{otherTotalCount || "0"}</Badge>
           {!!otherUnreadCount &&
             <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
           }
@@ -966,8 +961,9 @@ const ScopesFrame = ({viewScope,
                   viewingAsAdmin={viewingAsAdmin}
                   viewCourse={viewCourse}
                   viewStudents={viewStudents}
+                  myCourses={myCourses}
                   courseChangeFunctions ={courseChangeFunctions}
-                  list={activeScope.list}
+                  queriesList={queriesList}
                 />
               </CSSTransition>
             </SwitchTransition>
@@ -1013,40 +1009,17 @@ const QueriesView = () => {
 
     const {user, } = useContext(UserContext);
     const [queries, setQueries] = useState(null);
-    const [userQueries, setUserQueries] = useState(null);
+    const [userTotalCount, setUserTotalCount] = useState(null);
     const [userUnreadCount, setUserUnreadCount] = useState(null);
-    const [classQueries, setClassQueries] = useState(null);
     const [classTotalCount, setClassTotalCount] = useState(0);
     const [classUnreadCount, setClassUnreadCount] = useState(null);
-    const [studentsQueries, setStudentsQueries] = useState(null);
     const [studentsTotalCount, setStudentsTotalCount] = useState(0);
     const [studentsUnreadCount, setStudentsUnreadCount] = useState(null);
-    const [otherQueries, setOtherQueries] = useState(null);
+    const [otherTotalCount, setOtherTotalCount] = useState(null);
     const [otherUnreadCount, setOtherUnreadCount] = useState(null);
     console.log("QueriesView top----------------------");
-    console.log("otherQueries");
-    console.log(otherQueries);
-    console.log("userQueries");
-    console.log(userQueries);
-    console.log("classQueries");
-    console.log(classQueries);
-    console.log("studentsQueries");
-    console.log(studentsQueries);
-
-    const myScopes = [
-      {scope: 'user',
-       list: userQueries,
-       action: setUserQueries},
-      {scope: 'class',
-       list: classQueries,
-       action: setClassQueries},
-      {scope: 'students',
-       list: studentsQueries,
-       action: setStudentsQueries},
-      {scope: 'public',
-       list: otherQueries,
-       action: setOtherQueries}
-    ];
+    console.log("queries");
+    console.log(queries);
 
     const [loading, setLoading] = useState(!queries ? true : false);
 
@@ -1060,8 +1033,10 @@ const QueriesView = () => {
     const [singleStep, setSingleStep] = useState(!onStep ? false : true);
     const [nonStep, setNonStep] = useState(true);
     const [viewScope, setViewScope] = useState('public');
+    const [ownQueries, setOwnQueries] = useState(false);
     const [viewCourse, setViewCourse] = useState();
     const [viewStudents, setViewStudents] = useState();
+    const [myCourses, setMyCourses] = useState([])
     const courseChangeFunctions = {class: setViewCourse,
                                   students: setViewStudents};
     const [filterUnanswered, setFilterUnanswered] = useState(false);
@@ -1360,7 +1335,7 @@ const QueriesView = () => {
 
     // Non-returning function to properly update state with one post
     // expects myresponse to have keys "auth_user", "bugs", and "posts"
-    const _updateItemInState = (newItem, itemLevel, myscopes, queryId) => {
+    const _updateItemInState = (newItem, itemLevel, queryId) => {
 
       const extraArg = itemLevel==="comment" ? [queryId] : [];
 
@@ -1391,15 +1366,16 @@ const QueriesView = () => {
         })
       }
 
+      const myscopes = ['user', 'class', 'students', 'other'];
+
       for (let i=0; i < myscopes.length; i++) {
-        let scopeLabel = myscopes[i].scope!=="public" ? myscopes[i].scope
-          : "other";
+        let scopeLabel = myscopes[i];
         let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
         scopeLabel = `${scopeLabel}_${levelLabel}s`;
         console.log('scope');
         console.log(myscopes[i]);
-        let myPromise = innerUpdate([ ...myscopes[i].list ],
-                                    myscopes[i].action);
+        let myPromise = innerUpdate([ ...queries ],
+                                    setQueries);
         myPromise.then(
           result => {
             console.log(`**scope ${scopeLabel}`);
@@ -1487,7 +1463,7 @@ const QueriesView = () => {
                   orderby: "modified_on",
                   classmates_course: viewStudents,
                   students_course: viewCourse,
-                  own_queries: own_queries
+                  own_queries: ownQueries
                 })
       .then(queryfetch => {
         const formatted_queries = queryfetch.map( q => _formatQueryData(q));
@@ -1496,9 +1472,9 @@ const QueriesView = () => {
       });
     }
 
-    const fetchAction = () => {
+    const fetchQueriesMetadataAction = () => {
       setLoading(true);
-      getQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
+      getQueriesMetadata({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
                   user_id: user.userId,
                   nonstep: nonStep,
                   unread: filterUnread,
@@ -1508,32 +1484,22 @@ const QueriesView = () => {
                   orderby: "modified_on"
                 })
       .then(queryfetch => {
-        setQueries(queryfetch);
-        const formattedUserQueries = queryfetch.user_queries.map(
-          q => _formatQueryData(q)
-        );
-        setUserQueries(formattedUserQueries);
-        const formattedClassQueries = queryfetch.class_queries.map(
-          c => _formatClassData(c)
-        );
-        setClassQueries(formattedClassQueries);
-        const formattedStudentsQueries = queryfetch.course_queries.map(
-          s => _formatClassData(s)
-        );
-        setStudentsQueries(formattedStudentsQueries);
-        const formattedOtherQueries = queryfetch.other_queries
-          .slice(0, 20).map(q => _formatQueryData(q));
-        setOtherQueries(formattedOtherQueries);
-        _setCounts({user_queries: formattedUserQueries,
-                    other_queries: formattedOtherQueries,
-                    class_queries: formattedClassQueries,
-                    students_queries: formattedStudentsQueries});
+        setMyCourses(queryfetch.my_courses);
+        setUserTotalCount(queryfetch.user_total_count);
+        setUserUnreadCount(queryfetch.user_unread_count);
+        setClassTotalCount(queryfetch.user_total_count);
+        setClassUnreadCount(queryfetch.user_unread_count);
+        setStudentsTotalCount(queryfetch.user_total_count);
+        setStudentsUnreadCount(queryfetch.user_unread_count);
+        setOtherTotalCount(queryfetch.user_total_count);
+        setOtherUnreadCount(queryfetch.user_unread_count);
+        fetchViewQueriesAction();
         setLoading(false);
       });
     }
 
-    useEffect(() => fetchViewQueriesAction(),
-              [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
+    useEffect(() => fetchQueriesMetadataAction(),
+      [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
 
     const newQueryAction = (myComment, showPublic, event) => {
       event.preventDefault();
@@ -1551,7 +1517,7 @@ const QueriesView = () => {
       .then(myresponse => {
         // console.log('QueriesView: after newQueryAction======');
         // console.log(myresponse.read_status_updates);
-        setUserQueries(myresponse.queries.map(
+        setQueries(myresponse.queries.map(
           q => _formatQueryData(q)
         ));
       });
@@ -1567,7 +1533,7 @@ const QueriesView = () => {
                         readStatus: readStatus})
       .then(myresponse => {
           if (myresponse.status_code===200) {
-            _updateItemInState(myresponse.result, postLevel, myScopes, 0);
+            _updateItemInState(myresponse.result, postLevel, 0);
           } else {
             console.log(myresponse);
           }
@@ -1585,7 +1551,7 @@ const QueriesView = () => {
                      show_public: showPublic
                      })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_post, 'reply', myScopes, 0);
+        _updateItemInState(myresponse.new_post, 'reply', 0);
       });
     }
 
@@ -1601,7 +1567,7 @@ const QueriesView = () => {
                       show_public: showPublic
                       })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_comment, "comment", myScopes, queryId);
+        _updateItemInState(myresponse.new_comment, "comment", queryId);
       });
     }
 
@@ -1632,7 +1598,7 @@ const QueriesView = () => {
                    queryStatus: queryStatus
                    })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_item, "query", myScopes, 0);
+        _updateItemInState(myresponse.new_item, "query", 0);
       });
     }
 
@@ -1662,7 +1628,7 @@ const QueriesView = () => {
                        deleted: deleted
                        })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_post, "reply", myScopes, 0);
+        _updateItemInState(myresponse.new_post, "reply", 0);
       });
     }
 
@@ -1692,7 +1658,7 @@ const QueriesView = () => {
                          helpfulness: helpfulness
                         })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_comment, "comment", myScopes, queryId);
+        _updateItemInState(myresponse.new_comment, "comment", queryId);
       });
     }
 
@@ -1761,22 +1727,19 @@ const QueriesView = () => {
                       viewingAsAdmin={viewingAsAdmin}
                       viewCourse={viewCourse}
                       viewStudents={viewStudents}
+                      myCourses={myCourses}
                       courseChangeFunctions={courseChangeFunctions}
-                      userQueries={userQueries}
+                      queries={queries}
+                      setQueries={setQueries}
+                      userTotalCount={userTotalCount}
                       userUnreadCount={userUnreadCount}
-                      setUserQueries={setUserQueries}
-                      classQueries={classQueries}
                       classTotalCount={classTotalCount}
                       classUnreadCount={classUnreadCount}
-                      setClassQueries={setClassQueries}
                       setViewScope={setViewScope}
-                      studentsQueries={studentsQueries}
                       studentsTotalCount={studentsTotalCount}
                       studentsUnreadCount={studentsUnreadCount}
-                      setStudentsQueries={setStudentsQueries}
-                      otherQueries={otherQueries}
+                      otherTotalCount={otherTotalCount}
                       otherUnreadCount={otherUnreadCount}
-                      setOtherQueries={setOtherQueries}
                       newQueryAction={newQueryAction}
                       updateQueryAction={updateQueryAction}
                       newReplyAction={newReplyAction}
@@ -1784,7 +1747,6 @@ const QueriesView = () => {
                       newCommentAction={newCommentAction}
                       updateCommentAction={updateCommentAction}
                       setReadStatusAction={setReadStatusAction}
-                      myScopes={myScopes}
                   />
                 }
               </CSSTransition>

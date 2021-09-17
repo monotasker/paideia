@@ -59,6 +59,21 @@ const evaluateAnswer = async ({location=null,
   return response_json
 }
 
+const getQueriesMetadata = async ({user_id}) => {
+  let response = await fetch('/paideia/api/get_queries_metadata', {
+      method: "POST",
+      cache: "no-cache",
+      mode: "same-origin",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: user_id,
+      })
+  })
+  return await response.json();
+}
+
 const getViewQueries = async ({step_id=0,
                            user_id=0,
                            nonstep=true,
@@ -405,6 +420,7 @@ const setServerReviewMode = async (mylevel) => {
 
 export { getPromptData,
          evaluateAnswer,
+         getQueriesMetadata,
          getQueries,
          getViewQueries,
          addQuery,

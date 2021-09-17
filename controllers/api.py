@@ -1049,6 +1049,8 @@ def _fetch_unread_queries(user_id):
     user_id (int)
 
     """
+    vbs = 1
+    if vbs: print("user_id:", user_id)
     db = current.db
     unread_queries = db((db.bugs_read_by_user.user_id==user_id) &
                         (db.bugs_read_by_user.read_status==False)
@@ -1081,17 +1083,18 @@ def get_view_queries():
     is not paginated.
     """
     vbs=True
-    stepid = request.vars['step_id'],
-    userid = request.vars['user_id'],
+    stepid = request.vars['step_id']
+    userid = request.vars['user_id']
     own_queries = request.vars['own_queries']
-    nonstep = request.vars['nonstep'],
-    unanswered = request.vars['unanswered'],
-    unread = request.vars['unread'],
-    pagesize = request.vars['pagesize'],
-    page = request.vars['page'],
-    orderby = request.vars['orderby'],
-    classmates_course = request.vars['classmates_course'],
+    nonstep = request.vars['nonstep']
+    unanswered = request.vars['unanswered']
+    unread = request.vars['unread']
+    pagesize = request.vars['pagesize']
+    page = request.vars['page']
+    orderby = request.vars['orderby']
+    classmates_course = request.vars['classmates_course']
     students_course = request.vars['students_course']
+    print(request.vars)
 
     vbs=True
     offset_start = pagesize * (page - 1)
@@ -1125,11 +1128,11 @@ def get_view_queries():
 
     queries = []
     unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
-    if vbs: print("api::_fetch_queries: unread_queries")
+    if vbs: print("api::_get_view_queries: unread_queries")
     if vbs: print(unread_posts)
-    if vbs: print("api::_fetch_queries: unread_posts")
+    if vbs: print("api::_get_view_queries: unread_posts")
     if vbs: print(unread_posts)
-    if vbs: print("api::_fetch_queries: unread_queries")
+    if vbs: print("api::_get_view_queries: unread_queries")
     if vbs: print(unread_posts)
 
     unanswered_term = True
@@ -1157,9 +1160,9 @@ def get_view_queries():
         unread_term = (db.bugs.id.belongs(unread_queries))
 
 
-    own_queries_term = (db.bugs.name != userid)
+    own_queries_term = (db.bugs.user_name != userid)
     if own_queries is True:
-        own_queries_term = (db.bugs.name == userid)
+        own_queries_term = (db.bugs.user_name == userid)
 
     #  requesting queries for own class's students
     students_term = True
@@ -1188,8 +1191,12 @@ def get_view_queries():
     external_term = True
     if (not own_queries) and \
             students_course in [None, 0] and classmates_course in [None, 0]:
-        myclasses = list(set(db(db.class_membership.name == userid
-                                ).iterselect(db.class_membership.class_section)))
+        myclasses = list(set(c.class_section for c in
+                             db(db.class_membership.name == userid
+                                ).iterselect(db.class_membership.class_section)
+                             )
+                         )
+        if vbs: print("myclasses: ", myclasses)
         classmembers = list(set([m.name for m in
             db(db.class_membership.class_section.belongs(myclasses)
                ).iterselect(db.class_membership.name)]
@@ -1219,6 +1226,7 @@ def get_view_queries():
                  ).select(*table_fields,
                           orderby=~db.bugs[orderby]
                           )  #   limitby=(offset_start, offset_end),
+    if vbs: print(queries[0])
 
     if vbs: print('d')
     queries_list = queries.as_list()
@@ -1226,7 +1234,7 @@ def get_view_queries():
     for q in queries_list:
         q['read'] = False if q['bugs']['id'] in unread_queries else True
     if vbs: print('f')
-    if vbs: print("in _fetch_queries===============================")
+    if vbs: print("in _get_view_queries===============================")
     if vbs: print("got {} query rows".format(len(queries_list)))
     if vbs: print('g')
     queries = _add_posts_to_queries(queries_list,
@@ -1235,6 +1243,15 @@ def get_view_queries():
         queries = queries.slice(offset_start, offset_end)
 
     return json_serializer(queries)
+
+
+def get_queries_metadata(user_id=0):
+    """
+    """
+    db = current.db
+    user_id = request.vars["user_id"]
+    pass
+
 
 def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                    unanswered=False, pagesize=20, page=0,
