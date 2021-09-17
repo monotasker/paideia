@@ -166,7 +166,7 @@ const useFormManagement = (formFields) => {
       setFormFieldValuesDirectly({...formFieldValues, [fieldName]: val});
       let newFlags = { ...flags };
 
-      console.log(`setting field ${fieldName}: ${val}`);
+      // console.log(`setting field ${fieldName}: ${val}`);
 
       // unflag missing field values if we're now entering them
       var myMissing = [...newFlags.missingRequestData ];
