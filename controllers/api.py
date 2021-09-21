@@ -1092,8 +1092,8 @@ def get_view_queries():
     pagesize = request.vars['pagesize']
     page = request.vars['page']
     orderby = request.vars['orderby']
-    classmates_course = request.vars['classmates_course']
-    students_course = request.vars['students_course']
+    classmates_course = int(request.vars['classmates_course'])
+    students_course = int(request.vars['students_course'])
     print(request.vars)
 
     vbs=True
@@ -1129,94 +1129,139 @@ def get_view_queries():
     queries = []
     unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
     if vbs: print("api::_get_view_queries: unread_queries")
-    if vbs: print(unread_posts)
+    if vbs: print(unread_queries)
     if vbs: print("api::_get_view_queries: unread_posts")
     if vbs: print(unread_posts)
-    if vbs: print("api::_get_view_queries: unread_queries")
-    if vbs: print(unread_posts)
+    if vbs: print("api::_get_view_queries: unread_comments")
+    if vbs: print(unread_comments)
 
     unanswered_term = True
     if unanswered==True:
         answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
         unanswered_term = ~(db.bugs.id.belongs(answered_rows))
-        # if vbs: print("filtering for unanswered")
-        # if vbs: print("raw unanswered finds {} of {} rows".format(
-            # db(unanswered_term).count(),
-            # db(db.bugs.id > 0).count()
-            # ))
+        if vbs: print("filtering for unanswered")
+        if vbs: print("raw unanswered finds {} of {} rows".format(
+            db(unanswered_term).count(),
+            db(db.bugs.id > 0).count()
+            ))
 
     if vbs: print('A')
 
     step_term = (db.bugs.step == stepid) # queries tied to specified step
     if nonstep==True:  # queries not tied to step
+        if vbs: print("not filtering for a step")
         step_term = (db.bugs.step == None)
     elif stepid==0:  #  queries on all steps, not just one
+        if vbs: print("filtering for any step")
         step_term = (db.bugs.step != None)
+    else:
+        if vbs: print("filtering for step", stepid)
+    if vbs: print("found", db())
 
     if vbs: print('b')
+
+    basic_term = ((db.bugs.user_name == db.auth_user.id) &
+                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)))
+    if vbs: print("with basic_term found ", db((step_term) & (basic_term)).count(), "records")
+
     #  requesting queries not marked as read
     unread_term = True
     if unread is True:
         unread_term = (db.bugs.id.belongs(unread_queries))
+    if vbs: print("with unread_term found ", db((step_term) & (basic_term) & (unread_term)).count(), "records")
 
 
     own_queries_term = (db.bugs.user_name != userid)
     if own_queries is True:
         own_queries_term = (db.bugs.user_name == userid)
+    if vbs: print("with own_queries term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term)).count(), "records")
 
     #  requesting queries for own class's students
     students_term = True
+    if vbs: print("students_course is", students_course)
     if students_course not in [None, 0]:
-        assert userid == db.classes[students_course].instructor
+        myclass = db.classes[students_course]
+        assert userid == myclass.instructor
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
                                students_course).iterselect()
                             if m.name != userid]
                             ))
-        students_term = (db.bugs.user_name.belongs(members))
+        students_term = ((db.bugs.user_name.belongs(members)) &
+                         (db.bugs.date_submitted >= myclass.start_date) &
+                         (db.bugs.date_submitted <= myclass.end_date))
+    if vbs: print("with students_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (students_term)).count(), "records")
 
     #  requesting queries for own classmates
     classmates_term = True
+    if vbs: print("classmates_course is", classmates_course)
     if classmates_course not in [None, 0]:
+        myclass = db.classes[classmates_course]
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
                                classmates_course).iterselect()
                             ]))
         assert userid in members
         other_members = [m for m in members if m != userid]
-        classmates_term = (db.bugs.user_name.belongs(other_members))
+        classmates_term = ((db.bugs.user_name.belongs(other_members))
+                           (db.bugs.date_submitted >= myclass.start_date) &
+                           (db.bugs.date_submitted <= myclass.end_date))
+    if vbs: print("with classmates_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term)).count(), "records")
 
     # requesting queries not by self, student, or classmates
     # FIXME: make current class?
     external_term = True
     if (not own_queries) and \
             students_course in [None, 0] and classmates_course in [None, 0]:
+        class_queries = []
         myclasses = list(set(c.class_section for c in
                              db(db.class_membership.name == userid
                                 ).iterselect(db.class_membership.class_section)
                              )
                          )
         if vbs: print("myclasses: ", myclasses)
-        classmembers = list(set([m.name for m in
-            db(db.class_membership.class_section.belongs(myclasses)
-               ).iterselect(db.class_membership.name)]
-            ))
+        for c in myclasses:
+            if vbs: print("c:")
+            if vbs: print(c)
+            classmembers = list(set([m.name for m in
+                db(db.class_membership.class_section == c
+                ).iterselect(db.class_membership.name)]
+                ))
+            if vbs: print("classmembers:", [m for m in classmembers])
+            myclass = db(db.classes.id == c
+                         ).select(db.classes.start_date, db.classes.end_date).first()
+            if vbs: print("myclass:")
+            if vbs: print(myclass)
+            myqueries = db((db.bugs.user_name.belongs(classmembers)) &
+                           (db.bugs.date_submitted >= myclass.start_date) &
+                           (db.bugs.date_submitted <= myclass.end_date)
+                           ).select(db.bugs.id)
+            class_queries.extend(myqueries)
 
+        instructing_queries = []
         instructing = list(set(db(db.classes.instructor == userid
                                   ).iterselect(db.classes.id)))
-        instructingmembers = list(set([m.name for m in
-            db(db.class_membership.class_section.belongs(instructing)
-               ).iterselect(db.class_membership.name)]
-            ))
+        if vbs: print("instructing: ", instructing)
+        for i in instructing:
+            instructingmembers = list(set([m.name for m in
+                db(db.class_membership.class_section == i.id
+                ).iterselect(db.class_membership.name)]
+                ))
+            myqueries = db((db.bugs.user_name.belongs(instructingmembers)) &
+                           (db.bugs.date_submitted >= myclass.start_date) &
+                           (db.bugs.date_submitted <= myclass.end_date)
+                           ).select(db.bugs.id)
+            instructing_queries.extend(myqueries)
 
-        external_term = ~(db.bugs.user_name.belongs(chain(classmembers,
-                                                          instructingmembers)))
+        external_term = ~(db.bugs.id.belongs(chain(class_queries,
+                                                   instructing_queries)))
+
+    if vbs: print("with external_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term) & (external_term)).count(), "records")
 
 
     if vbs: print('c')
     queries = db((step_term) &
-                 (db.bugs.user_name == db.auth_user.id) &
-                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                 (basic_term) &
                  (unread_term) &
                  (unanswered_term) &
                  (classmates_term) &
@@ -1226,7 +1271,7 @@ def get_view_queries():
                  ).select(*table_fields,
                           orderby=~db.bugs[orderby]
                           )  #   limitby=(offset_start, offset_end),
-    if vbs: print(queries[0])
+    if vbs: print(queries[0] if len(queries) else "No records found")
 
     if vbs: print('d')
     queries_list = queries.as_list()
@@ -1237,22 +1282,153 @@ def get_view_queries():
     if vbs: print("in _get_view_queries===============================")
     if vbs: print("got {} query rows".format(len(queries_list)))
     if vbs: print('g')
-    queries = _add_posts_to_queries(queries_list,
-                                    unread_posts, unread_comments)
+    queries_list = _add_posts_to_queries(queries_list,
+                                         unread_posts, unread_comments)
     if page != 0:
-        queries = queries.slice(offset_start, offset_end)
+        queries_list = queries_list.slice(offset_start, offset_end)
 
-    return json_serializer(queries)
+    return json_serializer(queries_list)
 
 
-def get_queries_metadata(user_id=0):
+def get_queries_metadata():
     """
+    Return counts for query categories.
     """
+    vbs=True
     db = current.db
+
     user_id = request.vars["user_id"]
-    pass
+    step_id = request.vars["step_id"]
+    nonstep = request.vars["nonstep"]
+    unanswered = request.vars["unanswered"]
 
+    unread_queries, unread_posts, unread_comments = _fetch_unread_queries(user_id)
+    if vbs: print(unread_queries)
 
+    unanswered_term = True
+    if unanswered==True:
+        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
+        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
+
+    step_term = (db.bugs.step == step_id) # queries tied to specified step
+    if nonstep==True:  # queries not tied to step
+        step_term = (db.bugs.step == None)
+    elif step_id==0:  #  queries on all steps, not just one
+        step_term = (db.bugs.step != None)
+
+    basic_terms = ((step_term) &
+                   ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
+                   (unanswered_term))
+    basic_unread_terms = (basic_terms & db.bugs.id.belongs(unread_queries))
+    if vbs: print("basic_unread_query:", db(basic_unread_terms).count())
+
+    # count user's queries
+    user_term = db.bugs.user_name==user_id
+    user_query_count = db(basic_terms & user_term).count()
+    user_unread_count = db(basic_unread_terms & user_term).count()
+
+    # count classmates' queries
+    classmates_counts = []
+    classmates_query_ids = []
+    myclasses = db((db.class_membership.name == user_id) &
+                   (db.class_membership.class_section == db.classes.id)
+                   ).iterselect(db.classes.id,
+                                db.classes.institution,
+                                db.classes.academic_year,
+                                db.classes.course_section,
+                                db.classes.start_date,
+                                db.classes.end_date,
+                                orderby=~db.classes.start_date
+                                )
+    for myclass in myclasses:
+        pprint(myclass)
+        members = list(set([m.name for m in
+                            db(db.class_membership.class_section ==
+                               myclass.id).iterselect()
+                            if m.name != user_id]
+                            ))
+        member_queries = list(set(
+            db(basic_terms &
+               db.bugs.user_name.belongs(members) &
+               (db.bugs.date_submitted >= myclass.start_date) &
+               (db.bugs.date_submitted <= myclass.end_date)
+               ).select(db.bugs.id)
+        ))
+        member_unread = [u for u in member_queries if u in unread_queries]
+        if member_queries:
+            classmates_counts.append({'id': myclass.id,
+                                      'institution': myclass.institution,
+                                      'year': myclass.academic_year,
+                                      'section': myclass.course_section,
+                                      'queries_count': len(member_queries),
+                                      'unread_count': len(member_unread)
+                                      }
+                                    )
+            classmates_query_ids.extend(member_queries)
+    classmates_unread_count = len(list(set(u for u in classmates_query_ids
+                                         if u in unread_queries)))
+
+    # count students' queries
+    students_counts = []
+    students_query_ids = []
+    if auth.has_membership('instructors') or \
+            auth.has_membership('administrators'):
+        mycourses = db(db.classes.instructor == user_id
+                       ).select(orderby=~db.classes.start_date)
+        # print('found {} courses'.format(len(mycourses)))
+        for course in mycourses:
+            students = list(set(s['name'] for s in
+                                db(db.class_membership.class_section == course.id
+                                   ).select(db.class_membership.name)
+                                ))
+            # print('found {} students'.format(len(students)))
+            # print(students)
+            students_queries = list(set(
+                db(basic_terms &
+                   db.bugs.user_name.belongs(students) &
+                   (db.bugs.date_submitted >= course['start_date']) &
+                   (db.bugs.date_submitted <= course['end_date'])
+                   ).select(db.bugs.id)
+            ))
+            students_query_ids.extend(students_queries)
+            students_unread = [s for s in students_queries
+                               if s in unread_queries]
+            # print([s['auth_user']['id'] for s in student_queries])
+            # print('found {} student queries'.format(len(student_queries)))
+            instructor_row = db.auth_user(course.instructor)
+            instructor_name = " ".join([instructor_row['first_name'],
+                                        instructor_row['last_name']])
+            students_counts.append({'id': course.id,
+                                    'institution': course.institution,
+                                    'year': course.academic_year,
+                                    'section': course.course_section,
+                                    'term': course.term,
+                                    'instructor': instructor_name,
+                                    'queries_count': len(students_queries),
+                                    'unread_count': len(students_unread)})
+    students_unread_count = len(list(set(u for u in students_query_ids
+                                         if u in unread_queries)))
+
+    # count others' queries
+    excluded_queries = classmates_query_ids + students_query_ids
+    other_term = ((db.bugs.user_name!=user_id) &
+                  (~db.bugs.id.belongs(excluded_queries)))
+    other_queries_count = db(basic_terms & other_term).count()
+    other_unread_count = db(basic_unread_terms & other_term).count()
+
+    return json_serializer({"user_query_count": user_query_count,
+                            "user_unread_count": user_unread_count,
+                            "classmates_total_count": len(list(set(classmates_query_ids))),
+                            "classmates_unread_count": classmates_unread_count,
+                            "classmates_counts": classmates_counts,
+                            "students_total_count": len(list(set(students_query_ids))),
+                            "students_unread_count": students_unread_count,
+                            "students_counts": students_counts,
+                            "other_queries_count": other_queries_count,
+                            "other_unread_count": other_unread_count
+                            })
+
+#  FIXME: This function is deprecated
 def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
                    unanswered=False, pagesize=20, page=0,
                    orderby="date_submitted"):
@@ -1459,6 +1635,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
             }
 
 
+#  FIXME: This function is deprecated
 def get_queries():
     """
     API method to return queries for the selected step.

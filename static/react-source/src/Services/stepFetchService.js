@@ -59,7 +59,11 @@ const evaluateAnswer = async ({location=null,
   return response_json
 }
 
-const getQueriesMetadata = async ({user_id}) => {
+const getQueriesMetadata = async ({user_id=0,
+                                   step_id=0,
+                                   nonstep=true,
+                                   unanswered=false
+                                  }) => {
   let response = await fetch('/paideia/api/get_queries_metadata', {
       method: "POST",
       cache: "no-cache",
@@ -69,6 +73,9 @@ const getQueriesMetadata = async ({user_id}) => {
       },
       body: JSON.stringify({
         user_id: user_id,
+        step_id: step_id,
+        nonstep: nonstep,
+        unanswered: unanswered
       })
   })
   return await response.json();

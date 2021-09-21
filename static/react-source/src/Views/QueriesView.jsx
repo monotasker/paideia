@@ -20,6 +20,7 @@ import { SwitchTransition, CSSTransition } from "react-transition-group";
 import marked from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
+import Select from 'react-select';
 
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { getQueriesMetadata,
@@ -701,7 +702,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 
 const QueriesList = ({queryArray, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
-                       updateCommentAction, setReadStatusAction, viewingAsAdmin, scope, byClass, viewGroup}) => {
+                       updateCommentAction, setReadStatusAction, viewingAsAdmin, viewCourse, viewStudents, viewGroup, byClass, scope}) => {
   const { user, } = useContext(UserContext);
   console.log("in QueriesList:");
   console.log(`byClass: ${byClass}`);
@@ -748,16 +749,17 @@ const ScopeView = ({scope, nonStep, singleStep,
                     viewingAsAdmin,
                     viewCourse,
                     viewStudents,
-                    myCourses,
+                    myClassmatesCounts,
+                    myStudentsCounts,
                     courseChangeFunctions,
-                    queriesList}) => {
+                    queries}) => {
 
   const {user, } = useContext(UserContext);
   console.log("in ScopeView:");
   console.log(`viewCourse: ${viewCourse}`);
   console.log(`viewStudents: ${viewStudents}`);
-  console.log(`queriesList:`);
-  console.log(queriesList);
+  console.log(`queries:`);
+  console.log(queries);
   const byClass = ["class", "students"].includes(scope);
   const viewGroup = scope==="class" ? viewCourse :
     (scope==="students" ? viewStudents : null);
@@ -769,13 +771,44 @@ const ScopeView = ({scope, nonStep, singleStep,
       (!user.instructing || !Object.keys(user.instructing).length > 0 )) {
     noGroupsAvailable = true;
   }
+  let myCourses = scope==="students" ? myStudentsCounts : myClassmatesCounts;
 
   useEffect(() => {
-    if (!!byClass && !viewGroup && queriesList.length > 0) {
-      courseChangeFunctions[scope](queriesList[0].classId);
+    if (!!byClass && !viewGroup && queries !== null && queries.length > 0) {
+      courseChangeFunctions[scope](queries[0].classId);
     }
-  }, [byClass, viewGroup, scope, queriesList]);
+  }, [byClass, viewGroup, scope, queries]);
 
+  let classSelectOptions = "";
+  if ( ['class', 'students'].includes(scope) && !noGroupsAvailable ) {
+
+    //  classSelectOptions = myCourses.map( c => {
+    //     const myQueryCount = c.queries_count || "0";
+    //     const myUnreadCounter = c.unread_count > 0 ?
+    //           `(${c.unread_count} unread)`
+    //           : "";
+    //     return(
+    //       {value: `${c.id}`,
+    //        label: `${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor} (${myQueryCount}) ${myUnreadCounter}`
+    //       }
+    //     )
+    //   }
+     classSelectOptions = myCourses.map( c => {
+        const myUnreadCounter = c.unread_count > 0 ?
+              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" />{c.unread_count}</Badge>
+              : "";
+        const myQueryCount = c.queries_count || "0";
+        return(
+          {value: c.id,
+           label: <span>{c.institution}, {c.year}, {c.term}, {c.section}, {c.instructor}&nbsp;&nbsp;
+            <Badge variant="secondary">{myQueryCount}</Badge>
+            {myUnreadCounter}
+           </span>
+          }
+        )
+      }
+    )
+  }
 
   return (
     <div className="queries-view-pane" key={scope}>
@@ -802,30 +835,23 @@ const ScopeView = ({scope, nonStep, singleStep,
       : ''}
       {['class', 'students'].includes(scope) ? (
           !noGroupsAvailable ?
-          <Form>
-            <Form.Control
+            <Form
                 id={`${scope}SelectorForm`}
-                as="select"
-                onChange={e => courseChangeFunctions[scope](e.target.value)}
+                onSelect={e => courseChangeFunctions[scope](e.target.value)}
             >
-                {myCourses.map( c =>
-                    <option key={c.classId}
-                      value={c.classId}
-                    >
-                      {`${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`}
-                    </option>
-                )}
-            </Form.Control>
-          </Form>
+                <Select
+                  options={classSelectOptions}
+                />
+            </Form>
           :
           <span>You aren't part of any course groups.</span>
         )
         :
         ""
       }
-      {!!queriesList.length > 0 ?
+      {/* {!!queries.length > 0 ?
         <QueriesList
-          queryArray={queriesList}
+          queries={queries}
           updateQueryAction={updateQueryAction}
           newReplyAction={newReplyAction}
           updateReplyAction={updateReplyAction}
@@ -841,7 +867,7 @@ const ScopeView = ({scope, nonStep, singleStep,
         />
         :
         <span>No {scope} questions to view.</span>
-      }
+      } */}
     </div>
   )
 }
@@ -861,14 +887,16 @@ const ScopesFrame = ({viewScope,
                       viewStudents,
                       myCourses,
                       courseChangeFunctions,
-                      queriesList,
+                      queries,
                       userTotalCount,
                       userUnreadCount,
-                      classTotalCount,
-                      classUnreadCount,
+                      classmatesTotalCount,
+                      classmatesUnreadCount,
+                      myClassmatesCounts,
                       setViewScope,
                       studentsTotalCount,
                       studentsUnreadCount,
+                      myStudentsCounts,
                       otherTotalCount,
                       otherUnreadCount,
                       newQueryAction,
@@ -906,9 +934,9 @@ const ScopesFrame = ({viewScope,
           onClick={() => setViewScope('class')}
         >
           <FontAwesomeIcon icon="users" />Classmates
-          <Badge variant="secondary">{classTotalCount}</Badge>
-          {!!classUnreadCount &&
-            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classUnreadCount}</Badge>
+          <Badge variant="secondary">{classmatesTotalCount}</Badge>
+          {!!classmatesUnreadCount &&
+            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classmatesUnreadCount}</Badge>
           }
         </Button>
         }
@@ -962,23 +990,14 @@ const ScopesFrame = ({viewScope,
                   viewCourse={viewCourse}
                   viewStudents={viewStudents}
                   myCourses={myCourses}
+                  myClassmatesCounts={myClassmatesCounts}
+                  myStudentsCounts={myStudentsCounts}
                   courseChangeFunctions ={courseChangeFunctions}
-                  queriesList={queriesList}
+                  queries={queries}
                 />
               </CSSTransition>
             </SwitchTransition>
 
-      {/* {myScopes.map(({scope, list}) =>
-        <CSSTransition
-          key={scope}
-          timeout={250}
-          in={scope === viewScope}
-          classNames="queries-view-pane"
-          appear={true}
-          mountOnEnter
-          unmountOnExit={true}
-        >
-          <span>{scope}</span> */}
 {/*
         </CSSTransition> */}
       {/* )} */}
@@ -1011,10 +1030,12 @@ const QueriesView = () => {
     const [queries, setQueries] = useState(null);
     const [userTotalCount, setUserTotalCount] = useState(null);
     const [userUnreadCount, setUserUnreadCount] = useState(null);
-    const [classTotalCount, setClassTotalCount] = useState(0);
-    const [classUnreadCount, setClassUnreadCount] = useState(null);
-    const [studentsTotalCount, setStudentsTotalCount] = useState(0);
+    const [studentsTotalCount, setStudentsTotalCount] = useState(null);
     const [studentsUnreadCount, setStudentsUnreadCount] = useState(null);
+    const [myStudentsCounts, setMyStudentsCounts] = useState([]);
+    const [classmatesTotalCount, setClassmatesTotalCount] = useState(null);
+    const [classmatesUnreadCount, setClassmatesUnreadCount] = useState(null);
+    const [myClassmatesCounts, setMyClassmatesCounts] = useState([]);
     const [otherTotalCount, setOtherTotalCount] = useState(null);
     const [otherUnreadCount, setOtherUnreadCount] = useState(null);
     console.log("QueriesView top----------------------");
@@ -1036,7 +1057,6 @@ const QueriesView = () => {
     const [ownQueries, setOwnQueries] = useState(false);
     const [viewCourse, setViewCourse] = useState();
     const [viewStudents, setViewStudents] = useState();
-    const [myCourses, setMyCourses] = useState([])
     const courseChangeFunctions = {class: setViewCourse,
                                   students: setViewStudents};
     const [filterUnanswered, setFilterUnanswered] = useState(false);
@@ -1173,19 +1193,6 @@ const QueriesView = () => {
               }
       )
     }
-
-    const _formatClassData = ({id, institution, section, year, term, instructor, queries}) => {
-      return ({classId: id,
-               institution: institution,
-               section: section,
-               year: year,
-               term: term,
-               instructor: instructor,
-               queries: queries.map(q => _formatQueryData(q))
-              }
-      )
-    }
-
 
     // finds and updates an item in a list in state
     // DOES NOT create new query if specified doesn't exist
@@ -1474,25 +1481,23 @@ const QueriesView = () => {
 
     const fetchQueriesMetadataAction = () => {
       setLoading(true);
-      getQueriesMetadata({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
+      getQueriesMetadata({
+                  step_id: !!singleStep && !!onStep ? user.currentStep : 0,
                   user_id: user.userId,
                   nonstep: nonStep,
-                  unread: filterUnread,
                   unanswered: filterUnanswered,
-                  pagesize: 20,
-                  page: 0,
-                  orderby: "modified_on"
                 })
       .then(queryfetch => {
-        setMyCourses(queryfetch.my_courses);
-        setUserTotalCount(queryfetch.user_total_count);
+        setStudentsTotalCount(queryfetch.students_total_count);
+        setStudentsUnreadCount(queryfetch.students_unread_count);
+        setMyStudentsCounts(queryfetch.students_counts);
+        setUserTotalCount(queryfetch.user_query_count);
         setUserUnreadCount(queryfetch.user_unread_count);
-        setClassTotalCount(queryfetch.user_total_count);
-        setClassUnreadCount(queryfetch.user_unread_count);
-        setStudentsTotalCount(queryfetch.user_total_count);
-        setStudentsUnreadCount(queryfetch.user_unread_count);
-        setOtherTotalCount(queryfetch.user_total_count);
-        setOtherUnreadCount(queryfetch.user_unread_count);
+        setClassmatesTotalCount(queryfetch.classmates_total_count);
+        setClassmatesUnreadCount(queryfetch.classmates_unread_count);
+        setMyClassmatesCounts(queryfetch.classmates_counts)
+        setOtherTotalCount(queryfetch.other_queries_count);
+        setOtherUnreadCount(queryfetch.other_unread_count);
         fetchViewQueriesAction();
         setLoading(false);
       });
@@ -1727,17 +1732,18 @@ const QueriesView = () => {
                       viewingAsAdmin={viewingAsAdmin}
                       viewCourse={viewCourse}
                       viewStudents={viewStudents}
-                      myCourses={myCourses}
                       courseChangeFunctions={courseChangeFunctions}
                       queries={queries}
                       setQueries={setQueries}
                       userTotalCount={userTotalCount}
                       userUnreadCount={userUnreadCount}
-                      classTotalCount={classTotalCount}
-                      classUnreadCount={classUnreadCount}
+                      classmatesTotalCount={classmatesTotalCount}
+                      classmatesUnreadCount={classmatesUnreadCount}
+                      myClassmatesCounts={myClassmatesCounts}
                       setViewScope={setViewScope}
                       studentsTotalCount={studentsTotalCount}
                       studentsUnreadCount={studentsUnreadCount}
+                      myStudentsCounts={myStudentsCounts}
                       otherTotalCount={otherTotalCount}
                       otherUnreadCount={otherUnreadCount}
                       newQueryAction={newQueryAction}
