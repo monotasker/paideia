@@ -1190,7 +1190,7 @@ def get_view_queries():
         students_term = ((db.bugs.user_name.belongs(members)) &
                          (db.bugs.date_submitted >= myclass.start_date) &
                          (db.bugs.date_submitted <= myclass.end_date))
-    if vbs: print("with students_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (students_term)).count(), "records")
+    if vbs and students_course != 0: print("with students_term found ", len(list(set(m.bugs.id for m in db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (students_term)).select()))), "records")
 
     #  requesting queries for own classmates
     classmates_term = True

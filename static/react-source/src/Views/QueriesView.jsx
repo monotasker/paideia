@@ -700,23 +700,23 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 }
 
 
-const QueriesList = ({queryArray, updateQueryAction, newReplyAction,
+const QueriesList = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
                        updateCommentAction, setReadStatusAction, viewingAsAdmin, viewCourse, viewStudents, viewGroup, byClass, scope}) => {
   const { user, } = useContext(UserContext);
   console.log("in QueriesList:");
   console.log(`byClass: ${byClass}`);
-  console.log("queryArray");
-  console.log(queryArray);
+  console.log("queries");
+  console.log(queries);
   const instructorState = scope==="students" ?
     user.instructing.find(c => c.id === viewGroup) : false;
 
 
   return (<>
-    {!!byClass && !!queryArray && <Badge>{queryArray.length}</Badge>}
-    {( !!queryArray && queryArray!==[] ) ?
+    {!!byClass && !!queries && <Badge>{queries.length}</Badge>}
+    {( !!queries && queries!==[] ) ?
           <ul className="query-list">
-            {queryArray.map(
+            {queries.map(
               q => <DisplayRow key={`query-row-${q.queryId}`}
                       level="query"
                       updateQueryAction={updateQueryAction}
@@ -828,10 +828,12 @@ const ScopeView = ({scope, nonStep, singleStep,
           !noGroupsAvailable ?
             <Form
                 id={`${scope}SelectorForm`}
+                className={`${scope}-selector-form`}
             >
                 <Select
+                  classNamePrefix={`${scope}-selector-form`}
                   options={classSelectOptions}
-                  onChange={e => setViewGroup(e.value)}
+                  onChange={e => {console.log("onChange event:"); console.log(e.target); setViewGroup(e.value)}}
                   value={viewGroup}
                 />
             </Form>
@@ -841,7 +843,7 @@ const ScopeView = ({scope, nonStep, singleStep,
         :
         ""
       }
-      {/* {!!queries.length > 0 ?
+      {!!queries.length > 0 ?
         <QueriesList
           queries={queries}
           updateQueryAction={updateQueryAction}
@@ -859,7 +861,7 @@ const ScopeView = ({scope, nonStep, singleStep,
         />
         :
         <span>No {scope} questions to view.</span>
-      } */}
+      }
     </div>
   )
 }
