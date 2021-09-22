@@ -23,10 +23,7 @@ const Tools = () => {
 
     useEffect(() => {
       const handleClick = (event) => {
-          console.log("CLICKED!!!!!!!!!!");
-          console.log(event);
-          console.log(event.target.parentElement);
-          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer, .vocabview-sorter-link, [class*="students-selector-form"]') === null ) {
+          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer, .vocabview-sorter-link, [class*="students-selector-form"], [class*="class-selector-form"]') === null ) {
             setOpenPanel(null);
           }
       }

@@ -348,7 +348,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   let SampleList;
   if ( !!sampleAnswers ) {
     let sampleAnswerList = sampleAnswers.split("|");
-    SampleList = <ul>{sampleAnswerList.map(a => <li key={a}>{a}</li>)}</ul>
+    SampleList = <ul>{sampleAnswerList.map((a, i) => <li key={`${a}_${i}`}>{a}</li>)}</ul>
   }
   const uid = [classId, queryId, replyId, commentId].join('_');
   const levels = ["query", "reply", "comment"];
@@ -833,8 +833,9 @@ const ScopeView = ({scope, nonStep, singleStep,
                 <Select
                   classNamePrefix={`${scope}-selector-form`}
                   options={classSelectOptions}
-                  onChange={e => {console.log("onChange event:"); console.log(e.target); setViewGroup(e.value)}}
+                  onChange={e => setViewGroup(e.value)}
                   value={viewGroup}
+                  defaultValue={viewGroup}
                 />
             </Form>
           :
