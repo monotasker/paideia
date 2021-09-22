@@ -726,6 +726,7 @@ form                                    {margin-bottom: 1rem;
     .queries-view-pane              {opacity: 0;
                                      border-top: 1px solid $pallette2;
                                      overflow-y: auto;
+                                     height: 100%;
         @include react-transition-fade('queries-view-pane');
         .me-new-query-info          {margin-top: 0.5rem;
                                      margin-right: 1rem;

@@ -1228,15 +1228,19 @@ def get_view_queries():
                 ).iterselect(db.class_membership.name)]
                 ))
             if vbs: print("classmembers:", [m for m in classmembers])
-            myclass = db(db.classes.id == c
+            my_m_class = db(db.classes.id == c
                          ).select(db.classes.start_date, db.classes.end_date).first()
-            if vbs: print("myclass:")
-            if vbs: print(myclass)
-            myqueries = db((db.bugs.user_name.belongs(classmembers)) &
-                           (db.bugs.date_submitted >= myclass.start_date) &
-                           (db.bugs.date_submitted <= myclass.end_date)
-                           ).select(db.bugs.id)
+            # if vbs: print("myclass:")
+            # if vbs: print(myclass)
+            if vbs: print("myclass.start_date", my_m_class.start_date)
+            if vbs: print("myclass.end_date", my_m_class.end_date)
+            myqueries = [q.id for q in
+                         db((db.bugs.user_name.belongs(classmembers)) &
+                            (db.bugs.date_submitted >= my_m_class.start_date) &
+                            (db.bugs.date_submitted <= my_m_class.end_date)
+                            ).select(db.bugs.id).as_list()]
             class_queries.extend(myqueries)
+            if vbs: print("class_queries:", class_queries)
 
         instructing_queries = []
         instructing = list(set(db(db.classes.instructor == userid
@@ -1247,11 +1251,21 @@ def get_view_queries():
                 db(db.class_membership.class_section == i.id
                 ).iterselect(db.class_membership.name)]
                 ))
-            myqueries = db((db.bugs.user_name.belongs(instructingmembers)) &
-                           (db.bugs.date_submitted >= myclass.start_date) &
-                           (db.bugs.date_submitted <= myclass.end_date)
-                           ).select(db.bugs.id)
+            if vbs: print("instructingmembers is")
+            if vbs: print(instructingmembers)
+            my_i_class = db(db.classes.id == i.id
+                         ).select(db.classes.start_date, db.classes.end_date).first()
+            if vbs: print("myclass.start_date", my_i_class.start_date)
+            if vbs: print("myclass.end_date", my_i_class.end_date)
+            myqueries = [q.id for q in
+                         db((db.bugs.user_name.belongs(instructingmembers)) &
+                            (db.bugs.date_submitted >= my_i_class.start_date) &
+                            (db.bugs.date_submitted <= my_i_class.end_date)
+                            ).select(db.bugs.id)]
+            if vbs: print("found", len(myqueries), "queries")
             instructing_queries.extend(myqueries)
+        if vbs: print("excluding", len(class_queries), "class queries")
+        if vbs: print("excluding", len(instructing_queries), "instructing queries")
 
         external_term = ~(db.bugs.id.belongs(chain(class_queries,
                                                    instructing_queries)))
@@ -3163,11 +3177,7 @@ def _is_my_student(user, student):
     mystudents = db((db.classes.instructor == user) &
                     (db.classes.id == db.class_membership.class_section)
                     ).select(db.class_membership.name).as_list()
-    print("mystudents")
-    pprint(mystudents)
     mystudent_ids = list(set(s['name'] for s in mystudents))
-    pprint(mystudent_ids)
-    pprint(student)
     return True if student in mystudent_ids else False
 
 

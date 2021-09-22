@@ -761,8 +761,8 @@ const ScopeView = ({scope, nonStep, singleStep,
   console.log(`queries:`);
   console.log(queries);
   const byClass = ["class", "students"].includes(scope);
-  const viewGroup = scope==="class" ? viewCourse :
-    (scope==="students" ? viewStudents : null);
+  const [viewGroup, setViewGroup] = useState(scope==="class" ? viewCourse :
+    (scope==="students" ? viewStudents : null));
   let noGroupsAvailable = false;
   if ( scope==="class" &&
       (!user.classInfo || !Object.keys(user.classInfo).length > 0 )) {
@@ -774,25 +774,16 @@ const ScopeView = ({scope, nonStep, singleStep,
   let myCourses = scope==="students" ? myStudentsCounts : myClassmatesCounts;
 
   useEffect(() => {
-    if (!!byClass && !viewGroup && queries !== null && queries.length > 0) {
-      courseChangeFunctions[scope](queries[0].classId);
+    if (!!byClass && myCourses.length > 0) {
+      console.log("changing viewGroup!!!");
+      console.log(viewGroup);
+      let myVal = !!viewGroup ? viewGroup : myCourses[0].id;
+      courseChangeFunctions[scope](myVal);
     }
   }, [byClass, viewGroup, scope, queries]);
 
   let classSelectOptions = "";
   if ( ['class', 'students'].includes(scope) && !noGroupsAvailable ) {
-
-    //  classSelectOptions = myCourses.map( c => {
-    //     const myQueryCount = c.queries_count || "0";
-    //     const myUnreadCounter = c.unread_count > 0 ?
-    //           `(${c.unread_count} unread)`
-    //           : "";
-    //     return(
-    //       {value: `${c.id}`,
-    //        label: `${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor} (${myQueryCount}) ${myUnreadCounter}`
-    //       }
-    //     )
-    //   }
      classSelectOptions = myCourses.map( c => {
         const myUnreadCounter = c.unread_count > 0 ?
               <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" />{c.unread_count}</Badge>
@@ -837,10 +828,11 @@ const ScopeView = ({scope, nonStep, singleStep,
           !noGroupsAvailable ?
             <Form
                 id={`${scope}SelectorForm`}
-                onSelect={e => courseChangeFunctions[scope](e.target.value)}
             >
                 <Select
                   options={classSelectOptions}
+                  onChange={e => setViewGroup(e.value)}
+                  value={viewGroup}
                 />
             </Form>
           :
@@ -884,7 +876,9 @@ const ScopesFrame = ({viewScope,
                       singleStep,
                       viewingAsAdmin,
                       viewCourse,
+                      setViewCourse,
                       viewStudents,
+                      setViewStudents,
                       myCourses,
                       courseChangeFunctions,
                       queries,
@@ -913,13 +907,37 @@ const ScopesFrame = ({viewScope,
   console.log('viewScope');
   console.log(viewScope);
 
+  const handleScopeChange = (newScope) => {
+    console.log(`new scope is ${newScope}`);
+    setViewScope(newScope);
+    switch (newScope) {
+      case "user":
+        setViewStudents(0);
+        setViewCourse(0);
+      case "class":
+        setViewStudents(0);
+        break;
+      case "students":
+        setViewCourse(0);
+        break;
+      case "public":
+        setViewStudents(0);
+        setViewCourse(0);
+        break;
+      default:
+        setViewStudents(0);
+        setViewCourse(0);
+        break;
+    }
+  }
+
   return (
     <React.Fragment>
       <div className="queries-view-changer-wrapper">
         <Button
           className={`queries-view-changer ${viewScope==='user' ? "in" : "out"}`}
           variant="outline-secondary"
-          onClick={() => setViewScope('user')}
+          onClick={() => handleScopeChange('user')}
         >
           <FontAwesomeIcon icon="user" />Me
           <Badge variant="secondary">{userTotalCount || "0"}</Badge>
@@ -931,7 +949,7 @@ const ScopesFrame = ({viewScope,
         <Button
           className={`queries-view-changer ${viewScope==='class' ? "in" : "out"}`}
           variant="outline-secondary"
-          onClick={() => setViewScope('class')}
+          onClick={() => handleScopeChange('class')}
         >
           <FontAwesomeIcon icon="users" />Classmates
           <Badge variant="secondary">{classmatesTotalCount}</Badge>
@@ -944,7 +962,7 @@ const ScopesFrame = ({viewScope,
           <Button
             className={`queries-view-changer ${viewScope==='students' ? "in" : "out"}`}
             variant="outline-secondary"
-            onClick={() => setViewScope('students')}
+            onClick={() => handleScopeChange('students')}
           >
             <FontAwesomeIcon icon="users" />Students
             <Badge variant="secondary">{studentsTotalCount}</Badge>
@@ -956,7 +974,7 @@ const ScopesFrame = ({viewScope,
         <Button
           className={`queries-view-changer ${viewScope==='other' ? "in" : "out"}`}
           variant="outline-secondary"
-          onClick={() => setViewScope('public')}
+          onClick={() => handleScopeChange('public')}
         >
           <FontAwesomeIcon icon="globe-americas" />Others
           <Badge variant="secondary">{otherTotalCount || "0"}</Badge>
@@ -1054,11 +1072,12 @@ const QueriesView = () => {
     const [singleStep, setSingleStep] = useState(!onStep ? false : true);
     const [nonStep, setNonStep] = useState(true);
     const [viewScope, setViewScope] = useState('public');
-    const [ownQueries, setOwnQueries] = useState(false);
     const [viewCourse, setViewCourse] = useState();
     const [viewStudents, setViewStudents] = useState();
-    const courseChangeFunctions = {class: setViewCourse,
-                                  students: setViewStudents};
+    const setViewCourseWrapped = (val) => {console.log(`setViewCourse to ${val}`); setViewCourse(val);};
+    const setViewStudentsWrapped = (val) => {console.log(`setViewStudents to ${val}`); setViewStudents(val);};
+    const courseChangeFunctions = {class: setViewCourseWrapped,
+                                  students: setViewStudentsWrapped};
     const [filterUnanswered, setFilterUnanswered] = useState(false);
     const [filterUnread, setFilterUnread] = useState(false);
     const [viewingAsAdmin, ] = useState(
@@ -1468,9 +1487,9 @@ const QueriesView = () => {
                   pagesize: 20,
                   page: 0,
                   orderby: "modified_on",
-                  classmates_course: viewStudents,
-                  students_course: viewCourse,
-                  own_queries: ownQueries
+                  classmates_course: viewCourse,
+                  students_course: viewStudents,
+                  own_queries: viewScope==="user" ? true : false
                 })
       .then(queryfetch => {
         const formatted_queries = queryfetch.map( q => _formatQueryData(q));
@@ -1478,6 +1497,10 @@ const QueriesView = () => {
         setLoading(false);
       });
     }
+
+    useEffect(() => fetchViewQueriesAction(),
+      [viewScope, viewCourse, viewStudents]
+    );
 
     const fetchQueriesMetadataAction = () => {
       setLoading(true);
@@ -1731,7 +1754,9 @@ const QueriesView = () => {
                       singleStep={singleStep}
                       viewingAsAdmin={viewingAsAdmin}
                       viewCourse={viewCourse}
+                      setViewCourse={setViewCourse}
                       viewStudents={viewStudents}
+                      setViewStudents={setViewStudents}
                       courseChangeFunctions={courseChangeFunctions}
                       queries={queries}
                       setQueries={setQueries}
