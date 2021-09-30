@@ -8,6 +8,7 @@ import { Alert,
          FormControl,
          FormLabel,
          OverlayTrigger,
+         Pagination,
          Row,
          Spinner,
          Table,
@@ -752,12 +753,18 @@ const ScopeView = ({scope, nonStep, singleStep,
                     myClassmatesCounts,
                     myStudentsCounts,
                     courseChangeFunctions,
-                    queries}) => {
+                    queries,
+                    page,
+                    setPage,
+                    myCount
+                  }) => {
 
   const {user, } = useContext(UserContext);
   console.log("in ScopeView:");
   console.log(`viewCourse: ${viewCourse}`);
   console.log(`viewStudents: ${viewStudents}`);
+  console.log(`myCount: ${myCount}`);
+  console.log(`page: ${page}`);
   console.log(`queries:`);
   console.log(queries);
   const byClass = ["class", "students"].includes(scope);
@@ -782,7 +789,8 @@ const ScopeView = ({scope, nonStep, singleStep,
     }
   }, [byClass, viewGroup, scope, queries]);
 
-  let classSelectOptions = "";
+  let classSelectOptions = [];
+  let viewGroupLabel = "";
   if ( ['class', 'students'].includes(scope) && !noGroupsAvailable ) {
      classSelectOptions = myCourses.map( c => {
         const myUnreadCounter = c.unread_count > 0 ?
@@ -794,14 +802,32 @@ const ScopeView = ({scope, nonStep, singleStep,
            label: <span>{c.institution}, {c.year}, {c.term}, {c.section}, {c.instructor}&nbsp;&nbsp;
             <Badge variant="secondary">{myQueryCount}</Badge>
             {myUnreadCounter}
-           </span>
+           </span>,
+           labelText: `${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`
           }
         )
       }
     )
+    const viewGroupItem = ![0, undefined].includes(viewGroup) ? classSelectOptions.filter(o => o.value===viewGroup)[0] : classSelectOptions[0];
+    console.log(viewGroupItem);
+    console.log("label>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    viewGroupLabel = viewGroupItem.labelText;
+    console.log(viewGroupLabel);
+    viewGroupLabel = viewGroupItem.labelText;
   }
 
+  console.log("making pagerArray");
+  let myPagerArray = [];
+  if ( myCount >= 20 ) {
+    myPagerArray = Array.from(Array(Math.ceil(myCount/20)).keys()).map(n => n + 1);
+  }
+  const myPagerVisibleStart = page > 2 ? page - 3 : 0;
+  console.log(`visible subset start ${myPagerVisibleStart}`);
+  const myPagerVisibleSubset = myPagerArray.slice(myPagerVisibleStart, myPagerVisibleStart + 5);
+  console.log(`visible subset ${myPagerVisibleSubset}`);
+
   return (
+    <>
     <div className="queries-view-pane" key={scope}>
       {scope==='user' ? (
         !!user.userLoggedIn ? (
@@ -836,6 +862,8 @@ const ScopeView = ({scope, nonStep, singleStep,
                   onChange={e => setViewGroup(e.value)}
                   value={viewGroup}
                   defaultValue={viewGroup}
+                  placeholder={viewGroupLabel}
+                  isSearchable={false}
                 />
             </Form>
           :
@@ -864,6 +892,20 @@ const ScopeView = ({scope, nonStep, singleStep,
         <span>No {scope} questions to view.</span>
       }
     </div>
+    {myPagerArray.length > 1 &&
+      <Pagination className="queries-view-pager">
+        <Pagination.First onClick={() => setPage(1)} />
+        <Pagination.Prev onClick={() => setPage(page > 1 ? page - 1 : 1)} />
+        {myPagerVisibleSubset.map(n =>
+          <Pagination.Item key={n} active={n===page}
+            onClick={() => setPage(n)}
+          >{n}</Pagination.Item>
+        )}
+        <Pagination.Next onClick={() => setPage(page < myPagerArray[-1] ? page + 1 : myPagerArray[-1])} />
+        <Pagination.Last onClick={() => setPage(myPagerArray[-1])} />
+      </Pagination>
+    }
+    </>
   )
 }
 
@@ -902,13 +944,66 @@ const ScopesFrame = ({viewScope,
                       updateReplyAction,
                       newCommentAction,
                       updateCommentAction,
-                      setReadStatusAction
+                      setReadStatusAction,
+                      page,
+                      setPage,
+                      filterUnread
                       }) => {
 
   const {user,} = useContext(UserContext);
+  const [myCount, setMyCount] = useState(() => getMyCountValue());
 
   console.log('viewScope');
   console.log(viewScope);
+  console.log('myCount');
+  console.log(myCount);
+  console.log(`default myCount is ${getMyCountValue()}`);
+
+  function getMyCountValue() {
+    console.log("in getMyCountValue ************");
+    let myCountValue = null;
+    switch (viewScope) {
+      case "user":
+        myCountValue = !!filterUnread ? userUnreadCount : userTotalCount;
+        break;
+      case "class":
+        if ( viewCourse !== 0 ) {
+          const currentClass = myClassmatesCounts.filter(c => c.id===viewCourse);
+          myCountValue = !!filterUnread ? currentClass.queries_count
+            : currentClass.unread_count;
+        };
+        break;
+      case "students":
+        if ( viewStudents !== 0 ) {
+          const currentStudents = myStudentsCounts.filter(c => c.id===viewStudents);
+          console.log(`currentStudents:`);
+          console.log(currentStudents);
+          console.log(currentStudents.length);
+          console.log(currentStudents.length > 0 ? `queris: ${currentStudents[0].queries_count}` : "no currentStudents");
+          console.log(currentStudents.length > 0 ? currentStudents[0].unread_count : "no currentStudents");
+          if ( currentStudents.length !== 0 ) {
+            myCountValue = !filterUnread ? currentStudents[0].queries_count
+                      : currentStudents[0].unread_count;
+          } else {
+            myCountValue = 0;
+          }
+        };
+        break;
+      case "public":
+        myCountValue = !!filterUnread ? otherUnreadCount : otherTotalCount;
+        break;
+      default:
+        myCountValue = 0;
+    }
+    console.log("actually returning value:");
+    console.log(myCountValue);
+    return myCountValue;
+  }
+
+  useEffect(() => {
+    console.log("setting myCount!!!!!!!");
+    setMyCount(() => getMyCountValue());
+  }, [viewScope, viewStudents, viewCourse]);
 
   const handleScopeChange = (newScope) => {
     console.log(`new scope is ${newScope}`);
@@ -917,19 +1012,24 @@ const ScopesFrame = ({viewScope,
       case "user":
         setViewStudents(0);
         setViewCourse(0);
+        setPage(1);
       case "class":
         setViewStudents(0);
+        setPage(1);
         break;
       case "students":
         setViewCourse(0);
+        setPage(1);
         break;
       case "public":
         setViewStudents(0);
         setViewCourse(0);
+        setPage(1);
         break;
       default:
         setViewStudents(0);
         setViewCourse(0);
+        setPage(1);
         break;
     }
   }
@@ -986,7 +1086,6 @@ const ScopesFrame = ({viewScope,
           }
         </Button>
       </div>
-
             <SwitchTransition>
               <CSSTransition
                 key={viewScope}
@@ -1015,6 +1114,9 @@ const ScopesFrame = ({viewScope,
                   myStudentsCounts={myStudentsCounts}
                   courseChangeFunctions ={courseChangeFunctions}
                   queries={queries}
+                  page={page}
+                  setPage={setPage}
+                  myCount={myCount}
                 />
               </CSSTransition>
             </SwitchTransition>
@@ -1059,6 +1161,7 @@ const QueriesView = () => {
     const [myClassmatesCounts, setMyClassmatesCounts] = useState([]);
     const [otherTotalCount, setOtherTotalCount] = useState(null);
     const [otherUnreadCount, setOtherUnreadCount] = useState(null);
+    const [page, setPage] = useState(1);
     console.log("QueriesView top----------------------");
     console.log("queries");
     console.log(queries);
@@ -1488,7 +1591,7 @@ const QueriesView = () => {
                   unread: filterUnread,
                   unanswered: filterUnanswered,
                   pagesize: 20,
-                  page: 0,
+                  page: page,
                   orderby: "modified_on",
                   classmates_course: viewCourse,
                   students_course: viewStudents,
@@ -1502,7 +1605,7 @@ const QueriesView = () => {
     }
 
     useEffect(() => fetchViewQueriesAction(),
-      [viewScope, viewCourse, viewStudents]
+      [viewScope, viewCourse, viewStudents, page]
     );
 
     const fetchQueriesMetadataAction = () => {
@@ -1781,6 +1884,9 @@ const QueriesView = () => {
                       newCommentAction={newCommentAction}
                       updateCommentAction={updateCommentAction}
                       setReadStatusAction={setReadStatusAction}
+                      page={page}
+                      setPage={setPage}
+                      filterUnread={filterUnread}
                   />
                 }
               </CSSTransition>

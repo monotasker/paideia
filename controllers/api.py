@@ -1238,7 +1238,7 @@ def get_view_queries():
                          db((db.bugs.user_name.belongs(classmembers)) &
                             (db.bugs.date_submitted >= my_m_class.start_date) &
                             (db.bugs.date_submitted <= my_m_class.end_date)
-                            ).select(db.bugs.id).as_list()]
+                            ).select(db.bugs.id)]
             class_queries.extend(myqueries)
             if vbs: print("class_queries:", class_queries)
 
@@ -1272,7 +1272,6 @@ def get_view_queries():
 
     if vbs: print("with external_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term) & (external_term)).count(), "records")
 
-
     if vbs: print('c')
     queries = db((step_term) &
                  (basic_term) &
@@ -1283,8 +1282,9 @@ def get_view_queries():
                  (own_queries_term) &
                  (external_term)
                  ).select(*table_fields,
-                          orderby=~db.bugs[orderby]
-                          )  #   limitby=(offset_start, offset_end),
+                          orderby=~db.bugs[orderby],
+                          limitby=(offset_start, offset_end)
+                          )
     if vbs: print(queries[0] if len(queries) else "No records found")
 
     if vbs: print('d')
@@ -1298,8 +1298,6 @@ def get_view_queries():
     if vbs: print('g')
     queries_list = _add_posts_to_queries(queries_list,
                                          unread_posts, unread_comments)
-    if page != 0:
-        queries_list = queries_list.slice(offset_start, offset_end)
 
     return json_serializer(queries_list)
 
@@ -1310,6 +1308,7 @@ def get_queries_metadata():
     """
     vbs=True
     db = current.db
+    if vbs: print("api::get_queries_metadata============================")
 
     user_id = request.vars["user_id"]
     step_id = request.vars["step_id"]
@@ -1333,6 +1332,7 @@ def get_queries_metadata():
     basic_terms = ((step_term) &
                    ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
                    (unanswered_term))
+    if vbs: print("basic_query:", db(basic_terms).count())
     basic_unread_terms = (basic_terms & db.bugs.id.belongs(unread_queries))
     if vbs: print("basic_unread_query:", db(basic_unread_terms).count())
 
@@ -1355,19 +1355,23 @@ def get_queries_metadata():
                                 orderby=~db.classes.start_date
                                 )
     for myclass in myclasses:
-        pprint(myclass)
+        if vbs: pprint(myclass)
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
                                myclass.id).iterselect()
                             if m.name != user_id]
                             ))
-        member_queries = list(set(
+        if vbs: print("members:", members)
+        if vbs: print("start_date:", myclass.start_date)
+        if vbs: print("end_date:", myclass.end_date)
+        member_queries = list(set(q.id for q in
             db(basic_terms &
                db.bugs.user_name.belongs(members) &
                (db.bugs.date_submitted >= myclass.start_date) &
                (db.bugs.date_submitted <= myclass.end_date)
                ).select(db.bugs.id)
         ))
+        if vbs: print("found member queries:", len(member_queries))
         member_unread = [u for u in member_queries if u in unread_queries]
         if member_queries:
             classmates_counts.append({'id': myclass.id,
@@ -1381,6 +1385,8 @@ def get_queries_metadata():
             classmates_query_ids.extend(member_queries)
     classmates_unread_count = len(list(set(u for u in classmates_query_ids
                                          if u in unread_queries)))
+    if vbs: print("classmates_query_ids length:", len(classmates_query_ids))
+    if vbs: print("classmates_unread_count:", classmates_unread_count)
 
     # count students' queries
     students_counts = []
