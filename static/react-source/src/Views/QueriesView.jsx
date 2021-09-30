@@ -905,7 +905,13 @@ const ScopeView = ({scope, nonStep, singleStep,
         <Pagination.Last onClick={() => setPage(myPagerArray[-1])} />
       </Pagination>
     }
+    {!!queries && queries.length > 0 &&
+      <div className="queries-view-footer">
+        Viewing queries {(page * 20) - 19} to {(page * 20) - 19 + (queries.length - 1)}
+      </div>
+    }
     </>
+
   )
 }
 

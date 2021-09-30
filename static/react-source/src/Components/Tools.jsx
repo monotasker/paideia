@@ -23,8 +23,13 @@ const Tools = () => {
 
     useEffect(() => {
       const handleClick = (event) => {
-          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer, .vocabview-sorter-link, [class*="students-selector-form"], [class*="class-selector-form"], .queries-view-pager') === null ) {
-            setOpenPanel(null);
+          console.log("handling click********************************************");
+          console.log(event);
+          if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer, .vocabview-sorter-link, [class*="students-selector-form"], [class*="class-selector-form"]') === null ) {
+            if ( !event.target.classList.contains("page-link") ) {
+                console.log(event.target.querySelector('.page-link'));
+                setOpenPanel(null);
+            }
           }
       }
       window.addEventListener("click", handleClick);
