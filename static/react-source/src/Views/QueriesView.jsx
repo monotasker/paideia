@@ -770,13 +770,14 @@ const ScopeView = ({scope, nonStep, singleStep,
   const byClass = ["class", "students"].includes(scope);
   const [viewGroup, setViewGroup] = useState(scope==="class" ? viewCourse :
     (scope==="students" ? viewStudents : null));
-  let noGroupsAvailable = false;
+  const [currentQueryTotal, setCurrentQueryTotal] = useState();
+  const [noGroupsAvailable, setNoGroupsAvailable] = useState(false);
   if ( scope==="class" &&
       (!user.classInfo || !Object.keys(user.classInfo).length > 0 )) {
-    noGroupsAvailable = true;
+    setNoGroupsAvailable(true);
   } else if (scope==="students" &&
       (!user.instructing || !Object.keys(user.instructing).length > 0 )) {
-    noGroupsAvailable = true;
+    setNoGroupsAvailable(true);
   }
   let myCourses = scope==="students" ? myStudentsCounts : myClassmatesCounts;
 
@@ -797,6 +798,9 @@ const ScopeView = ({scope, nonStep, singleStep,
               <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" />{c.unread_count}</Badge>
               : "";
         const myQueryCount = c.queries_count || "0";
+        // if ( c.id===viewGroup ) {
+        //   setCurrentQueryTotal(!!filterUnread ? c.unread_count : myQueryCount);
+        // }
         return(
           {value: c.id,
            label: <span>{c.institution}, {c.year}, {c.term}, {c.section}, {c.instructor}&nbsp;&nbsp;
@@ -907,7 +911,7 @@ const ScopeView = ({scope, nonStep, singleStep,
     }
     {!!queries && queries.length > 0 &&
       <div className="queries-view-footer">
-        Viewing queries {(page * 20) - 19} to {(page * 20) - 19 + (queries.length - 1)} of {myQueryCount} (newest to oldest)
+        Viewing queries {(page * 20) - 19} to {(page * 20) - 19 + (queries.length - 1)} of {myCount} (newest to oldest)
       </div>
     }
     </>
