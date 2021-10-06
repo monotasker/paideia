@@ -714,7 +714,6 @@ const QueriesList = ({queries, updateQueryAction, newReplyAction,
 
 
   return (<>
-    {!!byClass && !!queries && <Badge>{queries.length}</Badge>}
     {( !!queries && queries!==[] ) ?
           <ul className="query-list">
             {queries.map(
