@@ -757,13 +757,21 @@ const ScopeView = ({scope, nonStep, singleStep,
   const [viewGroup, setViewGroup] = useState(scope==="class" ? viewCourse :
     (scope==="students" ? viewStudents : null));
   const [currentQueryTotal, setCurrentQueryTotal] = useState();
-  const [noGroupsAvailable, setNoGroupsAvailable] = useState(false);
-  if ( scope==="class" &&
-      (!user.classInfo || !Object.keys(user.classInfo).length > 0 )) {
-    setNoGroupsAvailable(true);
-  } else if (scope==="students" &&
-      (!user.instructing || !Object.keys(user.instructing).length > 0 )) {
-    setNoGroupsAvailable(true);
+  const [noGroupsAvailable, setNoGroupsAvailable] = useState(checkForGroupsAvailable());
+  console.log("in ScopeView: user.classInfo is");
+  console.log(user.classInfo);
+  console.log(Object.keys(user.classInfo).length);
+
+  function checkForGroupsAvailable() {
+    let noneAvailable = true;
+    if ( scope==="class" &&
+        (!user.classInfo || !Object.keys(user.classInfo).length > 0 )) {
+      noneAvailable = true;
+    } else if (scope==="students" &&
+        (!user.instructing || !Object.keys(user.instructing).length > 0 )) {
+      noneAvailable = true;
+    }
+    return noneAvailable;
   }
   let myCourses = scope==="students" ? myStudentsCounts : myClassmatesCounts;
 
@@ -1162,13 +1170,20 @@ const QueriesView = () => {
       user.userRoles.includes("administrators"));
 
     const setScopeSingleStep = () => {
+      setLoading(true);
       setNonStep(false);
       setSingleStep(true);
     }
 
     const setScopeAllSteps = () => {
-            setNonStep(false);
-            setSingleStep(false)
+      setLoading(false);
+      setNonStep(false);
+      setSingleStep(false)
+    }
+
+    const setScopeGeneral = () => {
+      setLoading(true);
+      setNonStep(true);
     }
 
     useEffect(() => {
@@ -1805,7 +1820,7 @@ const QueriesView = () => {
             </Button>
             <Button
               className={!!nonStep ? "active" : ""}
-              onClick={() => setNonStep(true)}
+              onClick={() => setScopeGeneral()}
             >
               General
             </Button>
