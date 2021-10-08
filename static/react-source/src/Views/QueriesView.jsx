@@ -82,7 +82,6 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
   const labelLevel = level === "query" ? "reply" : "comment";
   let myPop = Array.isArray(popularity) ? popularity : [];
   let myHelp = Array.isArray(helpfulness) ? helpfulness : [];
-  // console.log(`logged in (control): ${userLoggedIn}`);
   return(
     <div className={`control-row control-row-${level}`}>
       { level !== "comment" && (
@@ -171,12 +170,10 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
     e.preventDefault();
     updateAction({...idArgs,
       [updateField]: updateField==="score" ? parseFloat(myText) : myText});
-    // console.log(`firing with myText: ${myText}`);
     setEditingAction(false);
   }
   useEffect(() => {
     if ( !!optionList && !!myText ) {
-      // console.log(`myText: ${myText}`);
       sendUpdate(new Event('dummy'));
     }
   }, [myText, optionList]);
@@ -274,7 +271,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
 }
 
 const AddChildForm = ({level, classId, queryId, replyId=null,
-                       addChildAction, setShowAdder
+                       addChildAction, setShowAdder, scope
                       }) => {
   // FIXME: Handling legacy data here
   if ( level==="reply" && replyId===undefined ) { replyId="null" };
@@ -285,7 +282,8 @@ const AddChildForm = ({level, classId, queryId, replyId=null,
     e.preventDefault();
     addChildAction({replyId: replyId, queryId: queryId,
                     opText: childText,
-                    showPublic: !isPrivate
+                    showPublic: !isPrivate,
+                    scope: scope
                     });
     setShowAdder(false);
   }
@@ -326,12 +324,11 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      sampleAnswers=null,
                      queryStep=null, queryPath=null,
                      score=null, adjustedScore=null,
-                     children=null, threadIndex=0
+                     children=null, threadIndex=0, scope
                     }) => {
-  console.log('starting display row');
+  // console.log('starting display row');
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
-  // console.log(`DisplayRow: read: ${read}`);
   const readClass = read===true ? "read" : (read===false ? "unread" : "");
   const {user, } = useContext(UserContext);
   const [ showAdder, setShowAdder ] = useState(false);
@@ -354,10 +351,6 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
   const uid = [classId, queryId, replyId, commentId].join('_');
   const levels = ["query", "reply", "comment"];
   const childLevel = levels[levels.indexOf(level) + 1];
-  // console.log(`query ${uid}`);
-  // console.log(`opId: ${opId}`);
-  // console.log(`score: ${score}`);
-  // console.log(`adjusted_score: ${adjustedScore}`);
   const iconSize = level==="query" ? "3x" : "1x";
   const queryStatusList = ["",
                            "confirmed",
@@ -384,13 +377,14 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                                allowance_given: "warning",
                                question_answered: "info"};
   const updateArgs = {query: {pathId: queryPath, stepId: queryStep,
-                              opId: opId, userId: user.userId, queryId: queryId
+                              opId: opId, userId: user.userId, queryId: queryId,
+                              scope: scope
                              },
                       reply: {opId: opId, userId: user.userId, replyId: replyId,
-                              queryId: queryId},
+                              queryId: queryId, scope: scope},
                       comment: {opId: opId, userId: user.userId,
                                 commentId: commentId,
-                                replyId: replyId, queryId: queryId}
+                                replyId: replyId, queryId: queryId, scope: scope}
   };
   const idArgs = updateArgs[level];  // for building unique keys
   idArgs['classId'] = classId;
@@ -414,7 +408,8 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
     setReadStatusAction({postLevel: level,
                          postId: myIds[level],
                          userId: user.userId,
-                         readStatus: !read});
+                         readStatus: !read,
+                         scope: scope});
   }
 
   const sendUpdate = e => {
@@ -672,6 +667,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                     replyId={replyId}
                     addChildAction={addChildAction[level]}
                     setShowAdder={setShowAdder}
+                    scope={scope}
                   />
                 </div>
               </Collapse>
@@ -693,6 +689,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               newCommentAction={newCommentAction}
               updateCommentAction={updateCommentAction}
               setReadStatusAction={setReadStatusAction}
+              scope={scope}
             />)}
           </ul>
 
@@ -705,10 +702,6 @@ const QueriesList = ({queries, updateQueryAction, newReplyAction,
                        newCommentAction, updateReplyAction,
                        updateCommentAction, setReadStatusAction, viewingAsAdmin, viewCourse, viewStudents, viewGroup, byClass, scope}) => {
   const { user, } = useContext(UserContext);
-  console.log("in QueriesList:");
-  console.log(`byClass: ${byClass}`);
-  console.log("queries");
-  console.log(queries);
   const instructorState = scope==="students" ?
     user.instructing.find(c => c.id === viewGroup) : false;
 
@@ -728,6 +721,7 @@ const QueriesList = ({queries, updateQueryAction, newReplyAction,
                       viewingAsAdmin={viewingAsAdmin}
                       viewingAsInstructor={instructorState}
                       classId={!!byClass ? viewGroup : 0}
+                      scope={scope}
                       {...q}
                     />
             )}
@@ -759,13 +753,6 @@ const ScopeView = ({scope, nonStep, singleStep,
                   }) => {
 
   const {user, } = useContext(UserContext);
-  console.log("in ScopeView:");
-  console.log(`viewCourse: ${viewCourse}`);
-  console.log(`viewStudents: ${viewStudents}`);
-  console.log(`myCount: ${myCount}`);
-  console.log(`page: ${page}`);
-  console.log(`queries:`);
-  console.log(queries);
   const byClass = ["class", "students"].includes(scope);
   const [viewGroup, setViewGroup] = useState(scope==="class" ? viewCourse :
     (scope==="students" ? viewStudents : null));
@@ -782,8 +769,6 @@ const ScopeView = ({scope, nonStep, singleStep,
 
   useEffect(() => {
     if (!!byClass && myCourses.length > 0) {
-      console.log("changing viewGroup!!!");
-      console.log(viewGroup);
       let myVal = !!viewGroup ? viewGroup : myCourses[0].id;
       courseChangeFunctions[scope](myVal);
     }
@@ -812,22 +797,16 @@ const ScopeView = ({scope, nonStep, singleStep,
       }
     )
     const viewGroupItem = ![0, undefined].includes(viewGroup) ? classSelectOptions.filter(o => o.value===viewGroup)[0] : classSelectOptions[0];
-    console.log(viewGroupItem);
-    console.log("label>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     viewGroupLabel = viewGroupItem.labelText;
-    console.log(viewGroupLabel);
     viewGroupLabel = viewGroupItem.labelText;
   }
 
-  console.log("making pagerArray");
   let myPagerArray = [];
   if ( myCount >= 20 ) {
     myPagerArray = Array.from(Array(Math.ceil(myCount/20)).keys()).map(n => n + 1);
   }
   const myPagerVisibleStart = page > 2 ? page - 3 : 0;
-  console.log(`visible subset start ${myPagerVisibleStart}`);
   const myPagerVisibleSubset = myPagerArray.slice(myPagerVisibleStart, myPagerVisibleStart + 5);
-  console.log(`visible subset ${myPagerVisibleSubset}`);
 
   return (
     <>
@@ -962,14 +941,7 @@ const ScopesFrame = ({viewScope,
   const {user,} = useContext(UserContext);
   const [myCount, setMyCount] = useState(() => getMyCountValue());
 
-  console.log('viewScope');
-  console.log(viewScope);
-  console.log('myCount');
-  console.log(myCount);
-  console.log(`default myCount is ${getMyCountValue()}`);
-
   function getMyCountValue() {
-    console.log("in getMyCountValue ************");
     let myCountValue = null;
     switch (viewScope) {
       case "user":
@@ -985,11 +957,6 @@ const ScopesFrame = ({viewScope,
       case "students":
         if ( viewStudents !== 0 ) {
           const currentStudents = myStudentsCounts.filter(c => c.id===viewStudents);
-          console.log(`currentStudents:`);
-          console.log(currentStudents);
-          console.log(currentStudents.length);
-          console.log(currentStudents.length > 0 ? `queris: ${currentStudents[0].queries_count}` : "no currentStudents");
-          console.log(currentStudents.length > 0 ? currentStudents[0].unread_count : "no currentStudents");
           if ( currentStudents.length !== 0 ) {
             myCountValue = !filterUnread ? currentStudents[0].queries_count
                       : currentStudents[0].unread_count;
@@ -1004,18 +971,14 @@ const ScopesFrame = ({viewScope,
       default:
         myCountValue = 0;
     }
-    console.log("actually returning value:");
-    console.log(myCountValue);
     return myCountValue;
   }
 
   useEffect(() => {
-    console.log("setting myCount!!!!!!!");
     setMyCount(() => getMyCountValue());
   }, [viewScope, viewStudents, viewCourse]);
 
   const handleScopeChange = (newScope) => {
-    console.log(`new scope is ${newScope}`);
     setViewScope(newScope);
     switch (newScope) {
       case "user":
@@ -1189,8 +1152,8 @@ const QueriesView = () => {
     const [viewScope, setViewScope] = useState('public');
     const [viewCourse, setViewCourse] = useState();
     const [viewStudents, setViewStudents] = useState();
-    const setViewCourseWrapped = (val) => {console.log(`setViewCourse to ${val}`); setViewCourse(val);};
-    const setViewStudentsWrapped = (val) => {console.log(`setViewStudents to ${val}`); setViewStudents(val);};
+    const setViewCourseWrapped = (val) => {setViewCourse(val);};
+    const setViewStudentsWrapped = (val) => {setViewStudents(val);};
     const courseChangeFunctions = {class: setViewCourseWrapped,
                                   students: setViewStudentsWrapped};
     const [filterUnanswered, setFilterUnanswered] = useState(false);
@@ -1359,7 +1322,9 @@ const QueriesView = () => {
         myReplyId = !!markingRead ? newItem.on_bug_post : newItem[itemTableField].on_post;
         myCommentId = myItemId;
       }
+      console.log(`myQueryId: ${myQueryId}`);
       const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
+      console.log(`queryIndex: ${queryIndex}`);
 
       const _innerFindAndUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
                             ) => {
@@ -1415,6 +1380,7 @@ const QueriesView = () => {
       }
 
       if ( queryIndex > -1 ) {
+        console.log(`updating at query level ${itemLevel}`);
         // update at query level
         if (itemLevel==='query') {
           mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData, newItem);
@@ -1426,8 +1392,17 @@ const QueriesView = () => {
         } else {
           // update either reply or comment level...
           let myReplyList = mylist[queryIndex].children;
+          console.log(`myReplyList:`);
+          console.log(JSON.parse(JSON.stringify(myReplyList)));
+          console.log(myReplyList.findIndex(p => p.replyId===3));
+          console.log(myReplyList.findIndex(p => p.replyId > 333));
           const replyIndex = myReplyList.findIndex(p => p.replyId===myReplyId);
+          console.log(`rplyId:`);
+          console.log(myReplyId);
+          console.log(`rplyIndex: ${replyIndex}`);
+          console.log(JSON.parse(JSON.stringify(replyIndex)));
           if (replyIndex > -1) {
+            console.log('Got a good index!!!!!!!!');
             if ( itemLevel==='reply') {
               // update at reply level
               mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
@@ -1439,8 +1414,6 @@ const QueriesView = () => {
               } else if ( !!markingRead && newItem.read_status===true ) {
                 mylist[queryIndex].children = _markChildrenRead(
                   mylist[queryIndex].children, replyIndex);
-                console.log('returned from marking children read======');
-                console.log(mylist[queryIndex].children);
               }
             } else {
               // update at comment level
@@ -1476,8 +1449,9 @@ const QueriesView = () => {
 
     // Non-returning function to properly update state with one post
     // expects myresponse to have keys "auth_user", "bugs", and "posts"
-    const _updateItemInState = (newItem, itemLevel, queryId) => {
+    const _updateItemInState = (newItem, itemLevel, queryId, scope) => {
 
+      console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
       const extraArg = itemLevel==="comment" ? [queryId] : [];
 
       const innerUpdate = (qList, updateAction) => {
@@ -1507,89 +1481,91 @@ const QueriesView = () => {
         })
       }
 
-      const myscopes = ['user', 'class', 'students', 'other'];
-
-      for (let i=0; i < myscopes.length; i++) {
-        let scopeLabel = myscopes[i];
-        let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
-        scopeLabel = `${scopeLabel}_${levelLabel}s`;
-        console.log('scope');
-        console.log(myscopes[i]);
-        let myPromise = innerUpdate([ ...queries ],
-                                    setQueries);
-        myPromise.then(
-          result => {
-            console.log(`**scope ${scopeLabel}`);
-            console.log('**result');
-            console.log(result);
-            _setCounts({[scopeLabel]: result});
-          },
-          result => {
-            console.log('I broke!!!!!!!!!!!');
-            console.log(result);
-            console.log(scopeLabel);
-          }
-        )
-      }
+      let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
+      const scopeLabel = `${scope}_${levelLabel}s`;
+      let myPromise = innerUpdate([ ...queries ],
+                                  setQueries);
+      myPromise.then(
+        result => {
+          _setCounts({[scope]: result});
+        },
+        result => {
+          console.log('I broke!!!!!!!!!!!');
+          console.log(result);
+          console.log(scopeLabel);
+        }
+      )
     }
+
+      // for (let i=0; i < myscopes.length; i++) {
+      //   let scopeLabel = myscopes[i];
+      //   let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
+      //   scopeLabel = `${scopeLabel}_${levelLabel}s`;
+      //   let myPromise = innerUpdate([ ...queries ],
+      //                               setQueries);
+      //   myPromise.then(
+      //     result => {
+      //       _setCounts({[scopeLabel]: result});
+      //     },
+      //     result => {
+      //       console.log('I broke!!!!!!!!!!!');
+      //       console.log(result);
+      //       console.log(scopeLabel);
+      //     }
+      //   )
+      // }
 
     // expects four lists of queries in internal formatted form (not raw server response)
     const _setCounts = ({user_queries=null, other_queries=null,
                          class_queries=null, students_queries=null}) => {
 
-      if ( !!user_queries ) {
-        setUserUnreadCount(
-          user_queries.filter(q => q.read===false).length
-        );
-      }
-      if ( !!other_queries ) {
-        setOtherUnreadCount(
-          other_queries.filter(q => q.read===false).length
-        );
-      }
+      fetchQueriesMetadataAction({thenFetchQueries: false});
 
-      if ( !!class_queries ) {
-        // console.log('---class_queries');
-        // console.log(class_queries);
-        let classUnreadList = [];
-        let classTotalList = [];
-        class_queries.forEach(myClass => {
-          let unreadInClass = myClass.queries.filter(q =>
-            q.read===false && classUnreadList.indexOf(q.queryId)===-1
-          );
-          classUnreadList = classUnreadList.concat(unreadInClass.map(i => i.queryId));
-          classTotalList = classTotalList.concat(myClass.queries
-            .filter(q => classTotalList.indexOf(q.queryId)===-1)
-            .map(i => i.queryId)
-          );
-          // console.log(classTotalList);
-          // console.log(classUnreadList);
-        });
+      // if ( !!user_queries ) {
+      //   setUserUnreadCount(
+      //     user_queries.filter(q => q.read===false).length
+      //   );
+      // }
+      // if ( !!other_queries ) {
+      //   setOtherUnreadCount(
+      //     other_queries.filter(q => q.read===false).length
+      //   );
+      // }
 
-        setClassUnreadCount(classUnreadList.length);
-        setClassTotalCount(classTotalList.length);
-      }
+      // if ( !!class_queries ) {
+      //   let classUnreadList = [];
+      //   let classTotalList = [];
+      //   class_queries.forEach(myClass => {
+      //     let unreadInClass = myClass.queries.filter(q =>
+      //       q.read===false && classUnreadList.indexOf(q.queryId)===-1
+      //     );
+      //     classUnreadList = classUnreadList.concat(unreadInClass.map(i => i.queryId));
+      //     classTotalList = classTotalList.concat(myClass.queries
+      //       .filter(q => classTotalList.indexOf(q.queryId)===-1)
+      //       .map(i => i.queryId)
+      //     );
+      //   });
 
-      if ( !!students_queries ) {
-        // console.log('---students_queries');
-        // console.log(students_queries);
-        let studentsUnreadList = [];
-        let studentsTotalList = [];
-        students_queries.forEach(myCourse => {
-          let unreadInCourse = myCourse.queries.filter(q =>
-            q.read===false && studentsUnreadList.indexOf(q.queryId)===-1
-          );
-          studentsUnreadList = studentsUnreadList.concat(unreadInCourse.map(i => i.queryId));
-          studentsTotalList = studentsTotalList.concat(myCourse.queries
-            .filter(q => studentsTotalList.indexOf(q.queryId)===-1)
-            .map(i => i.queryId)
-          );
-        });
-        // console.log(studentsTotalList);
-        // console.log(studentsUnreadList);
-        setStudentsUnreadCount(studentsUnreadList.length);
-        setStudentsTotalCount(studentsTotalList.length);
-      }
+      //   setClassmatesUnreadCount(classUnreadList.length);
+      //   setClassmatesTotalCount(classTotalList.length);
+      // }
+
+      // if ( !!students_queries ) {
+      //   let studentsUnreadList = [];
+      //   let studentsTotalList = [];
+      //   students_queries.forEach(myCourse => {
+      //     let unreadInCourse = myCourse.queries.filter(q =>
+      //       q.read===false && studentsUnreadList.indexOf(q.queryId)===-1
+      //     );
+      //     studentsUnreadList = studentsUnreadList.concat(unreadInCourse.map(i => i.queryId));
+      //     studentsTotalList = studentsTotalList.concat(myCourse.queries
+      //       .filter(q => studentsTotalList.indexOf(q.queryId)===-1)
+      //       .map(i => i.queryId)
+      //     );
+      //   });
+      //   setStudentsUnreadCount(studentsUnreadList.length);
+      //   setStudentsTotalCount(studentsTotalList.length);
+      // }
     }
 
     const fetchViewQueriesAction = () => {
@@ -1617,8 +1593,8 @@ const QueriesView = () => {
       [viewScope, viewCourse, viewStudents, page]
     );
 
-    const fetchQueriesMetadataAction = () => {
-      setLoading(true);
+    const fetchQueriesMetadataAction = ({thenFetchQueries=true}) => {
+      // setLoading(true);
       getQueriesMetadata({
                   step_id: !!singleStep && !!onStep ? user.currentStep : 0,
                   user_id: user.userId,
@@ -1636,12 +1612,12 @@ const QueriesView = () => {
         setMyClassmatesCounts(queryfetch.classmates_counts)
         setOtherTotalCount(queryfetch.other_queries_count);
         setOtherUnreadCount(queryfetch.other_unread_count);
-        fetchViewQueriesAction();
-        setLoading(false);
+        !!thenFetchQueries && fetchViewQueriesAction();
+        // setLoading(false);
       });
     }
 
-    useEffect(() => fetchQueriesMetadataAction(),
+    useEffect(() => fetchQueriesMetadataAction({thenFetchQueries: true}),
       [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
 
     const newQueryAction = (myComment, showPublic, event) => {
@@ -1658,8 +1634,6 @@ const QueriesView = () => {
                 user_comment: myComment,
                 show_public: showPublic})
       .then(myresponse => {
-        // console.log('QueriesView: after newQueryAction======');
-        // console.log(myresponse.read_status_updates);
         setQueries(myresponse.queries.map(
           q => _formatQueryData(q)
         ));
@@ -1669,14 +1643,15 @@ const QueriesView = () => {
     const setReadStatusAction = ({postLevel,
                                   userId,
                                   postId,
-                                  readStatus}) => {
+                                  readStatus,
+                                  scope}) => {
       updateReadStatus({postLevel: postLevel,
                         userId: userId,
                         postId: postId,
                         readStatus: readStatus})
       .then(myresponse => {
           if (myresponse.status_code===200) {
-            _updateItemInState(myresponse.result, postLevel, 0);
+            _updateItemInState(myresponse.result, postLevel, 0, scope);
           } else {
             console.log(myresponse);
           }
@@ -1686,7 +1661,8 @@ const QueriesView = () => {
     const newReplyAction = ({replyId=null,
                              queryId=null,
                              opText=null,
-                             showPublic=true
+                             showPublic=true,
+                             scope
                              }) => {
       addQueryReply({user_id: user.userId,
                      query_id: queryId,
@@ -1694,7 +1670,7 @@ const QueriesView = () => {
                      show_public: showPublic
                      })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_post, 'reply', 0);
+        _updateItemInState(myresponse.new_post, 'reply', 0, scope);
       });
     }
 
@@ -1702,6 +1678,7 @@ const QueriesView = () => {
                                queryId=null,
                                opText=null,
                                showPublic=true,
+                               scope
                               }) => {
       addReplyComment({user_id: user.userId,
                       post_id: replyId,
@@ -1710,7 +1687,7 @@ const QueriesView = () => {
                       show_public: showPublic
                       })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_comment, "comment", queryId);
+        _updateItemInState(myresponse.new_comment, "comment", queryId, scope);
       });
     }
 
@@ -1724,7 +1701,8 @@ const QueriesView = () => {
                                 helpfulness=null,
                                 deleted=null,
                                 score=null,
-                                queryStatus=null
+                                queryStatus=null,
+                                scope
                                 // hidden=null,
                                }) => {
       updateQuery({user_id: userId,
@@ -1741,7 +1719,7 @@ const QueriesView = () => {
                    queryStatus: queryStatus
                    })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_item, "query", 0);
+        _updateItemInState(myresponse.new_item, "query", 0, scope);
       });
     }
 
@@ -1755,7 +1733,8 @@ const QueriesView = () => {
                                pinned=null,
                                popularity=null,
                                helpfulness=null,
-                               deleted=null
+                               deleted=null,
+                               scope
                               }) => {
 
       updateQueryReply({user_id: userId,
@@ -1771,7 +1750,7 @@ const QueriesView = () => {
                        deleted: deleted
                        })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_post, "reply", 0);
+        _updateItemInState(myresponse.new_post, "reply", 0, scope);
       });
     }
 
@@ -1786,7 +1765,8 @@ const QueriesView = () => {
                                   pinned=null,
                                   popularity=null,
                                   helpfulness=null,
-                                  deleted=null
+                                  deleted=null,
+                                  scope
                                   }) => {
       updateReplyComment({user_id: userId,
                          post_id: replyId,
@@ -1801,7 +1781,7 @@ const QueriesView = () => {
                          helpfulness: helpfulness
                         })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_comment, "comment", queryId);
+        _updateItemInState(myresponse.new_comment, "comment", queryId, scope);
       });
     }
 
