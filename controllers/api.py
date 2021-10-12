@@ -1373,7 +1373,7 @@ def get_queries_metadata():
                ).select(db.bugs.id)
         ))
         if vbs: print("found member queries:", len(member_queries))
-        member_unread = [u for u in member_queries if u in unread_queries]
+        member_unread = [u for u in member_queries if u.id in unread_queries]
         if member_queries:
             classmates_counts.append({'id': myclass.id,
                                       'institution': myclass.institution,
@@ -1415,7 +1415,7 @@ def get_queries_metadata():
             students_query_ids.extend([q.id for q in students_queries])
             if vbs: print("found", len(students_queries), "queries for this course")
             students_unread = [s for s in students_queries
-                               if s in unread_queries]
+                               if s.id in unread_queries]
             # print([s['auth_user']['id'] for s in student_queries])
             # print('found {} student queries'.format(len(student_queries)))
             instructor_row = db.auth_user(course.instructor)
