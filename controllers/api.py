@@ -1082,7 +1082,7 @@ def get_view_queries():
     Page request parameter is indexed from 1. A value of 0 indicates the request
     is not paginated.
     """
-    vbs=True
+    vbs=False
     stepid = request.vars['step_id']
     userid = request.vars['user_id']
     own_queries = request.vars['own_queries']
@@ -1094,9 +1094,8 @@ def get_view_queries():
     orderby = request.vars['orderby']
     classmates_course = int(request.vars['classmates_course'])
     students_course = int(request.vars['students_course'])
-    print(request.vars)
+    if vbs: print(request.vars)
 
-    vbs=True
     offset_start = pagesize * (page - 1)
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
@@ -1316,6 +1315,7 @@ def get_queries_metadata():
     unanswered = request.vars["unanswered"]
 
     unread_queries, unread_posts, unread_comments = _fetch_unread_queries(user_id)
+    if vbs: print("unread_queries:")
     if vbs: print(unread_queries)
 
     unanswered_term = True
@@ -1355,7 +1355,8 @@ def get_queries_metadata():
                                 orderby=~db.classes.start_date
                                 )
     for myclass in myclasses:
-        if vbs: pprint(myclass)
+        # if vbs: pprint(myclass)
+        if vbs: print("class", myclass.id)
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
                                myclass.id).iterselect()
@@ -1382,7 +1383,7 @@ def get_queries_metadata():
                                       'unread_count': len(member_unread)
                                       }
                                     )
-            classmates_query_ids.extend(member_queries)
+            classmates_query_ids.extend([q.id for q in member_queries])
     classmates_unread_count = len(list(set(u for u in classmates_query_ids
                                          if u in unread_queries)))
     if vbs: print("classmates_query_ids length:", len(classmates_query_ids))
@@ -1397,6 +1398,7 @@ def get_queries_metadata():
                        ).select(orderby=~db.classes.start_date)
         # print('found {} courses'.format(len(mycourses)))
         for course in mycourses:
+            if vbs: print("course", course.id)
             students = list(set(s['name'] for s in
                                 db(db.class_membership.class_section == course.id
                                    ).select(db.class_membership.name)
@@ -1410,7 +1412,8 @@ def get_queries_metadata():
                    (db.bugs.date_submitted <= course['end_date'])
                    ).select(db.bugs.id)
             ))
-            students_query_ids.extend(students_queries)
+            students_query_ids.extend([q.id for q in students_queries])
+            if vbs: print("found", len(students_queries), "queries for this course")
             students_unread = [s for s in students_queries
                                if s in unread_queries]
             # print([s['auth_user']['id'] for s in student_queries])
@@ -1428,6 +1431,9 @@ def get_queries_metadata():
                                     'unread_count': len(students_unread)})
     students_unread_count = len(list(set(u for u in students_query_ids
                                          if u in unread_queries)))
+    if vbs: print("students_query_ids length:", len(students_query_ids))
+    if vbs: print(students_query_ids)
+    if vbs: print("students_unread_count:", students_unread_count)
 
     # count others' queries
     excluded_queries = classmates_query_ids + students_query_ids
