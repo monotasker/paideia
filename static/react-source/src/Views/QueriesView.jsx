@@ -761,9 +761,13 @@ const ScopeView = ({scope, nonStep, singleStep,
   console.log("in ScopeView: user.classInfo is");
   console.log(user.classInfo);
   console.log(Object.keys(user.classInfo).length);
+  console.log("in ScopeView: user.instructing is");
+  console.log(user.instructing);
+  console.log(Object.keys(user.instructing).length);
+
 
   function checkForGroupsAvailable() {
-    let noneAvailable = true;
+    let noneAvailable = false;
     if ( scope==="class" &&
         (!user.classInfo || !Object.keys(user.classInfo).length > 0 )) {
       noneAvailable = true;
@@ -779,6 +783,7 @@ const ScopeView = ({scope, nonStep, singleStep,
     if (!!byClass && myCourses.length > 0) {
       let myVal = !!viewGroup ? viewGroup : myCourses[0].id;
       courseChangeFunctions[scope](myVal);
+      console.log(`changing course to: ${myVal}`);
     }
   }, [byClass, viewGroup, scope, queries]);
 
@@ -857,7 +862,9 @@ const ScopeView = ({scope, nonStep, singleStep,
                 />
             </Form>
           :
-          <span>You aren't part of any course groups.</span>
+          <>
+          <span>You aren't part of any course groups.</span><br/><br/>
+          </>
         )
         :
         ""
@@ -1158,8 +1165,8 @@ const QueriesView = () => {
     const [singleStep, setSingleStep] = useState(!onStep ? false : true);
     const [nonStep, setNonStep] = useState(true);
     const [viewScope, setViewScope] = useState('public');
-    const [viewCourse, setViewCourse] = useState();
-    const [viewStudents, setViewStudents] = useState();
+    const [viewCourse, setViewCourse] = useState(0);
+    const [viewStudents, setViewStudents] = useState(0);
     const setViewCourseWrapped = (val) => {setViewCourse(val);};
     const setViewStudentsWrapped = (val) => {setViewStudents(val);};
     const courseChangeFunctions = {class: setViewCourseWrapped,
@@ -1585,23 +1592,30 @@ const QueriesView = () => {
 
     const fetchViewQueriesAction = () => {
       setLoading(true);
-      getViewQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
-                  user_id: user.userId,
-                  nonstep: nonStep,
-                  unread: filterUnread,
-                  unanswered: filterUnanswered,
-                  pagesize: 20,
-                  page: page,
-                  orderby: "modified_on",
-                  classmates_course: viewCourse,
-                  students_course: viewStudents,
-                  own_queries: viewScope==="user" ? true : false
-                })
-      .then(queryfetch => {
-        const formatted_queries = queryfetch.map( q => _formatQueryData(q));
-        setQueries(formatted_queries);
+      if ( (viewScope==="class" && viewCourse===0) ||
+           (viewScope==="students" && viewStudents===0)
+         ) {
+        setQueries({});
         setLoading(false);
-      });
+      } else {
+        getViewQueries({step_id: !!singleStep && !!onStep ? user.currentStep : 0,
+                    user_id: user.userId,
+                    nonstep: nonStep,
+                    unread: filterUnread,
+                    unanswered: filterUnanswered,
+                    pagesize: 20,
+                    page: page,
+                    orderby: "modified_on",
+                    classmates_course: viewCourse,
+                    students_course: viewStudents,
+                    own_queries: viewScope==="user" ? true : false
+                  })
+        .then(queryfetch => {
+          const formatted_queries = queryfetch.map( q => _formatQueryData(q));
+          setQueries(formatted_queries);
+          setLoading(false);
+        });
+      }
     }
 
     useEffect(() => fetchViewQueriesAction(),
