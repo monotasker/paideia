@@ -1305,7 +1305,7 @@ def get_queries_metadata():
     """
     Return counts for query categories.
     """
-    vbs=True
+    vbs=False
     db = current.db
     if vbs: print("api::get_queries_metadata============================")
 
@@ -1469,7 +1469,7 @@ def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
 
     pagination, via the "page" parameter, is zero indexed
     """
-    vbs=True
+    vbs=False
     offset_start = pagesize * page
     offset_end = offset_start + pagesize
     table_fields = [db.bugs.id,
