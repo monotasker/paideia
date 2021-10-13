@@ -1655,8 +1655,10 @@ const QueriesView = () => {
       event.preventDefault();
       const myscore = !['null', undefined].includes(user.currentScore) ?
         user.currentScore : null;
-      addQuery({step_id: user.currentStep,
-                path_id: user.currentPath,
+      const myStep = !!singleStep ? user.currentStep : null;
+      const myPath = !!singleStep ? user.currentPath : null;
+      addQuery({step_id: myStep,
+                path_id: myPath,
                 user_id: user.userId,
                 loc_name: user.currentLocation,
                 answer: user.currentAnswer,
