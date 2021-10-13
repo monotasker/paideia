@@ -367,7 +367,10 @@ form                                    {margin-bottom: 1rem;
                             background-color: $white;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
                             border-radius: $border-radius 0 0 $border-radius;
-                            padding: 2rem 0 2rem 1rem;
+                            padding: 2rem 0 0 0;
+
+    h2                      {margin-left: 1rem;
+    }
 
     &.panel-body-enter,
     &.panel-body-appear        {//right: -80%;
@@ -406,6 +409,7 @@ form                                    {margin-bottom: 1rem;
                                         padding: 0;
         .vocab-filter-form             {padding-right: 2.5rem;
                                         margin-bottom: .25rem;
+                                        padding-left: 1rem;
             .form-label                {font-size: $font-size-sm;
                                         color: darken($pallette1, 60%);
                                         margin-bottom: 0.25rem;
@@ -435,7 +439,7 @@ form                                    {margin-bottom: 1rem;
                                         overflow-y: auto;
                                         overflow-x: hidden;
                                         position: relative;
-                                        margin-left: -1rem;
+                                        margin-left: 0;
             .vocabtable-loading-spinner     {position: absolute;
                                              top: 50%;
                                              margin-top: -0.5rem;
@@ -630,6 +634,8 @@ form                                    {margin-bottom: 1rem;
                                          overflow-y: auto;
                                          padding-left: 0;
                                          padding-right: 3rem;
+        > form                          {padding-left: 1rem;
+        }
 
         .alert                          {display: flex;
                                          flex-direction: row;
@@ -727,6 +733,7 @@ form                                    {margin-bottom: 1rem;
                                      border-top: 1px solid $pallette2;
                                      overflow-y: auto;
                                      height: 100%;
+                                     padding-left: 1rem;
         @include react-transition-fade('queries-view-pane');
         .me-new-query-info          {margin-top: 0.5rem;
                                      margin-right: 1rem;
@@ -1017,6 +1024,30 @@ form                                    {margin-bottom: 1rem;
 
         }
     }
+    .queries-view-pager-wrapper     {display: flex;
+                                     justify-content: center;
+                                     background-color: lighten($pallette2, 5%);
+        .queries-view-pager         {margin-top: 0.25rem;
+                                     margin-bottom: 0;
+            .page-link              {background-color: lighten($pallette2, 10%);
+                                     color: darken($pallette2, 50%);
+                                     border-color: darken($pallette2, 10%);
+                &:hover             {background-color: lighten($pallette2, 15%);
+                }
+            }
+            .active .page-link      {background-color: darken($pallette2, 30%);
+                                     color: $white;
+                                     border-color: darken($pallette2, 40%);
+            }
+        }
+    }
+    .queries-view-footer            {display: flex;
+                                     justify-content: center;
+                                     background-color: lighten($pallette2, 5%);
+                                     color: darken($pallette2, 50%);
+                                     padding-bottom: 0.25rem;
+                                     padding-top: 0.25rem;
+    }
 }
 
 //-- reference view --------------------------------------------
@@ -1028,9 +1059,11 @@ form                                    {margin-bottom: 1rem;
                                         padding: 0;
         h2,
         form                           {padding-right: 2rem;
+                                        padding-left: 1rem;
         }
         .reference-view-panes          {overflow-y: auto;
                                         flex: 1;
+                                        padding-left: 1rem;
         }
     }
     .reference-view-pane               {padding-top: 1rem;
