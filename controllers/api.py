@@ -1199,10 +1199,11 @@ def get_view_queries():
         members = list(set([m.name for m in
                             db(db.class_membership.class_section ==
                                classmates_course).iterselect()
-                            ]))
-        assert userid in members
-        other_members = [m for m in members if m != userid]
-        classmates_term = ((db.bugs.user_name.belongs(other_members))
+                            if m.name != userid]
+                           ))
+        # assert userid in members
+        # other_members = [m for m in members if m != userid]
+        classmates_term = ((db.bugs.user_name.belongs(members)) &
                            (db.bugs.date_submitted >= myclass.start_date) &
                            (db.bugs.date_submitted <= myclass.end_date))
     if vbs: print("with classmates_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term)).count(), "records")
@@ -1305,7 +1306,7 @@ def get_queries_metadata():
     """
     Return counts for query categories.
     """
-    vbs=False
+    vbs=True
     db = current.db
     if vbs: print("api::get_queries_metadata============================")
 
@@ -1365,7 +1366,7 @@ def get_queries_metadata():
         if vbs: print("members:", members)
         if vbs: print("start_date:", myclass.start_date)
         if vbs: print("end_date:", myclass.end_date)
-        member_queries = list(set(q.id for q in
+        member_queries = list(set(
             db(basic_terms &
                db.bugs.user_name.belongs(members) &
                (db.bugs.date_submitted >= myclass.start_date) &
