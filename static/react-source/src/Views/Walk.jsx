@@ -15,20 +15,20 @@ import { urlBase } from "../variables";
 
 const Walk = () => {
     const { walkPage, walkStep } = useParams();
-    console.log("walkPage");
-    console.log(walkPage);
+    // console.log("walkPage");
+    // console.log(walkPage);
     const history = useHistory();
 
     const { user, dispatch } = useContext(UserContext);
     const [ currentPage, setCurrentPage ] = useState(walkPage || "map");
     const [stepData, setStepData] = useState(false);
-    console.log("STEPDATA IS");
-    console.log(stepData);
+    // console.log("STEPDATA IS");
+    // console.log(stepData);
 
     useEffect(() => {
       if ( currentPage != "map" ) {
-        console.log("###############");
-        console.log("setting step on Walk refresh");
+        // console.log("###############");
+        // console.log("setting step on Walk refresh");
         const myStep = !!walkStep ? walkStep : null;
         getPromptData({location: walkPage, repeat: false, step: myStep})
         .then(stepfetch => {
