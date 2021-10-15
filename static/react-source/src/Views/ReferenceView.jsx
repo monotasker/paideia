@@ -13,6 +13,70 @@ import {
 import { useHistory, Link } from "react-router-dom";
 import { urlBase } from "../variables";
 
+const GenitiveUses = ({navigateAwayHandler}) => (
+    <>
+        <Table className="genitive-uses-table" size="sm">
+            <thead>
+                <tr>
+                    <th colSpan="3">Common Uses of the Genitive</th>
+                </tr>
+                <tr>
+                    <th colSpan="3"><small>L = lead nominal, G = genitive nominal</small></th>
+                </tr>
+                <tr>
+                    <th>Genitive of...</th>
+                    <th>Kind of relationship</th>
+                    <th>Translation tip</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Relationship</td>
+                    <td>L has a personal relationship with G</td>
+                    <td>use English possessive</td>
+                </tr>
+                <tr>
+                    <td>Possession</td>
+                    <td>L is owned or possessed by G</td>
+                    <td>use English possessive</td>
+                </tr>
+                <tr>
+                    <td>Attribution</td>
+                    <td>L has the quality of G</td>
+                    <td>make G an English adjective</td>
+                </tr>
+                <tr>
+                    <td>Content</td>
+                    <td>G is the content of L</td>
+                    <td>"full of" or "filled with"</td>
+                </tr>
+                <tr>
+                    <td>Material</td>
+                    <td>L is made out of G</td>
+                    <td>"made from" or "made with"</td>
+                </tr>
+                <tr>
+                    <td>Epexegetical</td>
+                    <td>G is another word/phrase for L</td>
+                    <td>"that is"</td>
+                </tr>
+                <tr>
+                    <td>Source</td>
+                    <td>L comes from G</td>
+                    <td>"from"</td>
+                </tr>
+                <tr>
+                    <td>Partitive</td>
+                    <td>L is a part of G</td>
+                    <td>"of" or "part of"</td>
+                </tr>
+            </tbody>
+        </Table>
+        <p>The uses of the genitive are introduced in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/29`)}>lesson 5.1, "The Genitive Case"</Button></p>
+    </>
+
+);
+
 const CaseEndings = ({navigateAwayHandler}) => (
     <React.Fragment>
         <Table className="case-endings-table" size="sm">
@@ -173,7 +237,7 @@ const SquareOfStops = ({navigateAwayHandler}) => (
                 <tr>
                     <th>Dental</th>
                     <td>τ</td>
-                    <td>δ</td>
+                    <td>δ [ζ]</td>
                     <td>θ</td>
                     <td className="spacer"></td>
                     <td>σ</td>
@@ -270,6 +334,8 @@ const ReferenceView = ({navigateAwayHandler}) => {
                    ],
         'nominals': [{label: 'case endings',
                      component: <CaseEndings  navigateAwayHandler={navigateAwayHandler} />},
+                     {label: 'uses of the genitive case',
+                     component: <GenitiveUses  navigateAwayHandler={navigateAwayHandler} />},
                     ]
     }
     const [ sectionChosen, setSectionChosen ] = useState('general');
