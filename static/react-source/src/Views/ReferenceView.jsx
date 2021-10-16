@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
     TransitionGroup,
     CSSTransition
@@ -11,7 +11,29 @@ import {
     Table
 } from "react-bootstrap";
 import { useHistory, Link } from "react-router-dom";
+import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { urlBase } from "../variables";
+
+
+const DativeUses = ({navigateAwayHandler}) => (
+    <>
+    </>
+);
+
+const PersonalEndings = ({navigateAwayHandler}) => (
+    <>
+    </>
+);
+
+const KindsOf3rdDeclension = ({navigateAwayHandler}) => (
+    <>
+    </>
+);
+
+const Common2ndAorists = ({navigateAwayHandler}) => (
+    <>
+    </>
+);
 
 const GenitiveUses = ({navigateAwayHandler}) => (
     <>
@@ -72,7 +94,7 @@ const GenitiveUses = ({navigateAwayHandler}) => (
                 </tr>
             </tbody>
         </Table>
-        <p>The uses of the genitive are introduced in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/29`)}>lesson 5.1, "The Genitive Case"</Button></p>
+        <p>The uses of the genitive are introduced in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/51`)}>lesson 5.1, "The Genitive Case"</Button></p>
     </>
 
 );
@@ -326,17 +348,33 @@ const VowelContractions = ({navigateAwayHandler}) => {
 
 const ReferenceView = ({navigateAwayHandler}) => {
 
+    const [ user, ] = useContext(UserContext);
+    const userLevel = null;
+    console.log("user is");
+    console.log(user);
     const sections = {
-        'general': [{label: 'square of stops',
+        'general': [{label: 'square of stops', userLevel: {userLevel},
                     component: <SquareOfStops navigateAwayHandler={navigateAwayHandler} />},
-                    {label: 'vowel contractions',
+                    {label: 'vowel contractions', userLevel: {userLevel},
                     component: <VowelContractions navigateAwayHandler={navigateAwayHandler} />},
                    ],
-        'nominals': [{label: 'case endings',
+        'nominals': [{label: 'case endings', userLevel: {userLevel},
                      component: <CaseEndings  navigateAwayHandler={navigateAwayHandler} />},
+                     {label: 'kinds of 3rd declension noun',
+                      userLevel: {userLevel},
+                      component: <KindsOf3rdDeclension  navigateAwayHandler={navigateAwayHandler} />},
                      {label: 'uses of the genitive case',
-                     component: <GenitiveUses  navigateAwayHandler={navigateAwayHandler} />},
-                    ]
+                      userLevel: {userLevel},
+                      component: <GenitiveUses  navigateAwayHandler={navigateAwayHandler} />},
+                     {label: 'uses of the dative case',
+                      userLevel: {userLevel},
+                      component: <DativeUses  navigateAwayHandler={navigateAwayHandler} />},
+                    ],
+        'verbs': [{label: 'personal endings', userLevel: {userLevel},
+                   component: <PersonalEndings  navigateAwayHandler={navigateAwayHandler} />},
+                  {label: 'common 2nd aorist verbs', userLevel: {userLevel},
+                   component: <Common2ndAorists  navigateAwayHandler={navigateAwayHandler} />},
+                  ]
     }
     const [ sectionChosen, setSectionChosen ] = useState('general');
     const [ viewChosen, setViewChosen ] = useState(sections['general'][0].label);
