@@ -1074,10 +1074,7 @@ form                                    {margin-bottom: 1rem;
                                         vertical-align: baseline;
     }
 
-    .case-endings-table,
-    .square-of-stops-table,
-    .vowel-contractions-tableA,
-    .vowel-contractions-tableB             {
+    table                              {
         thead tr:first-child th        {color: $heading-color;
                                         font-family: $sans-fonts;
                                         font-size: 1rem;

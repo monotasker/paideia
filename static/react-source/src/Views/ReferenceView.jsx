@@ -99,7 +99,7 @@ const GenitiveUses = ({navigateAwayHandler}) => (
 
 );
 
-const CaseEndings = ({navigateAwayHandler}) => (
+const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => (
     <React.Fragment>
         <Table className="case-endings-table" size="sm">
             <thead>
@@ -133,97 +133,115 @@ const CaseEndings = ({navigateAwayHandler}) => (
                 <td>ς</td>
                 <td>-</td>
             </tr>
-            <tr>
-                <th>gen sing</th>
-                <td>υ</td>
-                <td>ς</td>
-                <td>υ</td>
-                <td className="spacer"></td>
-                <td>ος</td>
-                <td>ος</td>
-            </tr>
-            <tr>
-                <th>dat sing</th>
-                <td>ι</td>
-                <td>ι</td>
-                <td>ι</td>
-                <td className="spacer"></td>
-                <td>ι</td>
-                <td>ι</td>
-            </tr>
-            <tr>
-                <th>acc sing</th>
-                <td>ν</td>
-                <td>ν</td>
-                <td>ν</td>
-                <td className="spacer"></td>
-                <td>α/ν</td>
-                <td>-</td>
-            </tr>
-            <tr>
-                <th>voc sing</th>
-                <td>ε</td>
-                <td>-</td>
-                <td>ν</td>
-                <td className="spacer"></td>
-                <td>-</td>
-                <td>-</td>
-            </tr>
-            <tr>
-                <td colSpan="7" className="spacer"></td>
-            </tr>
-            <tr>
-                <th>nom plur</th>
-                <td>ι</td>
-                <td>ι</td>
-                <td>α</td>
-                <td className="spacer"></td>
-                <td>ες</td>
-                <td>α</td>
-            </tr>
-            <tr>
-                <th>gen plur</th>
-                <td>ων</td>
-                <td>ων</td>
-                <td>ων</td>
-                <td className="spacer"></td>
-                <td>ων</td>
-                <td>ων</td>
-            </tr>
-            <tr>
-                <th>dat plur</th>
-                <td>ις</td>
-                <td>ις</td>
-                <td>ις</td>
-                <td className="spacer"></td>
-                <td>σι(ν)</td>
-                <td>σι(ν)</td>
-            </tr>
-            <tr>
-                <th>acc plur</th>
-                <td>υς</td>
-                <td>ς</td>
-                <td>α</td>
-                <td className="spacer"></td>
-                <td>ας</td>
-                <td>α</td>
-            </tr>
-            <tr>
-                <th>voc plur</th>
-                <td>ι</td>
-                <td>ι</td>
-                <td>α</td>
-                <td className="spacer"></td>
-                <td>ες</td>
-                <td>α</td>
-            </tr>
+            {(!filterByLevel || (!!userLevel && userLevel >= 5)) &&
+             <>
+                <tr>
+                    <th>gen sing</th>
+                    <td>υ</td>
+                    <td>ς</td>
+                    <td>υ</td>
+                    <td className="spacer"></td>
+                    <td>ος</td>
+                    <td>ος</td>
+                </tr>
+                {(!filterByLevel || (!!userLevel && userLevel >= 8)) &&
+                    <tr>
+                        <th>dat sing</th>
+                        <td>ι</td>
+                        <td>ι</td>
+                        <td>ι</td>
+                        <td className="spacer"></td>
+                        <td>ι</td>
+                        <td>ι</td>
+                    </tr>
+                }
+                {(!filterByLevel || (!!userLevel && userLevel >= 7)) &&
+                    <tr>
+                        <th>acc sing</th>
+                        <td>ν</td>
+                        <td>ν</td>
+                        <td>ν</td>
+                        <td className="spacer"></td>
+                        <td>α/ν</td>
+                        <td>-</td>
+                    </tr>
+                }
+                {(!filterByLevel || (!!userLevel && userLevel >= 3)) &&
+                <tr>
+                    <th>voc sing</th>
+                    <td>ε</td>
+                    <td>-</td>
+                    <td>ν</td>
+                    <td className="spacer"></td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                }
+                <tr>
+                    <td colSpan="7" className="spacer"></td>
+                </tr>
+                {(!filterByLevel || (!!userLevel && userLevel >= 6)) &&
+                <>
+                <tr>
+                    <th>nom plur</th>
+                    <td>ι</td>
+                    <td>ι</td>
+                    <td>α</td>
+                    <td className="spacer"></td>
+                    <td>ες</td>
+                    <td>α</td>
+                </tr>
+                <tr>
+                    <th>gen plur</th>
+                    <td>ων</td>
+                    <td>ων</td>
+                    <td>ων</td>
+                    <td className="spacer"></td>
+                    <td>ων</td>
+                    <td>ων</td>
+                </tr>
+                {(!filterByLevel || (!!userLevel && userLevel >= 8)) &&
+                <tr>
+                    <th>dat plur</th>
+                    <td>ις</td>
+                    <td>ις</td>
+                    <td>ις</td>
+                    <td className="spacer"></td>
+                    <td>σι(ν)</td>
+                    <td>σι(ν)</td>
+                </tr>
+                }
+                {(!filterByLevel || (!!userLevel && userLevel >= 7)) &&
+                <tr>
+                    <th>acc plur</th>
+                    <td>υς</td>
+                    <td>ς</td>
+                    <td>α</td>
+                    <td className="spacer"></td>
+                    <td>ας</td>
+                    <td>α</td>
+                </tr>
+                }
+                <tr>
+                    <th>voc plur</th>
+                    <td>ι</td>
+                    <td>ι</td>
+                    <td>α</td>
+                    <td className="spacer"></td>
+                    <td>ες</td>
+                    <td>α</td>
+                </tr>
+                </>
+                }
+              </>
+            }
             </tbody>
         </Table>
         <p>The full set of case endings is introduced for the first time in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/81`)}>lesson 8.1, "The Dative Case"</Button></p>
     </React.Fragment>
 )
 
-const SquareOfStops = ({navigateAwayHandler}) => (
+const SquareOfStops = ({navigateAwayHandler, user, filterByLevel}) => (
     <React.Fragment>
         <Table className="square-of-stops-table">
             <thead>
@@ -270,7 +288,7 @@ const SquareOfStops = ({navigateAwayHandler}) => (
     </React.Fragment>
 )
 
-const VowelContractions = ({navigateAwayHandler}) => {
+const VowelContractions = ({navigateAwayHandler, userLevel, filterByLevel}) => {
     return (
         <React.Fragment>
             <Table className="vowel-contractions-tableA" size="sm">
@@ -348,40 +366,61 @@ const VowelContractions = ({navigateAwayHandler}) => {
 
 const ReferenceView = ({navigateAwayHandler}) => {
 
-    const [ user, ] = useContext(UserContext);
-    const userLevel = null;
-    console.log("user is");
-    console.log(user);
-    const sections = {
-        'general': [{label: 'square of stops', userLevel: {userLevel},
-                    component: <SquareOfStops navigateAwayHandler={navigateAwayHandler} />},
-                    {label: 'vowel contractions', userLevel: {userLevel},
-                    component: <VowelContractions navigateAwayHandler={navigateAwayHandler} />},
-                   ],
-        'nominals': [{label: 'case endings', userLevel: {userLevel},
-                     component: <CaseEndings  navigateAwayHandler={navigateAwayHandler} />},
-                     {label: 'kinds of 3rd declension noun',
-                      userLevel: {userLevel},
-                      component: <KindsOf3rdDeclension  navigateAwayHandler={navigateAwayHandler} />},
-                     {label: 'uses of the genitive case',
-                      userLevel: {userLevel},
-                      component: <GenitiveUses  navigateAwayHandler={navigateAwayHandler} />},
-                     {label: 'uses of the dative case',
-                      userLevel: {userLevel},
-                      component: <DativeUses  navigateAwayHandler={navigateAwayHandler} />},
-                    ],
-        'verbs': [{label: 'personal endings', userLevel: {userLevel},
-                   component: <PersonalEndings  navigateAwayHandler={navigateAwayHandler} />},
-                  {label: 'common 2nd aorist verbs', userLevel: {userLevel},
-                   component: <Common2ndAorists  navigateAwayHandler={navigateAwayHandler} />},
-                  ]
-    }
-    const [ sectionChosen, setSectionChosen ] = useState('general');
-    const [ viewChosen, setViewChosen ] = useState(sections['general'][0].label);
+    const { user, } = useContext(UserContext);
+    const userLevel = user.currentBadgeSet;
+    const [ filterByLevel, setFilterByLevel ] = useState(true);
+    console.log(`filterByLevel: ${filterByLevel}`);
+    const commonProps = {navigateAwayHandler: {navigateAwayHandler},
+                         userLevel: {userLevel},
+                         filterByLevel: {filterByLevel}
+                        };
+
+    const sections = [
+        {label: 'general',
+         level: 5,
+         views: [{label: 'square of stops',
+                  level: 10,
+                  component: <SquareOfStops {...commonProps} />},
+                 {label: 'vowel contractions',
+                  level: 5,
+                  component: <VowelContractions  {...commonProps} />},
+                 ]
+         },
+        {label: 'nominals',
+         level: 1,
+         views: [{label: 'case endings',
+                  level: 1,
+                  component: <CaseEndings  {...commonProps} />},
+                 {label: 'kinds of 3rd declension noun',
+                  level: 5,
+                  component: <KindsOf3rdDeclension  {...commonProps} />},
+                 {label: 'uses of the genitive case',
+                  level: 5,
+                  component: <GenitiveUses {...commonProps} />},
+                 {label: 'uses of the dative case',
+                  level: 8,
+                  component: <DativeUses {...commonProps} />},
+                 ]
+         },
+        {label: 'verbs',
+         level: 7,
+         views: [{label: 'personal endings',
+                  level: 7,
+                  component: <PersonalEndings {...commonProps} />},
+                 {label: 'common 2nd aorist verbs',
+                  level: 10,
+                  component: <Common2ndAorists {...commonProps} />},
+                ]
+         }
+    ];
+    const [ sectionChosen, setSectionChosen ] = useState(sections
+        .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)))[0].label);
+    const [ viewChosen, setViewChosen ] = useState(
+        sections.filter(s => s.label===sectionChosen)[0].views[0].label);
 
     const changeSection = ( value ) => {
         setSectionChosen(value);
-        setViewChosen(sections[value][0].label);
+        setViewChosen(sections.filter(s => s.label===value)[0].views[0].label);
     }
 
     return(
@@ -391,13 +430,25 @@ const ReferenceView = ({navigateAwayHandler}) => {
                 <Form>
                     <Form.Row>
                         <Col>
+                            <Form.Check inline label="Only show content I've learned so far"
+                            id="only-unread-checkbox"
+                            type="switch"
+                            // defaultValue={filterUnread}
+                            checked={filterByLevel}
+                            onChange={e => setFilterByLevel(!filterByLevel)}
+                            />
+                        </Col>
+                    </Form.Row>
+                    <Form.Row>
+                        <Col>
                             <Form.Control
                                 as="select"
                                 onChange={e => changeSection(e.target.value)}
                             >
-                                {Object.keys(sections).map( key =>
-                                    <option key={key}>{key}</option>
-                                )}
+                                {sections
+                                   .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)))
+                                   .map( s => <option key={s.label}>{s.label}</option>)
+                                }
                             </Form.Control>
                         </Col>
                         <Col>
@@ -405,7 +456,10 @@ const ReferenceView = ({navigateAwayHandler}) => {
                                 as="select"
                                 onChange={e => setViewChosen(e.target.value)}
                             >
-                                {sections[sectionChosen].map( s =>
+                                {sections
+                                    .filter(s => s.label===sectionChosen)[0].views
+                                    .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)))
+                                    .map( s =>
                                     <option key={s.label}>{s.label}</option>
                                 )}
                             </Form.Control>
@@ -413,7 +467,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
                     </Form.Row>
                 </Form>
                 <TransitionGroup className="reference-view-panes">
-                    {sections[sectionChosen].map( view =>
+                    {sections.filter(s => s.label===sectionChosen)[0].views.map( view =>
                         viewChosen === view.label &&
                         <CSSTransition
                             key={view.label}
