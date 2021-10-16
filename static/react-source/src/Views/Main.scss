@@ -1099,6 +1099,31 @@ form                                    {margin-bottom: 1rem;
         }
     }
 
+    .genitive-uses-table                {
+        thead                           {
+            tr:nth-child(3)             {
+                th                      {text-align: left;
+                                         padding-left: 1rem;
+                }
+            }
+        }
+        tbody                           {
+            td                          {font-size: 1.25rem;
+                                         font-family: $sans-fonts;
+                                         text-align: left;
+                                         padding-left: 1rem;
+                                         padding-right: 1rem;
+                &:nth-child(2),
+                &:nth-child(3)          {font-size: 1rem;
+                }
+                &:nth-child(2)          {background-color: lighten($table-background, 10%);
+                }
+                &:nth-child(3)          {font-weight: bold;
+                }
+            }
+        }
+    }
+
     .case-endings-table                 {
         tbody               {
             tr td:nth-child(n+2)       {font-size: 1.5rem;

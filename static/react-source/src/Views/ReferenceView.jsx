@@ -22,6 +22,88 @@ const DativeUses = ({navigateAwayHandler}) => (
 
 const PersonalEndings = ({navigateAwayHandler}) => (
     <>
+        <Table className="personal-endings-table" size="sm">
+            <thead>
+                <tr>
+                    <th colSpan="5">Personal Endings</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>Primary tenses</th>
+                    <th>Secondary tenses</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowSpan="6">Active</td>
+                    <td rowSpan="3">sing.</td>
+                    <td>1st person</td>
+                    <td>-<br /><small>λυ<b>ω</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2nd person</td>
+                    <td>ς<small><br />λυ<i>ει</i><b>ς</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>3rd person</td>
+                    <td>ι<br /><small>λυ<i>ε</i><b>ι</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowSpan="3">plur.</td>
+                    <td>1st person</td>
+                    <td>μεν<br /><small>λυ<i>ο</i><b>μεν</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2nd person</td>
+                    <td>τε<br /><small>λυ<i>ε</i><b>τε</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>3rd person</td>
+                    <td>νσι(ν)<br /><small>λυ<i>ου</i><b>σι(ν)</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowSpan="6">Middle/Passive</td>
+                    <td rowSpan="3">sing.</td>
+                    <td>1st person</td>
+                    <td>μαι<br /><small>λυ<i>ο</i><b>μαι</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2nd person</td>
+                    <td>σαι<br /><small>λυ<b>ῃ</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>3rd person</td>
+                    <td>ται<br /><small>λυ<i>ε</i><b>ται</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowSpan="3">plur.</td>
+                    <td>1st person</td>
+                    <td>μεθα<br /><small>λυ<i>ο</i><b>μεθα</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2nd person</td>
+                    <td>σθε<br /><small>λυ<i>ε</i><b>σθε</b></small></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>3rd person</td>
+                    <td>νται<br /><small>λυ<i>ο</i><b>νται</b></small></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </Table>
     </>
 );
 
