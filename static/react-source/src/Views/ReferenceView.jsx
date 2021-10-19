@@ -181,7 +181,9 @@ const GenitiveUses = ({navigateAwayHandler}) => (
 
 );
 
-const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => (
+const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => {
+    console.log(`filterByLevel: ${filterByLevel}`);
+    return(
     <React.Fragment>
         <Table className="case-endings-table" size="sm">
             <thead>
@@ -215,7 +217,7 @@ const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => (
                 <td>ς</td>
                 <td>-</td>
             </tr>
-            {(!filterByLevel || (!!userLevel && userLevel >= 5)) &&
+            {(filterByLevel===false || (!!userLevel && userLevel >= 5)) &&
              <>
                 <tr>
                     <th>gen sing</th>
@@ -226,7 +228,7 @@ const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => (
                     <td>ος</td>
                     <td>ος</td>
                 </tr>
-                {(!filterByLevel || (!!userLevel && userLevel >= 8)) &&
+                {(filterByLevel===false || (!!userLevel && (userLevel >= 8))) &&
                     <tr>
                         <th>dat sing</th>
                         <td>ι</td>
@@ -321,7 +323,7 @@ const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => (
         </Table>
         <p>The full set of case endings is introduced for the first time in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/81`)}>lesson 8.1, "The Dative Case"</Button></p>
     </React.Fragment>
-)
+)}
 
 const SquareOfStops = ({navigateAwayHandler, user, filterByLevel}) => (
     <React.Fragment>
@@ -376,9 +378,17 @@ const VowelContractions = ({navigateAwayHandler, userLevel, filterByLevel}) => {
             <Table className="vowel-contractions-tableA" size="sm">
                 <thead>
                     <tr>
-                        <th colSpan="4">Short Vowel Combinations</th>
+                        <th className="spacer"></th>
+                        <th className="spacer"></th>
+                        <th colSpan="3">Short Vowel Combinations</th>
                     </tr>
                     <tr>
+                        <th className="spacer"></th>
+                        <th className="spacer"></th>
+                        <th colSpan="3">connecting vowel for ending</th>
+                    </tr>
+                    <tr>
+                        <th className="spacer"></th>
                         <th className="spacer"></th>
                         <th>α</th>
                         <th>ε</th>
@@ -386,6 +396,9 @@ const VowelContractions = ({navigateAwayHandler, userLevel, filterByLevel}) => {
                     </tr>
                 </thead>
                 <tbody>
+                    <tr>
+                        <th rowSpan="4">final vowel of stem</th>
+                    </tr>
                     <tr>
                         <th>α</th>
                         <td>α</td>
@@ -409,7 +422,14 @@ const VowelContractions = ({navigateAwayHandler, userLevel, filterByLevel}) => {
             <Table className="vowel-contractions-tableB" size="sm">
                 <thead>
                     <tr>
-                        <th colSpan="4">With Long Vowels/Diphthongs</th>
+                        <th className="spacer"></th>
+                        <th className="spacer"></th>
+                        <th colSpan="3">With Long Vowels/Diphthongs</th>
+                    </tr>
+                    <tr>
+                        <th className="spacer"></th>
+                        <th className="spacer"></th>
+                        <th colSpan="3">connecting vowel for ending</th>
                     </tr>
                     <tr>
                         <th className="spacer"></th>
@@ -419,6 +439,9 @@ const VowelContractions = ({navigateAwayHandler, userLevel, filterByLevel}) => {
                     </tr>
                 </thead>
                 <tbody>
+                    <tr>
+                        <th rowSpan="4">final vowel of stem</th>
+                    </tr>
                     <tr>
                         <th>α</th>
                         <td>ω</td>
@@ -450,11 +473,11 @@ const ReferenceView = ({navigateAwayHandler}) => {
 
     const { user, } = useContext(UserContext);
     const userLevel = user.currentBadgeSet;
-    const [ filterByLevel, setFilterByLevel ] = useState(true);
-    console.log(`filterByLevel: ${filterByLevel}`);
-    const commonProps = {navigateAwayHandler: {navigateAwayHandler},
-                         userLevel: {userLevel},
-                         filterByLevel: {filterByLevel}
+    const [ filterByLevel, setFilterByLevel ] = useState(userLevel!==null ? true : false);
+    console.log(`userLevel: ${typeof(userLevel)}`);
+    const commonProps = {navigateAwayHandler: navigateAwayHandler,
+                         userLevel: userLevel,
+                         filterByLevel: filterByLevel
                         };
 
     const sections = [
@@ -496,7 +519,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
          }
     ];
     const [ sectionChosen, setSectionChosen ] = useState(sections
-        .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)))[0].label);
+        .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel) || (userLevel===null)))[0].label);
     const [ viewChosen, setViewChosen ] = useState(
         sections.filter(s => s.label===sectionChosen)[0].views[0].label);
 
@@ -505,11 +528,15 @@ const ReferenceView = ({navigateAwayHandler}) => {
         setViewChosen(sections.filter(s => s.label===value)[0].views[0].label);
     }
 
+    console.log(`filterByLevel: ${filterByLevel}`);
+    console.log(`userLevel: ${userLevel}`);
+
     return(
        <Row key="ReferenceView" className="referenceview-component panel-view">
            <Col>
                 <h2>Quick Reference</h2>
                 <Form>
+                    {userLevel!==null &&
                     <Form.Row>
                         <Col>
                             <Form.Check inline label="Only show content I've learned so far"
@@ -521,6 +548,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
                             />
                         </Col>
                     </Form.Row>
+                    }
                     <Form.Row>
                         <Col>
                             <Form.Control
@@ -528,7 +556,8 @@ const ReferenceView = ({navigateAwayHandler}) => {
                                 onChange={e => changeSection(e.target.value)}
                             >
                                 {sections
-                                   .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)))
+                                   .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel) ||
+                                   (userLevel===null)))
                                    .map( s => <option key={s.label}>{s.label}</option>)
                                 }
                             </Form.Control>
@@ -540,7 +569,8 @@ const ReferenceView = ({navigateAwayHandler}) => {
                             >
                                 {sections
                                     .filter(s => s.label===sectionChosen)[0].views
-                                    .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)))
+                                    .filter(s => (!filterByLevel || (userLevel!==null && s.level <= userLevel)
+                                    || (userLevel===null)))
                                     .map( s =>
                                     <option key={s.label}>{s.label}</option>
                                 )}

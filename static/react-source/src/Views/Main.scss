@@ -1169,16 +1169,29 @@ form                                    {margin-bottom: 1rem;
 
     .vowel-contractions-tableA,
     .vowel-contractions-tableB         {
-        thead th                       {
-            &:nth-child(n+2)           {width: 28%;
-            }
-        }
         th                             {font-size: 1.5rem;
                                         font-family: "SBL Greek";
                                         text-align: center;
                                         vertical-align: middle;
-                                        color: $accusative;
-            &:nth-child(1)            {color: $nominative;
+        }
+        thead                           {
+            tr:nth-child(2) th          {font-family: $sans-fonts;
+                                         font-size: $font-size-sm;
+            }
+            th                          {color: $accusative;
+                &:nth-child(n+3)        {width: 28%;
+                }
+            }
+        }
+        tbody                          {
+            tr:first-child              {
+                th                      {writing-mode: vertical-lr;
+                                         transform: rotate(180deg);
+                                         font-family: $sans-fonts;
+                                         font-size: $font-size-sm;
+                }
+            }
+            th                          {color: $nominative;
             }
         }
         td                              {font-size: 2rem;
