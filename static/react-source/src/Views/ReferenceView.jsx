@@ -25,82 +25,177 @@ const PersonalEndings = ({navigateAwayHandler}) => (
         <Table className="personal-endings-table" size="sm">
             <thead>
                 <tr>
-                    <th colSpan="5">Personal Endings</th>
+                    <th colSpan="6">Personal Endings</th>
                 </tr>
                 <tr>
                     <th></th>
                     <th></th>
                     <th></th>
                     <th>Primary tenses</th>
+                    <th className="spacer"></th>
                     <th>Secondary tenses</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td rowSpan="6">Active</td>
-                    <td rowSpan="3">sing.</td>
-                    <td>1st person</td>
-                    <td>-<br /><small>λυ<b>ω</b></small></td>
-                    <td></td>
+                    <th rowSpan="7">Active</th>
+                    <th rowSpan="3">sing.</th>
+                    <th><span className="person-numeral">1</span>st person</th>
+                    <td>-
+                        <ul>
+                            <li>
+                                <small className="person-example-present">λυ<b>ω</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-future">λυσ<b>ω</b></small>
+                            </li>
+                        </ul>
+
+                    </td>
+                    <td className="spacer"></td>
+                    <td>-ν<br />
+                        <ul>
+                            <li>
+                                <small className="person-example-imperfect">ἐλυ<i>ο</i><b>ν</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-1st-aorist">ἐλυσ<b>α</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-2nd-aorist">ἠλθ<i>ο</i><b>ν</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-perfect">λελυκ<b>α</b></small>
+                            </li>
+                        </ul>
+                    </td>
                 </tr>
                 <tr>
-                    <td>2nd person</td>
-                    <td>ς<small><br />λυ<i>ει</i><b>ς</b></small></td>
-                    <td></td>
+                    <th><span className="person-numeral">2</span>nd person</th>
+                    <td>-ς
+                        <ul>
+                            <li>
+                                <small className="person-example-present">λυ<i>ει</i><b>ς</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-future">λυσ<i>ει</i><b>ς</b></small>
+                            </li>
+                        </ul>
+                    </td>
+                    <td className="spacer"></td>
+                    <td>-ς
+                        <ul>
+                            <li>
+                                <small className="person-example-imperfect">ἐλυ<i>ε</i><b>ς</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-1st-aorist">ἐλυσ<i>α</i><b>ς</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-2nd-aorist">ἠλθ<i>ε</i><b>ς</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-perfect">λελυκ<i>α</i><b>ς</b></small>
+                            </li>
+                        </ul>
+                    </td>
                 </tr>
                 <tr>
-                    <td>3rd person</td>
-                    <td>ι<br /><small>λυ<i>ε</i><b>ι</b></small></td>
-                    <td></td>
+                    <th><span className="person-numeral">3</span>rd person</th>
+                    <td>-ι
+                        <ul>
+                            <li>
+                                <small className="person-example-present">λυ<i>ε</i><b>ι</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-future">λυσ<i>ε</i><b>ι</b></small>
+                            </li>
+                        </ul>
+                    </td>
+                    <td className="spacer"></td>
+                    <td>-(ν)
+                        <ul>
+                            <li>
+                                <small className="person-example-imperfect">ἐλυ<i>ε</i><b>(ν)</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-1st-aorist">ἐλυσ<i>α</i><b>(ν)</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-2nd-aorist">ἠλθ<i>ε</i><b>(ν)</b></small>
+                            </li>
+                            <li>
+                                <small className="person-example-perfect">λελυκ<i>ε</i><b>ν</b></small>
+                            </li>
+                        </ul>
+                    </td>
                 </tr>
                 <tr>
-                    <td rowSpan="3">plur.</td>
-                    <td>1st person</td>
-                    <td>μεν<br /><small>λυ<i>ο</i><b>μεν</b></small></td>
-                    <td></td>
+                    <td className="spacer" colSpan="6"></td>
                 </tr>
                 <tr>
-                    <td>2nd person</td>
-                    <td>τε<br /><small>λυ<i>ε</i><b>τε</b></small></td>
-                    <td></td>
+                    <th rowSpan="3">plur.</th>
+                    <th><span className="person-numeral">1</span>st person</th>
+                    <td>-μεν<br /><small>λυ<i>ο</i><b>μεν</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-μεν ἐλυομεν</td>
                 </tr>
                 <tr>
-                    <td>3rd person</td>
-                    <td>νσι(ν)<br /><small>λυ<i>ου</i><b>σι(ν)</b></small></td>
-                    <td></td>
+                    <th><span className="person-numeral">2</span>nd person</th>
+                    <td>-τε<br /><small>λυ<i>ε</i><b>τε</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-τε ἐλυετε</td>
                 </tr>
                 <tr>
-                    <td rowSpan="6">Middle/Passive</td>
-                    <td rowSpan="3">sing.</td>
-                    <td>1st person</td>
-                    <td>μαι<br /><small>λυ<i>ο</i><b>μαι</b></small></td>
-                    <td></td>
+                    <th><span className="person-numeral">3</span>rd person</th>
+                    <td>-νσι(ν)<br /><small>λυ<i>ου</i><b>σι(ν)</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-ν ἐλυον</td>
                 </tr>
                 <tr>
-                    <td>2nd person</td>
-                    <td>σαι<br /><small>λυ<b>ῃ</b></small></td>
-                    <td></td>
+                    <td className="spacer" colSpan="6"></td>
                 </tr>
                 <tr>
-                    <td>3rd person</td>
-                    <td>ται<br /><small>λυ<i>ε</i><b>ται</b></small></td>
-                    <td></td>
+                    <th rowSpan="7">Middle/Passive</th>
+                    <th rowSpan="3">sing.</th>
+                    <th><span className="person-numeral">1</span>st person</th>
+                    <td>-μαι<br /><small>λυ<i>ο</i><b>μαι</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-μην ἐλυομην</td>
                 </tr>
                 <tr>
-                    <td rowSpan="3">plur.</td>
-                    <td>1st person</td>
-                    <td>μεθα<br /><small>λυ<i>ο</i><b>μεθα</b></small></td>
-                    <td></td>
+                    <th><span className="person-numeral">2</span>nd person</th>
+                    <td>-σαι<br /><small>λυ<b>ῃ</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-σο ἐλυου</td>
                 </tr>
                 <tr>
-                    <td>2nd person</td>
-                    <td>σθε<br /><small>λυ<i>ε</i><b>σθε</b></small></td>
-                    <td></td>
+                    <th><span className="person-numeral">3</span>rd person</th>
+                    <td>-ται<br /><small>λυ<i>ε</i><b>ται</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-το ἐλυετο</td>
                 </tr>
                 <tr>
-                    <td>3rd person</td>
-                    <td>νται<br /><small>λυ<i>ο</i><b>νται</b></small></td>
-                    <td></td>
+                    <td className="spacer" colSpan="6"></td>
+                </tr>
+                <tr>
+                    <th rowSpan="3">plur.</th>
+                    <th><span className="person-numeral">1</span>st person</th>
+                    <td>-μεθα<br /><small>λυ<i>ο</i><b>μεθα</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-μεθα ἐλυομεθα</td>
+                </tr>
+                <tr>
+                    <th><span className="person-numeral">2</span>nd person</th>
+                    <td>-σθε<br /><small>λυ<i>ε</i><b>σθε</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-σθε ἐλυεσθε</td>
+                </tr>
+                <tr>
+                    <th><span className="person-numeral">3</span>rd person</th>
+                    <td>-νται<br /><small>λυ<i>ο</i><b>νται</b></small></td>
+                    <td className="spacer"></td>
+                    <td>-ντο ἐλυοντο</td>
                 </tr>
             </tbody>
         </Table>
@@ -217,7 +312,7 @@ const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => {
                 <td>ς</td>
                 <td>-</td>
             </tr>
-            {(filterByLevel===false || (!!userLevel && userLevel >= 5)) &&
+            {(!filterByLevel || (!!userLevel && userLevel >= 5)) &&
              <>
                 <tr>
                     <th>gen sing</th>
@@ -228,7 +323,7 @@ const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => {
                     <td>ος</td>
                     <td>ος</td>
                 </tr>
-                {(filterByLevel===false || (!!userLevel && (userLevel >= 8))) &&
+                {(!filterByLevel || (!!userLevel && userLevel >= 8)) &&
                     <tr>
                         <th>dat sing</th>
                         <td>ι</td>

@@ -1167,6 +1167,66 @@ form                                    {margin-bottom: 1rem;
         }
     }
 
+    .personal-endings-table            {
+        tbody                          {
+            th                         {font-size: $font-size-sm;
+                                        font-family: $sans-fonts;
+                                        width: 5rem;
+                                        line-height: 1rem;
+                                        font-weight: normal;
+                span.person-numeral    {font-size: 2rem;
+                                        float: left;
+                                        padding: .5rem .15rem 0 .15rem;
+                                        line-height: 1.5rem;
+                }
+
+            }
+            tr:first-child th:first-child,
+            tr:first-child th:nth-child(2),
+            tr:nth-child(5) th:first-child,
+            tr:nth-child(9) th:first-child,
+            tr:nth-child(9) th:nth-child(2),
+            tr:nth-child(13) th:first-child
+                                       {writing-mode: vertical-lr;
+                                        transform: rotate(180deg);
+                                        background-color: $table-background;
+                                        width: 2rem;
+                                        border-left: 1px solid darken($table-background, 10%);
+                                        font-size: $font-size-base;
+                                        line-height: 1.5rem;
+            }
+            td                         {background-color: lighten($verb, 50%);
+                                        font-size: 2rem;
+                                        color: darken($heading-color, 10%);
+                                        line-height: 1.6rem;
+                                        padding-top: 1rem;
+                small                  {font-size: 1rem;
+
+                }
+            }
+            tr                         {
+                &:first-child,
+                &:nth-child(5),
+                &:nth-child(9),
+                &:nth-child(13)        {
+                    td                 {background-color: lighten($verb, 55%);
+                    }
+                }
+                &:nth-child(2),
+                &:nth-child(6),
+                &:nth-child(10),
+                &:nth-child(14)        {
+                    td                 {background-color: lighten($verb, 53%);
+                    }
+                }
+                &:nth-child(4),
+                &:nth-child(12)        {padding-top: 0;
+                }
+            }
+
+        }
+    }
+
     .vowel-contractions-tableA,
     .vowel-contractions-tableB         {
         th                             {font-size: 1.5rem;
