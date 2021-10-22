@@ -1176,7 +1176,7 @@ form                                    {margin-bottom: 1rem;
                                         font-weight: normal;
                 span.person-numeral    {font-size: 2rem;
                                         float: left;
-                                        padding: .5rem .15rem 0 .15rem;
+                                        padding: .3rem .15rem 0 .15rem;
                                         line-height: 1.5rem;
                 }
 
@@ -1201,7 +1201,23 @@ form                                    {margin-bottom: 1rem;
                                         line-height: 1.6rem;
                                         padding-top: 1rem;
                 small                  {font-size: 1rem;
-
+                                        font-weight: bold;
+                    u                  {color: $nominative;
+                                        text-decoration: none;
+                    }
+                    b                  {color: $danger;
+                    }
+                    .mixed             {color: $dative;
+                                        text-decoration: underline;
+                    }
+                    .tense-label       {font-weight: normal;
+                                        color: $heading-color;
+                    }
+                }
+                ul                     {list-style-type: none;
+                                        font-size: 1rem;
+                                        padding-left: 0;
+                                        line-height: 1.3rem;
                 }
             }
             tr                         {

@@ -5,10 +5,12 @@ import {
 } from "react-transition-group";
 import {
     Button,
+    ToggleButtonGroup,
     Col,
     Form,
     Row,
-    Table
+    Table,
+    ToggleButton,
 } from "react-bootstrap";
 import { useHistory, Link } from "react-router-dom";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
@@ -20,7 +22,188 @@ const DativeUses = ({navigateAwayHandler}) => (
     </>
 );
 
-const PersonalEndings = ({navigateAwayHandler}) => (
+const PersonalEndings = ({navigateAwayHandler}) => {
+    const [showPresent, setShowPresent] = useState(true);
+    const [showFuture, setShowFuture] = useState(false);
+    const [showImperfect, setShowImperfect] = useState(true);
+    const [show1stAorist, setShow1stAorist] = useState(false);
+    const [show2ndAorist, setShow2ndAorist] = useState(false);
+    const [showPerfect, setShowPerfect] = useState(false);
+    const buttons = [{label: "present",
+                      prop: showPresent,
+                      handler: setShowPresent},
+                     {label: "future",
+                      prop: showFuture,
+                      handler: setShowFuture},
+                     {label: "imperfect",
+                      prop: showImperfect,
+                      handler: setShowImperfect},
+                     {label: "1st aorist",
+                      prop: show1stAorist,
+                      handler: setShow1stAorist},
+                     {label: "2nd aorist",
+                      prop: show2ndAorist,
+                      handler: setShow2ndAorist},
+                     {label: "perfect",
+                      prop: showPerfect,
+                      handler: setShowPerfect}
+                    ]
+
+    const caseForms = {'1pActiveSing': {pres: <>λυ<u className="mixed">ω</u></>,
+                                   fut: <>λυσ<u className="mixed">ω</u></>,
+                                   imp: <>ἐλυ<u>ο</u><b>ν</b></>,
+                                   faor:  <>ἐλυσ<b>α</b></>,
+                                   saor:  <>ἐλαβ<u>ο</u><b>ν</b></>,
+                                   perf: <>λελυκ<b>α</b></>,
+                                   prim: "",
+                                   sec: "ν",
+                                  },
+                      '2pActiveSing': {pres: <>λυ<u className="mixed">ει</u><b>ς</b></>,
+                                   fut: <>λυσ<u className="mixed">ει</u><b>ς</b></>,
+                                   imp: <>ἐλυ<u>ε</u><b>ς</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>ς</b></>,
+                                   saor:  <>ἐλαβ<u>ε</u><b>ς</b></>,
+                                   perf: <>λελυκ<u>α</u><b>ς</b></>,
+                                   prim: "ς",
+                                   sec: "ς",
+                                  },
+                      '3pActiveSing': {pres: <>λυ<u>ε</u><b>ι</b></>,
+                                   fut: <>λυσ<u>ε</u><b>ι</b></>,
+                                   imp: <>ἐλυ<u>ε</u><b>(ν)</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>(ν)</b></>,
+                                   saor:  <>ἐλαβ<u>ε</u><b>(ν)</b></>,
+                                   perf: <>λελυκ<u>ε</u><b>ν</b></>,
+                                   prim: "ι",
+                                   sec: "(ν)",
+                                  },
+                      '1pActivePlur': {pres: <>λυ<u>ο</u><b>μεν</b></>,
+                                   fut: <>λυσ<u>ο</u><b>μεν</b></>,
+                                   imp: <>ἐλυ<u>ο</u><b>μεν</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>μεν</b></>,
+                                   saor:  <>ἐλαβ<u>ο</u><b>μεν</b></>,
+                                   perf: <>λελυκ<u>α</u><b>μεν</b></>,
+                                   prim: "μεν",
+                                   sec: "μεν",
+                                  },
+                      '2pActivePlur': {pres: <>λυ<u>ε</u><b>τε</b></>,
+                                   fut: <>λυσ<u>ε</u><b>τε</b></>,
+                                   imp: <>ἐλυ<u>ε</u><b>τε</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>τε</b></>,
+                                   saor:  <>ἐλαβ<u>ε</u><b>τε</b></>,
+                                   perf: <>λελυκ<u>α</u><b>τε</b></>,
+                                   prim: "τε",
+                                   sec: "τε",
+                                  },
+                      '3pActivePlur': {pres: <>λυ<u className="mixed">ου</u><b>σι(ν)</b></>,
+                                   fut: <>λυσ<u className="mixed">ου</u><b>σι(ν)</b></>,
+                                   imp: <>ἐλυ<u>ο</u><b>ν</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>ν</b></>,
+                                   saor:  <>ἐλαβ<u>ο</u><b>ν</b></>,
+                                   perf: <>λελυκ<u>α</u><b>ν</b></>,
+                                   prim: "νσι(ν)",
+                                   sec: "ν",
+                                  },
+                      '1pMiddleSing': {pres: <>λυ<u>ο</u><b>μαι</b></>,
+                                   fut: <>λυσ<u>ο</u><b>μαι</b></>,
+                                   imp: <>ἐλυ<u>ο</u><b>μην</b></>,
+                                   faor:  <>ἐλυσ<u>α</u>μην</>,
+                                   saor:  <>ἐγεν<u>ο</u><b>μην</b></>,
+                                   perf: <>λελυ<b>μαι</b></>,
+                                   prim: "μαι",
+                                   sec: "μην",
+                                  },
+                      '2pMiddleSing': {pres: <>λυ<u className="mixed">ῃ</u></>,
+                                   fut: <>λυσ<u className="mixed">ῃ</u></>,
+                                   imp: <>ἐλυ<u>ε</u><b>το</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>το</b></>,
+                                   saor:  <>ἐγεν<u>ε</u><b>το</b></>,
+                                   perf: <>λελυ<b>σαι</b></>,
+                                   prim: "σαι",
+                                   sec: "σο",
+                                  },
+                      '3pMiddleSing': {pres: <>λυ<u>ε</u><b>ται</b></>,
+                                   fut: <>λυσ<u>ε</u><b>ται</b></>,
+                                   imp: <>ἐλυσ<u>ε</u><b>το</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>το</b></>,
+                                   saor:  <>ἐγεν<u>ε</u><b>το</b></>,
+                                   perf: <>λελυ<b>ται</b></>,
+                                   prim: "ται",
+                                   sec: "το",
+                                  },
+                      '1pMiddlePlur': {pres: <>λυ<u>ο</u><b>μεθα</b></>,
+                                   fut: <>λυσ<u>ο</u><b>μεθα</b></>,
+                                   imp: <>ἐλυ<u>ο</u><b>μεθα</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>μεθα</b></>,
+                                   saor:  <>ἐγεν<u>ο</u><b>μεθα</b></>,
+                                   perf: <>λελυ<b>μεθα</b></>,
+                                   prim: "μεθα",
+                                   sec: "μεθα",
+                                  },
+                      '2pMiddlePlur': {pres: <>λυ<u>ε</u><b>σθε</b></>,
+                                   fut: <>λυσ<u>ε</u><b>σθε</b></>,
+                                   imp: <>ἐλυ<u>ε</u><b>σθε</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>σθε</b></>,
+                                   saor:  <>ἐγεν<u>ε</u><b>σθε</b></>,
+                                   perf: <>λελυ<b>σθε</b></>,
+                                   prim: "σθε",
+                                   sec: "σθε",
+                                  },
+                      '3pMiddlePlur': {pres: <>λυ<u>ο</u><b>νται</b></>,
+                                   fut: <>λυσ<u>ο</u><b>νται</b></>,
+                                   imp: <>ἐλυ<u>ο</u><b>ντο</b></>,
+                                   faor:  <>ἐλυσ<u>α</u><b>ντο</b></>,
+                                   saor:  <>ἐγεν<u>ο</u><b>ντο</b></>,
+                                   perf: <>λελυ<b>νται</b></>,
+                                   prim: "νται",
+                                   sec: "ντο",
+                                  },
+    }
+    const TableRow = ({pres, fut, imp, faor, saor, perf, prim, sec}) => (
+        <>
+        <td>-{prim}
+            <ul>
+                {!!showPresent &&
+                <li>
+                    <small className="person-example-present"><span className="tense-label">present:</span> {pres}</small>
+                </li>
+                }
+                {!!showFuture &&
+                <li>
+                    <small className="person-example-future"><span className="tense-label">future:</span> {fut}</small>
+                </li>
+                }
+                {!!showPerfect &&
+                <li>
+                    <small className="person-example-perfect"><span className="tense-label">perfect:</span> {perf}</small>
+                </li>
+                }
+            </ul>
+
+        </td>
+        <td className="spacer"></td>
+        <td>-{sec}<br />
+            <ul>
+                {!!showImperfect &&
+                <li>
+                    <small className="person-example-imperfect"><span className="tense-label">imperfect:</span> {imp}</small>
+                </li>
+                }
+                {!!show1stAorist &&
+                <li>
+                    <small className="person-example-1st-aorist"><span className="tense-label">1st aorist:</span> {faor}</small>
+                </li>
+                }
+                {!!show2ndAorist &&
+                <li>
+                    <small className="person-example-2nd-aorist"><span className="tense-label">2nd aorist:</span> {saor}</small>
+                </li>
+                }
+            </ul>
+        </td>
+        </>
+    )
+
+    return(
     <>
         <Table className="personal-endings-table" size="sm">
             <thead>
@@ -35,100 +218,71 @@ const PersonalEndings = ({navigateAwayHandler}) => (
                     <th className="spacer"></th>
                     <th>Secondary tenses</th>
                 </tr>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>
+                        <ToggleButtonGroup className="mb-2"
+                            type="checkbox"
+                            name="tenses"
+                            vertical={true}
+                        >
+                        {buttons.map(b => ["present", "future", "perfect"].includes(b.label) &&
+                            <ToggleButton
+                                id={`toggle-${b.label}`}
+                                key={`toggle-${b.label}`}
+                                type="checkbox"
+                                name="tenses"
+                                variant="secondary"
+                                checked={b.prop}
+                                value={b.label}
+                                onChange={(e) => b.handler(!b.prop)}
+                            >
+                                {b.label}
+                            </ToggleButton>
+                        )}
+                        </ToggleButtonGroup>
+                    </th>
+                    <th className="spacer"></th>
+                    <th>
+                        <ToggleButtonGroup className="mb-2"
+                            type="checkbox"
+                            name="tenses"
+                            vertical={true}
+                        >
+                        {buttons.map(b => ["imperfect", "1st aorist", "2nd aorist"].includes(b.label) &&
+                            <ToggleButton
+                                id={`toggle-${b.label}`}
+                                key={`toggle-${b.label}`}
+                                type="checkbox"
+                                name="tenses"
+                                variant="secondary"
+                                checked={b.prop}
+                                value={b.label}
+                                onChange={(e) => b.handler(!b.prop)}
+                            >
+                                {b.label}
+                            </ToggleButton>
+                        )}
+                        </ToggleButtonGroup>
+                    </th>
+                </tr>
             </thead>
             <tbody>
                 <tr>
                     <th rowSpan="7">Active</th>
                     <th rowSpan="3">sing.</th>
                     <th><span className="person-numeral">1</span>st person</th>
-                    <td>-
-                        <ul>
-                            <li>
-                                <small className="person-example-present">λυ<b>ω</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-future">λυσ<b>ω</b></small>
-                            </li>
-                        </ul>
-
-                    </td>
-                    <td className="spacer"></td>
-                    <td>-ν<br />
-                        <ul>
-                            <li>
-                                <small className="person-example-imperfect">ἐλυ<i>ο</i><b>ν</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-1st-aorist">ἐλυσ<b>α</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-2nd-aorist">ἠλθ<i>ο</i><b>ν</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-perfect">λελυκ<b>α</b></small>
-                            </li>
-                        </ul>
-                    </td>
+                    <TableRow {...caseForms["1pActiveSing"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">2</span>nd person</th>
-                    <td>-ς
-                        <ul>
-                            <li>
-                                <small className="person-example-present">λυ<i>ει</i><b>ς</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-future">λυσ<i>ει</i><b>ς</b></small>
-                            </li>
-                        </ul>
-                    </td>
-                    <td className="spacer"></td>
-                    <td>-ς
-                        <ul>
-                            <li>
-                                <small className="person-example-imperfect">ἐλυ<i>ε</i><b>ς</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-1st-aorist">ἐλυσ<i>α</i><b>ς</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-2nd-aorist">ἠλθ<i>ε</i><b>ς</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-perfect">λελυκ<i>α</i><b>ς</b></small>
-                            </li>
-                        </ul>
-                    </td>
+                    <TableRow {...caseForms["2pActiveSing"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">3</span>rd person</th>
-                    <td>-ι
-                        <ul>
-                            <li>
-                                <small className="person-example-present">λυ<i>ε</i><b>ι</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-future">λυσ<i>ε</i><b>ι</b></small>
-                            </li>
-                        </ul>
-                    </td>
-                    <td className="spacer"></td>
-                    <td>-(ν)
-                        <ul>
-                            <li>
-                                <small className="person-example-imperfect">ἐλυ<i>ε</i><b>(ν)</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-1st-aorist">ἐλυσ<i>α</i><b>(ν)</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-2nd-aorist">ἠλθ<i>ε</i><b>(ν)</b></small>
-                            </li>
-                            <li>
-                                <small className="person-example-perfect">λελυκ<i>ε</i><b>ν</b></small>
-                            </li>
-                        </ul>
-                    </td>
+                    <TableRow {...caseForms["3pActiveSing"]} />
                 </tr>
                 <tr>
                     <td className="spacer" colSpan="6"></td>
@@ -136,21 +290,15 @@ const PersonalEndings = ({navigateAwayHandler}) => (
                 <tr>
                     <th rowSpan="3">plur.</th>
                     <th><span className="person-numeral">1</span>st person</th>
-                    <td>-μεν<br /><small>λυ<i>ο</i><b>μεν</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-μεν ἐλυομεν</td>
+                    <TableRow {...caseForms["1pActivePlur"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">2</span>nd person</th>
-                    <td>-τε<br /><small>λυ<i>ε</i><b>τε</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-τε ἐλυετε</td>
+                    <TableRow {...caseForms["2pActivePlur"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">3</span>rd person</th>
-                    <td>-νσι(ν)<br /><small>λυ<i>ου</i><b>σι(ν)</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-ν ἐλυον</td>
+                    <TableRow {...caseForms["3pActivePlur"]} />
                 </tr>
                 <tr>
                     <td className="spacer" colSpan="6"></td>
@@ -159,21 +307,15 @@ const PersonalEndings = ({navigateAwayHandler}) => (
                     <th rowSpan="7">Middle/Passive</th>
                     <th rowSpan="3">sing.</th>
                     <th><span className="person-numeral">1</span>st person</th>
-                    <td>-μαι<br /><small>λυ<i>ο</i><b>μαι</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-μην ἐλυομην</td>
+                    <TableRow {...caseForms["1pMiddleSing"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">2</span>nd person</th>
-                    <td>-σαι<br /><small>λυ<b>ῃ</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-σο ἐλυου</td>
+                    <TableRow {...caseForms["2pMiddleSing"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">3</span>rd person</th>
-                    <td>-ται<br /><small>λυ<i>ε</i><b>ται</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-το ἐλυετο</td>
+                    <TableRow {...caseForms["3pMiddleSing"]} />
                 </tr>
                 <tr>
                     <td className="spacer" colSpan="6"></td>
@@ -181,26 +323,21 @@ const PersonalEndings = ({navigateAwayHandler}) => (
                 <tr>
                     <th rowSpan="3">plur.</th>
                     <th><span className="person-numeral">1</span>st person</th>
-                    <td>-μεθα<br /><small>λυ<i>ο</i><b>μεθα</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-μεθα ἐλυομεθα</td>
+                    <TableRow {...caseForms["1pMiddlePlur"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">2</span>nd person</th>
-                    <td>-σθε<br /><small>λυ<i>ε</i><b>σθε</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-σθε ἐλυεσθε</td>
+                    <TableRow {...caseForms["2pMiddlePlur"]} />
                 </tr>
                 <tr>
                     <th><span className="person-numeral">3</span>rd person</th>
-                    <td>-νται<br /><small>λυ<i>ο</i><b>νται</b></small></td>
-                    <td className="spacer"></td>
-                    <td>-ντο ἐλυοντο</td>
+                    <TableRow {...caseForms["3pMiddlePlur"]} />
                 </tr>
             </tbody>
         </Table>
     </>
 );
+}
 
 const KindsOf3rdDeclension = ({navigateAwayHandler}) => (
     <>
