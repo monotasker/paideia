@@ -1168,6 +1168,15 @@ form                                    {margin-bottom: 1rem;
     }
 
     .personal-endings-table            {
+        thead                          {
+            th                         {padding-top: 0;
+                                        padding-bottom: 0;
+            }
+            tr:nth-child(2)            {
+                th                     {padding-top: 0.5rem;
+                }
+            }
+        }
         tbody                          {
             th                         {font-size: $font-size-sm;
                                         font-family: $sans-fonts;
@@ -1200,24 +1209,28 @@ form                                    {margin-bottom: 1rem;
                                         color: darken($heading-color, 10%);
                                         line-height: 1.6rem;
                                         padding-top: 1rem;
-                small                  {font-size: 1rem;
+                small                  {font-size: 1.3rem;
                                         font-weight: bold;
                     u                  {color: $nominative;
                                         text-decoration: none;
                     }
-                    b                  {color: $danger;
+                    b                  {color: $dative;
                     }
-                    .mixed             {color: $dative;
+                    .mixed             {color: $danger;
                                         text-decoration: underline;
                     }
                     .tense-label       {font-weight: normal;
                                         color: $heading-color;
+                                        font-family: $sans-fonts;
+                                        font-size: 1rem;
                     }
                 }
                 ul                     {list-style-type: none;
                                         font-size: 1rem;
                                         padding-left: 0;
                                         line-height: 1.3rem;
+                                        margin-bottom: 0;
+                                        margin-top: 0.5rem;
                 }
             }
             tr                         {

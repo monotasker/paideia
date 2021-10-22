@@ -13,6 +13,7 @@ import {
     ToggleButton,
 } from "react-bootstrap";
 import { useHistory, Link } from "react-router-dom";
+import Measure from "react-measure";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { urlBase } from "../variables";
 
@@ -29,22 +30,30 @@ const PersonalEndings = ({navigateAwayHandler}) => {
     const [show1stAorist, setShow1stAorist] = useState(false);
     const [show2ndAorist, setShow2ndAorist] = useState(false);
     const [showPerfect, setShowPerfect] = useState(false);
-    const buttons = [{label: "present",
+    const [tableWidth, setTableWidth] = useState();
+    const wideTable = tableWidth >= 555 ? true : false;
+    const buttons = [{label: `pres${!!wideTable ? "ent" : "."}`,
+                      value: "present",
                       prop: showPresent,
                       handler: setShowPresent},
-                     {label: "future",
+                     {label: `fut${!!wideTable ? "ure" : "."}`,
+                      value: "future",
                       prop: showFuture,
                       handler: setShowFuture},
-                     {label: "imperfect",
+                     {label: `imp${!!wideTable ? "erfect" : "."}`,
+                      value: "imperfect",
                       prop: showImperfect,
                       handler: setShowImperfect},
-                     {label: "1st aorist",
+                     {label: `1 aor${!!wideTable ? "ist" : "."}`,
+                      value: "1 aorist",
                       prop: show1stAorist,
                       handler: setShow1stAorist},
-                     {label: "2nd aorist",
+                     {label: `2 aor${!!wideTable ? "ist" : "."}`,
+                      value: "2 aorist",
                       prop: show2ndAorist,
                       handler: setShow2ndAorist},
-                     {label: "perfect",
+                     {label: `perf${!!wideTable ? "ect" : "."}`,
+                      value: "perfect",
                       prop: showPerfect,
                       handler: setShowPerfect}
                     ]
@@ -52,9 +61,9 @@ const PersonalEndings = ({navigateAwayHandler}) => {
     const caseForms = {'1pActiveSing': {pres: <>λυ<u className="mixed">ω</u></>,
                                    fut: <>λυσ<u className="mixed">ω</u></>,
                                    imp: <>ἐλυ<u>ο</u><b>ν</b></>,
-                                   faor:  <>ἐλυσ<b>α</b></>,
+                                   faor:  <>ἐλυσ<u className="mixed">α</u></>,
                                    saor:  <>ἐλαβ<u>ο</u><b>ν</b></>,
-                                   perf: <>λελυκ<b>α</b></>,
+                                   perf: <>λελυκ<u className="mixed">α</u></>,
                                    prim: "",
                                    sec: "ν",
                                   },
@@ -205,10 +214,15 @@ const PersonalEndings = ({navigateAwayHandler}) => {
 
     return(
     <>
-        <Table className="personal-endings-table" size="sm">
+    <Measure bounds onResize={t => setTableWidth(t.bounds.width)}>
+        {({measureRef}) => (
+        <Table className="personal-endings-table" size="sm" ref={measureRef}>
             <thead>
                 <tr>
-                    <th colSpan="6">Personal Endings</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th colSpan="3">Personal Endings</th>
                 </tr>
                 <tr>
                     <th></th>
@@ -223,20 +237,23 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                     <th></th>
                     <th></th>
                     <th>
+                        <small>with examples from</small><br />
                         <ToggleButtonGroup className="mb-2"
                             type="checkbox"
                             name="tenses"
-                            vertical={true}
+                            // vertical={tableWidth >= 500 ? false : true}
+                            size="sm"
+                            defaultValue={buttons.map(b => ["present", "future", "perfect"].includes(b.value) && b.prop===true && b.value)}
                         >
-                        {buttons.map(b => ["present", "future", "perfect"].includes(b.label) &&
+                        {buttons.map(b => ["present", "future", "perfect"].includes(b.value) &&
                             <ToggleButton
-                                id={`toggle-${b.label}`}
-                                key={`toggle-${b.label}`}
+                                id={`toggle-${b.value}`}
+                                key={`toggle-${b.value}`}
                                 type="checkbox"
                                 name="tenses"
-                                variant="secondary"
+                                variant="outline-secondary"
                                 checked={b.prop}
-                                value={b.label}
+                                value={b.value}
                                 onChange={(e) => b.handler(!b.prop)}
                             >
                                 {b.label}
@@ -246,20 +263,23 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                     </th>
                     <th className="spacer"></th>
                     <th>
+                        <small>with examples from</small><br/>
                         <ToggleButtonGroup className="mb-2"
                             type="checkbox"
                             name="tenses"
-                            vertical={true}
+                            // vertical={tableWidth >= 500 ? false : true}
+                            size="sm"
+                            defaultValue={buttons.map(b => ["imperfect", "1 aorist", "2 aorist"].includes(b.value) && b.prop===true && b.value)}
                         >
-                        {buttons.map(b => ["imperfect", "1st aorist", "2nd aorist"].includes(b.label) &&
+                        {buttons.map(b => ["imperfect", "1 aorist", "2 aorist"].includes(b.value) &&
                             <ToggleButton
-                                id={`toggle-${b.label}`}
-                                key={`toggle-${b.label}`}
+                                id={`toggle-${b.value}`}
+                                key={`toggle-${b.value}`}
                                 type="checkbox"
                                 name="tenses"
-                                variant="secondary"
+                                variant="outline-secondary"
                                 checked={b.prop}
-                                value={b.label}
+                                value={b.value}
                                 onChange={(e) => b.handler(!b.prop)}
                             >
                                 {b.label}
@@ -273,15 +293,15 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                 <tr>
                     <th rowSpan="7">Active</th>
                     <th rowSpan="3">sing.</th>
-                    <th><span className="person-numeral">1</span>st person</th>
+                    <th><span className="person-numeral">1</span>st p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["1pActiveSing"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">2</span>nd person</th>
+                    <th><span className="person-numeral">2</span>nd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["2pActiveSing"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">3</span>rd person</th>
+                    <th><span className="person-numeral">3</span>rd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["3pActiveSing"]} />
                 </tr>
                 <tr>
@@ -289,15 +309,15 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                 </tr>
                 <tr>
                     <th rowSpan="3">plur.</th>
-                    <th><span className="person-numeral">1</span>st person</th>
+                    <th><span className="person-numeral">1</span>st p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["1pActivePlur"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">2</span>nd person</th>
+                    <th><span className="person-numeral">2</span>nd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["2pActivePlur"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">3</span>rd person</th>
+                    <th><span className="person-numeral">3</span>rd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["3pActivePlur"]} />
                 </tr>
                 <tr>
@@ -306,15 +326,15 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                 <tr>
                     <th rowSpan="7">Middle/Passive</th>
                     <th rowSpan="3">sing.</th>
-                    <th><span className="person-numeral">1</span>st person</th>
+                    <th><span className="person-numeral">1</span>st p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["1pMiddleSing"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">2</span>nd person</th>
+                    <th><span className="person-numeral">2</span>nd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["2pMiddleSing"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">3</span>rd person</th>
+                    <th><span className="person-numeral">3</span>rd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["3pMiddleSing"]} />
                 </tr>
                 <tr>
@@ -322,19 +342,21 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                 </tr>
                 <tr>
                     <th rowSpan="3">plur.</th>
-                    <th><span className="person-numeral">1</span>st person</th>
+                    <th><span className="person-numeral">1</span>st p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["1pMiddlePlur"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">2</span>nd person</th>
+                    <th><span className="person-numeral">2</span>nd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["2pMiddlePlur"]} />
                 </tr>
                 <tr>
-                    <th><span className="person-numeral">3</span>rd person</th>
+                    <th><span className="person-numeral">3</span>rd p{tableWidth >= 555 ? "erson" : "."}</th>
                     <TableRow {...caseForms["3pMiddlePlur"]} />
                 </tr>
             </tbody>
         </Table>
+        )}
+    </Measure>
     </>
 );
 }
