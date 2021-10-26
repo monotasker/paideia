@@ -20,6 +20,59 @@ import { urlBase } from "../variables";
 
 const DativeUses = ({navigateAwayHandler}) => (
     <>
+        <Table className="dative-uses-table" size="sm">
+            <thead>
+                <tr>
+                    <th colSpan="3">Common Uses of the Dative</th>
+                </tr>
+                <tr>
+                    <th colSpan="3"><small>A = action being modified, D = dative nominal</small></th>
+                </tr>
+                <tr>
+                    <th>Dative of...</th>
+                    <th>Relationship to the action</th>
+                    <th>Helper words</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Indirect object</td>
+                    <td></td>
+                    <td>"to"</td>
+                </tr>
+                <tr>
+                    <td>Interest</td>
+                    <td></td>
+                    <td>"for"</td>
+                </tr>
+                <tr>
+                    <td>Accompaniment</td>
+                    <td></td>
+                    <td>"with"</td>
+                </tr>
+                <tr>
+                    <td>Time</td>
+                    <td></td>
+                    <td>"in" or "at" or "during"</td>
+                </tr>
+                <tr>
+                    <td>Place</td>
+                    <td></td>
+                    <td>"in" or "at"</td>
+                </tr>
+                <tr>
+                    <td>Instrument or means</td>
+                    <td></td>
+                    <td>"with" or "using"</td>
+                </tr>
+                <tr>
+                    <td>Context or sphere</td>
+                    <td></td>
+                    <td>"in the context of" or "in relation to"</td>
+                </tr>
+            </tbody>
+        </Table>
+        <p>The uses of the genitive are introduced in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/81`)}>lesson 8.1, "The Dative Case"</Button></p>
     </>
 );
 
