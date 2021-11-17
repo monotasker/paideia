@@ -1099,6 +1099,7 @@ form                                    {margin-bottom: 1rem;
         }
     }
 
+    .dative-uses-table,
     .genitive-uses-table                {
         thead                           {
             tr:nth-child(3)             {
@@ -1119,6 +1120,26 @@ form                                    {margin-bottom: 1rem;
                 &:nth-child(2)          {background-color: lighten($table-background, 10%);
                 }
                 &:nth-child(3)          {font-weight: bold;
+                }
+            }
+        }
+    }
+
+
+    .genitive-uses-table                {
+        tbody                           {
+            td                          {background-color: lighten($genitive, 40%);
+                &:nth-child(2)          {background-color: lighten($genitive, 47%);
+                }
+            }
+        }
+    }
+
+
+    .dative-uses-table                  {
+        tbody                           {
+            td                          {background-color: lighten($dative, 50%);
+                &:nth-child(2)          {background-color: lighten($dative, 55%);
                 }
             }
         }

@@ -37,42 +37,42 @@ const DativeUses = ({navigateAwayHandler}) => (
             <tbody>
                 <tr>
                     <td>Indirect object</td>
-                    <td></td>
+                    <td>D is the secondary recipient or target of A</td>
                     <td>"to"</td>
                 </tr>
                 <tr>
                     <td>Interest</td>
-                    <td></td>
+                    <td>A is performed for the sake of D or A benefits D</td>
                     <td>"for"</td>
                 </tr>
                 <tr>
                     <td>Accompaniment</td>
-                    <td></td>
+                    <td>D is with the subject of A during action</td>
                     <td>"with"</td>
                 </tr>
                 <tr>
                     <td>Time</td>
-                    <td></td>
+                    <td>A takes place at the time D</td>
                     <td>"in" or "at" or "during"</td>
                 </tr>
                 <tr>
                     <td>Place</td>
-                    <td></td>
+                    <td>A takes place in the location D</td>
                     <td>"in" or "at"</td>
                 </tr>
                 <tr>
                     <td>Instrument or means</td>
-                    <td></td>
+                    <td>A is performed using D</td>
                     <td>"with" or "using"</td>
                 </tr>
                 <tr>
                     <td>Context or sphere</td>
-                    <td></td>
+                    <td>A takes place in the context of D</td>
                     <td>"in the context of" or "in relation to"</td>
                 </tr>
             </tbody>
         </Table>
-        <p>The uses of the genitive are introduced in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/81`)}>lesson 8.1, "The Dative Case"</Button></p>
+        <p>The uses of the dative are introduced in <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/81`)}>lesson 8.1, "The Dative Case"</Button></p>
     </>
 );
 
@@ -421,6 +421,111 @@ const KindsOf3rdDeclension = ({navigateAwayHandler}) => (
 
 const Common2ndAorists = ({navigateAwayHandler}) => (
     <>
+        <Table className="common-aorists-table">
+            <thead>
+                <tr>
+                    <th colSpan="3">Common 2nd Aorist Verbs</th>
+                </tr>
+                <tr>
+                    <th>Present act. ind.</th>
+                    <th>Real Stem</th>
+                    <th>2nd Aorist act. ind.</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ἄγω</td>
+                    <td>ἀγ(αγ)-</td>
+                    <td>ἤγαγον</td>
+                </tr>
+                <tr>
+                    <td>ἀποθνῄσκω</td>
+                    <td>ἀποθαν-</td>
+                    <td>ἀπεθανον</td>
+                </tr>
+                <tr>
+                    <td>βάλλω</td>
+                    <td>βαλ-</td>
+                    <td>ἔβαλον</td>
+                </tr>
+                <tr>
+                    <td>γίνομαι</td>
+                    <td>γεν-</td>
+                    <td>ἔγνων</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </Table>
     </>
 );
 
