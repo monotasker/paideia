@@ -225,6 +225,7 @@ db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(
      '1st decl vowel switching',
      '1st decl masculine',
      '2nd decl standard',
+     '2nd decl feminine',
      '3rd decl standard',
      '3rd decl upsilon',
      '3rd decl epsilon',
