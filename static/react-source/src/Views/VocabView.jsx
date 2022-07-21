@@ -461,9 +461,10 @@ const VocabView = (props) => {
               </Form.Row>
             </Form>
             <div className="vocabtable-container" ref={scrollContainer}>
+              {!!processing &&
               <Spinner className="vocabtable-loading-spinner"
                 animation="grow"
-              />
+              />}
               {!!processing ? "" :
                 <VocabTable headings={headings}
                   vocab={restrictedVocab.slice(...displayRange)}
