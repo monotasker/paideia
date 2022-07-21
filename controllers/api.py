@@ -2486,7 +2486,7 @@ def get_vocabulary():
                  'glosses': l['lemmas']['glosses'],
                  'times_in_nt': l['lemmas']['times_in_nt'],
                  'set_introduced': l['tags']['tag_position'],
-                 'videos': [(t.id, t.title, t.video_url) for t in
+                 'videos': [(t.lesson_position, t.title, t.video_url) for t in
                             db(db.lessons.lesson_tags.contains(l['tags']['id'])
                                ).select()],
                  'thematic_pattern': l['lemmas']['thematic_pattern'],
