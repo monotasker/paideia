@@ -65,6 +65,8 @@ $error: $danger;
 $success-bg: #dff0d8;
 $success: $pallette3;  // #d6e9c6;
 $successDark: $pallette4; // #d6e9c6;
+$secondary: $niceGrey;
+$secondaryLight: #e8ecf1;
 
 // semantic colors (grammatical)
 $verb: #BF9000;
@@ -1058,8 +1060,18 @@ form                                    {margin-bottom: 1rem;
                                         height: 100%;
                                         padding: 0;
         h2,
-        form                           {padding-right: 2rem;
-                                        padding-left: 1rem;
+        form                           {padding-right: 3rem;
+        }
+        form                           {padding-left: 1rem;
+                                        padding-top: 0.5rem;
+                                        padding-bottom: 0.5rem;
+                                        margin: 0;
+                                        background-color: $secondaryLight;
+            .custom-switch             {line-height: 1.5rem;
+                                        font-size: $font-size-sm;
+                                        padding-top: 0.5rem;
+                                        padding-left: 2.75rem;
+            }
         }
         .reference-view-panes          {overflow-y: auto;
                                         flex: 1;
@@ -1095,6 +1107,7 @@ form                                    {margin-bottom: 1rem;
                                         border-top: 2px solid white;
                                         border-bottom: 2px solid white;
             &.spacer                   {background-color: $white !important;
+                                        padding-top: 0;
             }
         }
     }
@@ -1197,6 +1210,13 @@ form                                    {margin-bottom: 1rem;
                 th                     {padding-top: 0.5rem;
                 }
             }
+            .btn-group .btn-outline-secondary {
+                &:hover                {background-color: $secondaryLight;
+                                        color: $secondary;
+                }
+                &:focus                {box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 15%);
+                }
+            }
         }
         tbody                          {
             th                         {font-size: $font-size-sm;
@@ -1224,6 +1244,13 @@ form                                    {margin-bottom: 1rem;
                                         border-left: 1px solid darken($table-background, 10%);
                                         font-size: $font-size-base;
                                         line-height: 1.5rem;
+                                        text-align: center;
+            }
+            tr:first-child th:nth-child(2),
+            tr:nth-child(5) th:first-child,
+            tr:nth-child(9) th:nth-child(2),
+            tr:nth-child(13) th:first-child {
+                                        background-color: darken($table-background, 5%);
             }
             td                         {background-color: lighten($verb, 50%);
                                         font-size: 2rem;

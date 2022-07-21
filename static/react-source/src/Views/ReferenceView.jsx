@@ -176,9 +176,9 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                                   },
                       '2pMiddleSing': {pres: <>λυ<u className="mixed">ῃ</u></>,
                                    fut: <>λυσ<u className="mixed">ῃ</u></>,
-                                   imp: <>ἐλυ<u>ε</u><b>το</b></>,
-                                   faor:  <>ἐλυσ<u>α</u><b>το</b></>,
-                                   saor:  <>ἐγεν<u>ε</u><b>το</b></>,
+                                   imp: <>ἐλυ<u className="mixed">ου</u></>,
+                                   faor:  <>ἐλυσ<u className="mixed">ω</u></>,
+                                   saor:  <>ἐγεν<u className="mixed">ου</u></>,
                                    perf: <>λελυ<b>σαι</b></>,
                                    prim: "σαι",
                                    sec: "σο",
@@ -433,94 +433,94 @@ const Common2ndAorists = ({navigateAwayHandler}) => (
                 </tr>
             </thead>
             <tbody>
-                <tr>
+                <tr className="set-9">
                     <td>ἄγω</td>
                     <td>ἀγ(αγ)-</td>
                     <td>ἤγαγον</td>
                 </tr>
-                <tr>
+                <tr classNAme="set-10">
                     <td>ἀποθνῄσκω</td>
                     <td>ἀποθαν-</td>
                     <td>ἀπεθανον</td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td>βάλλω</td>
                     <td>βαλ-</td>
                     <td>ἔβαλον</td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td>γίνομαι</td>
                     <td>γεν-</td>
                     <td>ἔγνων</td>
                 </tr>
-                <tr>
+                <tr className="set-">
+                    <td>ἔρχομαι</td>
+                    <td>ελθ-</td>
+                    <td>ἤλθον</td>
+                </tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
-                <tr>
+                <tr className="set-">
                     <td></td>
                     <td></td>
                 </tr>
@@ -845,6 +845,7 @@ const VowelContractions = ({navigateAwayHandler, userLevel, filterByLevel}) => {
                     </tr>
                     <tr>
                         <th className="spacer"></th>
+                        <th className="spacer"></th>
                         <th>ω</th>
                         <th>ου</th>
                         <th>ει</th>
@@ -948,19 +949,6 @@ const ReferenceView = ({navigateAwayHandler}) => {
            <Col>
                 <h2>Quick Reference</h2>
                 <Form>
-                    {userLevel!==null &&
-                    <Form.Row>
-                        <Col>
-                            <Form.Check inline label="Only show content I've learned so far"
-                            id="only-unread-checkbox"
-                            type="switch"
-                            // defaultValue={filterUnread}
-                            checked={filterByLevel}
-                            onChange={e => setFilterByLevel(!filterByLevel)}
-                            />
-                        </Col>
-                    </Form.Row>
-                    }
                     <Form.Row>
                         <Col>
                             <Form.Control
@@ -989,6 +977,19 @@ const ReferenceView = ({navigateAwayHandler}) => {
                             </Form.Control>
                         </Col>
                     </Form.Row>
+                    {userLevel!==null &&
+                    <Form.Row>
+                        <Col>
+                            <Form.Check inline label="Only show content I've learned so far"
+                            id="only-unread-checkbox"
+                            type="switch"
+                            // defaultValue={filterUnread}
+                            checked={filterByLevel}
+                            onChange={e => setFilterByLevel(!filterByLevel)}
+                            />
+                        </Col>
+                    </Form.Row>
+                    }
                 </Form>
                 <TransitionGroup className="reference-view-panes">
                     {sections.filter(s => s.label===sectionChosen)[0].views.map( view =>
