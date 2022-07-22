@@ -92,7 +92,7 @@ const PrincipalParts = ({w}) => {
   return pp;
 }
 
-const WordRow = ({ w }) => {
+const WordRow = ({ w, navigateAwayHandler }) => {
   const [ showDetails, setShowDetails ] = useState(false);
   const parts_of_speech = {
     noun: 'N',
@@ -104,79 +104,70 @@ const WordRow = ({ w }) => {
     conjunction: 'C',
     particle: 'Pt'
   }
-  console.log('word row rendering');
   return (
     <tr>
       <td className={w.part_of_speech}>
         {w.accented_lemma}
         <span className="vocab-videos">{w.videos.map((v, i) => (
-            <OverlayTrigger key={i} placement="top"
-              overlay={
-                <Tooltip id={`tooltip-video-${w.id}`}>{v[1]}</Tooltip>
-              }
-            >
-              <LinkContainer to={`/${urlBase}/videos/${v[0]}`}>
-                <FontAwesomeIcon icon="video" />
-              </LinkContainer>
-            </OverlayTrigger>
-          ))}
+          <OverlayTrigger key={i} placement="top"
+            overlay={<Tooltip id={`tooltip-video-${w.id}`}>{v[1]}</Tooltip>}
+          >
+            <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/${v[0]}`)}>
+              <FontAwesomeIcon icon="video" />
+            </Button>
+            {/* <LinkContainer to={`/${urlBase}/videos/${v[0]}`} className="closer-link">
+            </LinkContainer> */}
+          </OverlayTrigger>
+        ))}
+      </span>
+      {!!w.real_stem && w.real_stem != 'none' ?
+        <span className="real-stem">
+          <OverlayTrigger placement="top"
+            overlay={<Tooltip id={`tooltip-stem-${w.id}`}>Real stem</Tooltip>}
+          >
+            <span className="label"><FontAwesomeIcon icon="seedling" /></span>
+          </OverlayTrigger>
+          {w.real_stem}</span>
+        : ''}
+      {!!w.genitive_singular && w.genitive_singular != 'none' ?
+        <span className="gen-sing">
+          <OverlayTrigger placement="top"
+            overlay={<Tooltip id={`tooltip-gen-sing-${w.id}`}>Genitive singular form</Tooltip>}
+          >
+            <Badge pill className="label">G</Badge>
+          </OverlayTrigger>
+          {w.genitive_singular}</span>
+        : ''}
+      <PrincipalParts w={w} />
+      {!["", null, "none", undefined].includes(w['other_irregular']) ?
+        <span className="other-irregular">
+          <a className="label"
+            onClick={() => setShowDetails(!showDetails)}
+            aria-controls="other-irregular-content"
+            aria-expanded={showDetails}
+          >
+            <FontAwesomeIcon icon="caret-down" />{!showDetails ? "show more" : "hide"} details
+          </a>
+          <Collapse in={showDetails}>
+            <div className="other-irregular-content">{w.other_irregular}</div>
+          </Collapse>
         </span>
-        {!!w.real_stem && w.real_stem != 'none' ?
-          <span className="real-stem">
-            <OverlayTrigger placement="top"
-              overlay={
-                <Tooltip id={`tooltip-stem-${w.id}`}>Real stem</Tooltip>
-              }
-            >
-              <span className="label"><FontAwesomeIcon icon="seedling" /></span>
-            </OverlayTrigger>
-            {w.real_stem}</span>
-          : ''}
-        {!!w.genitive_singular && w.genitive_singular != 'none' ?
-          <span className="gen-sing">
-            <OverlayTrigger placement="top"
-              overlay={
-                <Tooltip id={`tooltip-gen-sing-${w.id}`}>Genitive singular form</Tooltip>
-              }
-            >
-              <Badge pill className="label">G</Badge>
-            </OverlayTrigger>
-            {w.genitive_singular}</span>
-          : ''}
-        <PrincipalParts w={w} />
-        {!["", null, "none", undefined].includes(w['other_irregular']) ?
-          <span className="other-irregular">
-            <a className="label"
-              onClick={() => setShowDetails(!showDetails)}
-              aria-controls="other-irregular-content"
-              aria-expanded={showDetails}
-            >
-              <FontAwesomeIcon icon="caret-down" />{!showDetails ? "show more" : "hide"} details
-            </a>
-            <Collapse in={showDetails}>
-              <div className="other-irregular-content">{w.other_irregular}</div>
-            </Collapse>
-          </span>
-          : ''}
-      </td>
-      <td className={w.part_of_speech}><Badge pill>{parts_of_speech[w.part_of_speech]}</Badge></td>
-      <td><ul>{w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul></td>
-      <td>{w.set_introduced}</td>
-      <td>{w.times_in_nt}</td>
+        : ''}
+    </td><td className={w.part_of_speech}><Badge pill>{parts_of_speech[w.part_of_speech]}</Badge></td><td><ul>{w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul></td><td>{w.set_introduced}</td><td>{w.times_in_nt}</td>
     </tr>
   )
 }
 
 // FIXME: Don't fire when pane just flies in!
 const vocabIsEqual = (prevProps, nextProps) => {
-  console.log('checking vocab equality');
+  // console.log('checking vocab equality');
   const oldWordIDs = JSON.stringify(prevProps.vocab.map(w => w.id));
   const newWordIDs = JSON.stringify(nextProps.vocab.map(w => w.id));
   return oldWordIDs === newWordIDs;
 }
 
 
-const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler }) => {
+const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler, navigateAwayHandler }) => {
   return(
     <Table>
       <thead>
@@ -191,7 +182,7 @@ const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler })
         </tr>
       </thead>
       <tbody>
-        {vocab.map((w, i) => <WordRow w={w} key={`wordrow_${i}`} />)}
+        {vocab.map((w, i) => <WordRow w={w} key={`wordrow_${i}`} navigateAwayHandler={navigateAwayHandler} />)}
         <tr className="scrollDownTarget">
           {headings.map(({label, field}) => <td key={label}></td>)}
         </tr>
@@ -201,7 +192,7 @@ const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler })
 }, vocabIsEqual);
 
 
-const VocabView = (props) => {
+const VocabView = ({ navigateAwayHandler }) => {
 
   const compareVocab = (a, b) => {
     const term1 = typeof a[mySortCol] === 'string' ? a[mySortCol].toUpperCase() : (a[mySortCol] || 0);
@@ -215,9 +206,6 @@ const VocabView = (props) => {
   }
 
   const doVocabFilter = (vocabIn, searchLetters, strGk, strEng) => {
-    console.log(vocabIn.length);
-    console.log(searchLetters);
-
     let baseVocab = vocabIn;
     if ( searchLetters.length ) {
       baseVocab = vocabIn.filter(w => {
@@ -229,12 +217,10 @@ const VocabView = (props) => {
     if ( strGk != "" ) {
       const strGkSan = greekUtils.sanitizeDiacritics(strGk);
       const gkSetMatched = baseVocab.filter(w => w.normalized_lemma == strGkSan);
-      console.log(gkSetMatched.length);
       const gkSetFuzzy = baseVocab.filter(
         w => w.normalized_lemma != strGkSan && w.normalized_lemma.includes(strGkSan)
       );
       gkSetFinal = gkSetMatched.concat(gkSetFuzzy);
-      console.log(gkSetFinal.length);
     }
 
     let engSetFinal = gkSetFinal;
@@ -242,7 +228,6 @@ const VocabView = (props) => {
       const engSetMatched = gkSetFinal.filter(
         w => w.glosses.some(g => g == strEng)
       );
-      console.log(engSetMatched.length);
       const engSetFuzzy = gkSetFinal.filter(
         w => w.glosses.some(g => g != strEng && g.includes(strEng))
       );
@@ -313,7 +298,7 @@ const VocabView = (props) => {
   );
 
   useEffect(() => {
-    console.log('fetching from server');
+    // console.log('fetching from server');
     setUpdating(true);
     fetchVocabulary({vocab_scope_selector: 0})
     .then(mydata => {
@@ -340,7 +325,6 @@ const VocabView = (props) => {
   // }, []);
 
   const sortVocab = (event, mystring) => {
-    console.log('fired with', mystring);
     event.preventDefault();
     if ( mySortCol === mystring ) {
       setMyOrder(myOrder === "asc" ? "desc" : "asc");
@@ -349,7 +333,6 @@ const VocabView = (props) => {
   }
 
   const assembleVocab = (vocab) => {
-    console.log('assembling vocab');
 
     const newVocab = vocab.map((i) => {
       return {...i,
@@ -469,6 +452,7 @@ const VocabView = (props) => {
                 <VocabTable headings={headings}
                   vocab={restrictedVocab.slice(...displayRange)}
                   sortCol={mySortCol} order={myOrder} sortHandler={sortVocab}
+                  navigateAwayHandler={navigateAwayHandler}
                 />
               }
             </div>

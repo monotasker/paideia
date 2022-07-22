@@ -203,6 +203,16 @@ form                                    {margin-bottom: 1rem;
                                          margin-top: 1rem;
 }
 
+// buttons ----------------------------------------------------
+
+.btn-group .btn-outline-secondary {
+    &:hover                {background-color: $secondaryLight;
+                            color: $secondary;
+    }
+    &:focus                {box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 15%);
+    }
+}
+
 // tooltips -------------------------------------------------
 
 .popover,
@@ -429,6 +439,7 @@ form                                    {margin-bottom: 1rem;
                                         padding-bottom: 0rem;
                                         margin-bottom: 0.25rem;
                 .btn-group             {flex-wrap: wrap;
+                                        width: 100%;
                     .btn                   {padding: .25rem;
                                             margin-top: .25rem;
                     }
@@ -555,10 +566,11 @@ form                                    {margin-bottom: 1rem;
 
                     .vocab-videos           {font-size: $font-size-base;
                                              margin-left: 1rem;
-                        svg                 {cursor: pointer;
-                                             opacity: 30%;
-                            &:hover         {opacity: 100%;
-                                             transition: 200ms opacity ease-in;
+                        .btn                {padding: 0;
+                            svg                 {opacity: 30%;
+                                &:hover         {opacity: 100%;
+                                                transition: 200ms opacity ease-in;
+                                }
                             }
                         }
                     }
@@ -1208,13 +1220,6 @@ form                                    {margin-bottom: 1rem;
             }
             tr:nth-child(2)            {
                 th                     {padding-top: 0.5rem;
-                }
-            }
-            .btn-group .btn-outline-secondary {
-                &:hover                {background-color: $secondaryLight;
-                                        color: $secondary;
-                }
-                &:focus                {box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 15%);
                 }
             }
         }
@@ -1943,6 +1948,8 @@ form                                    {margin-bottom: 1rem;
                                                position: absolute;
                         @include react-transition-fade("youtube-container", 200);
                         &::after              {padding-top: 0;}
+                        p                     {padding-right: 1.5rem;
+                        }
                     }
                     // &::after                  {padding-top: 56.25%;
                     //                            display: block;
@@ -1967,6 +1974,12 @@ form                                    {margin-bottom: 1rem;
                                                transition: opacity 500ms;
                         }
                         &.mask-done           {display: none;
+                        }
+                        .spinner-grow         {position: absolute;
+                                               top: 50%;
+                                               margin-top: -0.5rem;
+                                               left: 50%;
+                                               margin-left: -0.5rem;
                         }
                     }
                 }

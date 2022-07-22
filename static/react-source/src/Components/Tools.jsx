@@ -25,10 +25,14 @@ const Tools = () => {
       const handleClick = (event) => {
           if ( event.target.closest('.tools-component, .tool-panels, .queries-view-changer, .vocabview-sorter-link, [class*="students-selector-form"], [class*="class-selector-form"]') === null ) {
             if ( !event.target.classList.contains("page-link") ) {
-                console.log(event.target.querySelector('.page-link'));
                 setOpenPanel(null);
             }
-          }
+        }
+        //   } else {
+        //     if ( !!event.target.closest('svg') && !!event.target.closest('svg').classlist.contains("closer-link") ) {
+        //         setopenpanel(null);
+        //     }
+        //   }
       }
       window.addEventListener("click", handleClick);
       return () => window.removeEventListener("click", handleClick);
