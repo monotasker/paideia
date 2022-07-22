@@ -64,7 +64,7 @@ const TopNavbar = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto main-nav">
-              <NavLink title="Home" path="/" icon='home' displayAt="lg" />
+              <NavLink title="Home" path="/home" icon='home' displayAt="lg" />
               <NavLink title="Map" path="/walk/map" icon='map' displayAt="lg" />
               <NavLink title="Lessons" path="/videos" icon='video' displayAt="lg" />
               {user.userRoles &&
