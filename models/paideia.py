@@ -235,7 +235,6 @@ db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(
      '3rd decl παις-type',
      '3rd decl γενος-type',
      '3rd decl ἀσθενης-type',
-     '3rd decl epsilon',
      '3rd decl ἀμπελων-type',
      '3rd decl πνευμα-type',
      '3rd decl τις-type',

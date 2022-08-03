@@ -65,6 +65,8 @@ $error: $danger;
 $success-bg: #dff0d8;
 $success: $pallette3;  // #d6e9c6;
 $successDark: $pallette4; // #d6e9c6;
+$secondary: $niceGrey;
+$secondaryLight: #e8ecf1;
 
 // semantic colors (grammatical)
 $verb: #BF9000;
@@ -199,6 +201,16 @@ h3                                      {font-family: $sans-fonts;
 
 form                                    {margin-bottom: 1rem;
                                          margin-top: 1rem;
+}
+
+// buttons ----------------------------------------------------
+
+.btn-group .btn-outline-secondary {
+    &:hover                {background-color: $secondaryLight;
+                            color: $secondary;
+    }
+    &:focus                {box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 15%);
+    }
 }
 
 // tooltips -------------------------------------------------
@@ -427,6 +439,7 @@ form                                    {margin-bottom: 1rem;
                                         padding-bottom: 0rem;
                                         margin-bottom: 0.25rem;
                 .btn-group             {flex-wrap: wrap;
+                                        width: 100%;
                     .btn                   {padding: .25rem;
                                             margin-top: .25rem;
                     }
@@ -553,10 +566,11 @@ form                                    {margin-bottom: 1rem;
 
                     .vocab-videos           {font-size: $font-size-base;
                                              margin-left: 1rem;
-                        svg                 {cursor: pointer;
-                                             opacity: 30%;
-                            &:hover         {opacity: 100%;
-                                             transition: 200ms opacity ease-in;
+                        .btn                {padding: 0;
+                            svg                 {opacity: 30%;
+                                &:hover         {opacity: 100%;
+                                                transition: 200ms opacity ease-in;
+                                }
                             }
                         }
                     }
@@ -1058,8 +1072,18 @@ form                                    {margin-bottom: 1rem;
                                         height: 100%;
                                         padding: 0;
         h2,
-        form                           {padding-right: 2rem;
-                                        padding-left: 1rem;
+        form                           {padding-right: 3rem;
+        }
+        form                           {padding-left: 1rem;
+                                        padding-top: 0.5rem;
+                                        padding-bottom: 0.5rem;
+                                        margin: 0;
+                                        background-color: $secondaryLight;
+            .custom-switch             {line-height: 1.5rem;
+                                        font-size: $font-size-sm;
+                                        padding-top: 0.5rem;
+                                        padding-left: 2.75rem;
+            }
         }
         .reference-view-panes          {overflow-y: auto;
                                         flex: 1;
@@ -1074,10 +1098,7 @@ form                                    {margin-bottom: 1rem;
                                         vertical-align: baseline;
     }
 
-    .case-endings-table,
-    .square-of-stops-table,
-    .vowel-contractions-tableA,
-    .vowel-contractions-tableB             {
+    table                              {
         thead tr:first-child th        {color: $heading-color;
                                         font-family: $sans-fonts;
                                         font-size: 1rem;
@@ -1098,6 +1119,53 @@ form                                    {margin-bottom: 1rem;
                                         border-top: 2px solid white;
                                         border-bottom: 2px solid white;
             &.spacer                   {background-color: $white !important;
+                                        padding-top: 0;
+            }
+        }
+    }
+
+    .dative-uses-table,
+    .genitive-uses-table                {
+        thead                           {
+            tr:nth-child(3)             {
+                th                      {text-align: left;
+                                         padding-left: 1rem;
+                }
+            }
+        }
+        tbody                           {
+            td                          {font-size: 1.25rem;
+                                         font-family: $sans-fonts;
+                                         text-align: left;
+                                         padding-left: 1rem;
+                                         padding-right: 1rem;
+                &:nth-child(2),
+                &:nth-child(3)          {font-size: 1rem;
+                }
+                &:nth-child(2)          {background-color: lighten($table-background, 10%);
+                }
+                &:nth-child(3)          {font-weight: bold;
+                }
+            }
+        }
+    }
+
+
+    .genitive-uses-table                {
+        tbody                           {
+            td                          {background-color: lighten($genitive, 40%);
+                &:nth-child(2)          {background-color: lighten($genitive, 47%);
+                }
+            }
+        }
+    }
+
+
+    .dative-uses-table                  {
+        tbody                           {
+            td                          {background-color: lighten($dative, 50%);
+                &:nth-child(2)          {background-color: lighten($dative, 55%);
+                }
             }
         }
     }
@@ -1145,18 +1213,127 @@ form                                    {margin-bottom: 1rem;
         }
     }
 
-    .vowel-contractions-tableA,
-    .vowel-contractions-tableB         {
-        thead th                       {
-            &:nth-child(n+2)           {width: 28%;
+    .personal-endings-table            {
+        thead                          {
+            th                         {padding-top: 0;
+                                        padding-bottom: 0;
+            }
+            tr:nth-child(2)            {
+                th                     {padding-top: 0.5rem;
+                }
             }
         }
+        tbody                          {
+            th                         {font-size: $font-size-sm;
+                                        font-family: $sans-fonts;
+                                        width: 5rem;
+                                        line-height: 1rem;
+                                        font-weight: normal;
+                span.person-numeral    {font-size: 2rem;
+                                        float: left;
+                                        padding: .3rem .15rem 0 .15rem;
+                                        line-height: 1.5rem;
+                }
+
+            }
+            tr:first-child th:first-child,
+            tr:first-child th:nth-child(2),
+            tr:nth-child(5) th:first-child,
+            tr:nth-child(9) th:first-child,
+            tr:nth-child(9) th:nth-child(2),
+            tr:nth-child(13) th:first-child
+                                       {writing-mode: vertical-lr;
+                                        transform: rotate(180deg);
+                                        background-color: $table-background;
+                                        width: 2rem;
+                                        border-left: 1px solid darken($table-background, 10%);
+                                        font-size: $font-size-base;
+                                        line-height: 1.5rem;
+                                        text-align: center;
+            }
+            tr:first-child th:nth-child(2),
+            tr:nth-child(5) th:first-child,
+            tr:nth-child(9) th:nth-child(2),
+            tr:nth-child(13) th:first-child {
+                                        background-color: darken($table-background, 5%);
+            }
+            td                         {background-color: lighten($verb, 50%);
+                                        font-size: 2rem;
+                                        color: darken($heading-color, 10%);
+                                        line-height: 1.6rem;
+                                        padding-top: 1rem;
+                small                  {font-size: 1.3rem;
+                                        font-weight: bold;
+                    u                  {color: $nominative;
+                                        text-decoration: none;
+                    }
+                    b                  {color: $dative;
+                    }
+                    .mixed             {color: $danger;
+                                        text-decoration: underline;
+                    }
+                    .tense-label       {font-weight: normal;
+                                        color: $heading-color;
+                                        font-family: $sans-fonts;
+                                        font-size: 1rem;
+                    }
+                }
+                ul                     {list-style-type: none;
+                                        font-size: 1rem;
+                                        padding-left: 0;
+                                        line-height: 1.3rem;
+                                        margin-bottom: 0;
+                                        margin-top: 0.5rem;
+                }
+            }
+            tr                         {
+                &:first-child,
+                &:nth-child(5),
+                &:nth-child(9),
+                &:nth-child(13)        {
+                    td                 {background-color: lighten($verb, 55%);
+                    }
+                }
+                &:nth-child(2),
+                &:nth-child(6),
+                &:nth-child(10),
+                &:nth-child(14)        {
+                    td                 {background-color: lighten($verb, 53%);
+                    }
+                }
+                &:nth-child(4),
+                &:nth-child(12)        {padding-top: 0;
+                }
+            }
+
+        }
+    }
+
+    .vowel-contractions-tableA,
+    .vowel-contractions-tableB         {
         th                             {font-size: 1.5rem;
                                         font-family: "SBL Greek";
                                         text-align: center;
                                         vertical-align: middle;
-                                        color: $accusative;
-            &:nth-child(1)            {color: $nominative;
+        }
+        thead                           {
+            tr:nth-child(2) th          {font-family: $sans-fonts;
+                                         font-size: $font-size-sm;
+            }
+            th                          {color: $accusative;
+                &:nth-child(n+3)        {width: 28%;
+                }
+            }
+        }
+        tbody                          {
+            tr:first-child              {
+                th                      {writing-mode: vertical-lr;
+                                         transform: rotate(180deg);
+                                         font-family: $sans-fonts;
+                                         font-size: $font-size-sm;
+                }
+            }
+            th                          {color: $nominative;
             }
         }
         td                              {font-size: 2rem;
@@ -1771,6 +1948,8 @@ form                                    {margin-bottom: 1rem;
                                                position: absolute;
                         @include react-transition-fade("youtube-container", 200);
                         &::after              {padding-top: 0;}
+                        p                     {padding-right: 1.5rem;
+                        }
                     }
                     // &::after                  {padding-top: 56.25%;
                     //                            display: block;
@@ -1795,6 +1974,12 @@ form                                    {margin-bottom: 1rem;
                                                transition: opacity 500ms;
                         }
                         &.mask-done           {display: none;
+                        }
+                        .spinner-grow         {position: absolute;
+                                               top: 50%;
+                                               margin-top: -0.5rem;
+                                               left: 50%;
+                                               margin-left: -0.5rem;
                         }
                     }
                 }

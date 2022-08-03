@@ -114,15 +114,15 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
 
 const Videos = (props) => {
   const { lessonParam } = useParams();
-  console.log(`lessonParam: ${lessonParam}`);
+  // console.log(`lessonParam: ${lessonParam}`);
   const { user, dispatch } = useContext(UserContext);
   const [lessons, setLessons ] = useState([]);
-  console.log(`lessons.length: ${lessons.length}`);
-  console.log(lessons);
+  // console.log(`lessons.length: ${lessons.length}`);
+  // console.log(lessons);
   const [activeLessonId, setActiveLessonId] = useState(
     (!!lessonParam && lessons.length !== 0) ? lessons.find(l => l.lesson_position === parseInt(lessonParam)).id
   : null);
-  console.log(`activeLessonId: ${activeLessonId}`);
+  // console.log(`activeLessonId: ${activeLessonId}`);
   const [dimensions, setDimensions] = useState({
       height: window.innerHeight,
       width: window.innerWidth
@@ -157,11 +157,11 @@ const Videos = (props) => {
 
   useEffect( () => {
     if (!!loaded) {
-      console.log("video loaded!");
+      // console.log("video loaded!");
       // let $mask = document.getElementsByClassName("iframe-mask")[0];
       window.setTimeout(() => {
         let $mask = document.getElementsByClassName("iframe-mask")[0];
-        console.log($mask);
+        // console.log($mask);
         $mask.classList.add("iframe-loaded");
         window.setTimeout(() => $mask.classList.add("mask-done"), 200);
       }, 1500);
@@ -171,19 +171,19 @@ const Videos = (props) => {
   useLayoutEffect( () => {
     const setListHeight = () => {
 
-      console.log(`width: ${window.innerWidth}`);
+      // console.log(`width: ${window.innerWidth}`);
       let $videoFrame = document.getElementsByClassName("embed-responsive")[0];
       let videoHeight = $videoFrame.offsetHeight;
-      console.log(`videoHeight: ${videoHeight}`);
+      // console.log(`videoHeight: ${videoHeight}`);
       let $listContainer = document.getElementsByClassName("lessonlist")[0];
       let $lessonsContainer = document.getElementsByClassName("lessons-display-container")[0];
       let containerHeight = $lessonsContainer.offsetHeight;
-      console.log(`containerHeight: ${containerHeight}`);
+      // console.log(`containerHeight: ${containerHeight}`);
       let remainingHeight = containerHeight - videoHeight;
       if (window.innerWidth >= 768) {
         remainingHeight = containerHeight;
       }
-      console.log(`remainingHeight: ${remainingHeight}`);
+      // console.log(`remainingHeight: ${remainingHeight}`);
       $listContainer.style.height = `${remainingHeight}px`;
     };
     window.addEventListener('resize', setListHeight);
