@@ -620,7 +620,8 @@ const InstructorDashboard = () => {
       let myStartString = formFieldValues.start_date.toISOString();
       let myEndString = formFieldValues.end_date.toISOString();
       const updateData = {...formFieldValues, id: activeClassId,
-                          start_date: myStartString, end_date: myEndString};
+                          start_date: myStartString, end_date: myEndString,
+                          instructor: classInstructor.id};
 
       sendFormRequest(null, setFormFieldValue,
         {formId: 'dashboard-class-info-form',

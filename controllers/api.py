@@ -623,8 +623,8 @@ def _check_class_key(myclass_key):
         return {"status": "key cancelled"}
 
     myclass = valid_rows[0]
-    print('in check:')
-    pprint(myclass)
+    # print('in check:')
+    # pprint(myclass)
 
     return {"status": "ok",
             "class_row": myclass}
@@ -691,6 +691,7 @@ def validate_class_key():
 
 
 def join_class_group():
+    debug = False
     event = None
     class_key = request.vars['course_key']
     class_id = int(request.vars['course_id'])
@@ -699,14 +700,14 @@ def join_class_group():
         result = ""
 
         validity = _check_class_key(class_key)
-        print('in join')
-        print(validity)
-        print(type(validity['class_row']['classes']['id']))
-        print(type(class_id))
+        if debug: print('in join')
+        if debug: print(validity)
+        if debug: print(type(validity['class_row']['classes']['id']))
+        if debug: print(type(class_id))
         if (validity['status'] != "ok") \
                 or (validity['class_row']['classes']['id'] != class_id):
-            print(validity['status'] != "ok")
-            print(validity['class_row']['classes']['id'] != class_id)
+            if debug: print(validity['status'] != "ok")
+            if debug: print(validity['class_row']['classes']['id'] != class_id)
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges',
@@ -2955,7 +2956,7 @@ def update_course_data():
         f_target (int)
 
     """
-    debug = True
+    debug = False
     response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.now(timezone.utc)
