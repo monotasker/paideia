@@ -7,7 +7,8 @@ import {
     OverlayTrigger,
     Popover,
     Tooltip,
-    Badge
+    Badge,
+    ButtonGroup
 } from "react-bootstrap";
 import { useHistory, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
@@ -175,7 +176,9 @@ const Step = (props) => {
     'map': () => (<Button className="back_to_map"
                     key="back_to_map"
                     onClick={mapAction}>
-                    <FontAwesomeIcon icon="map" /> Back to map
+                    <FontAwesomeIcon icon="map" />
+                      <span className="short-label">Map</span>
+                      <span className="long-label">Back to map</span>
                   </Button>),
     'retry': () => (<Button className="retry" variant="warning"
                       key="retry"
@@ -185,7 +188,9 @@ const Step = (props) => {
     'continue': () => (<Button className="continue" variant="success"
                         key="continue"
                         onClick={continueAction}>
-                        <FontAwesomeIcon icon="walking" /> Continue here
+                        <FontAwesomeIcon icon="walking" />
+                          <span className="short-label">Continue</span>
+                          <span className="long-label">Continue here</span>
                        </Button>)
   }
 
@@ -271,6 +276,27 @@ const Step = (props) => {
                   ogaSource={`${stepData.download_path}/${stepData.audio.oga}`}
                 />
               }
+            </div>
+          </CSSTransition>
+          <CSSTransition
+              in={ !!evalText }
+              classNames="eval-text"
+              timeout={0}
+              appear={true}
+            >
+            <div className="eval-text">
+              <p dangerouslySetInnerHTML={{
+                  __html: !!evalText ? DOMPurify.sanitize(marked(evalText)) : "" }}
+              />
+            </div>
+          </CSSTransition>
+        </Row>
+        <Row className="responder">
+          <Col >
+            <div className="responder-text">
+          { !!stepData.response_form && !responded && (
+            <Form onSubmit={submitAction}>
+              { !!stepData.instructions && make_instructions()}
               { !!stepData.slidedecks &&
                 <OverlayTrigger placement="top" trigger="click" rootClose
                   overlay={
@@ -295,27 +321,6 @@ const Step = (props) => {
                   </a>
                 </OverlayTrigger>
               }
-            </div>
-          </CSSTransition>
-          <CSSTransition
-              in={ !!evalText }
-              classNames="eval-text"
-              timeout={0}
-              appear={true}
-            >
-            <div className="eval-text">
-              <p dangerouslySetInnerHTML={{
-                  __html: !!evalText ? DOMPurify.sanitize(marked(evalText)) : "" }}
-              />
-            </div>
-          </CSSTransition>
-        </Row>
-        <Row className="responder">
-          <Col >
-            <div className="responder-text">
-          { !!stepData.response_form && !responded && (
-            <Form onSubmit={submitAction}>
-              { !!stepData.instructions && make_instructions()}
               {widgets[stepData.response_form.form_type]()}
               <Button variant="success" type="submit" className="submit_reply">
                 { evaluatingStep ? (
@@ -325,7 +330,12 @@ const Step = (props) => {
               </Button>
             </Form>
           )}
-            { !!respButtons && respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
+            { !!respButtons && respButtons.length > 0 && (
+            <ButtonGroup className="responder-btn-group">
+              {respButtons.map(btn => response_btns[btn]())}
+            </ButtonGroup>
+            )
+            }
             { user.userRoles.includes('administrators') && (
               <div className="admin-info">
                 <span className="step-id">step {stepData['sid']},</span>&nbsp;

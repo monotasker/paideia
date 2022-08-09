@@ -178,6 +178,11 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 // typography ---------------------------------------------
 
+@mixin compact-list()                   {margin-top: 0;
+                                         margin-bottom: 0;
+                                         font-size: 1.15rem;
+}
+
 h2                                      {font-family: $title-fonts;
                                          font-weight: normal;
                                          color: $heading-color;
@@ -354,7 +359,7 @@ form                                    {margin-bottom: 1rem;
 //-- tools --------------------------------------------------
 
 .tools-component           {position: fixed;
-                            right: -5.5rem;
+                            right: -5.25rem;
                             top: 5rem;
                             z-index: 30;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
@@ -2072,6 +2077,13 @@ form                                    {margin-bottom: 1rem;
     .speaker-inner-wrapper                      {position: absolute;
                                                  height:100%;
                                                  overflow-y: hidden;
+        @media (max-width: map-get($grid-breakpoints, sm)) {
+            height: 20rem;
+            width: 100%;
+            position: relative;
+            padding-top: 67%; // 56.25%;
+            overflow: hidden;
+        }
         img                                     {left: -20%;
                                                  width: 480px;
 
@@ -2082,23 +2094,36 @@ form                                    {margin-bottom: 1rem;
                 margin-left: -7rem;
             }
             @media (max-width: map-get($grid-breakpoints, sm)) {
+                margin-left: 0;
+                left: 0;
+                width: auto;
                 height: 24rem;
+                position: absolute;
+                top: 0;
             }
         }
     }
     .speaker                                    {height: 100%;
             @media (max-width: map-get($grid-breakpoints, sm)) {
-                height: 10rem;
+                display: none;
             }
     }
-    .prompt-column                              {height: 100%;
-                                                 overflow: auto;
+    .prompt-column                              {overflow: auto;
                                                  padding-top: 1rem;
                                                  padding-right: 3rem;
         @media (max-width: map-get($grid-breakpoints, sm)) {
                                                  padding-top: 1.5rem;
-                                                 padding-left: 0.5rem;
+                                                 padding-left: 0;
+                                                 padding-right: 0;
+                                                 overflow: visible;
+                                                 margin-top: -12rem;
+                                                 display: flex;
+                                                 flex-direction: column;
+                                                 align-items: stretch;
+        }
+        .prompt.row                             {padding-bottom: 0.5rem;
                                                  padding-right: 0.5rem;
+                                                 padding-left: 0.5rem;
         }
         .prompt-text,
         .eval-text                                  {border-radius: $border-radius-lg * 3;
@@ -2146,6 +2171,12 @@ form                                    {margin-bottom: 1rem;
                                                         transform-origin: center left;
                                                         opacity: 0;
             }
+            p                                           {margin-top: 0.25rem;
+                                                         margin-bottom: 0.25rem;
+            }
+            ul                                          {color: darken($heading-color, 10%);
+                @include compact-list();
+            }
         }
         .eval-text                                  {background-color: $pallette1;
                                                     left: 1rem;
@@ -2169,7 +2200,7 @@ form                                    {margin-bottom: 1rem;
                 width: 92%;
                 &:after {                   border-bottom: 25px solid $pallette1;
                                             border-right: 25px solid transparent;
-                                            left: 15px;
+                                            left: 90px;
                                             top: -50px;
                 }
                 &:before {
@@ -2237,7 +2268,7 @@ form                                    {margin-bottom: 1rem;
                 width: 100%;
                 &:after {                   border-bottom: 25px solid $white;
                                             border-right: 25px solid transparent;
-                                            left: 25px;
+                                            left: 100px;
                                             top: -50px;
                 }
                 &:before {
@@ -2248,6 +2279,12 @@ form                                    {margin-bottom: 1rem;
 
         }
         .responder                                  {
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    margin-top: auto !important;
+                                                    background-color: desaturate(lighten($pallette3, 40%), 40%);
+                                                    padding-right: 0.5rem;
+                                                    padding-left: 0.5rem;
+            }
             .col                                    {
                 @media (max-width: map-get($grid-breakpoints, sm)) {
                                                      padding: 0;
@@ -2255,7 +2292,7 @@ form                                    {margin-bottom: 1rem;
             }
             form                                    {margin: 0;
             }
-            .responder-text                         {background-color: lighten($accent2, 50%);
+            .responder-text                         {background-color: desaturate(lighten($pallette3, 40%), 40%);
                                                     margin-top: 2rem;
                                                     padding: 1rem;
                                                     border-radius: $border-radius-lg * 3;
@@ -2268,7 +2305,7 @@ form                                    {margin-bottom: 1rem;
                                                     left: 0;
                                                     margin-right: 0;
                                                     padding: 0;
-                                                    padding-top: 1rem;
+                                                    padding-top: 0;
                                                     background-color: transparent;
                                                     box-shadow: 0 0 0 transparent;
                 }
@@ -2304,8 +2341,12 @@ form                                    {margin-bottom: 1rem;
                                                      background-color: $accent2;color: $white;
                                                      border-radius: 1rem;
                                                      padding: 0 0.5rem;
-                                                     font: 1rem;
+                                                     font-size: 1rem;
+                                                     position: relative;
+                                                     top: -0.16rem;
                     }
+                }
+                .btn-group                          {width: 100%;
                 }
                 .btn                                {margin-left: 0.5rem;
                                                     margin-bottom: 0.5rem;
@@ -2315,20 +2356,17 @@ form                                    {margin-bottom: 1rem;
                                                     padding-left: 0.25rem;
                                                     padding-right: 0.5rem;
                     }
+                    .short-label                    {display: none;
+                        @media (max-width: 375px) {
+                                                     display: inline;
+                        }
+                    }
+                    .long-label                     {display: inline;
+                        @media (max-width: 375px) {
+                                                     display: none;
+                        }
+                    }
                     &.back_to_map                   {margin-left: 0;
-                        @media (max-width: map-get($grid-breakpoints, sm)) {
-                                                    border-radius: 0.25rem 0 0 0.25rem;
-                        }
-                    }
-                    &.retry                         {
-                        @media (max-width: map-get($grid-breakpoints, sm)) {
-                                                    border-radius: 0;
-                        }
-                    }
-                    &.continue                      {
-                        @media (max-width: map-get($grid-breakpoints, sm)) {
-                                                    border-radius: 0 0.25rem 0.25rem 0;
-                        }
                     }
                     &.submit_reply                  {margin-left: 0;
                         @media (max-width: map-get($grid-breakpoints, sm)) {
@@ -2345,14 +2383,21 @@ form                                    {margin-bottom: 1rem;
                                                     font-size: $font-size-sm;
                                                     display: block;
                                                     margin-bottom: -0.5rem;
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    margin-bottom: .5rem;
+                    }
                 }
                 .new-indicator                      {position: absolute;
-                                                    right: 1.25rem;
-                                                    font-size: 2rem;
+                                                    right: 0.5rem;
+                                                    font-size: 1rem;
                                                     bottom: 0.25rem;
-                    .fa-history                     {color: lighten($accent2, 60%);
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    right: 0;
+                                                    bottom: -2px;
                     }
-                    .fa-leaf                        {color: $green;
+                    .fa-history                     {color: desaturate(lighten($pallette3, 60%), 40%);
+                    }
+                    .fa-leaf                        {color: desaturate(lighten($pallette3, 60%), 40%);
                     }
                 }
             }
