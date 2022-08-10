@@ -202,6 +202,21 @@ h3                                      {font-family: $sans-fonts;
     }
 }
 
+// lists ----------------------------------------------------
+
+@mixin icon-bullet-list($icon-color, $top-margin: 0.3rem)    {
+    ul                                  {margin-left: 2rem;
+                                         position: relative;
+        li                              {margin-left: -2.5rem;
+            svg                         {position: absolute;
+                                        left: -2rem;
+                                        margin-top: $top-margin;
+                                        color: $icon-color;
+            }
+        }
+    }
+}
+
 // forms ----------------------------------------------------
 
 form                                    {margin-bottom: 1rem;
@@ -225,11 +240,48 @@ form                                    {margin-bottom: 1rem;
     ul                                  {list-style-type: none;
                                          padding-left: 2rem;
         li                              {margin-left: -2rem;
-            svg                             {margin-right: 0.5rem;
+            svg                         {margin-right: 0.5rem;
 
             }
         }
     }
+}
+
+.tooltip[id^='tooltip-instruction'],
+#tooltip-instruction-extra              {
+    .tooltip-inner                      {background-color: $nominative;
+                                         color: $pallette1;
+                                         padding: 0.5rem;
+    }
+    .arrow::before                       {border-top-color: $nominative;
+    }
+}
+#tooltip-instruction-extra              {
+    .tooltip-inner                      {text-align: left;
+                                         padding-left: 0.75rem;
+                                         padding-right: 0.75rem;
+        ul                              {margin-bottom: 0.5rem;
+                                         margin-top: 0.5rem;
+        }
+    }
+    @include icon-bullet-list($pallette1);
+}
+
+#lessons-tooltip                    {background-color: $nominative;
+                                        color: $pallette1;
+    a                               {color: $pallette1;
+    }
+    .popover-header                 {background-color: transparent;
+                                        border-bottom: 1px solid transparent;
+                                        font-weight: bold;
+                                        padding: 0.75rem 0.75rem 0 1rem;
+    }
+    .popover-body                   {background-color: transparent;
+                                        padding: 0.25rem 0.75rem;
+    }
+    .arrow::after                   {border-top-color: $nominative;
+    }
+    @include icon-bullet-list($pallette1);
 }
 
 //-- basic layout -------------------------------------------
@@ -2316,34 +2368,48 @@ form                                    {margin-bottom: 1rem;
                 }
                 .form-check                         {font-family: $greek-fonts;
                                                     font-size: $font-size-lg;
+                                                    padding-left: 1.5rem;
+                    &:nth-child(2)                  {margin-top: 0.25rem;
+                    }
                     &:last-of-type                  {margin-bottom: 0.5rem;
                     }
                     label                           {position: relative;
-                                                     top: -0.25rem;
+                                                     top: -0.15rem;
                                                      cursor: pointer;
+                                                     line-height: 2rem;
                     }
                 }
-                .instruction-icon                   {color: $accent2;
-                                                     display: inline-block;
-                                                     margin-bottom: 0.5rem;
-                                                     opacity: 0.5;
-                                                     font-size: 1.5rem;
-                    &:hover,
-                    &:active                        {opacity: 1;
-                                                     cursor: pointer;
-                                                     text-decoration: none;
-                    }
-                    &:first-of-type                 {
-                        svg                         {margin-left: 0;
+                .instruction-row                    {display: flex;
+                                                     flex-direction: row;
+                    .instruction-icon                   {color: $nominative;
+                                                        display: inline-block;
+                                                        margin-bottom: 0;
+                                                        opacity: 0.5;
+                                                        font-size: 1.5rem;
+                        &:hover,
+                        &:active                        {opacity: 1;
+                                                        cursor: pointer;
+                                                        text-decoration: none;
+                        }
+                        &:first-of-type                 {
+                            svg                         {margin-left: 0;
+                            }
+                        }
+                        &.text-icon                     {font-weight: bold;
+                                                        background-color: $nominative;
+                                                        color: $white;
+                                                        border-radius: 1rem;
+                                                        padding: 0 0.45rem;
+                                                        font-size: 1rem;
+                                                        height: 1.5rem;
+                                                        position: relative;
+                                                        top: 0.4rem;
+                                                        margin-right: 0.25rem;
+                                                        margin-left: 0.25rem;
+                                                        border: 1px solid $accent2;
                         }
                     }
-                    &.text-icon                     {font-weight: bold;
-                                                     background-color: $accent2;color: $white;
-                                                     border-radius: 1rem;
-                                                     padding: 0 0.5rem;
-                                                     font-size: 1rem;
-                                                     position: relative;
-                                                     top: -0.16rem;
+                    .lessons-icon                       {margin-left: auto;
                     }
                 }
                 .btn-group                          {width: 100%;
@@ -2379,7 +2445,7 @@ form                                    {margin-bottom: 1rem;
                                                     font-size: $font-size-sm;
                                                     display: block;
                 }
-                .user-info                          {color: $accent2;
+                .user-info                          {color: $nominative;
                                                     font-size: $font-size-sm;
                                                     display: block;
                                                     margin-bottom: -0.5rem;

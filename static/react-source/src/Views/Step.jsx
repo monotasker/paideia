@@ -24,6 +24,82 @@ import { UserContext } from "../UserContext/UserProvider";
 import useEventListener from "../Hooks/UseEventListener";
 import { returnStatusCheck } from "../Services/utilityService";
 
+const Instructions = ({instructions}) => {
+
+  const inst_set = {
+    "Please answer in Greek.": ["font", "Γ"],
+    "Please answer in English.": ["icon", "font"],
+    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"],
+    "Choose one of the options listed.": ["icon", "check-circle"]
+  }
+  const instructions_extra = [
+    "Remember to vary the word order in your Greek clauses"]
+
+  const icons = instructions.map( inst =>
+    Object.keys(inst_set).includes(inst) ?
+      (
+        <OverlayTrigger key={inst} placement="top"
+          overlay={<Tooltip id={`tooltip-instruction-${inst}`}>{inst}</Tooltip>}
+          trigger={['click', 'focus', 'hover']}
+        >
+            { inst_set[inst][0] === "font" ? (
+              <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
+              ) : (
+              <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
+              )
+            }
+        </OverlayTrigger>
+      )
+      : ""
+  );
+
+  const extra_strs = instructions.filter( inst => {
+    return !Object.keys(inst_set).includes(inst);
+  });
+
+  if ( extra_strs.length > 0 ) {
+    const extra = extra_strs.map( inst => <li key={inst} ><FontAwesomeIcon key="1" icon="info-circle" size="sm" />{inst}</li> );
+    const extra_icon = (
+      <OverlayTrigger key="extra-instruction-trigger" placement="top"
+        overlay={<Tooltip id="tooltip-instruction-extra"><ul>{extra}</ul></Tooltip>}
+        trigger={['click', 'hover', 'focus']}
+      >
+        <a className='instruction-icon'>
+          <FontAwesomeIcon key="1" icon="info-circle" />
+        </a>
+      </OverlayTrigger>
+    );
+    icons.push(extra_icon);
+  }
+  return icons;
+}
+
+const Slidedecks = ({decks}) => {
+  return(
+    <OverlayTrigger placement="top" trigger="click" rootClose
+      overlay={
+        <Popover id="lessons-tooltip" >
+          <Popover.Title>Related lessons</Popover.Title>
+          <Popover.Content>
+            <ul>
+              {Object.entries(decks).map(([id, label]) =>
+                <li key={label}>
+                  <FontAwesomeIcon icon="video" size="sm" />
+                  <Link to={`/${urlBase}/videos/${id}`}>
+                    {label}
+                  </Link>
+                </li>
+              )}
+            </ul>
+          </Popover.Content>
+        </Popover>
+    }>
+      <a className='instruction-icon lessons-icon'>
+        <FontAwesomeIcon  icon="video" />
+      </a>
+    </OverlayTrigger>
+  )
+}
 
 const Step = (props) => {
   console.log(props);
@@ -194,50 +270,7 @@ const Step = (props) => {
                        </Button>)
   }
 
-  const inst_set = {
-    "Please answer in Greek.": ["font", "Γ"],
-    "Please answer in English.": ["icon", "font"],
-    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"],
-    "Choose one of the options listed.": ["icon", "check-circle"]
-  }
-  const instructions_extra = [
-    "Remember to vary the word order in your Greek clauses"]
 
-  const make_instructions = () => {
-    const icons = stepData.instructions.map( inst =>
-      Object.keys(inst_set).includes(inst) ?
-        (
-          <OverlayTrigger key={inst} placement="top"
-            overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
-          >
-              { inst_set[inst][0] === "font" ? (
-                <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
-                ) : (
-                <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
-                )
-              }
-          </OverlayTrigger>
-        )
-        : ""
-    );
-    const extra_strs = stepData.instructions.filter( inst => {
-      return !Object.keys(inst_set).includes(inst);
-    });
-    if ( extra_strs.length > 0 ) {
-      const extra = extra_strs.map( inst => <li key={inst} ><FontAwesomeIcon key="1" icon="info-circle" size="sm" />{inst}</li> );
-      const extra_icon = (
-        <OverlayTrigger key="extra-instruction-trigger" placement="top"
-          overlay={<Tooltip id="tooltip-extra"><ul>{extra}</ul></Tooltip>}
-        >
-          <a className='instruction-icon'>
-            <FontAwesomeIcon key="1" icon="info-circle" />
-          </a>
-        </OverlayTrigger>
-      );
-      icons.push(extra_icon);
-    }
-    return icons;
-  }
 
   return (
     <Row id="step_row" className="stepPane"
@@ -296,31 +329,14 @@ const Step = (props) => {
             <div className="responder-text">
           { !!stepData.response_form && !responded && (
             <Form onSubmit={submitAction}>
-              { !!stepData.instructions && make_instructions()}
-              { !!stepData.slidedecks &&
-                <OverlayTrigger placement="top" trigger="click" rootClose
-                  overlay={
-                    <Popover id="tooltip-videos">
-                      <Popover.Title>Related lessons</Popover.Title>
-                      <Popover.Content>
-                        <ul>
-                          {Object.entries(stepData.slidedecks).map(([id, label]) =>
-                            <li key={label}>
-                              <Link to={`/${urlBase}/videos/${id}`}>
-                                <FontAwesomeIcon icon="video" size="sm" />
-                                {label}
-                              </Link>
-                            </li>
-                          )}
-                        </ul>
-                      </Popover.Content>
-                    </Popover>
-                }>
-                  <a className='instruction-icon'>
-                    <FontAwesomeIcon  icon="video" />
-                  </a>
-                </OverlayTrigger>
-              }
+              <div className="instruction-row">
+                { !!stepData.instructions &&
+                  <Instructions instructions={stepData.instructions} />
+                }
+                { !!stepData.slidedecks &&
+                  <Slidedecks decks={stepData.slidedecks} />
+                }
+              </div>
               {widgets[stepData.response_form.form_type]()}
               <Button variant="success" type="submit" className="submit_reply">
                 { evaluatingStep ? (
