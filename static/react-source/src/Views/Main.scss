@@ -1463,6 +1463,9 @@ form                                    {margin-bottom: 1rem;
     div.maria-bubble-mobile        {background-color: white;
                                     padding:2rem;
                                     margin-right: 2rem;
+        @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    padding: 1rem 0.75rem 1.25rem 0.75rem;
+        }
         h1                         {font-family: 'Amatic SC', cursive;
                                     font-weight: regular;
                                     font-size: 3rem;
@@ -1480,8 +1483,48 @@ form                                    {margin-bottom: 1rem;
     div.warning.row                {background-color: $danger;
                                     color: $cream;
                                     padding: 1.25rem 0;
-        p                          {text-align: center;
+        @media (max-width: map-get($grid-breakpoints, md))  {
+                                    padding: 0.75rem 2rem;
+        }
+        @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    padding: 0.75rem 0;
+        }
+        .bg-danger                 {display: flex;
+                                    flex-direction: row;
+            @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    flex-direction: column-reverse;
+                                    margin-left: 1.5rem;
+                                    margin-right: 1.5rem;
+            }
+            .icon-wrapper          {display: flex;
+                                    flex-direction: column;
+                                    padding-right: 1rem;
+                                    margin-left: auto;
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                    padding-right: 0.75rem;
+                }
+                @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                    margin-top: 0.5rem;
+                }
+                svg                {color: $yellow;
+                                    margin-top: auto;
+                                    margin-bottom: auto;
+                }
+            }
+            p                      {text-align: center;
                                     margin-bottom: 0;
+                                    margin-right: auto;
+                &.long-warning-text {display: block;
+                    @media (max-width: map-get($grid-breakpoints, md))  {
+                                    display: none;
+                    }
+                }
+                &.short-warning-text {display: none;
+                                    display: block;
+                }
+            }
         }
     }
 
@@ -1494,8 +1537,10 @@ form                                    {margin-bottom: 1rem;
         @media (max-width: map-get($grid-breakpoints, md))  {
                                     padding: 0;
                                     text-align: left;
-                                    padding-left: 2rem;
-                                    padding-right: 2rem;
+                                    padding-left: 3rem;
+                                    padding-right: 3rem;
+                                    padding-bottom: 1rem;
+                                    padding-top: 0.5rem;
         }
         @media (max-width: map-get($grid-breakpoints, sm))  {
                                     padding-left: 0.5rem;
@@ -1509,6 +1554,9 @@ form                                    {margin-bottom: 1rem;
             &:hover,
             &:active                {background-color: rgba(255, 255, 255, 0.4);
             }
+            @media (max-width: map-get($grid-breakpoints, md)) {
+                                     margin-top: 1rem;
+            }
             @media (max-width: map-get($grid-breakpoints, sm)) {
                                      margin-top: 0.5rem;
                                      margin-right: 0;
@@ -1516,21 +1564,50 @@ form                                    {margin-bottom: 1rem;
             .info-illustration-wrapper          {//text-align: center;
                                                 // width:100%;
                 @media (max-width: map-get($grid-breakpoints, md)) {text-align: left;
+                                        display: flex;
+                                        flex-direction: row;
+                                        height: 6rem;
+                                        overflow: hidden;
                 }
                 @media (max-width: map-get($grid-breakpoints, sm)) {
                                         display: flex;
                                         flex-direction: row;
+                                        height: auto;
                 }
                 .info-pane-illustration {width:12rem;
                                         border-radius: 50%;
+                    @media (max-width: map-get($grid-breakpoints, md)) {
+                                        margin-left: auto;
+                                        height: 10rem;
+                                        margin-top: -2rem;
+                    }
                     @media (max-width: map-get($grid-breakpoints, sm)) {
                                         margin-left: auto;
+                                        margin-top: 0;
+                                        height: auto;
                                         width: 5rem;
                     }
                 }
                 h4                      {margin-bottom: 0;
                                          margin-top: 1rem;
-                    @media (max-width: map-get($grid-breakpoints, sm)) {margin-top: 0;
+                    @media (max-width: map-get($grid-breakpoints, md)) {
+                                         margin-top: auto;
+                                         margin-bottom: auto;
+                                         margin-left: 1.5rem;
+                    }
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                         margin-top: 0;
+                                         margin-left: 1rem;
+                    }
+                    .long-title              {display: block;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                         display: none;
+                        }
+                    }
+                    .short-title         {display: none;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                         display: block;
+                        }
                     }
                     a                                   {font-size: 2rem;
                                                          font-family: $title-fonts;

@@ -11,6 +11,7 @@ import { Link,
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamationTriangle,
+  faHardHat,
   faSignInAlt
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -23,22 +24,23 @@ import { urlBase } from "../variables";
 const modalContent = [
   {img: imgHowDoesItWork,
    title: "How Does It Work?",
+   shortTitle: "How Does It Work?",
    path: "how-it-works"},
   {img: imgHowDoIType,
    title: "How Do I Type Greek?",
+   shortTitle: "How Do I Type Greek?",
    path: "typing-greek"},
   {img: imgFAQs,
    title: "Frequently Asked Questions",
+   shortTitle: "FAQs",
    path: "faq"}
 ];
 
-const ModalTrigger = ({title, img, path, history}) => {
-
+const ModalTrigger = ({title, shortTitle, img, path, history}) => {
 
   const navigate = (event) => {
     history.push(`${path}`);
   };
-
 
   return (
     <Col key={title} className='info-pane' md
@@ -46,7 +48,8 @@ const ModalTrigger = ({title, img, path, history}) => {
     >
       <div className="info-illustration-wrapper">
         <h4>
-            <Link to={path} onClick={e => {e.preventDefault()}}>{title}</Link>
+            <Link className="long-title" to={path} onClick={e => {e.preventDefault()}}>{title}</Link>
+            <Link className="short-title" to={path} onClick={e => {e.preventDefault()}}>{shortTitle}</Link>
         </h4>
         <img className='info-pane-illustration'
           alt={title} src={img}
@@ -109,8 +112,14 @@ const Home = () => {
     {/*Alpha warning row -----------------------------------------------*/}
     <Row className="warning">
       <Col className="bg-danger">
-          <p>
-          <FontAwesomeIcon icon={faExclamationTriangle} size="lg" /> This app is still in "beta" testing stage and is under active development. Bug reports are appreciated.
+          <div className="icon-wrapper">
+            <FontAwesomeIcon icon={faHardHat} size="lg" />
+          </div>
+          <p className="long-warning-text">
+           This app is still in "beta" testing stage and is under active development. Bug reports are appreciated.
+          </p>
+          <p className="short-warning-text">
+           Beta version. Bug reports are appreciated.
           </p>
       </Col>
     </Row>
@@ -118,6 +127,7 @@ const Home = () => {
     {/*Info slide-out row -----------------------------------------------*/}
     <Row className='modal-set'>
         {modalContent.map( item => <ModalTrigger title={item.title}
+                                      shortTitle={item.shortTitle}
                                       key={`modal_trigger_${item.title}`}
                                       img={item.img}
                                       path={`${middlePath}info/${item.path}`}
