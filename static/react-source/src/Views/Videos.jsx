@@ -15,7 +15,9 @@ import {
   Button,
   ListGroup,
   Spinner,
-  ResponsiveEmbed
+  OverlayTrigger,
+  Popover,
+  Tooltip
 } from "react-bootstrap";
 import {
   CSSTransition,
@@ -198,6 +200,17 @@ const Videos = (props) => {
     setActiveLessonId(id);
   }
 
+  const infoPopover = (
+    <Popover>
+      <Popover.Title></Popover.Title>
+      <Popover.Content>
+        Click on the icon beside each lesson title to see which badges are touched on in the video.
+
+        Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.
+      </Popover.Content>
+    </Popover>
+  );
+
   return (
     <Row className="videos-component content-view">
       <Col className="">
@@ -244,8 +257,7 @@ const Videos = (props) => {
                     <div className="iframe-mask">
                       <Spinner animation="grow" variant="secondary" />
                     </div>
-                    {/* <div className="youtube-content"> */}
-                      {!!activeLessonId ?
+                    {!!activeLessonId ?
                       <iframe
                         title={`lesson display: lesson ${activeLessonId}`}
                         src={activeLessonSrc}
@@ -255,14 +267,22 @@ const Videos = (props) => {
                       >
                       </iframe>
                       :
-                      <div class="youtube-content">
+                      <div className="youtube-content">
                         <h2>Choose a Lesson</h2>
-                        <p> Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
-                        <p> Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
+                        <p> Pick a badge set from the list here to see the related video lessons
+                          <OverlayTrigger key="info-popover-trigger"
+                            placement="bottom"
+                            trigger="click"
+                            overlay={infoPopover}
+                          >
+                            <Button variant="link">
+                              <FontAwesomeIcon icon="info-circle" />
+                            </Button>
+                          </OverlayTrigger>
+                        </p>
                       </div>
-                      }
-                    </div>
-                  {/* </div> */}
+                    }
+                  </div>
               </CSSTransition>
             </SwitchTransition>
             </Row>

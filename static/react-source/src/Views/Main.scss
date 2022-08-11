@@ -2124,6 +2124,11 @@ form                                    {margin-bottom: 1rem;
                         @media (max-width: map-get($grid-breakpoints, md))  {
 
                         }
+                        .btn,
+                        .btn:hover,
+                        .btn:active,
+                        .btn:focus                   {box-shadow: 0 0 0 0 transparent;
+                        }
                     }
                     .youtube-content,
                     iframe                    {position: absolute;
