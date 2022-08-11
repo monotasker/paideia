@@ -2000,98 +2000,116 @@ form                                    {margin-bottom: 1rem;
                                                flex-direction: column;
                                                padding-right: 0;
                                                padding-left: 0;
-        .lessons-display-container            {overflow: hidden;
-                                               height: 100%;
-            .lessonlist                       {overflow: auto;
-                                               max-height: 100%;
-                                               padding-left: 0;
-                                               padding-right: 0;
-                                               scrollbar-color: lighten($blueDark, 10%) $blueDark;
-                                               scrollbar-width: thin;
-                &::-webkit-scrollbar           {width: 0.5rem;
-                }
-                &::-webkit-scrollbar-track    {background: $blueDark;
-                }
-                &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
-                }
-                .card                         {border-radius: 0;
-                                               border: 0;
-                    .card-header              {padding-top: 0;
-                                               padding-bottom: 0;
-                                               background-color: $blueDark;
-                                               border: 0;
 
-                        &:focus,
-                        &:hover,
-                        &:active,
-                        &:visited     {background-color: darken($blueDark, 10%);
+        .lessonlist                       {overflow: auto;
+                                           max-height: 100%;
+                                           padding-left: 0;
+                                           padding-right: 0;
+                                           scrollbar-color: lighten($blueDark, 10%) $blueDark;
+                                           scrollbar-width: thin;
+            @media (max-width: map-get($grid-breakpoints, md))  {
+                                           display: none;
+            }
+            &::-webkit-scrollbar           {width: 0.5rem;
+            }
+            &::-webkit-scrollbar-track    {background: $blueDark;
+            }
+            &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
+            }
+            .card                         {border-radius: 0;
+                                           border: 0;
+                .card-header              {padding-top: 0;
+                                           padding-bottom: 0;
+                                           background-color: $blueDark;
+                                           border: 0;
+
+                    &:focus,
+                    &:hover,
+                    &:active,
+                    &:visited     {background-color: darken($blueDark, 10%);
+                    }
+                    &:first-child         {border-radius: 0;
+                    }
+                    .btn                  {text-align: left;
+                                           padding-left: 0;
+                                           padding-right: 0;
+                        &.btn-link        {color: #fff;
+                            &:focus,
+                            &:hover,
+                            &:active,
+                            &:visited     {text-decoration: none;
+                                           outline: none;
+                                           box-shadow: none;
+                            }
                         }
-                        &:first-child         {border-radius: 0;
+                        .lessonLink-grammar   {font-size: $font-size-sm;
+                                               color: desaturate(lighten($blueDark, 30%), 30%);
                         }
-                        .btn                  {text-align: left;
-                                               padding-left: 0;
-                                               padding-right: 0;
-                            &.btn-link        {color: #fff;
-                                &:focus,
-                                &:hover,
-                                &:active,
-                                &:visited     {text-decoration: none;
-                                               outline: none;
-                                               box-shadow: none;
-                                }
-                            }
-                            .lessonLink-grammar   {font-size: $font-size-sm;
-                                                   color: desaturate(lighten($blueDark, 30%), 30%);
-                            }
-                            .lessonLink-vocab   {font-size: $font-size-sm;
-                                                 color: desaturate(lighten($blueDark, 25%), 25%);
-                            }
+                        .lessonLink-vocab   {font-size: $font-size-sm;
+                                             color: desaturate(lighten($blueDark, 25%), 25%);
                         }
                     }
-                    .card-body                {padding: 0;
-                        .list-group-item      {border-right: 0;
-                                               border-left: 0;
-                                               border-radius: 0;
-                                               border-top: 0;
-                                               border-bottom: 0;
-                                               background-color: lighten($pallette2, 10%);
-                            .lesson-list-item-pdf   {float: right;
-                                                     color: $heading-color;
-                                                     opacity: 50%;
-                            }
-                            &.active          {background-color: $pallette2;
-                                               color: #333;
-                                &:focus,
-                                &:active      {outline: none;
-                                }
-                            }
-                            &:active,
+                }
+                .card-body                {padding: 0;
+                    .list-group-item      {border-right: 0;
+                                           border-left: 0;
+                                           border-radius: 0;
+                                           border-top: 0;
+                                           border-bottom: 0;
+                                           background-color: lighten($pallette2, 10%);
+                        .lesson-list-item-pdf   {float: right;
+                                                 color: $heading-color;
+                                                 opacity: 50%;
+                        }
+                        &.active          {background-color: $pallette2;
+                                           color: #333;
                             &:focus,
-                            &:hover           {border: 0;
-                                               background-color: lighten($pallette2, 5%);
-                                .lesson-list-item-pdf   {opacity: 100%;
-                                    &:hover             {color: $danger;
-                                    }
+                            &:active      {outline: none;
+                            }
+                        }
+                        &:active,
+                        &:focus,
+                        &:hover           {border: 0;
+                                           background-color: lighten($pallette2, 5%);
+                            .lesson-list-item-pdf   {opacity: 100%;
+                                &:hover             {color: $danger;
                                 }
                             }
                         }
                     }
                 }
             }
-            .video-display                    {padding-right: 0;
-                                               padding-left: 0;
-                .youtube-container            {overflow: hidden;
-                                               position: absolute;
-                                               width: 100%;
-                                               opacity: 0;
-                    @include react-transition-fade("youtube-container", 200);
-                    @media (max-width: map-get($grid-breakpoints, md))  {position: relative;
+        }
+        .lessons-display-container            {height: 100%;
+                                               display: flex;
+            .lessonlist-bottom                {display: none;
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               display: block;
+                                               overflow: auto;
+                }
+                .lessonlist                   {
+                    @media (max-width: map-get($grid-breakpoints, md))  {
+                                                display: block;
+                                                height: 100%;
                     }
+                }
+            }
+            .video-display-column             {padding-right: 0;
+                                               padding-left: 0;
+                                               display: flex;
+                                               flex-direction: column;
+                                               height: 100%;
+                .youtube-container            {position: relative;
+                                               width: 100%;
+                                               height: 100%;
+                                               opacity: 0;
+                                               top: 0;
+                                               padding-top: 56.25%;
+                    @include react-transition-fade("youtube-container", 200);
                     &.empty                   {background-color: #fff;
                                                padding-left: 1rem;
                                                padding-right: 1rem;
                                                padding-top: 2rem;
-                                               position: absolute;
                         @include react-transition-fade("youtube-container", 200);
                         &::after              {padding-top: 0;}
                         p                     {padding-right: 1.5rem;
@@ -2101,16 +2119,24 @@ form                                    {margin-bottom: 1rem;
                     //                            display: block;
                     //                            content: "";
                     // }
-                    iframe                    {
-                                               position: absolute;
-                                            //    top: 0;
-                                            //    left: 0;
-                                            //    width: 100%;
-                                            //    height: 100%;
+                    .youtube-content          {padding: 2rem;
+                                               padding-top: 3rem;
+                        @media (max-width: map-get($grid-breakpoints, md))  {
+
+                        }
+                    }
+                    .youtube-content,
+                    iframe                    {position: absolute;
+                                               top: 0;
+                                               left: 0;
+                                               width: 100%;
+                                               height: 100%;
                     }
                     .iframe-mask              {position: absolute;
                                                width: 100%;
                                                height: 100%;
+                                               top: 0;
+                                               left: 0;
                                                background-color: #fff;
                                                opacity: 1;
                                                z-index: 10;

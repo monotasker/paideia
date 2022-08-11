@@ -217,22 +217,18 @@ const Videos = (props) => {
           </Col>
 
           <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
-            className="video-display"
+            className="video-display-column"
           >
+            <Row className="video-display-row">
 
-            <CSSTransition
+            {/* <CSSTransition
               in={!activeLessonId}
               timeout={200}
               appear={true}
               classNames="youtube-container"
-              unmountOnExit={true}
+              unmountOnExit={false}
             >
-              <Col className="youtube-container empty">
-                <h2>Choose a Lesson</h2>
-                <p> Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
-                <p> Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
-              </Col>
-            </CSSTransition>
+            </CSSTransition> */}
 
             <SwitchTransition>
               <CSSTransition
@@ -248,7 +244,8 @@ const Videos = (props) => {
                     <div className="iframe-mask">
                       <Spinner animation="grow" variant="secondary" />
                     </div>
-                    <ResponsiveEmbed aspectRatio="16by9">
+                    {/* <div className="youtube-content"> */}
+                      {!!activeLessonId ?
                       <iframe
                         title={`lesson display: lesson ${activeLessonId}`}
                         src={activeLessonSrc}
@@ -257,10 +254,32 @@ const Videos = (props) => {
                         allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
                       >
                       </iframe>
-                    </ResponsiveEmbed>
-                  </div>
+                      :
+                      <div class="youtube-content">
+                        <h2>Choose a Lesson</h2>
+                        <p> Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
+                        <p> Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
+                      </div>
+                      }
+                    </div>
+                  {/* </div> */}
               </CSSTransition>
             </SwitchTransition>
+            </Row>
+            <Row className="lessonlist-bottom">
+              <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
+                className="lessonlist"
+              >
+                { lessons.length !== 0 &&
+                <LessonList
+                  defaultSet={defaultSet}
+                  lessons={lessons}
+                  setVideoHandler={setOpenVideo}
+                  activeLesson={activeLessonId}
+                />
+                }
+              </Col>
+            </Row>
 
           </Col>
         </Row>
