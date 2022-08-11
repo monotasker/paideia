@@ -97,7 +97,9 @@ const Home = () => {
           <p className='index-openmessage'>
             {openmessage}
           </p>
-          <Button variant="success">
+          <Button variant="success"
+            as={Link} to={`/${urlBase}/walk/map`}
+          >
             <FontAwesomeIcon icon={ faSignInAlt } />
             Explore
           </Button>
