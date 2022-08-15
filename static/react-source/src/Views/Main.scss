@@ -2007,6 +2007,10 @@ form                                    {margin-bottom: 1rem;
                                            padding-right: 0;
                                            scrollbar-color: lighten($blueDark, 10%) $blueDark;
                                            scrollbar-width: thin;
+
+            @media (max-aspect-ratio: 1) {
+                                           display: none;
+            }
             @media (max-width: map-get($grid-breakpoints, md))  {
                                            display: none;
             }

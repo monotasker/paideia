@@ -8,6 +8,7 @@ from copy import copy
 from memory_profiler import profile
 from operator import itemgetter
 from pytz import timezone, utc
+import time
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
 from gluon._compat import to_native, integer_types
@@ -407,7 +408,6 @@ class Stats(object):
         db = current.db
         debug = 0
 
-
         mystats = db((db.weekly_user_stats.name==self.user_id) &
                      (db.weekly_user_stats.tag==tag_id) &
                      (db.weekly_user_stats.week_end > recent_start)
@@ -519,19 +519,23 @@ class Stats(object):
         db = current.db if not db else db
 
         # get bounds for today and yesterday
+        if debug: print('getting bounds')
         now = self.utcnow if not now else now
         offset = get_offset(self.user)
         start_date = self.utcnow.date() if not now else now.date()
-        daystart = datetime.datetime.combine(start_date,
+        daystart_raw = datetime.datetime.combine(start_date,
                                              datetime.time(0, 0, 0, 0))
-        daystart = daystart - offset
+        daystart = daystart_raw - offset
         recent_start = (daystart - datetime.timedelta(days=4))
         yest_start = (daystart - datetime.timedelta(days=1))
+        yeststart_raw = yest_start + offset
 
+        if debug: print('fetching tag_records')
         tag_records = db((db.tag_records.name == self.user_id) &
                          (db.tag_records.tag.belongs(self.tags))
                           ).select().as_list()  # cacheable=True
         # shorten keys for readability
+        if debug: print('shortening keys')
         shortforms = {'tlast_right': 'tlr',
                       'tlast_wrong': 'tlw',
                       'times_right': 'tright',
@@ -549,8 +553,8 @@ class Stats(object):
         # print('deleted', mydel)
 
         # loop over tag_records entries
+        if debug: print('looping over tag_records entries')
         for idx, t in enumerate(tag_records):
-            if debug: print('D')
             if debug: print('active_tags: tag', t['tag'])
             # remove unnecessary keys
             tag_records[idx] = {k: v for k, v in list(t.items())
@@ -560,25 +564,34 @@ class Stats(object):
             # Count attempt log rows for recent attempts (today, yesterday,
             # and within last 5 days)
             # log fields used below are dt_attempted, score
+            if debug: t0 = time.time()
             tagstats = self._get_logs_for_tag(t['tag'], recent_start)
+            if debug: t1 = time.time()
+            if debug: print('a', t1-t0)
 
+            if debug: t2 = time.time()
             try:
-                todaylogs = tagstats[daystart + offset]
-                tag_records[idx]['todaycount'] = len(todaylogs[0] + todaylogs[1])
+                todaylogs = tagstats[daystart_raw]
+                tag_records[idx]['todaycount'] = len(todaylogs[0]) + len(todaylogs[1])
             except KeyError:  # no logs from today
                 tag_records[idx]['todaycount'] = 0
             try:
-                yestlogs = tagstats[yest_start + offset]
-                tag_records[idx]['yestcount'] = len(yestlogs[0] + yestlogs[1])
+                yestlogs = tagstats[yeststart_raw]
+                tag_records[idx]['yestcount'] = len(yestlogs[0]) + len(yestlogs[1])
             except KeyError:  # no logs from yesterday
                 tag_records[idx]['yestcount'] = 0
+            if debug: t3 = time.time()
+            if debug: print('b', t3-t2)
 
-            if debug: print('F')
+            if debug: t4 = time.time()
             # get average score over recent period
             tag_records[idx]['avg_score'] = self._get_avg_score(
                 t['tag'], logs=tagstats)
+            if debug: t5 = time.time()
+            if debug: print('c', t5-t4)
 
             # get right/wrong ratio (from tag_records itself)
+            if debug: t6 = time.time()
             try:
                 if not t['tright']:  # TODO: tests to sanitize bad data (None)
                     t['tright'] = 0
@@ -588,8 +601,11 @@ class Stats(object):
                     t['tright'] / t['twrong'], 2)
             except (ZeroDivisionError, TypeError):
                 tag_records[idx]['rw_ratio'] = round(t['tright'], 2)
+            if debug: t7 = time.time()
+            if debug: print('d', t7-t6)
 
             # parse last_right and last_wrong into readable form
+            if debug: t8 = time.time()
             try:
                 t['tlw'] = tag_records[idx]['tlw'] = parse(t['tlw']) if not \
                     isinstance(t['tlw'], datetime.datetime) else t['tlw']
@@ -597,8 +613,11 @@ class Stats(object):
                     isinstance(t['tlr'], datetime.datetime) else t['tlr']
             except AttributeError:
                 pass
+            if debug: t9 = time.time()
+            if debug: print('e', t9-t8)
 
             # get time deltas since last right and wrong
+            if debug: t10 = time.time()
             for i in ['r', 'w']:
                 try:
                     tag_records[idx]['delta_' + i] = now - t['tl' + i]
@@ -615,8 +634,11 @@ class Stats(object):
                 t[i] = self._local(t[i])
                 strf = '%b %e' if t[i].year == now.year else '%b %e, %Y'
                 tag_records[idx][i] = (t[i], t[i].strftime(strf))
+            if debug: t11 = time.time()
+            if debug: print('f', t11-t10)
 
             # add user's historic maximum and current review levels for tag
+            if debug: t12 = time.time()
             try:
                 tag_records[idx]['curlev'] = [l for l, tgs in
                     list(self.badge_levels.items())
@@ -633,23 +655,28 @@ class Stats(object):
             except IndexError:
                 traceback.print_exc(5)
                 tag_records[idx]['revlev'] = 0
+            if debug: t13 = time.time()
+            if debug: print('g', t13-t12)
 
             # round total right and wrong attempt counts to closest int for
             # readability
+            if debug: t14 = time.time()
             for i in ['right', 'wrong']:
                 try:
                     tag_records[idx]['t' + i] = remove_trailing_0s(t['t' + i],
                                                           fmt='num')
                 except TypeError:  # because value is None
                     tag_records[idx]['t' + i] = 0
+            if debug: t15 = time.time()
+            if debug: print('h', t15-t14)
 
         try:
-            if debug: print('J')
+            if debug: print('adding tag data to tag_records')
             tag_records = self._add_tag_data(tag_records)
-            if debug: print('K')
+            if debug: print('adding promotion data to tag_records')
             tag_records = self._add_promotion_data(tag_records)
             # tr = self._add_log_data(tr)
-            if debug: print('L')
+            if debug: print('returning...')
             return tag_records
         except Exception:
             traceback.print_exc(5)
@@ -1044,7 +1071,7 @@ class Stats(object):
         to that date. An extra dict is added to the end of the list with the
         current date and the highest badge_set reached (to pad out graph).
         """
-        debug = False
+        debug = 1
         db = current.db
         today = datetime.date.today().strftime('%Y-%m-%d')
 
@@ -1072,15 +1099,16 @@ class Stats(object):
         # Make sure that the badge set number is nondecreasing.
         # Order in the SQL query above along with this ensure that there's
         # only one event per date
-        milestones = []
-        prev = None
-        for d in data:
-            if prev is not None and (d['badge_set'] >= prev['badge_set'] or
-                                     d['my_date'] == prev['my_date']):
-                                    # comparing badge sets
-                continue
-            milestones.append(d)
-            prev = d
+        # milestones = []
+        # prev = None
+        # for d in data:
+        #     if prev is not None and (d['badge_set'] >= prev['badge_set'] or
+        #                              d['my_date'] == prev['my_date']):
+        #                             # comparing badge sets
+        #         continue
+        #     milestones.append(d)
+        #     prev = d
+        milestones = data
 
         # Pad the data until today
 
@@ -1772,6 +1800,7 @@ def get_chart1_data(user_id=None, set=None, tag=None):
     user_id = user_id if user_id else auth.user_id
     stats = Stats(user_id)
     badge_set_milestones = stats.get_badge_set_milestones()
+    pprint(badge_set_milestones)
     answer_counts = stats.get_answer_counts(set=set, tag=tag)
 
     chart1_data = {'badge_set_reached': [{'date': dict['my_date'],

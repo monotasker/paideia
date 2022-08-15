@@ -2549,38 +2549,47 @@ def get_profile_info():
     request defaults to the logged in user.
 
     Returns a json object with the following keys:
-            the_name (str):             User's name from auth.user as lastname,
-                                            firstname
-            user_id(int):               The requested user's id.
-            tz(str??):                  User's time zone from auth.user
-                                            (extended in db.py)
-            email(str):                 User's email
-            starting_set(int):          badge set at which the user began
-                                            his/her current course section
-            end_date(str??):            ending date for user's current course
-                                            section
-            cal(html helper obj):       html calendar with user path stats
-                                            (from Stats.monthcal)
-            max_set(int):               Furthest badge set reached to date by
-                                            user (from Stats.max)
+            answer_counts(list):        List of counts of right and wrong
+                                            answers for each active day
             badge_levels(dict):         Dictionary with badge levels (int) as
                                             keys and a list of badge names (or
                                             tag: int) as each value.
+            badge_set_dict():           badge_set_dict,
+            badge_set_milestones(list): List of 'upgrades' of the highest badge
+                                            set and their dates
             badge_table_data(list):     A list of dictionaries with info on
                                             user badge progress (from
                                             Stats.active_tags)
-            badge_set_milestones(list): List of 'upgrades' of the highest badge
-                                            set and their dates
-            answer_counts(list):        List of counts of right and wrong
-                                            answers for each active day
+            cal(html helper obj):       html calendar with user path stats
+                                            (from Stats.monthcal)
             chart1_data(dict):          dictionary of data to build stats chart
                                             in view (from get_chart1_data)
-            reviewing_set():            session.set_review,
-            badge_set_dict():           badge_set_dict,
             class_info:                 dict of course information if user is
                                             currently enrolled in a course
+            days_per_week(int):         number of active days per week required
+                                        for user in course
+            email(str):                 User's email
+            max_set(int):               Furthest badge set reached to date by
+                                            user (from Stats.max)
+            other_class_info(dict):     Information about the user's other
+                                        classes with the keys "prior_classes"
+                                        and "latter_classes". Each of these
+                                        contains a list of objects, each
+                                        representing data on one class
+            paths_per_day(int):         number of paths per day required for
+                                        user for the current course.
+            reviewing_set():            session.set_review
+            starting_set(int):          badge set at which the user began
+                                            his/her current course section
+            the_name (dict):            User's name from auth.user as
+                                        dictionary with 'last_name',
+                                        'first_name', and a 'namestring'
+                                        formatted first, last
+            tz(str):                    User's time zone from auth.user
+                                            (extended in db.py)
+            user_id(int):               The requested user's id.
     """
-    debug = False
+    debug = 0
     db = current.db
     auth = current.auth
     session = current.session
@@ -2622,6 +2631,7 @@ def get_profile_info():
         stats = Stats(user.id)
 
         # get user's current course
+        if debug: print('getting current course')
         myc = _fetch_current_coursedata(user.id, datetime.now(timezone.utc))
         myc_id = myc['classes']['id'] if 'classes' in myc else 0
         myc_other = _fetch_other_coursedata(user.id, myc_id,
@@ -2634,24 +2644,33 @@ def get_profile_info():
 
         # tab1
 
+        if debug: print('getting user data')
         name = stats.get_name()
         tz = user.time_zone
         email = user.email
+        if debug: print('getting max set')
         max_set = stats.get_max()
+        if debug: print('getting badge_levels')
         badge_levels = stats.get_badge_levels()
+        if debug: print('getting active_tags')
         badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
 
         # tab2
+        if debug: print('getting monthcal')
         mycal = stats.monthcal()
         # badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
         # sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
         # steps_most_wrong = stats.steps_most_wrong(badge_table_data)
 
         # tab5
+        if debug: print('getting chart1_data')
         mydata = get_chart1_data(user_id=user.id)
         chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
+        if debug: print('getting milestones')
         badge_set_milestones = mydata['badge_set_milestones']
+        if debug: print('getting answer_counts')
         answer_counts = mydata['answer_counts']
+        if debug: print('getting badge_set_dict')
         badge_set_dict = {}
         set_list_rows = db().select(db.tags.tag_position, distinct=True)
         set_list = sorted([row.tag_position for row in set_list_rows
