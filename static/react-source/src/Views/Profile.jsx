@@ -344,6 +344,8 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
   return (<>
     <h3>My Progress</h3>
     <UpdateNotice status={updating} />
+    <div className="profile-progress-outer-container2">
+    <div className="profile-progress-outer-container">
     <div className="profile-progress-scale-container">
       <div className="profile-progress-scale">
         {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n =>
@@ -379,6 +381,14 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
           )}
         )}
       </div>
+    </div>
+    </div>
+      <Button className="scroll-right">
+        <FontAwesomeIcon icon="chevron-right" />
+      </Button>
+      <Button className="scroll-left">
+        <FontAwesomeIcon icon="chevron-left" />
+      </Button>
     </div>
   </>)
 }

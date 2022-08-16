@@ -1760,9 +1760,56 @@ form                                    {margin-bottom: 1rem;
             }
         }
         .profile-progress            {margin-top: 1rem;
+            .scroll-left,
+            .scroll-right                     {position: absolute;
+                                               bottom: 0.5rem;
+                                               display: none;
+                                               height: 3.1rem;
+                                               width: 1.5rem;
+                                               color: $white;
+                                               border: 1px solid $niceGrey;
+                                               background-color: lighten($niceGrey, 20%);
+                                               border-radius: 0;
+                                               opacity: 0.8;
+                                               left: 1rem;
+                &:hover,
+                &:active                      {opacity: 1;
+                }
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               display: block;
+                }
+                svg                           {font-size: 1.25rem;
+                                               transform: translateX(-0.7rem);
+                }
+            }
+            .scroll-right                     {right: 1rem;
+                                               left: auto;
+                                               transform: translateX(-0.6rem);
+            }
+            .profile-progress-outer-container2 {
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               padding: 0 1.5rem;
+                }
+            }
+            .profile-progress-outer-container {position: relative;
+                                                overflow-x: auto;
+                                                height: 8.5rem;
+                                                scrollbar-color: $blueDark;
+                                                scrollbar-height: 0.5rem;
+                &::-webkit-scrollbar           {height: 0.5rem;
+                }
+                &::-webkit-scrollbar-track    {background: lighten($cream, 20%);
+                }
+                &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
+                }
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               overflow-x: scroll;
+                }
+            }
             .profile-progress-scale-container {width: 100%;
                                             border-radius: 0.25rem;
-                                            position: relative;
+                                            position: absolute;
+                                            bottom: 0;
                                             border: 1px solid $pallette1;
                                             @include neumorphism-shadow();
                 .profile-progress-scale,
@@ -1771,12 +1818,14 @@ form                                    {margin-bottom: 1rem;
                                             display: flex;
                                             flex-direction: row;
                                             border-radius: 0.25rem;
+                                            min-width: 43.2rem;
                     .profile-progress-unit    {border-right: 1px solid $pallette1;
                                             flex-basis: 5%;
                                             flex-grow: 1;
                                             height: 3rem;
                                             text-align: center;
                                             line-height: 3rem;
+                                            cursor: pointer;
                         .current-set          {position: absolute;
                                             top: -4rem;
                                             display: flex;
