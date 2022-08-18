@@ -21,6 +21,7 @@ import { useParams,
          Link
        } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { scrollIntoView } from "seamless-scroll-polyfill";
 
 import { urlBase } from "../variables";
 import { isAlphanumericString, returnStatusCheck } from "../Services/utilityService";
@@ -340,7 +341,33 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
   </>)
 }
 
-const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
+const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones,
+                          currentBadgeSet}) => {
+  useEffect(() => {
+    let tt = document.getElementsByClassName("current-set")[0];
+    console.log(tt);
+    tt.scrollIntoView({behavior: "smooth", inline: "center"});
+  });
+
+  useEffect(() => {
+    const rscroller = document.querySelector(".scroll-right");
+    const lscroller = document.querySelector(".scroll-left");
+    const container = document.querySelector(".profile-progress-outer-container");
+    const scrollRight = (elem, ev) => {container.scrollBy({left: -100,
+                                                           top: 0,
+                                                           behavior: "smooth"})};
+    const scrollLeft = (elem, ev) => {container.scrollBy({left: 100,
+                                                           top: 0,
+                                                           behavior: "smooth"})};
+    rscroller.addEventListener("click", scrollRight);
+    lscroller.addEventListener("click", scrollLeft);
+
+    return () => {
+      rscroller.removeEventListener("click", scrollRight);
+      lscroller.removeEventListener("click", scrollLeft);
+    }
+  });
+
   return (<>
     <h3>My Progress</h3>
     <UpdateNotice status={updating} />
@@ -364,7 +391,7 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
           !!badgeSetMilestones && badgeSetMilestones.find(o => o.badge_set === n) ?
             <OverlayTrigger key={`progress-bar-set-${n}`} placement="auto" trigger="click" rootClose
               overlay={
-                <Popover id={`tooltip-${n}`}>
+                <Popover className="progress-tooltip" id={`tooltip-${n}`}>
                   <PopoverTitle>Badge Set {n}</PopoverTitle>
                   <PopoverContent>
                     {`Reached on ${readableDate(badgeSetMilestones.find(o => o.badge_set === n).my_date)}`}
@@ -372,7 +399,9 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
                 </Popover>
               }
             >
-              <div key={n} className="profile-progress-unit">{n}
+              <div key={n} className={`profile-progress-unit ${(n==currentBadgeSet) ? "current-set" : ''}`}
+              >
+                {n}
               </div>
             </OverlayTrigger>
           :
@@ -592,6 +621,7 @@ const Profile = (props) => {
               <ProfileProgress updating={updating}
                 scaleBadgeSet={scaleBadgeSet}
                 badgeSetMilestones={badgeSetMilestones}
+                currentBadgeSet={currentBadgeSet}
               />
             </Col>
 

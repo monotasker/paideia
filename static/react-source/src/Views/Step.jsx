@@ -13,7 +13,7 @@ import {
 import { useHistory, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import marked from "marked";
+import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 

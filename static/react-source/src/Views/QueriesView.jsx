@@ -18,7 +18,7 @@ import { useLocation,
          useParams
 } from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
-import marked from "marked";
+import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 import Select from 'react-select';

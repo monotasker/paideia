@@ -1675,6 +1675,10 @@ form                                    {margin-bottom: 1rem;
                                         border: 1px solid $pallette1;
                                         background-color: $white;
                                         margin-right: 4rem;
+
+                @media (max-width: map-get($grid-breakpoints, sm))  {
+                                        margin-right: 0;
+                }
                 .month-indicator         {text-align: center;
                                         font-size: $font-size-lg;
                                         line-height: 3rem;
@@ -1703,6 +1707,9 @@ form                                    {margin-bottom: 1rem;
                                         font-variant: normal;
                                         font-size: $font-size-sm;
                                         line-height: 1rem;
+                        @media (max-width: map-get($grid-breakpoints, sm))  {
+                                        display: none;
+                        }
                     }
                 }
                 .date-grid               {position: relative;
@@ -1757,34 +1764,39 @@ form                                    {margin-bottom: 1rem;
                                          padding: 0.25rem 0.5rem;
                                          margin-right: 4rem;
                                          display: block;
+                @media (max-width: map-get($grid-breakpoints, sm))  {
+                                         margin-right: 0;
+                }
             }
         }
         .profile-progress            {margin-top: 1rem;
             .scroll-left,
             .scroll-right                     {position: absolute;
-                                               bottom: 0.5rem;
+                                               bottom: 0.55rem;
                                                display: none;
                                                height: 3.1rem;
                                                width: 1.5rem;
                                                color: $white;
-                                               border: 1px solid $niceGrey;
+                                               border: 1px solid lighten($niceGrey, 10%);
                                                background-color: lighten($niceGrey, 20%);
                                                border-radius: 0;
-                                               opacity: 0.8;
                                                left: 1rem;
                 &:hover,
-                &:active                      {opacity: 1;
+                &:active                      {background-color: $niceGrey;
+                                               border: 1px solid $niceGrey;
                 }
                 @media (max-width: map-get($grid-breakpoints, md))  {
                                                display: block;
                 }
                 svg                           {font-size: 1.25rem;
                                                transform: translateX(-0.7rem);
+                                               vertical-align: -0.2rem;
                 }
             }
             .scroll-right                     {right: 1rem;
                                                left: auto;
-                                               transform: translateX(-0.6rem);
+                svg                           {transform: translateX(-0.6rem);
+                }
             }
             .profile-progress-outer-container2 {
                 @media (max-width: map-get($grid-breakpoints, md))  {
