@@ -267,6 +267,134 @@ form                                    {margin-bottom: 1rem;
     @include icon-bullet-list($pallette1);
 }
 
+.badge-term-tooltip                     {max-width: 20rem;
+                                         background-color: lighten($niceGrey, 50%);
+    .popover-header                     {color: $white;
+                                         text-transform: capitalize;
+                                         font-size: $font-size-lg;
+        svg                             {margin-right: 0.5rem;
+        }
+    }
+    &.Beginner                          {
+        .popover-header                 {background-color: $pallette3;
+
+        }
+    }
+    &.Apprentice                        {
+        .popover-header                 {background-color: $accent2;
+        }
+
+    }
+    &.Journeyman                        {
+        .popover-header                 {background-color: $accent4;
+        }
+
+    }
+    &.Expert                            {
+        .popover-header                 {background-color: $pallette4;
+        }
+
+    }
+    .popover-body                       { max-height: 80vh;
+                                          overflow-y: auto;
+                                          background-color: #dcd7c9;
+                                          scrollbar-color: #a27d2a;
+                                          scrollbar-width: 0.5rem;
+        &::-webkit-scrollbar           {width: 0.5rem;
+        }
+        &::-webkit-scrollbar-track    {background: #dcd7c9;
+        }
+        &::-webkit-scrollbar-thumb    {background: #a27d2a;
+        }
+        h5                              { margin-top: 1rem;
+                                          font-size: 1rem;
+                                          color: #a27d2a;
+        }
+        .tooltip-badge-description          {padding: 0;
+                                             font-size: 1rem;
+                                             display: block;
+                                             color: $niceGrey;
+        }
+        .badge-promotion-tip            { color: $pallette4;
+                                         background-color: lighten(#96BC44, 30%);
+                                         border: 1px solid lighten($pallette4, 10%);
+                                         display: block;
+                                         padding: 0.25rem 0.5rem;
+                                         border-radius: 0.25rem;
+                                         margin: 0.25rem 0;
+        }
+        table                               {margin-bottom: 0.5rem;
+                                             border-collapse: collapse;
+                                             border-radius: 0.25rem;
+                                             overflow: hidden;
+                                             border: 1px solid lighten($niceGrey, 45%);
+            tbody                           {background-color: $white;
+                td                      {
+                    &:nth-child(1)      {max-width: 2rem;
+                                         width: 2rem;
+                    }
+                }
+            }
+        }
+        .tooltip-badge-lessons-table    {color: $niceGrey;
+                                         background-color: transparent;
+            .btn                        {padding: 0;
+                                         font-size: 0.875rem;
+                                         display: inline;
+                                         text-align: left;
+                                         vertical-align: baseline;
+                                         border: 0px solid transparent;
+                                         color: darken($niceGrey, 15%);
+            }
+        }
+        .tooltip-badge-performance-table    {
+            td                              {
+                &:nth-child(3)              {text-align: right;
+                                             padding-right: 0.5rem;
+                }
+            }
+            .recent-average                 {color: $info-dark;
+                                             background-color: lighten($info, 30%);
+
+                td:nth-child(3)              {font-size: $font-size-lg;
+                                             font-weight: 500;
+                                             padding: 0 0.25rem;
+                }
+            }
+            .total-right                    {color: $pallette4;
+            }
+            .total-wrong                    {color: $niceGrey;
+            }
+            .right-per-wrong                {color: $info-dark;
+                                             background-color: lighten($info, 30%);
+                td:nth-child(3)              {font-size: $font-size-lg;
+                                             font-weight: 500;
+                                             padding: 0 0.25rem;
+                }
+            }
+            .days-since-right               {color: $pallette4;
+            }
+            .days-since-wrong               {color: $niceGrey;
+            }
+
+            td                              {
+            }
+        }
+        .tooltip-badge-milestones-table     {
+            tr                              {
+                &:nth-child(1)              {color: $pallette3;
+                }
+                &:nth-child(2)              {color: $accent2;
+                }
+                &:nth-child(3)              {color: $accent4;
+                }
+                &:nth-child(4)              {color: $pallette4;
+                }
+            }
+        }
+    }
+}
+
 #lessons-tooltip                    {background-color: $nominative;
                                         color: $pallette1;
     a                               {color: $pallette1;
@@ -1633,6 +1761,7 @@ form                                    {margin-bottom: 1rem;
 .profile-component               {background-color: $cream;
                                   align-content: start;
                                   height: 100%;
+                                  padding-top: 0;
     h3                           {font-family: $title-fonts;
                                   color: $heading-color;
                                   font-size: 2rem;
@@ -1645,18 +1774,43 @@ form                                    {margin-bottom: 1rem;
                                   color: $pallette3;
     }
     .update-msg                  {color: $warning;
-        svg                      {color: $warning;
+        .spinner-grow
+                                 {color: $warning;
+                                  margin-right: 0.5rem;
+                                  position: relative;
+                                  top: 0.05rem;
+                                  opacity: 0.7;
         }
+    }
+    .content-body-spinner        {margin: auto;
+                                  color: lighten($niceGrey, 30%);
     }
     .profile-info                {flex-grow: 0;
                                   height: 100%;
+                                  padding-top: 1rem;
         >svg                    {float: left;
                                   font-size: 7rem;
                                   color: #e2d2af;
                                   margin-top: .75rem;
+            @media (max-width: map-get($grid-breakpoints, lg)) {
+                position: absolute;
+                margin-right: 1rem;
+                margin-top: 1rem;
+                right: 0;
+            }
+        }
+        .viewing-student-warning {display: block;
+        }
+        .profile-email,
+        .profile-timezone        {position: relative;
+                                  z-index: 99;
+            svg                  {margin-right: 0.5rem;
+            }
         }
         .profile-name            {font-size: 3rem;
                                   font-family: $title-fonts;
+                                  position: relative;
+                                  z-index: 99;
         }
         .profile-email           {color: $accent2;
         }
@@ -1675,14 +1829,22 @@ form                                    {margin-bottom: 1rem;
                                         border: 1px solid $pallette1;
                                         background-color: $white;
                                         margin-right: 4rem;
+                                        min-width: 85%;
+                                        min-height: 15rem;
+                &.empty                {display: flex;
+                                        min-width: 100%;
+                }
 
                 @media (max-width: map-get($grid-breakpoints, sm))  {
                                         margin-right: 0;
+                                        min-width: 100%;
                 }
                 .month-indicator         {text-align: center;
                                         font-size: $font-size-lg;
                                         line-height: 3rem;
                                         color: $accent2;
+                    .spinner-grow        {margin: 0 2rem;
+                    }
                     a                    {cursor: pointer;
                                         margin: 0 2rem;
                                         color: $pallette2;
@@ -1713,6 +1875,8 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
                 .date-grid               {position: relative;
+                    .spinner-grow        {margin: auto;
+                    }
                     div               {border: 1px solid $pallette1;
                                             border-right: 0;
                                             border-bottom: 0;
@@ -1727,6 +1891,9 @@ form                                    {margin-bottom: 1rem;
                                                 font-size: $font-size-lg;
                                                 line-height: 1.5rem;
                                                 text-align: center;
+                            @media (max-width: map-get($grid-breakpoints, sm))  {
+                                            display: none;
+                            }
                             &.row0               {top: 0;
                             }
                             &.row1               {top: 2rem;
@@ -1748,6 +1915,15 @@ form                                    {margin-bottom: 1rem;
                                             left: 0.25rem;
                         }
                         .countnum            {font-size: $font-size-lg;
+                                              position: relative;
+                                              display: inline-block;
+                                              left: 0.25rem;
+                            @media (max-width: map-get($grid-breakpoints, sm))  {
+                                              font-size: $font-size-base;
+                                              top: 0.5rem;
+                                              left: 0.5rem;
+                                              font-weight: bold;
+                            }
                         }
                         &.current             {
                             .datenum         {color: $heading-color;
@@ -1770,6 +1946,9 @@ form                                    {margin-bottom: 1rem;
             }
         }
         .profile-progress            {margin-top: 1rem;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                               margin-top: 0;
+            }
             .scroll-left,
             .scroll-right                     {position: absolute;
                                                bottom: 0.55rem;
@@ -1779,7 +1958,7 @@ form                                    {margin-bottom: 1rem;
                                                color: $white;
                                                border: 1px solid lighten($niceGrey, 10%);
                                                background-color: lighten($niceGrey, 20%);
-                                               border-radius: 0;
+                                               border-radius: 0.25rem 0 0 0.25rem;
                                                left: 1rem;
                 &:hover,
                 &:active                      {background-color: $niceGrey;
@@ -1795,17 +1974,19 @@ form                                    {margin-bottom: 1rem;
             }
             .scroll-right                     {right: 1rem;
                                                left: auto;
+                                               border-radius: 0 0.25rem 0.25rem 0;
                 svg                           {transform: translateX(-0.6rem);
                 }
             }
             .profile-progress-outer-container2 {
                 @media (max-width: map-get($grid-breakpoints, md))  {
                                                padding: 0 1.5rem;
+                                               margin-top: -1rem;
                 }
             }
             .profile-progress-outer-container {position: relative;
                                                 overflow-x: auto;
-                                                height: 8.5rem;
+                                                height: 8rem;
                                                 scrollbar-color: $blueDark;
                                                 scrollbar-height: 0.5rem;
                 &::-webkit-scrollbar           {height: 0.5rem;
@@ -1849,14 +2030,19 @@ form                                    {margin-bottom: 1rem;
                                             box-shadow: $hard-shadow;
                                             transform: translate(-50%, 0);
                                             margin-left: 2.5%;
+                                            width: 9.5rem;
+                                            align-items: center;
                                             @include triangle-bottom($accent2);
                                             @include triangle-bottom-shadow();
                             .current-set-number     {font-size: 2rem;
+                                                     margin-left: 0.5rem;
+                                                     margin-right: 0.25rem;
                             }
                             .current-set-intro      {font-size: 0.75rem;
-                                                    max-width: 4rem;
                                                     line-height: 1rem;
                                                     text-align: left;
+                                                    flex-grow: 1;
+                                                    margin-left: 0.5rem;
                             }
                         }
                     }
@@ -1895,9 +2081,16 @@ form                                    {margin-bottom: 1rem;
         .profile-classinfo           {
             .profile-classinfo-body     {background-color: $white;
                                          padding: 0.5rem;
-                                         padding-left: 1rem;
+                                         padding-bottom: 0;
+                                         min-height: 15rem;
+                                         transition: height 300ms ease-in-out;
                 @include neumorphism-shadow();
 
+                &.empty                 {display: flex;
+                }
+                .profile-classinfo-signup           {padding: 0.5rem;
+                                                     margin-bottom: 0.25rem;
+                }
                 .profile-classinfo-section          {font-weight: bold;
                 }
                 .profile-classinfo-institution-term {font-variant-caps: all-small-caps;
@@ -1973,14 +2166,48 @@ form                                    {margin-bottom: 1rem;
                 }
                 .profile-classinfo-prior-classes,
                 .profile-classinfo-latter-classes   {border: 0;
+                                                     padding-bottom: 0.5rem;
                     .card-body                      {padding-left: 0;
                                                      padding-right: 0;
                                                      padding-bottom: 0;
-                        table thead td              {color: $accent4;
+                                                     padding-top: 0.5rem;
+                                                     background-color: lighten($niceGrey, 50%);
+                        .collapse                   {overflow-x: auto;
+                            table                       {min-width: 55rem;
+                                                         margin-bottom: 0;
+                                thead                   {
+                                    td                  {color: $accent4;
+                                        &:nth-child(1)  {position: sticky;
+                                                        left: 0;
+                                                        background-color: lighten($niceGrey, 45%);
+                                                        border-right: 1px solid lighten($niceGrey, 35%);
+                                        }
+                                    }
+                                }
+                                tbody                   {
+                                    td:nth-child(1)    {position: sticky;
+                                                        left: 0;
+                                                        background-color: lighten($niceGrey, 45%);
+                                                        border-right: 1px solid lighten($niceGrey, 35%);
+                                                        border-top: 1px solid lighten($niceGrey, 50%);
+                                    }
+                                    .prior-course-title {display: block;
+                                                         font-weight: bold;
+                                    }
+                                    .prior-course-details {display: block;
 
+                                    }
+                                }
+                            }
                         }
-                        h5                          {color: $accent2;
+                        h5                          {color: $heading-color;
+                                                    font-weight: normal;
+                                                    font-size: $font-size-base;
+                                                    padding: 0 0.5rem 0 0.25rem;
                             &:hover                 {cursor: pointer;
+                            }
+                            .fa-minus               {position: relative;
+                                                     top: 0.2rem;
                             }
                         }
                     }
@@ -1989,19 +2216,25 @@ form                                    {margin-bottom: 1rem;
         }
         .profile-stages                         {margin-top: 1rem;
             .nav-tabs                           {border-bottom: 1px solid $pallette1;
+                                                 margin-bottom: 1rem;
+                @media (min-width: map-get($grid-breakpoints, md))  {
+                                                 margin-bottom: 0;
+                }
                 .nav-link                           {color: $heading-color;
                     &.active                        {@include neumorphism-shadow();
                                                     position: relative;
                                                     border-color: $pallette1 $pallette1 $white $pallette1;
-                        &:after                     {position: absolute;
-                                                    width: 100%;
-                                                    content: "";
-                                                    box-shadow: 8px 3px 0 0 $white;
-                                                    z-index: 9;
-                                                    height: 0.5rem;
-                                                    background-color: $white;
-                                                    left: 0;
-                                                    top: 2.4rem;
+                        @media (min-width: map-get($grid-breakpoints, md))  {
+                            &:after                     {position: absolute;
+                                                        width: 100%;
+                                                        content: "";
+                                                        box-shadow: 8px 3px 0 0 $white;
+                                                        z-index: 9;
+                                                        height: 0.5rem;
+                                                        background-color: $white;
+                                                        left: 0;
+                                                        top: 2.4rem;
+                            }
                         }
                     }
                     .badge                          {color: $white;
@@ -2011,40 +2244,52 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
             }
-            #profile-stages-tabs-tab-level1     {
+
+            #profile-stages-tabs-tab-undefined  {display: flex;
+            }
+            #profile-stages-tabs-tab-level1,
+            #profile-stages-tabs-tabpane-level1     {
                 .badge                          {background-color: $pallette3;
                                                 color: $white;
                 }
             }
-            #profile-stages-tabs-tab-level2     {
+            #profile-stages-tabs-tab-level2,
+            #profile-stages-tabs-tabpane-level2     {
                 .badge                          {background-color: $accent2;
                                                 color: $white;
                 }
             }
-            #profile-stages-tabs-tab-level3     {
+            #profile-stages-tabs-tab-level3,
+            #profile-stages-tabs-tabpane-level3     {
                 .badge                          {background-color: $accent4;
                                                 color: $white;
                 }
             }
-            #profile-stages-tabs-tab-level4     {
+            #profile-stages-tabs-tab-level4,
+            #profile-stages-tabs-tabpane-level4     {
                 .badge                          {background-color: $pallette4;
-                                                color: $white;
+                                                 color: $white;
                 }
             }
             .tab-content                        {background-color: $white;
-                                                border: 1px solid $pallette1;
-                                                padding: 0.5rem;
-                                                @include neumorphism-shadow();
+                                                 border: 1px solid $pallette1;
+                                                 padding: 0.5rem;
+                                                 @include neumorphism-shadow();
+                .tab-pane.active.show               {min-height: 20rem;
+                    &.empty                         {display: flex;
+                    }
+                }
                 .badge                          {padding: 0.5rem;
-                                                font-weight: normal;
-                                                margin-right: 0.5rem;
-                                                margin-bottom: 0.5rem;
+                                                 font-weight: normal;
+                                                 margin-right: 0.5rem;
+                                                 margin-bottom: 0.5rem;
+                    &:hover                     {cursor: pointer;
+                    }
                 }
-                .level-explanation               {display: block;
-                                                 padding-bottom: 0.5rem;
+                .level-explanation              {display: block;
+                                                 padding: 0.5rem;
+                                                 padding-bottom: 1rem;
                 }
-                // #profile-stages-tabs-tabpanel-level1 .badge {
-                // }
             }
         }
     }

@@ -87,7 +87,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
     <div className="calendar">
       <div className="month-indicator">
         {!parentUpdating ? <a onClick={() => changeMonthAction(myYear, myMonth, "back")}> <FontAwesomeIcon icon="chevron-left" /> </a> :
-         <Spinner animation="grow" />
+         <Spinner animation="grow" size="sm" />
         }
         {myMonthName} {myYear}
         {!parentUpdating ?
@@ -96,7 +96,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
           >
               <FontAwesomeIcon icon="chevron-right" />
           </a> :
-          <Spinner animation="grow" />
+          <Spinner animation="grow" size="sm" />
         }
       </div>
       <div className="day-of-week">
@@ -124,7 +124,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
                 </React.Fragment>
               )
             }
-          ) : <Spinner animation="grow" />}
+          ) : <Spinner animation="grow" size="sm" variant="seconary" />}
       </div>
     </div>
     <span className="calendar-target-message">My target is at least {myDailyQuota} paths per day, {myWeeklyQuota} days per week.</span>
