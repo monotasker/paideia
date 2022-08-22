@@ -1775,11 +1775,12 @@ form                                    {margin-bottom: 1rem;
     }
     .update-msg                  {color: $warning;
         .spinner-grow
-                                 {color: $warning;
+                                 {color: lighten($warning, 20%);
                                   margin-right: 0.5rem;
                                   position: relative;
-                                  top: 0.05rem;
+                                  top: 1px;
                                   opacity: 0.7;
+                                  font-size: 0.8rem;
         }
     }
     .content-body-spinner        {margin: auto;
@@ -1805,6 +1806,9 @@ form                                    {margin-bottom: 1rem;
         .profile-timezone        {position: relative;
                                   z-index: 99;
             svg                  {margin-right: 0.5rem;
+            }
+            .spinner-grow        {margin-right: 0.5rem;
+                                  font-size: 0.8rem;
             }
         }
         .profile-name            {font-size: 3rem;
@@ -1848,6 +1852,8 @@ form                                    {margin-bottom: 1rem;
                     a                    {cursor: pointer;
                                         margin: 0 2rem;
                                         color: $pallette2;
+                                        position: relative;
+                                        top: -0.1rem;
                         &.disabled       {opacity: 50%;
                                         cursor: not-allowed;
                         }

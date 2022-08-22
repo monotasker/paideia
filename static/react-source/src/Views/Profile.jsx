@@ -386,14 +386,29 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
 }
 
 const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
-  console.log(badgeSetMilestones && badgeSetMilestones[badgeSetMilestones.length - 1]);
+  // console.log(badgeSetMilestones && badgeSetMilestones[badgeSetMilestones.length - 1]);
   const currentSet = !!badgeSetMilestones ? badgeSetMilestones[badgeSetMilestones.length - 1]["badge_set"] : 0;
-  useEffect(() => {
-    let tt = document.getElementsByClassName("current-set")[0];
-    if ( tt != undefined ) {
-      tt.scrollIntoView({behavior: "smooth", inline: "center"});
+
+  const scrollToMiddle = (parent, child) => {
+    const parentEl = document.querySelector(parent);
+    console.log(parentEl);
+    const childEl = document.querySelector(child);
+    if (!!childEl ) {
+      let childOffset = childEl.offsetLeft;
+      console.log(`childOffset ${childEl.getBoundingClientRect().left}`);
+      let childWidth = childEl.offsetWidth;
+      let parentWidth = parentEl.offsetWidth;
+      console.log(`parentWidth ${parentEl.getBoundingClientRect().left}`);
+      let targetOffset = (parentWidth - childWidth) / 2;
+      parentEl.scrollBy({left: (childOffset - targetOffset),
+                        top: 0,
+                        behavior: "smooth"});
+      console.log(`scrolled ${childOffset - targetOffset}`);
     }
-  }, [badgeSetMilestones]);
+  };
+
+  useEffect(() => {scrollToMiddle(".profile-progress-outer-container", ".profile-progress-bar .current-set");
+  }, [currentSet]);
 
   useEffect(() => {
     const rscroller = document.querySelector(".scroll-right");

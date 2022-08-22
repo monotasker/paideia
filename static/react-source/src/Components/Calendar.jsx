@@ -21,8 +21,6 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
   const [ onCurrentMonth, setOnCurrentMonth ] = useState(
     ( myYear === year && myMonth === month ) ? true : false );
 
-  console.log(`parentUpdating ${parentUpdating}`);
-
   useEffect(() => {
     setMyMonthData(monthData);
   }, [monthData]);
@@ -79,8 +77,6 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
     return([count, success])
     }
   );
-
-  console.log(`onCurrentMonth ${onCurrentMonth}`);
 
   return (
     <React.Fragment>
