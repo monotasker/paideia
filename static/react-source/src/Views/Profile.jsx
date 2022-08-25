@@ -13,7 +13,8 @@ import {
   Spinner,
   Tab,
   Table,
-  Tabs
+  Tabs,
+  Modal
 } from "react-bootstrap";
 // import { LinkContainer } from "react-router-bootstrap";
 import { useParams,
@@ -46,127 +47,135 @@ const UpdateNotice = ({status}) => {
 }
 
 const BadgeTerm = ({title, description, lessons, data, level}) => {
-  return(
-    <OverlayTrigger placement="auto" trigger="click" rootClose
-      overlay={
-        <Popover id={`tooltip-${title}`} className={`badge-term-tooltip ${level}`}>
-          <PopoverTitle>
-            <FontAwesomeIcon icon="certificate" />{title}
-            {/* <span className="badge-popover-level">{level}</span> */}
-          </PopoverTitle>
-          <PopoverContent>
-            <span className="tooltip-badge-description">{`Awarded for ${description}`}</span>
-              <h5>Related lessons</h5>
-            <Table borderless hover size="sm"
-              className="tooltip-badge-lessons-table"
-            >
+  const [show, setShow] = useState(false);
+
+  const handleShow = () => setShow(true);
+  const handleClose = () => setShow(false);
+
+  return(<>
+    <Button className={`profile badge badge-secondary badge-link`}
+      onClick={handleShow}
+    >{title}</Button>
+
+    <Modal id={`tooltip-${title}`}
+      className={`badge-term-tooltip ${level}`}
+      show={show}
+      onHide={handleClose}
+    >
+      <Modal.Header closeButton>
+        <FontAwesomeIcon icon="certificate" />
+        <Modal.Title>{title}
+        {/* <span className="badge-popover-level">{level}</span> */}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <span className="tooltip-badge-description">{`Awarded for ${description}`}</span>
+          <h5>Related lessons</h5>
+        <Table borderless size="sm"
+          className="tooltip-badge-lessons-table"
+        >
+          <tbody>
+            {lessons.length !== 0 && lessons.map(lesson =>
+            <tr key={lesson[0]}>
+              <td><FontAwesomeIcon icon="video" /></td>
+              <td>
+                <Button to={`/${urlBase}/videos/${lesson[0]}`}
+                  className="lessonlink"
+                  variant="link"
+                  as={Link}
+                >
+                  {lesson[1]}
+                </Button>
+              </td>
+            </tr>
+            )}
+          </tbody>
+        </Table>
+        {!!data ? (<>
+          <h5>Badge performance</h5>
+          {!!data && data.curlev!==1 && data.revlev === 1 &&
+            <span className="badge-promotion-tip">This badge is due for some review to keep it fresh.</span>
+          }
+          {!!data && data.curlev===1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
+            <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
+          }
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
+            <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.tright} more right attempts with this badge to have it promoted.</span>
+          }
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
+            <span className="badge-promotion-tip">You've done great in the past. Just complete a right attempt again now to have it promoted.</span>
+          }
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
+            <span className="badge-promotion-tip">You've done great job so far. You just can't begin and promote a badge within the same day. Keep it up and this badge should be promoted tomorrow!</span>
+          }
+          <Table borderless size="sm"
+            className="tooltip-badge-performance-table"
+          >
               <tbody>
-                {lessons.length !== 0 && lessons.map(lesson =>
-                <tr key={lesson[0]}>
-                  <td><FontAwesomeIcon icon="video" /></td>
-                  <td>
-                    <Button to={`/${urlBase}/videos/${lesson[0]}`}
-                      className="lessonlink"
-                      variant="link"
-                      as={Link}
-                    >
-                      {lesson[1]}
-                    </Button>
-                  </td>
+                <tr className="recent-average">
+                  <td><FontAwesomeIcon icon="bullseye" /></td>
+                  <td>Recent average score</td>
+                  {data.curlev===1 && data.avg_score >= 0.8 ?
+                    <td className="target-reached">{data.avg_score}<FontAwesomeIcon icon="check-circle" /></td>
+                    :
+                    <td>{data.avg_score}</td>
+                  }
                 </tr>
-                )}
+                <tr className="total-right">
+                  <td><FontAwesomeIcon icon="check-circle" /></td>
+                  <td>Total right attempts</td>
+                  {data.curlev===1 && data.tright >= 20 ?
+                    <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
+                    :
+                    <td>{data.tright}</td>
+                  }
+                </tr>
+                <tr className="total-wrong">
+                  <td><FontAwesomeIcon icon="times-circle" /></td>
+                  <td>Total wrong attempts</td>
+                  <td>{data.twrong}</td>
+                </tr>
+                <tr className="right-per-wrong">
+                  <td><FontAwesomeIcon icon="balance-scale" /></td>
+                  <td>Right attempts per wrong attempt</td>
+                  <td>{data.rw_ratio}</td>
+                </tr>
+                <tr className="days-since-right">
+                  <td><FontAwesomeIcon icon="clock" /></td>
+                  <td>Days since last right</td>
+                  <td>{Math.floor(data.delta_r / (3600*24))}</td>
+                </tr>
+                <tr className="days-since-wrong">
+                  <td><FontAwesomeIcon icon="clock" /></td>
+                  <td>Days since last wrong</td>
+                  <td>{Math.floor(data.delta_w / (3600*24))}</td>
+                </tr>
               </tbody>
             </Table>
-            {!!data ? (<>
-              <h5>Badge performance</h5>
-              {!!data && data.curlev!==1 && data.revlev === 1 &&
-                <span className="badge-promotion-tip">This badge is due for some review to keep it fresh.</span>
-              }
-              {!!data && data.curlev===1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
-                <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
-              }
-              {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
-                <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.tright} more right attempts with this badge to have it promoted.</span>
-              }
-              {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
-                <span className="badge-promotion-tip">You've done great in the past. Just complete a right attempt again now to have it promoted.</span>
-              }
-              {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
-                <span className="badge-promotion-tip">You've done great job so far. You just can't begin and promote a badge within the same day. Keep it up and this badge should be promoted tomorrow!</span>
-              }
-              <Table borderless hover size="sm"
-                className="tooltip-badge-performance-table"
-              >
-                  <tbody>
-                    <tr className="recent-average">
-                      <td><FontAwesomeIcon icon="bullseye" /></td>
-                      <td>Recent average score</td>
-                      {data.curlev===1 && data.avg_score >= 0.8 ?
-                        <td className="target-reached">{data.avg_score}<FontAwesomeIcon icon="check-circle" /></td>
-                        :
-                        <td>{data.avg_score}</td>
-                      }
-                    </tr>
-                    <tr className="total-right">
-                      <td><FontAwesomeIcon icon="check-circle" /></td>
-                      <td>Total right attempts</td>
-                      {data.curlev===1 && data.tright >= 20 ?
-                        <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
-                        :
-                        <td>{data.tright}</td>
-                      }
-                    </tr>
-                    <tr className="total-wrong">
-                      <td><FontAwesomeIcon icon="times-circle" /></td>
-                      <td>Total wrong attempts</td>
-                      <td>{data.twrong}</td>
-                    </tr>
-                    <tr className="right-per-wrong">
-                      <td><FontAwesomeIcon icon="balance-scale" /></td>
-                      <td>Right attempts per wrong attempt</td>
-                      <td>{data.rw_ratio}</td>
-                    </tr>
-                    <tr className="days-since-right">
-                      <td><FontAwesomeIcon icon="clock" /></td>
-                      <td>Days since last right</td>
-                      <td>{Math.floor(data.delta_r / (3600*24))}</td>
-                    </tr>
-                    <tr className="days-since-wrong">
-                      <td><FontAwesomeIcon icon="clock" /></td>
-                      <td>Days since last wrong</td>
-                      <td>{Math.floor(data.delta_w / (3600*24))}</td>
-                    </tr>
-                  </tbody>
-                </Table>
 
-                <h5>Milestones</h5>
-                <Table borderless hover size="sm"
-                  className="tooltip-badge-milestones-table"
-                >
-                  <tbody>
-                    {[data.cat1_reached, data.cat2_reached, data.cat3_reached, data.cat4_reached].map((a, idx) => !!a && !!a[0] &&
-                      <tr key={`promdate_${data.tag}_cat${idx + 1}`}>
-                        <td><FontAwesomeIcon icon="flag" /></td>
-                        <td>
-                          Reached {["beginner", "apprentice", "journeyman", "master"][idx]} level</td>
-                        <td>{a[1]}</td>
-                      </tr>
-                    )}
-                  </tbody>
-              </Table>
-            </>)
-              :
-              <span>Couldn't find badge data!</span>
-            }
-          </PopoverContent>
-        </Popover>
-      }
-    >
-      <Badge className={`profile badge badge-secondary badge-link`}>
-        {title}
-      </Badge>
-    </OverlayTrigger>
-  )
+            <h5>Milestones</h5>
+            <Table borderless size="sm"
+              className="tooltip-badge-milestones-table"
+            >
+              <tbody>
+                {[data.cat1_reached, data.cat2_reached, data.cat3_reached, data.cat4_reached].map((a, idx) => !!a && !!a[0] &&
+                  <tr key={`promdate_${data.tag}_cat${idx + 1}`}>
+                    <td><FontAwesomeIcon icon="flag" /></td>
+                    <td>
+                      Reached {["beginner", "apprentice", "journeyman", "master"][idx]} level</td>
+                    <td>{a[1]}</td>
+                  </tr>
+                )}
+              </tbody>
+          </Table>
+          </>)
+            :
+            <span>Couldn't find badge data!</span>
+          }
+        </Modal.Body>
+      </Modal>
+      </>
+  );
 }
 
 const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
@@ -520,8 +529,6 @@ const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
 const ProfileInfo = ({viewingSelf, firstName, lastName, userEmail,
                       userTimezone}) => {
   return (<>
-    {!viewingSelf && <Badge variant="warning" className="viewing-student-warning" >Viewing student info</Badge>}
-    <FontAwesomeIcon icon="user-circle" size="5x" />
     <span className="profile-name">{firstName} {lastName}</span><br />
     <span className="profile-email">
       {firstName=="fetching" ?
@@ -535,6 +542,7 @@ const ProfileInfo = ({viewingSelf, firstName, lastName, userEmail,
         : <FontAwesomeIcon icon="globe-americas" />}
       {userTimezone}
     </span>
+    <FontAwesomeIcon icon="user-circle" size="5x" />
   </>)
 }
 
@@ -676,6 +684,7 @@ const Profile = (props) => {
         </Col>
 
         <Col className="profile-content-column" xs={12} lg={8}>
+          {!viewingSelf && <Badge variant="warning" className="viewing-student-warning" >Viewing student info</Badge>}
           <Row>
             <Col className="profile-info d-block d-lg-none" xs={12} lg={4}
             >
@@ -695,7 +704,7 @@ const Profile = (props) => {
               />
             </Col>
 
-            <Col className="profile-calendar" xs={12}  xl={6}>
+            <Col className="profile-calendar" xs={12}  md={6}>
               <ProfileCalendar
                 updating={updating}
                 calendarData={calendarData}
@@ -707,7 +716,7 @@ const Profile = (props) => {
               />
             </Col>
 
-            <Col className="profile-classinfo" xs={12} xl={6}>
+            <Col className="profile-classinfo" xs={12} md={6}>
               <ProfileClassInfo updating={updating} classInfo={classInfo}
                 otherClassInfo={otherClassInfo}
               />
