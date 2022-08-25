@@ -252,6 +252,7 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
       : <div className="profile-classinfo-body">
         {classInfo !== null && Object.keys(classInfo).length > 0 ?
           <>
+          <div className="profile-classinfo-current">
             <div className="profile-classinfo-section">
               {classInfo.course_section}
             </div>
@@ -319,6 +320,7 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               </tr>
             </tfoot>
           </Table>
+          </div>
           </>
         : <div className="profile-classinfo-signup">
             You're not part of a currently active class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
@@ -361,7 +363,7 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
             </Table>
           </Collapsible>
           }
-          {!!otherClassInfo.latter_classes &&
+          {!!otherClassInfo.latter_classes && otherClassInfo.latter_classes.length > 0 &&
           <Collapsible linkIcon={"hourglass-half"} linkText="My upcoming classes"
             linkElement="h5"
             className="profile-classinfo-latter-classes"

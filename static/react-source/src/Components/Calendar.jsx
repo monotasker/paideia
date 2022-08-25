@@ -101,8 +101,9 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
         )}
         <div className="summary heading">Days on target</div>
       </div>
-      <div className="date-grid">
-          {(!updating && myMonthData) ? myMonthData.map((wk, index) => {
+      {(!updating && myMonthData) ?
+        <div className="date-grid">
+          {myMonthData.map((wk, index) => {
               return (
                 <React.Fragment key={wk}>
                 {wk.map(d =>
@@ -113,15 +114,19 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
                       </span>
                   </div>
                 )}
-                 <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
-                   {weekCounts[index][0]} {weekCounts[index][1] ? <FontAwesomeIcon icon="check-circle" />
-                   : <FontAwesomeIcon icon="exclamation-triangle" />}
-                 </div>
+                <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
+                  {weekCounts[index][0]} {weekCounts[index][1] ? <FontAwesomeIcon icon="check-circle" />
+                  : <FontAwesomeIcon icon="exclamation-triangle" />}
+                </div>
                 </React.Fragment>
               )
             }
-          ) : <Spinner animation="grow" size="sm" variant="seconary" />}
+          )}
       </div>
+      :
+      <Spinner className="calendar-updating-spinner" animation="grow" size="sm" variant="seconary" />
+      }
+
     </div>
     <span className="calendar-target-message">My target is at least {myDailyQuota} paths per day, {myWeeklyQuota} days per week.</span>
     </React.Fragment>

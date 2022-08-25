@@ -1826,10 +1826,11 @@ form                                    {margin-bottom: 1rem;
                                   text-align: right;
         >svg                    {font-size: 7rem;
                                  color: #e2d2af;
-                                 margin-top: .75rem;
+                                 margin-top: -.25rem;
             @media (max-width: map-get($grid-breakpoints, lg)) {
                 position: absolute;
                 margin-right: 1rem;
+                margin-top: 0.75rem;
                 right: 0;
                 top: 2.5rem;
             }
@@ -1872,6 +1873,7 @@ form                                    {margin-bottom: 1rem;
                                         margin-right: 4rem;
                                         min-width: 16rem;
                                         min-height: 15rem;
+                                        text-align: center;
                 &.empty                {display: flex;
                                         min-width: 100%;
                 }
@@ -1888,12 +1890,18 @@ form                                    {margin-bottom: 1rem;
                     a                    {cursor: pointer;
                                         margin: 0 1.5rem;
                                         color: $pallette2;
-                                        position: relative;
-                                        top: -0.1rem;
+                                        // position: relative;
+                                        // top: -0.1rem;
                         &.disabled       {opacity: 50%;
                                         cursor: not-allowed;
                         }
                     }
+                }
+                .calendar-updating-spinner        {margin: auto;
+                                        color: lighten($niceGrey, 30%);
+                                        height: 1.5rem;
+                                        width: 1.5rem;
+                                        margin-top: 4rem;
                 }
                 .day-of-week,
                 .date-grid               {display: grid;
@@ -1917,8 +1925,7 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
                 .date-grid               {position: relative;
-                    .spinner-grow        {margin: auto;
-                    }
+                                          width: 100%;
                     div               {border: 1px solid $pallette1;
                                             border-right: 0;
                                             border-bottom: 0;
@@ -1929,22 +1936,24 @@ form                                    {margin-bottom: 1rem;
                         &.success                {color: $green;
                         }
                         &.summary                {position: absolute;
-                                                right: -2.75rem;
-                                                font-size: $font-size-lg;
+                                                right: -2.6rem;
+                                                font-size: $font-size-base;
                                                 line-height: 1.5rem;
                                                 text-align: center;
                             @media (max-width: map-get($grid-breakpoints, sm))  {
                                             display: none;
                             }
-                            &.row0               {top: 0.4rem;
+                            &.row0               {top: 0.5rem;
                             }
-                            &.row1               {top: 2.4rem;
+                            &.row1               {top: 2.5rem;
                             }
-                            &.row2               {top: 4.4rem;
+                            &.row2               {top: 4.5rem;
                             }
-                            &.row3               {top: 6.4rem;
+                            &.row3               {top: 6.5rem;
                             }
-                            &.row4               {top: 8.4rem;
+                            &.row4               {top: 8.5rem;
+                            }
+                            &.row5               {top: 10.5rem;
                             }
                             svg                  {font-size: 0.5rem;
                                                   opacity: 0.5;
@@ -1966,7 +1975,7 @@ form                                    {margin-bottom: 1rem;
                         .countnum            {font-size: $font-size-base;
                                               position: relative;
                                               display: inline-block;
-                                              font-weight: bold;
+                                              font-weight: 500;
                                               top: 0.5rem;
                                               padding-right: 0.25rem;
                             @media (max-width: map-get($grid-breakpoints, sm))  {
@@ -2141,6 +2150,7 @@ form                                    {margin-bottom: 1rem;
 
                 &.empty                 {display: flex;
                 }
+                .profile-classinfo-current          {padding: 0 0.5rem;}
                 .profile-classinfo-signup           {padding: 0.5rem;
                                                      margin-bottom: 0.25rem;
                 }
@@ -2231,12 +2241,14 @@ form                                    {margin-bottom: 1rem;
                         .collapse                   {overflow-x: auto;
                             table                       {min-width: 55rem;
                                                          margin-bottom: 0;
+                                                         background-color: $white;
                                 thead                   {
                                     td                  {color: $accent4;
                                         &:nth-child(1)  {position: sticky;
                                                         left: 0;
                                                         background-color: lighten($niceGrey, 45%);
                                                         border-right: 1px solid lighten($niceGrey, 35%);
+                                                        width: 12rem;
                                         }
                                     }
                                 }
@@ -2251,7 +2263,7 @@ form                                    {margin-bottom: 1rem;
                                                          font-weight: bold;
                                     }
                                     .prior-course-details {display: block;
-
+                                                           font-size: $font-size-sm;
                                     }
                                 }
                             }
@@ -2333,7 +2345,7 @@ form                                    {margin-bottom: 1rem;
             }
             .tab-content                        {background-color: $white;
                                                  border: 1px solid $pallette1;
-                                                 padding: 0.5rem;
+                                                 padding: 1rem;
                                                  @include neumorphism-shadow();
                 .tab-pane.active.show               {min-height: 20rem;
                     &.empty                         {display: flex;

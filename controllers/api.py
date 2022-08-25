@@ -157,7 +157,7 @@ def _fetch_other_coursedata(uid, current_class, mydatetime):
                                              'last_name': myprof['last_name'],
                                              'id': myprof['id']}
     myclasses_prior = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) < mydatetime]
-    myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) >= mydatetime]
+    myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['start_date']) >= mydatetime]
     if debug:
         print ("=======================================================")
         for c in myclasses_prior:
