@@ -215,6 +215,11 @@ db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(
     ('standard verb',
      'μι verb',
      'liquid verb',
+     'final pi verb',
+     'final tau verb',
+     'final zeta verb',
+     'final gamma/kappa verb',
+     'final double sigma verb',
      'alpha thematic',
      'alpha contract',
      'epsilon contract1',
@@ -246,7 +251,12 @@ db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(
      '3rd decl τερας-type',
      '3rd decl φως-type',
      '3rd decl νους-type',
-     '3rd decl ἀνηρ-type'
+     '3rd decl ἀνηρ-type',
+     '2-1-2 adjective',
+     '3rd decl adjective',
+     '2-1-2 pronoun',
+     '3rd decl pronoun',
+     'indeclinable'
      )))
 db.lemmas.extra_tags.requires = IS_IN_DB(db, 'tags.id',
                                          db.tags._format,
