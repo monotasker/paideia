@@ -635,47 +635,88 @@ form                                    {margin-bottom: 1rem;
                                         flex-direction: column;
                                         height: 100%;
                                         padding: 0;
-        .vocab-filter-form             {padding-right: 2.5rem;
-                                        margin-bottom: .25rem;
+        .vocab-filter-form             {padding-right: 2.75rem;
+                                        margin-bottom: .5rem;
+                                        margin-top: 0;
                                         padding-left: 1rem;
+            @media (max-width: map-get($grid-breakpoints, "sm")) {
+                                        padding-left: 0.5rem;
+            }
             .form-label                {font-size: $font-size-sm;
                                         color: darken($pallette1, 60%);
-                                        margin-bottom: 0.25rem;
+                                        margin-bottom: 0rem;
             }
             .form-group                {margin-bottom: 0.25rem;
             }
-            .form-row:first-child > div:last-child            {display: flex;
+            .vocab-set-filter-label    {
+                @media (max-width: map-get($grid-breakpoints, md)) {
+                                        display: none;
+                }
+            }
+            .form-row:first-child
+                > div:last-child       {display: flex;
                                         flex-direction: row;
                                         align-items: flex-end;
                                         padding-bottom: 0.25rem;
+                .btn-primary           {width: 100%;
+                                        min-width: 2.5rem;
+                    svg                {margin: auto;
+                    }
+                    span               {margin-left: 0.5rem;
+                    }
+                }
             }
-            .form-row.alphabet .col    {display: flex;
+            .form-row.alphabet         {overflow: auto;
+                                        flex-wrap: nowrap;
+                                        margin: 0;
+                                        margin-top: 0.25rem;
+                                        border: 1px solid #ced4da;
+                                        border-radius: 0.25rem;
+                div                    {display: flex;
                                         flex-direction: row;
                                         align-items: stretch;
                                         padding-bottom: 0rem;
-                                        margin-bottom: 0.25rem;
-                .btn-group             {flex-wrap: wrap;
+                                        margin-bottom: 0rem;
                                         width: 100%;
-                    .btn                   {padding: .25rem;
-                                            margin-top: .25rem;
-                    }
-                    .btn-outline-secondary {border-color: #ced4da;
+                    .btn-group         {flex-wrap: nowrap;
+                                        width: 100%;
+                        .btn           {padding: .25rem;
+                                        margin-top: 0;
+                                        flex-grow: 1;
+                            @media (max-width: map-get($grid-breakpoints, xl)) {
+                                        min-width: 2rem;
+                            }
+                        }
+                        .btn-outline-secondary {border-color: #ced4da;
+                                        border-top: 0;
+                                        border-bottom: 0;
+                                        border-left: 0;
+                        }
                     }
                 }
             }
         }
         .vocabtable-container          {flex: 1;
                                         overflow-y: auto;
-                                        overflow-x: hidden;
+                                        overflow-x: auto;
                                         position: relative;
                                         margin-left: 0;
             .vocabtable-loading-spinner     {position: absolute;
-                                             top: 50%;
+                                             top: 47%;
                                              margin-top: -0.5rem;
                                              left: 50%;
                                              margin-left: -0.5rem;
+                                             color: lighten($niceGrey, 30%);
+            }
+            .alert                         {margin: 1rem;
+                svg                        {opacity: 50%;
+                }
             }
             table                          {position: absolute;
+                                            width: 48rem;
+                @media (min-width: map-get($grid-breakpoints, xl)) {
+                                            width: 100%;
+                }
                 th                         {position: sticky;
                                             top: 0;
                                             background-color: lighten($pallette2, 20%);
@@ -683,13 +724,23 @@ form                                    {margin-bottom: 1rem;
                                             border-bottom-color: lighten($pallette2, 15%);
                                             color: darken($pallette1, 60%);
                                             font-weight: normal;
-                    &:first-child,
-                    &:nth-child(2)         {left: 0;
+                    &.lemma,
+                    &.part-of-speech       {left: 0;
                                             z-index: 10;
                                             background-color: lighten($pallette2, 10%);
                                             color: darken($pallette1, 65%);
                     }
-                    &:nth-child(2)         {padding-right: 0;
+                    &.lemma                {z-index: 11;
+                        svg                {position: relative;
+                                            margin-left: 0.35rem;
+                                            margin-bottom: -0.1rem;
+                        }
+                    }
+                    &.part-of-speech       {padding-right: 0;
+                                            padding-left: 0;
+                                            max-width: 2rem;
+                        a                  {left: 1rem;
+                        }
                     }
                     a                      {color: darken($pallette1, 60%);
                                             position: relative;
@@ -703,44 +754,59 @@ form                                    {margin-bottom: 1rem;
                         &.inactive         {opacity: 30%;
                         }
                     }
-                    &:nth-child(4),
-                    &:nth-child(5)         {width: 5rem;}
-                    &:first-child svg         {position: relative;
-                                               margin-left: 0.25rem;
-                                               margin-bottom: -0.2rem;
-
+                    &.set-introduced       {width: 3rem;}
+                    &.times-in-nt          {width: 5rem;}
+                    &.related-lessons      {width: 6rem;
+                                            z-index: 7;
                     }
                 }
                 td                         {border-top-color: lighten($pallette2, 10%);
                                             background-color: #fff;
                                             vertical-align: middle;
+                    .lemma                 {font-weight: bold;
+                        @media (min-width: map-get($grid-breakpoints, sm)) {
+                                            font-weight: normal;
+                        }
+                    }
                     &.noun,
                     &.pronoun,
                     &.proper_noun          {background-color: lighten($nominative, 60%);
                                             color: $nominative;
                                             border-top-color: lighten($nominative, 55%);
                         .real-stem .label  {color: lighten($nominative, 25%);
+                                            margin-right: 0.5rem;
                         }
                         .gen-sing .badge-pill {background-color: lighten($nominative, 25%);
                                             color: $white;
+                                            margin-right: 0.5rem;
                         }
                     }
                     &.adjective            {background-color: lighten($nominative, 62%);
                                             color: lighten($nominative, 10%);
                                             border-top-color: lighten($nominative, 57%);
                         .real-stem .label  {color: lighten($nominative, 25%);
+                                            margin-right: 0.5rem;
                         }
                         .gen-sing .badge-pill {background-color: lighten($nominative, 25%);
                                             color: $white;
+                                            margin-right: 0.5rem;
                         }
                     }
                     &.verb                 {background-color: lighten($verb, 50%);
                                             color: darken($verb, 10%);
                                             border-top-color: lighten($verb, 40%);
                         .real-stem .label  {color: lighten($verb, 12%);
+                                            margin-right: 0.5rem;
                         }
-                        .principal-parts .badge-pill {background-color: lighten($verb, 12%);
+                        .principal-parts   {
+                            a              {color: darken($verb, 10%);
+
+                            }
+                            .badge-pill    {background-color: lighten($verb, 12%);
                                                          color: $white;
+                                            margin-right: 0.5rem;
+                                            margin-left: -0.2rem;
+                            }
                         }
                     }
                     &.preposition          {background-color: lighten($preposition, 65%);
@@ -759,16 +825,23 @@ form                                    {margin-bottom: 1rem;
                                             color: darken($textColor, 10%);
                                             border-top-color: lighten($textColor, 63%);
                     }
-                    &:first-child             {position: sticky;
+                    &.lemma                {position: sticky;
                                             left: 0;
                                             font-family: $greek-fonts;
                                             font-size: 1.5rem;
                                             width: 16rem;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                            font-size: 1.2rem;
+                                            width: 12rem;
+                                            max-width: 12rem;
+                        }
                     }
-                    &:nth-child(2)          {padding-right: 0;
+                    &.part-of-speech       {padding-right: 0;
+                                            padding-left: -1.75rem;
+                                            max-width: 2rem;
                     }
-                    &:nth-child(3)          { // glosses
-                        ul                  {margin-bottom: 0;
+                    &.glosses              {
+                        ul                 {margin-bottom: 0;
                             li                  {
                                 &::after           {content: ",";
                                 }
@@ -779,9 +852,11 @@ form                                    {margin-bottom: 1rem;
                             }
                         }
                     }
+                    &.set-introduced        {
+
+                    }
 
                     .vocab-videos           {font-size: $font-size-base;
-                                             margin-left: 1rem;
                         .btn                {padding: 0;
                             svg                 {opacity: 30%;
                                 &:hover         {opacity: 100%;
@@ -798,6 +873,9 @@ form                                    {margin-bottom: 1rem;
                                              flex-direction: row;
                                              align-items: flex-start;
                                              margin-left: 1rem;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                             margin-left: 0;
+                        }
                         .label              {font-family: $sans-fonts;
                                              margin-right: 1rem;
                         }
@@ -812,9 +890,10 @@ form                                    {margin-bottom: 1rem;
 
                     .principal-parts        {
                         ul                  {float: right;
-                                             margin-left: -0.325rem;
+                                             margin-bottom: 0;
+                                            //  margin-left: -0.325rem;
                             li              {display: inline;
-                                             white-space: pre;
+                                             white-space: pre-wrap;
                                 &::after    {content: ", ";
                                 }
                                 &:nth-child(3)::after   {content: ",\A";
@@ -841,14 +920,15 @@ form                                    {margin-bottom: 1rem;
                                          flex-direction: row;
             .updating,
             .displaycount                   {font-size: $font-size-sm;
-                                             margin-bottom: -1.5rem;
+                                             margin-bottom: 0;
                                              padding-top: 0.25rem;
+                                             padding-right: 0.5rem;
+                                             padding-left: 0.5rem;
+                                             border-top: 1px solid lighten($niceGrey, 45%);
             }
             .updating                       {flex-grow: 1;
                 .spinner-grow               {font-size: 0.5rem;
                 }
-            }
-            .displaycount                   {padding-right: 1rem;
             }
         }
     }

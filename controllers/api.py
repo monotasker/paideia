@@ -1,5 +1,5 @@
 #! /usr/bin/python3.6
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 from copy import copy
 from datetime import datetime
 from datetime import timedelta
@@ -297,7 +297,7 @@ def do_password_reset():
     """
     Actually allow a user to reset their password after email link followed.
     """
-    debug = False
+    debug = 0
     request = current.request
     response = current.response
 
@@ -691,7 +691,7 @@ def validate_class_key():
 
 
 def join_class_group():
-    debug = False
+    debug = 0
     event = None
     class_key = request.vars['course_key']
     class_id = int(request.vars['course_id'])
@@ -943,7 +943,7 @@ def check_login():
 
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
-    debug = False
+    debug = 0
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
             myposts = db(
@@ -2473,16 +2473,31 @@ def get_vocabulary():
     mylevel :: int :: the maximum badge set currently reached by user if
                       logged in
     """
-    auth = current.auth
+    debug = 1
+    db = current.db
 
     mynorm = GreekNormalizer()
     mylemmas = []
     for l in db(db.lemmas.first_tag == db.tags.id
                 ).iterselect(orderby=db.tags.tag_position):
+        inflected_fields = [l['lemmas'][n] if l['lemmas'][n] is not None
+                            else " " for n in
+                            ['real_stem',
+                            'genitive_singular',
+                            'future',
+                            'aorist_active',
+                            'perfect_active',
+                            'aorist_passive',
+                            'perfect_passive',
+                            'other_irregular']]
+        # if debug: print(inflected_fields)
+        inflected_forms_string = ' '.join(inflected_fields)
+        normalized_inflected_string = mynorm.normalize(inflected_forms_string)
 
         myrow = {'id': l['lemmas']['id'],
                  'accented_lemma': l['lemmas']['lemma'],
                  'normalized_lemma': mynorm.normalize(l['lemmas']['lemma']),
+                 'normalized_other_forms': normalized_inflected_string,
                  'part_of_speech': l['lemmas']['part_of_speech'],
                  'glosses': l['lemmas']['glosses'],
                  'times_in_nt': l['lemmas']['times_in_nt'],
@@ -2757,7 +2772,7 @@ def update_student_data():
         custom_d_cap (int)
         class_section (int reference classes)
     """
-    debug = True
+    debug = 0
     response = current.response
     mydata = {k: v for k, v in request.vars.items()
               if k not in ["name", "class_section"]}
@@ -2845,7 +2860,7 @@ def update_student_data():
                             "updated_record": myresult}, default=my_custom_json)
 
 def promote_user():
-    debug = 1
+    debug = 0
     if debug: print("in api::promote_user ----------------------------")
     uid = request.vars.uid
     if debug: print("uid:", uid)
@@ -2894,7 +2909,7 @@ def promote_user():
                             "updated_record": myresult}, default=my_custom_json)
 
 def demote_user():
-    debug = 1
+    debug = 0
     if debug: print("in api::demote_user ----------------------------")
     uid = request.vars.uid
     if debug: print("uid:", uid)
@@ -2975,7 +2990,7 @@ def update_course_data():
         f_target (int)
 
     """
-    debug = False
+    debug = 0
     response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.now(timezone.utc)
@@ -3112,7 +3127,7 @@ def get_course_data():
             starting_set
             custom_end
     """
-    debug = False
+    debug = 0
     auth = current.auth
     session = current.session
     response = current.response

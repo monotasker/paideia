@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useContext, useRef, useLayoutEffect } from "react";
 import {
+    Alert,
     Badge,
     Button,
     Col,
@@ -22,7 +23,8 @@ import { UserContext } from "../UserContext/UserProvider";
 import { urlBase } from "../variables";
 
 
-const LinkHeading = ({ field, label, mySortCol, myOrder, sortHandler }) => {
+const LinkHeading = ({ field, label, mySortCol, myOrder, sortHandler,
+                       classLabel }) => {
   let myIcon = "";
   let myActiveState = "";
   if (field == mySortCol && myOrder == "asc") {
@@ -36,7 +38,7 @@ const LinkHeading = ({ field, label, mySortCol, myOrder, sortHandler }) => {
     myActiveState = "inactive";
   }
   return (
-    <th key={label}>
+    <th key={label} className={classLabel}>
       <a href="#" onClick={e => sortHandler(e, field)}
         className="vocabview-sorter-link"
       >
@@ -106,20 +108,8 @@ const WordRow = ({ w, navigateAwayHandler }) => {
   }
   return (
     <tr>
-      <td className={w.part_of_speech}>
-        {w.accented_lemma}
-        <span className="vocab-videos">{w.videos.map((v, i) => (
-          <OverlayTrigger key={i} placement="top"
-            overlay={<Tooltip id={`tooltip-video-${w.id}`}>{v[1]}</Tooltip>}
-          >
-            <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/${v[0]}`)}>
-              <FontAwesomeIcon icon="video" />
-            </Button>
-            {/* <LinkContainer to={`/${urlBase}/videos/${v[0]}`} className="closer-link">
-            </LinkContainer> */}
-          </OverlayTrigger>
-        ))}
-      </span>
+      <td className={`${w.part_of_speech} lemma`}>
+        <span className="lemma">{w.accented_lemma}</span>
       {!!w.real_stem && w.real_stem != 'none' ?
         <span className="real-stem">
           <OverlayTrigger placement="top"
@@ -153,8 +143,30 @@ const WordRow = ({ w, navigateAwayHandler }) => {
           </Collapse>
         </span>
         : ''}
-    </td><td className={w.part_of_speech}><Badge pill>{parts_of_speech[w.part_of_speech]}</Badge></td><td><ul>{w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul></td><td>{w.set_introduced}</td><td>{w.times_in_nt}</td>
-    </tr>
+    </td>
+    <td className={`${w.part_of_speech} part-of-speech`}>
+      <Badge pill>{parts_of_speech[w.part_of_speech]}</Badge>
+    </td>
+    <td className="glosses">
+      <ul>{w.glosses.map((g, i) => <li key={i}>{g}</li>)}</ul>
+    </td>
+    <td className="set-introduced">{w.set_introduced}</td>
+    <td className="related-lessons">
+        <span className="vocab-videos">{w.videos.map((v, i) => (
+          <OverlayTrigger key={i} placement="top"
+            overlay={<Tooltip id={`tooltip-video-${w.id}`}>{v[1]}</Tooltip>}
+          >
+            <Button variant="link" onClick={() => navigateAwayHandler(`/${urlBase}/videos/${v[0]}`)}>
+              <FontAwesomeIcon icon="video" />
+            </Button>
+            {/* <LinkContainer to={`/${urlBase}/videos/${v[0]}`} className="closer-link">
+            </LinkContainer> */}
+          </OverlayTrigger>
+        ))}
+      </span>
+    </td>
+    <td>{w.times_in_nt}</td>
+  </tr>
   )
 }
 
@@ -169,25 +181,36 @@ const vocabIsEqual = (prevProps, nextProps) => {
 
 const VocabTable = React.memo(({ headings, vocab, sortCol, order, sortHandler, navigateAwayHandler }) => {
   return(
-    <Table>
-      <thead>
-        <tr>
-          {headings.map(({label, field}) => (
-            field ?
-            <LinkHeading key={label} label={label} field={field}
-              mySortCol={sortCol} myOrder={order} sortHandler={sortHandler}
-            /> :
-            <th key={label}>{label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {vocab.map((w, i) => <WordRow w={w} key={`wordrow_${i}`} navigateAwayHandler={navigateAwayHandler} />)}
-        <tr className="scrollDownTarget">
-          {headings.map(({label, field}) => <td key={label}></td>)}
-        </tr>
-      </tbody>
-    </Table>
+    vocab.length > 0 ? (
+      <Table>
+        <thead>
+          <tr>
+            {headings.map(({label, field, classLabel}) => (
+              field ?
+              <LinkHeading key={label} label={label} classLabel={classLabel} field={field}
+                mySortCol={sortCol} myOrder={order} sortHandler={sortHandler}
+              /> :
+              <th key={label} className={classLabel}>{label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {vocab.map((w, i) => <WordRow w={w}
+                                key={`wordrow_${i}`}
+                                navigateAwayHandler={navigateAwayHandler}
+                                />)
+          }
+          <tr className="scrollDownTarget">
+            {headings.map(({label}) => <td key={label}></td>)}
+          </tr>
+        </tbody>
+      </Table>
+      )
+      :
+      <>
+      <Alert variant="warning" className="vocab-no-results-message"><FontAwesomeIcon icon="exclamation-circle" size="lg" /> No results found for this search.</Alert>
+      <Alert variant="info" className="vocab-no-results-message second">If you are searching only the vocabulary for certain badge sets, try selecting "all badge sets" in the drop-down menu above.</Alert>
+      </>
   )
 }, vocabIsEqual);
 
@@ -218,10 +241,13 @@ const VocabView = ({ navigateAwayHandler }) => {
       const strGkSan = greekUtils.sanitizeDiacritics(strGk);
       const gkSetMatched = baseVocab.filter(w => w.normalized_lemma == strGkSan);
       const gkSetFuzzy = baseVocab.filter(
-        w => w.normalized_lemma != strGkSan && w.normalized_lemma.includes(strGkSan)
+        w => w.normalized_lemma != strGkSan
+            && (w.normalized_lemma.includes(strGkSan)
+                || w.normalized_other_forms.includes(strGkSan))
       );
       gkSetFinal = gkSetMatched.concat(gkSetFuzzy);
     }
+    console.log(gkSetFinal);
 
     let engSetFinal = gkSetFinal;
     if ( strEng != "" ) {
@@ -336,7 +362,8 @@ const VocabView = ({ navigateAwayHandler }) => {
 
     const newVocab = vocab.map((i) => {
       return {...i,
-              normalized_lemma: greekUtils.sanitizeDiacritics(i['normalized_lemma'])
+              normalized_lemma: greekUtils.sanitizeDiacritics(i['normalized_lemma']),
+              normalized_other_forms: greekUtils.sanitizeDiacritics(i['normalized_other_forms'])
       }
     });
     return newVocab
@@ -369,14 +396,22 @@ const VocabView = ({ navigateAwayHandler }) => {
 
   const headings = [
     {label: "Greek word",
+     classLabel: "lemma",
      field: "normalized_lemma"},
     {label: "PoS",
+     classLabel: "part-of-speech",
      field: "part_of_speech"},
     {label: "Glosses",
+     classLabel: "glosses",
      field: null},
     {label: "Set",
+     classLabel: "set-introduced",
      field: "set_introduced"},
+    {label: "Lessons",
+     classLabel: "related-lessons",
+     field: null},
     {label: "In NT",
+     classLabel: "times-in-nt",
      field: "times_in_nt"}
   ]
 
@@ -386,7 +421,7 @@ const VocabView = ({ navigateAwayHandler }) => {
             <h2>Vocabulary</h2>
             <Form className="vocab-filter-form">
               <Form.Row>
-                <Col xs="3">
+                <Col xs="6" md="4" xl="3">
                   <Form.Group
                     controlId="vocab-search-control"
                     onChange={e => setSearchString(e.target.value)}
@@ -395,7 +430,7 @@ const VocabView = ({ navigateAwayHandler }) => {
                     <Form.Control placeholder=""></Form.Control>
                   </Form.Group>
                 </Col>
-                <Col xs="3">
+                <Col xs="6" md="4" xl="3">
                   <Form.Group
                     controlId="vocab-search-control-english"
                     onChange={e => setSearchStringEng(e.target.value)}
@@ -404,9 +439,9 @@ const VocabView = ({ navigateAwayHandler }) => {
                     <Form.Control placeholder=""></Form.Control>
                   </Form.Group>
                 </Col>
-                <Col xs="4">
+                <Col xs="10" sm="11" md="3" xl="4">
                   <Form.Group controlId="vocab-set-control">
-                    <Form.Label><FontAwesomeIcon icon="filter" />Badge sets</Form.Label>
+                    <Form.Label className="vocab-set-filter-label"><FontAwesomeIcon icon="filter" />Badge sets</Form.Label>
                     <Form.Control as="select"
                       onChange={e => restrictSetsAction(e.target.value)}
                     >
@@ -420,7 +455,7 @@ const VocabView = ({ navigateAwayHandler }) => {
                     </Form.Control>
                   </Form.Group>
                 </Col>
-                <Col xs="2">
+                <Col xs="2" sm="1" xl="2">
                   <Button onClick={() => resetAction()}
                   >
                     <FontAwesomeIcon icon="redo-alt" />
@@ -429,7 +464,7 @@ const VocabView = ({ navigateAwayHandler }) => {
                 </Col>
               </Form.Row>
               <Form.Row className="alphabet">
-                <Col>
+                <div>
                   <ToggleButtonGroup type="checkbox" size="sm"
                     value={searchLetters}
                     onChange={val => setSearchLetters(val)}
@@ -440,7 +475,7 @@ const VocabView = ({ navigateAwayHandler }) => {
                       >{l}</ToggleButton>
                     )}
                   </ToggleButtonGroup>
-                </Col>
+                </div>
               </Form.Row>
             </Form>
             <div className="vocabtable-container" ref={scrollContainer}>
