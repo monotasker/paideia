@@ -22,7 +22,6 @@ import { useParams,
          Link
        } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { polyfill } from "seamless-scroll-polyfill";
 
 import { urlBase } from "../variables";
 import { isAlphanumericString, returnStatusCheck } from "../Services/utilityService";

@@ -9,7 +9,7 @@ from itertools import permutations
 import os
 from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
-from gluon.serializers import json as json_serializer
+from gluon.serializers import custom_json, json as json_serializer
 from gluon.utils import web2py_uuid
 from itertools import chain
 import json
@@ -3242,9 +3242,12 @@ def _is_student_of(user_id):
 
     return instructors_flat
 
+
 def content_pages(tag_list:List[int]) -> List[str]:
     """
     Return a list of the text for each content page matching provided tags.
     """
+    mypages = db(db.content_pages.topics.contains(tag_list)).select()
 
     pprint(current.request)
+    return json_serializer(mypages, default=my_custom_json)

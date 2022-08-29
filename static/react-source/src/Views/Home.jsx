@@ -1,16 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Row,
   Col,
   Button,
-  Card
+  Card,
+  Spinner
 } from "react-bootstrap";
 import { Link,
          useHistory,
          useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faExclamationTriangle,
   faHardHat,
   faSignInAlt
 } from '@fortawesome/free-solid-svg-icons';
@@ -20,6 +20,7 @@ import imgHowDoesItWork from "../Images/info_How_Does_It_Work.svg";
 import imgHowDoIType from "../Images/info_How_Do_I_Type_Greek.svg";
 import imgFAQs from "../Images/info_What_Do_I_Need.svg";
 import { urlBase } from "../variables";
+import { fetchTestimonials } from "../Services/infoService";
 
 const modalContent = [
   {img: imgHowDoesItWork,
@@ -67,6 +68,15 @@ const Home = () => {
   const myLocation = useLocation();
   const locParts = myLocation.pathname.split('/');
   const middlePath = locParts[locParts.length - 2]==="paideia" ? "" : "paideia/"
+  const [updatingTestimonials, setUpdatingTestimonials] = useState();
+
+  useEffect(() => {
+    setUpdatingTestimonials(true);
+    fetchTestimonials()
+    .then(mydata => {
+      console.log(mydata);
+    });
+  }, []);
 
   return (
     <div className="home-component content-view">
@@ -134,6 +144,15 @@ const Home = () => {
                                       history={history}
                                    />
          )
+        }
+    </Row>
+
+    {/* Testimonials row ------------------------------------------------*/}
+    <Row className='testimonials'>
+        {!!updatingTestimonials ?
+          <Spinner animation="grow" size="lg" />
+          :
+          "None"
         }
     </Row>
 
