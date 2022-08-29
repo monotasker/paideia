@@ -84,15 +84,7 @@ $table-background: lighten($nominative, 60%);
 //---------------------------------------------------
 // typography
 
-@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium');
-
-// @font-face {
-//     font-family: 'Glyphicons Halflings';
-//     src: url('../Fonts/glyphicons-halflings-regular.eot');
-//     src: url('../Fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons-halflings-regular.woff') format('woff'), url('../Fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../Fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
-//     font-weight: normal;
-//     font-style: normal;
-// }
+@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium|Shadows+Into+Light');
 
 @font-face {
     font-family: 'SBLGreekRegular';
@@ -530,19 +522,20 @@ form                                    {margin-bottom: 1rem;
                             padding-top: 0;
                             padding-bottom: 0;
             &:hover,
-            &:active    {background-color: lighten($accent2, 10%);
+            &:active       {background-color: lighten($accent2, 10%);
             }
         }
     }
-    &.welcome-nav        {color: darken($pallette1, 50%);
+    &.welcome-nav        {color: $headingColorDark;
       >span                {line-height: 3rem;
                             padding: 0.5rem;
         span               {padding-left: 0.25rem;
         }
       }
-      a.nav-link         {color: darken($pallette1, 50%);
+      a.nav-link         {color: $headingColorDark;
         &:hover,
-        &:active         {color: $white;
+        &:active,
+        &:focus          {color: $white;
         }
       }
     }
@@ -1761,7 +1754,9 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
                 &.short-warning-text {display: none;
+                    @media (max-width: map-get($grid-breakpoints, md))  {
                                     display: block;
+                    }
                 }
             }
         }
@@ -1862,6 +1857,26 @@ form                                    {margin-bottom: 1rem;
             }
         }
         p                       {hyphens: auto;
+        }
+    }
+    div.testimonials                    {background-color: $nominative;
+                                         padding-top: 1.5rem;
+                                         position: relative;
+        .testimonial-item               {position: absolute;
+                                         font-family: "Shadows Into Light";
+                                         padding-bottom: 1rem;
+            .testimonial-body           {background-color: lighten($nominative, 10%);
+                                         color: $cream;
+                                         border-radius: 2rem;
+                                         font-size: $font-size-lg;
+                                         padding: 1.5rem;
+            }
+            .testimonial-name           {display: block;
+                                         position: absolute;
+                                         font-size: 2rem;
+                                         color: $warning-bg;
+                                         left: 2rem;
+            }
         }
     }
 }

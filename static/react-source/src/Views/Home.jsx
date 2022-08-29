@@ -14,6 +14,7 @@ import {
   faHardHat,
   faSignInAlt
 } from '@fortawesome/free-solid-svg-icons';
+import MiniMasonry from "minimasonry";
 
 import imgMaria from "../Images/woman1.png";
 import imgHowDoesItWork from "../Images/info_How_Does_It_Work.svg";
@@ -69,12 +70,36 @@ const Home = () => {
   const locParts = myLocation.pathname.split('/');
   const middlePath = locParts[locParts.length - 2]==="paideia" ? "" : "paideia/"
   const [updatingTestimonials, setUpdatingTestimonials] = useState();
+  const [testimonials, setTestimonials] = useState();
+
+  const chooseRandom = (rawArray, targetLength) => {
+    let randomIntArray = []
+    while ( randomIntArray.length < targetLength ) {
+      let randomInt = Math.floor(Math.random() * rawArray.length);
+      if ( randomIntArray.indexOf(randomInt) === -1 ) {
+        randomIntArray.push(randomInt);
+      }
+    }
+    console.log(randomIntArray);
+    let randomItemArray = []
+    for (const i of randomIntArray) {
+        randomItemArray.push(rawArray[i]);
+    }
+    console.log(randomItemArray);
+    return(randomItemArray);
+  };
 
   useEffect(() => {
     setUpdatingTestimonials(true);
     fetchTestimonials()
     .then(mydata => {
-      console.log(mydata);
+      setUpdatingTestimonials(false);
+      setTestimonials(chooseRandom(mydata, 8));
+      new MiniMasonry({
+        container: '.testimonials',
+        gutterY: 0,
+        gutterX: 18
+      });
     });
   }, []);
 
@@ -152,7 +177,17 @@ const Home = () => {
         {!!updatingTestimonials ?
           <Spinner animation="grow" size="lg" />
           :
-          "None"
+          !!testimonials && testimonials.length > 0 ?
+            testimonials.map(t =>
+              <div className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={t.title}>
+                <p className="testimonial-body">
+                  {t.content}
+                  <span className="testimonial-name">{t.title}</span>
+                </p>
+              </div>
+            )
+          :
+          ""
         }
     </Row>
 

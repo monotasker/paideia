@@ -1,4 +1,4 @@
-#! /usr/bin/python3.6
+#! /usr/bin/python3.9
 # encoding: utf-8
 from copy import copy
 from datetime import datetime
@@ -40,15 +40,22 @@ if 0:
     db = current.db
 
 
-def text_content(tag_list:List[int]) -> List[str]:
+def content_pages():
     """
     Return a list of the text for each content page matching provided tags.
     """
     db = current.db
-    mypages = db(db.content_pages.topics.contains(tag_list)).select()
-
-    pprint(current.request)
-    return json_serializer(mypages, default=my_custom_json)
+    request = current.request
+    tag_list = request.vars['tag_list']
+    if request.method == "POST":
+        mypages = db(db.content_pages.topics.contains(tag_list)
+                     ).select().as_list()
+        return json_serializer(mypages)
+    else:
+        return json_serializer({'status': 'bad request',
+                    'reason': f'${request.method} not a valid method ' \
+                               'for this endpoint',
+                    'error': None})
 
 
 def download():
