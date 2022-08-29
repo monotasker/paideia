@@ -40,6 +40,17 @@ if 0:
     db = current.db
 
 
+def text_content(tag_list:List[int]) -> List[str]:
+    """
+    Return a list of the text for each content page matching provided tags.
+    """
+    db = current.db
+    mypages = db(db.content_pages.topics.contains(tag_list)).select()
+
+    pprint(current.request)
+    return json_serializer(mypages, default=my_custom_json)
+
+
 def download():
     """
     allows downloading of uploaded files
@@ -3242,12 +3253,3 @@ def _is_student_of(user_id):
 
     return instructors_flat
 
-
-def content_pages(tag_list:List[int]) -> List[str]:
-    """
-    Return a list of the text for each content page matching provided tags.
-    """
-    mypages = db(db.content_pages.topics.contains(tag_list)).select()
-
-    pprint(current.request)
-    return json_serializer(mypages, default=my_custom_json)
