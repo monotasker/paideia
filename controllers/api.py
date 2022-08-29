@@ -26,6 +26,7 @@ import pytz
 import re
 import stripe
 import time
+from typing import List
 # from pydal.objects import Rows
 
 from gluon._compat import urllib2, urlencode, urlopen, to_bytes, to_native
@@ -3240,3 +3241,10 @@ def _is_student_of(user_id):
         if instructors else []
 
     return instructors_flat
+
+def content_pages(tag_list:List[int]) -> List[str]:
+    """
+    Return a list of the text for each content page matching provided tags.
+    """
+
+    pprint(current.request)
