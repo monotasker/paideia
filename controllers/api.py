@@ -2492,7 +2492,7 @@ def get_vocabulary():
     mylevel :: int :: the maximum badge set currently reached by user if
                       logged in
     """
-    debug = 1
+    debug = 0
     db = current.db
 
     mynorm = GreekNormalizer()

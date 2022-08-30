@@ -191,6 +191,7 @@ class Walk(object):
                                   set_review=set_review)
                 break
         except Exception:
+            print("Couldn\'t recover user!!!")
             print(traceback.format_exc(5))
             self.clean_user()  # get rid of any problem path data
             result = self.ask(localias=localias, path=path, step=step,
@@ -231,7 +232,7 @@ class Walk(object):
                 key: name of the blocking condition (str)
                 value: dictionary of kwargs to be passed to the Block
         """
-        debug = True
+        debug = 1 # current.paideia_DEBUG_MODE
         p = category = redir = pastquota = None
         loc = prev_loc = prev_npc = None
         s = newloc_id = error_string = None
@@ -244,20 +245,23 @@ class Walk(object):
             loc = Location(localias)
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # allow artificial setting of blocks during interface testing
             if set_blocks:
-                print('BLOCK SET IS TRUE')
+                if debug: print('BLOCK SET IS TRUE')
                 for c, v in list(set_blocks.items()):
                     myargs = {n: a for n, a in list(v.items())}
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get tag categories and note tag progress changes
             tag_progress, promoted, new_tags, demoted = self._set_blocks()
             if (promoted or new_tags or demoted):
                 assert self._record_cats(tag_progress, promoted,
                                          new_tags, demoted)
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get the current path and note other flag conditions
             # choose a new path if the current one is finished
@@ -265,6 +269,7 @@ class Walk(object):
                 user.get_path(loc, pathid=path,
                               repeat=repeat,
                               set_review=set_review)
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             if repeat:
                 user.repeating = True  # so that information available in reply
             if debug: print('Walk::ask: path chosen is', p.get_id())
@@ -273,35 +278,44 @@ class Walk(object):
                 break
             user.active_cat = category
             user.new_content = new_content
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # set last-minute blocking conditions based on those flags
             if redir:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': redir})
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             if pastquota:
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get the next step for the current path
             # if necessary substitute with step to handle blocking condition
             s, newloc_id, error_string = p.get_step_for_prompt(loc,
                                                                repeat=repeat)
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             if newloc_id:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': newloc_id})
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             current.sequence_counter += 1
             block = user.check_for_blocks()
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             print('Walk::ask block is', block)
             if block:
                 s = block.get_step()
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # assign an Npc for the final step being activated
             npc = s.get_npc(loc, prev_npc, prev_loc)
             user.set_npc(npc)
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # ensure that flags triggering blocking conditions are reset
             if not user.blocks:
                 user.clear_block_records()
+            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get the data for the prompt interface from the step
             prompt = s.get_prompt(loc, npc, username, user_blocks_left=True
@@ -410,7 +424,7 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        debug = True  # current.paideia_DEBUG_MODE
+        debug = 1  # current.paideia_DEBUG_MODE
         user = self._get_user()
         try:
             repeat = user.repeating
@@ -763,7 +777,7 @@ class Walk(object):
         If successful, returns an integer representing the successfully
         added/updated db row. If unsuccessful, returns False.
         """
-        debug = True  # current.paideia_DEBUG_MODE
+        debug = 1 # current.paideia_DEBUG_MODE
         db = current.db if not db else db
 
         try:
@@ -806,11 +820,12 @@ class Walk(object):
                 'active_cat': user.active_cat,
                 'quota': user.quota
             }
-            print('storing************************')
-            print('remaining_steps:', userdict['remaining_steps'])
-            print('step_for_reply:', userdict['step_for_reply'])
-            print('step_for_prompt:', userdict['step_for_prompt'])
-            print({k: v for k, v in userdict.items() if v == 'reviewing set 1'})
+            if debug: print('Walk::store user:: storing************************')
+            if debug: print('Walk::store user:: remaining_steps:', userdict['remaining_steps'])
+            if debug: print('Walk::store user:: step_for_reply:', userdict['step_for_reply'])
+            if debug: print('Walk::store user:: step_for_prompt:', userdict['step_for_prompt'])
+            if debug: print('Walk::store user:: blocks:', userdict['blocks'])
+            if debug: print({k: v for k, v in userdict.items() if v == 'reviewing set 1'})
             myrow = db.session_data.update_or_insert({'name': user.get_id()},
                                                      name=user.get_id(),
                                                      **userdict)
@@ -1546,27 +1561,20 @@ class StepViewSlides(Step):
                     if lst]
         tags = db((db.tags.id == db.badges.tag) &
                   (db.tags.id.belongs(flat_nts))).select().as_list()
+        tags = [row['tags']['id'] for row in tags]
 
         # get the relevant slide sets (id and name)
-        decks = [row['tags']['slides'] for row in tags]
-        if isinstance(decks[0], list):
-            # anticipating possibility that decks could match multiple tags
-            decks = [i for lst in decks for i in lst]
-        decks = list(set(decks))
-
-        dtable = db.plugin_slider_decks
-        sliderows = db(dtable.id.belongs(decks)
-                       ).select(dtable.id,
-                                dtable.deck_name,
-                                orderby=dtable.deck_position)
+        decks = db(db.lessons.lesson_tags.contains(tags)
+                   ).select(db.lessons.lesson_position,
+                            db.lessons.title,
+                            distinct=True,
+                            orderby=db.lessons.lesson_position)
 
         # build slide deck list
         slides = []
         for row in sliderows:
-            baseurl = 'http://ianwscott.webfactional.com/paideia/' \
-                'listing/slides.html/'
-            deckurl = baseurl + str(int(row['id']))
-            slides.append('- [{} {}]'.format(row['deck_name'], deckurl))
+            deckurl = '/paideia/videos/' + str(int(row['lesson_position']))
+            slides.append('- [{}]({})'.format(row['title'], deckurl))
         slides = '\n'.join(slides)
 
         # collect replacements
@@ -1719,7 +1727,7 @@ class StepEvaluator(object):
         Special responses (and a score of 0.9) are also given if the only error
         is the presence or absence of appropriate final punctuation.
         """
-        debug = True  # current.paideia_DEBUG_MODE
+        debug = current.paideia_DEBUG_MODE
         if not user_response:
             request = current.request
             user_response = request.vars['response']
@@ -2568,8 +2576,8 @@ class User(object):
         :attr int active_cat: An integer representing the category of tags from
                             which the user's current path was selected.
         """
-        debug = True # current.paideia_DEBUG_MODE
-        if debug: print('initializing user')
+        debug = 1 # current.paideia_DEBUG_MODE
+        if debug: print('User::init:: initializing user')
         db = db if db else current.db
         auth = current.auth
 
@@ -2581,7 +2589,7 @@ class User(object):
         self.tag_progress = tag_progress
 
         def make_fresh_user():
-            if debug: print('L')
+            if debug: print('User::init:: L')
             self.path = None
             self.completed_paths = {'latest': None, 'paths': {}}
             self.cats_counter = 0  # timing re-cat in get_categories()
@@ -2603,7 +2611,7 @@ class User(object):
             self._set_user_rank(self.tag_progress, 1)
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
 
-            if debug: print('Q')
+            if debug: print('User::init:: Q')
             self.reviewing = None
             self.promoted = None
             self.demoted = None
@@ -2624,18 +2632,18 @@ class User(object):
             self.quota = self._get_paths_quota(self.user_id)
             if isinstance(self.quota, list):
                 self.quota = self.quota[0]
-            if debug: print('initialized user')
+            if debug: print('User::init:: initialized user')
 
         if not force_new:
             sd = db(db.session_data.name == auth.user_id).select().first()
             try:
-                if debug: print('A')
+                if debug: print('User::init:: A')
                 self.loc = Location(sd['loc'])
                 self.npc = Npc(sd['npc'])
-                if debug: print('chosen path:', sd['path'])
+                if debug: print('User::init:: chosen path:', sd['path'])
                 self.path = Path(sd['path'])
-                if debug: print('remaining steps:', sd['remaining_steps'])
-                if debug: print('step_for_reply:', sd['step_for_reply'])
+                if debug: print('User::init:: remaining steps:', sd['remaining_steps'])
+                if debug: print('User::init:: step_for_reply:', sd['step_for_reply'])
                 self.path.restore_position(sd['remaining_steps'],
                                         sd['step_for_prompt'],
                                         sd['step_for_reply'])
@@ -2648,19 +2656,19 @@ class User(object):
                         'repeating', 'new_content', 'active_cat', 'quota']:
                     if k in list(sd.keys()):
                         setattr(self, k, sd[k])
-                        print(k, sd[k], type(sd[k]))
+                        print("User::init::", k, sd[k], type(sd[k]))
                     else:
                         setattr(self, k, None)
-                        print(k, None)
+                        print("User::init::", k, None)
                 # Blocks must be set after flags above are set
                 for condition, kwargs in json.loads(sd['blocks']).items():
-                    print(sd['blocks'])
-                    print('got blocks===================================')
-                    print(condition)
-                    print(kwargs)
+                    print("User::init::", sd['blocks'])
+                    print('"User::init:: got blocks===================================')
+                    print("User::init:: condition: ", condition)
+                    print("User::init:: kwargs: ", kwargs)
                     self.set_block(condition, kwargs=kwargs)
-                if debug: print('B')
-                if debug: print('D')
+                if debug: print('User::init:: blocks after set_block:', self.blocks)
+                if debug: print('User::init:: D')
                 if not tag_records:
                     try:
                         rec_ids = json.loads(sd['tag_records'])
@@ -2670,13 +2678,14 @@ class User(object):
                         traceback.print_exc()
                         self.tag_records = db(db.tag_records.name == self.user_id
                                             ).select().as_list()
-                if debug: print('F')
+                if debug: print('User::init:: F')
                 if not tag_progress:
                     self.tag_progress = json.loads(sd['tag_progress'])
-                if debug: print('G')
+                if debug: print('User::init:: G')
                 assert not self.is_stale()
-                if debug: print('H')
-            except (TypeError, AttributeError, AssertionError):  # one of the JSON fields is None
+                if debug: print('User::init:: H')
+                if debug: print('User::init:: final blocks after init:', self.blocks)
+            except (TypeError, AttributeError, AssertionError):  # no record or one of the JSON fields is None
                 traceback.print_exc()
                 make_fresh_user()
         else:
@@ -2824,7 +2833,7 @@ class User(object):
         - Returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
-        debug = True  # current.paideia_DEBUG_MODE
+        debug = 1 # current.paideia_DEBUG_MODE
         if self.blocks:
             if debug:
                 print('User::check_for_blocks: blocks present')
@@ -2854,23 +2863,28 @@ class User(object):
 
     def set_block(self, condition, kwargs=None):
         """ Set a blocking condition on this Path object. """
+        debug = 1
         myblocks = [b.get_condition() for b in self.blocks]
+        if debug: print("User::set_block blocks are", myblocks)
+        if debug: print("User::set_block condition is", condition)
+        if debug: print("User::set_block kwargs is", kwargs)
         try:
             current.sequence_counter += 1
         except AttributeError:
             current.sequence_counter = 1
-        print(current.sequence_counter)
+        if debug: print("User::set_block: current.sequence_counter is",
+                        current.sequence_counter)
 
         def _inner_set_block():
-            print('inner setting ', condition)
+            if debug: print('User::set_block: inner setting ', condition)
             if condition not in myblocks:
-                print('adding new condition')
+                if debug: print('User::set_block: adding new condition')
                 self.blocks.append(Block(condition, kwargs=kwargs))
 
         if condition == 'view_slides':
             if not self.viewed_slides:
                 _inner_set_block()
-                self.viewed_slides = True
+                # self.viewed_slides = True
         elif condition == 'new_tags':
             if not self.reported_badges:
                 _inner_set_block()
@@ -2883,7 +2897,7 @@ class User(object):
         #        self.reported_promotions = True
         else:
             _inner_set_block()
-
+        if debug: print('User::set_block: blocks now', self.blocks)
         current.sequence_counter += 1
         return True
 
@@ -3058,7 +3072,7 @@ class User(object):
                 # FIXME: This hack is to work around mysterious introduction of
                 # redirect block after initial redirect has been triggered
                 self.blocks = [b for b in self.blocks
-                               if not b.get_condition() is 'redirect']
+                               if b.get_condition() != 'redirect']
             break
         return (self.path, cat, redir, pastq, new_content)
 
@@ -3748,6 +3762,13 @@ class Block(object):
             current.sequence_counter += 1
         except AttributeError:
             current.sequence_counter = 1
+
+    def __repr__(self):
+        """
+        Return a string representing the current class instance (object)
+        """
+        return 'Block object: condition: {}, kwargs: {}'.format(
+            self.condition, self.kwargs)
 
     def make_step(self, condition):
         """Create correct Step subclass and store as an instance variable."""
