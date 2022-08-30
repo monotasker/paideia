@@ -95,10 +95,10 @@ const Home = () => {
     .then(mydata => {
       setUpdatingTestimonials(false);
       setTestimonials(chooseRandom(mydata, 8));
-      new MiniMasonry({
+      var masonry = new MiniMasonry({
         container: '.testimonials',
-        gutterY: 0,
-        gutterX: 18
+        gutter: 24,
+        ultimateGutter: 14
       });
     });
   }, []);
@@ -173,7 +173,8 @@ const Home = () => {
     </Row>
 
     {/* Testimonials row ------------------------------------------------*/}
-    <Row className='testimonials'>
+    <Row className="testimonials-leadin"><Col>What learners are saying...</Col></Row>
+    <div className='testimonials'>
         {!!updatingTestimonials ?
           <Spinner animation="grow" size="lg" />
           :
@@ -181,7 +182,7 @@ const Home = () => {
             testimonials.map(t =>
               <div className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={t.title}>
                 <p className="testimonial-body">
-                  {t.content}
+                  <span className="wrapper">{t.content}</span>
                   <span className="testimonial-name">{t.title}</span>
                 </p>
               </div>
@@ -189,7 +190,7 @@ const Home = () => {
           :
           ""
         }
-    </Row>
+    </div>
 
   </div>
   );
