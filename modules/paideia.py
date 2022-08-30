@@ -1483,8 +1483,8 @@ class StepAwardBadges(StepContinue, Step):
                             bname = 'tag {}(no name)'.format(l)
                         line = '- {} {}\r\n'.format(label, bname)
                         nt_rep += line
-        nt_rep += 'You can click on your name above to see details ' \
-                  'of your progress so far.'
+        nt_rep += '\r\nYou can click on the profile link beside your name ' \
+                  'above to see details of your progress so far.'
         appds['[[new_tag_list]]'] = nt_rep
 
         prom_rep = ' '
