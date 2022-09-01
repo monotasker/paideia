@@ -319,14 +319,14 @@ form                                    {margin-bottom: 1rem;
                                          left: -1rem;
                                          z-index: 1;
         }
-        .close                          {color: $white;
+        .btn-close                          {color: $white;
                                          position: relative;
                                          top: 0.35rem;
 
         }
     }
     &.Beginner                          {
-        .modal-header                 {background-color: $beginner-color
+        .modal-header                 {background-color: $beginner-color;
             svg                         {color: desaturate(lighten($beginner-color, 10%), 10%);
             }
         }
@@ -339,14 +339,14 @@ form                                    {margin-bottom: 1rem;
 
     }
     &.Journeyman                        {
-        .modal-header                   {background-color: $journeyman-color
+        .modal-header                   {background-color: $journeyman-color;
             svg                         {color: desaturate(lighten($journeyman-color, 10%), 10%);
             }
         }
 
     }
     &.Expert                            {
-        .modal-header                   {background-color: $expert-color
+        .modal-header                   {background-color: $expert-color;
             svg                         {color: desaturate(lighten($expert-color, 10%), 10%);
             }
         }
@@ -604,6 +604,18 @@ form                                    {margin-bottom: 1rem;
           }
       }
   }
+}
+
+//-- dev panel --------------------------------------------------
+
+.dev-tools-button           {position: absolute;
+                             top: 14.5rem;
+                             right: -0.75rem;
+                             padding-left: 0.5rem;
+                             z-index: 30;
+    svg                     {position: relative;
+                             left: -0.1rem;
+    }
 }
 
 //-- tools --------------------------------------------------
@@ -2202,6 +2214,7 @@ form                                    {margin-bottom: 1rem;
                 }
             }
             .profile-progress-outer-container2 {margin-top: -1rem;
+                                                position: relative;
                 @media (max-width: map-get($grid-breakpoints, md))  {
                                                padding: 0 1.5rem;
                                                margin-top: -1rem;

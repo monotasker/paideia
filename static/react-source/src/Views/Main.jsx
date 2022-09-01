@@ -104,6 +104,7 @@ import { urlBase } from "../variables";
 import PrivateRoute from "../Components/PrivateRoute";
 import TopNavbar from "../Components/TopNavbar";
 import Tools from "../Components/Tools";
+import DevPanel from "../Components/DevPanel";
 import Home from "./Home";
 import Login from "./Login";
 import Register from "./Register";
@@ -266,6 +267,7 @@ const MainPage = () => {
             <React.Fragment>
               <Component />
               <Tools />
+              <DevPanel />
             </React.Fragment>
           </CSSTransition>
           )}

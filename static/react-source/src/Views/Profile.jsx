@@ -7,8 +7,6 @@ import {
   // Form,
   OverlayTrigger,
   Popover,
-  PopoverTitle,
-  PopoverContent,
   Row,
   Spinner,
   Tab,
@@ -463,10 +461,10 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
             <OverlayTrigger key={`progress-bar-set-${n}`} placement="auto" trigger="click" rootClose
               overlay={
                 <Popover className="progress-tooltip" id={`tooltip-${n}`}>
-                  <PopoverTitle>Badge Set {n}</PopoverTitle>
-                  <PopoverContent>
+                  <Popover.Header>Badge Set {n}</Popover.Header>
+                  <Popover.Body>
                     {`Reached on ${readableDate(badgeSetMilestones.find(o => o.badge_set === n).my_date)}`}
-                  </PopoverContent>
+                  </Popover.Body>
                 </Popover>
               }
             >
