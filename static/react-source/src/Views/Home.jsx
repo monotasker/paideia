@@ -179,8 +179,8 @@ const Home = () => {
           <Spinner animation="grow" size="lg" />
           :
           !!testimonials && testimonials.length > 0 ?
-            testimonials.map(t =>
-              <div className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={t.title}>
+            testimonials.map((t, i) =>
+              <div className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={`${t.title}_${i}`}>
                 <p className="testimonial-body">
                   <span className="wrapper">{t.content}</span>
                   <span className="testimonial-name">{t.title}</span>

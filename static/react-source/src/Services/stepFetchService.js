@@ -1,5 +1,6 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import { doApiCall } from "../Services/utilityService";
 
 const getPromptData = async ({location=null,
                               repeat=false,
@@ -34,6 +35,8 @@ const getPromptData = async ({location=null,
   response_json.status_code = mystatus;
   return response_json
 }
+
+const set_lessons_viewed = async () => doApiCall({}, "set_viewed_slides", "none", "POST");
 
 const evaluateAnswer = async ({location=null,
                                repeat=false,
@@ -426,6 +429,7 @@ const setServerReviewMode = async (mylevel) => {
 
 
 export { getPromptData,
+         set_lessons_viewed,
          evaluateAnswer,
          getQueriesMetadata,
          getQueries,

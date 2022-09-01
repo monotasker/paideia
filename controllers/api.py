@@ -126,6 +126,25 @@ def get_prompt():
                      'reason': 'Not logged in'})
 
 
+def set_viewed_slides():
+    """
+    Sets a user's "viewed_slides" value of the stored session data to True
+    """
+    auth = current.auth
+    if auth.is_logged_in():
+        # find the current user's session data
+        db(db.session_data.name == auth.user_id
+           ).update(viewed_slides=True)
+        # update the "viewed_slides" value
+        db.commit()
+        return json_serializer({'message': 'set "viewed_slides" to "True"'})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
+
+
 def evaluate_answer():
     """
     Private api method to handle calls from the react front-end.

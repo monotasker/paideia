@@ -13,13 +13,14 @@ import {
 import { useHistory, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { urlBase } from "../variables";
 import AudioPlayer from "../Components/AudioPlayer";
-import { evaluateAnswer, getPromptData } from "../Services/stepFetchService";
+import { evaluateAnswer, set_lessons_viewed, getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import useEventListener from "../Hooks/UseEventListener";
 import { returnStatusCheck } from "../Services/utilityService";
@@ -152,6 +153,13 @@ const Step = (props) => {
     (event) => {event.preventDefault()},
     document.querySelector('.responder textarea')
   );
+
+  useEventListener("click",
+    () => {
+      set_lessons_viewed();
+      setPromptText(null);
+    },
+    document.querySelector('.new-lessons-dismiss'));
 
   useEventListener("click mouseover", setPromptZIndex,
     document.querySelector('.prompt-text'));

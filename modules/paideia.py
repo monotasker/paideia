@@ -228,7 +228,7 @@ class Walk(object):
             'bg_image':
         The value of 'responder' is a web2py html helper object.
         The 'set_blocks' argument is used to set blocking conditions manually
-            for testing purposes. It's value is a dictionary consisting of
+            for testing purposes. Its value is a dictionary consisting of
                 key: name of the blocking condition (str)
                 value: dictionary of kwargs to be passed to the Block
         """
@@ -1479,27 +1479,33 @@ class StepAwardBadges(StepContinue, Step):
             flat_nts = [i for cat, lst in list(new_tags.items())
                         for i in lst if lst]
             nt_records = db(db.badges.tag.belongs(flat_nts)
-                            ).select(db.badges.tag,
+                            ).select(db.badges.id,
+                                     db.badges.tag,
                                      db.badges.badge_name).as_list()
             if nt_records:
-                nt_rep = '{} ready to start working on some new ' \
-                         'badges:\r\n'.format(conj)
-                ranks = ['beginner', 'apprentice', 'journeyman', 'master']
+                ranks = ['beginner', 'apprentice', 'journeyman', 'expert']
+                nt_rep = '<span class="new-list-intro">{} ready to start '\
+                         'working on some new badges:</span>' \
+                         ''.format(conj)
+                nt_rep += '<ul class="new-badges-list">'
                 nt_clean = {k: v for k, v in list(new_tags.items()) if v}
                 for rank, lst in list(nt_clean.items()):
                     ranknum = int(rank.replace('rev', ''))
                     label = ranks[ranknum - 1]
                     for l in lst:
-                        bname = [row['badge_name'] for row in nt_records
-                                 if row['tag'] == l]
-                        if bname:
-                            bname = bname[0]
+                        badge_items = [(row['badge_name'], row['id']) for row
+                                      in nt_records if row['tag'] == l]
+                        if badge_items:
+                            bname, bid = badge_items[0]
                         else:
                             bname = 'tag {}(no name)'.format(l)
-                        line = '- {} {}\r\n'.format(label, bname)
+                            bid = -1
+                        line = '<li class="{}"><button name="{}" value="{}" ' \
+                               'class="btn btn-link">' \
+                               '{} ({})</button></li>' \
+                               ''.format(label, bname, bid, bname, label)
                         nt_rep += line
-        nt_rep += '\r\nYou can click on the profile link beside your name ' \
-                  'above to see details of your progress so far.'
+                nt_rep += '</ul>'
         appds['[[new_tag_list]]'] = nt_rep
 
         prom_rep = ' '
@@ -1507,12 +1513,14 @@ class StepAwardBadges(StepContinue, Step):
             flat_proms = [i for cat, lst in list(promoted.items())
                           for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
-                              ).select(db.badges.tag,
+                              ).select(db.badges.id,
+                                       db.badges.tag,
                                        db.badges.badge_name).as_list()
             if prom_records:
-                prom_rep = 'You have been promoted to these new ' \
-                    'badge levels:\r\n'
-                ranks = ['beginner', 'apprentice', 'journeyman', 'master']
+                prom_rep = '<span class="promoted-list-intro">You can start ' \
+                           'working on new levels for these badges:</span>'
+                prom_rep += '<ul class="promoted-badges-list">'
+                ranks = ['beginner', 'apprentice', 'journeyman', 'expert']
                 prom_clean = {k: v for k, v in list(promoted.items()) if v}
                 for rank, lst in list(prom_clean.items()):
                     # FIXME: why is this sometimes getting 'cat' instead of
@@ -1524,14 +1532,19 @@ class StepAwardBadges(StepContinue, Step):
                     # end of hack ------------------------------------------
                     label = ranks[ranknum - 1]
                     for l in lst:
-                        bname = [row['badge_name'] for row in prom_records
-                                 if row['tag'] == l]
-                        if bname:
-                            bname = bname[0]
+                        badge_items = [(row['badge_name'], row['id']) for row
+                                      in prom_records if row['tag'] == l]
+                        if badge_items:
+                            bname, bid = badge_items[0]
                         else:
                             bname = 'tag {}(no name)'.format(l)
-                        line = '- {} {}\r\n'.format(label, bname)
+                            bid = -1
+                        line = '<li class="{}"><button name="{}" class="btn ' \
+                               'btn-link" value="{}">' \
+                               '{} ({})</button></li>' \
+                               ''.format(label, bname, bid, bname, label)
                         prom_rep += line
+                prom_rep += '</ul>'
         appds['[[promoted_list]]'] = prom_rep
 
         newstr = (super(StepAwardBadges, self
@@ -1543,7 +1556,7 @@ class StepAwardBadges(StepContinue, Step):
                 }
 
 
-class StepViewSlides(Step):
+class StepViewSlides(StepContinue, Step):
     '''
     A Step that informs the user when s/he needs to view more grammar slides.
     '''
@@ -1572,10 +1585,10 @@ class StepViewSlides(Step):
 
         # build slide deck list
         slides = []
-        for row in sliderows:
+        for row in decks:
             deckurl = '/paideia/videos/' + str(int(row['lesson_position']))
-            slides.append('- [{}]({})'.format(row['title'], deckurl))
-        slides = '\n'.join(slides)
+            slides.append('<li><a href="{}" target="_blank">{}</a></li>'.format(deckurl, row['title']))
+        slides = ''.join(slides)
 
         # collect replacements
         appds = {'[[slide_list]]': slides}
@@ -2824,41 +2837,36 @@ class User(object):
 
     def check_for_blocks(self):
         """
-        Check whether new block needed, then activate first block (if any).
+        If a block is present, returns the first Block object.
+
         If a block is found:
-        - Returns a step subclass instance (StepRedirect, StepQuotaReached,
-            StepAwardBadges, or StepViewSlides)
-        - also sets self.step_sent_id
-        If a block is not found:
-        - Returns None
+        - removes that block from self.blocks
+        - increments current.sequence_counter
+
+        If a block is not found returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
         debug = 1 # current.paideia_DEBUG_MODE
         if self.blocks:
-            if debug:
-                print('User::check_for_blocks: blocks present')
+            if debug: print('User::check_for_blocks: blocks present')
             blockset = []
             for b in self.blocks:
                 if not b.get_condition() in [c.get_condition()
                                              for c in blockset]:
                     blockset.append(b)
             self.blocks = blockset
-            if debug:
-                print('User::check_for_blocks: blockset',
-                      [b.get_condition() for b in blockset])
+            if debug: print('User::check_for_blocks: blockset',
+                            [b.get_condition() for b in blockset])
             current.sequence_counter += 1  # TODO: why increment twice here?
             myblock = self.blocks.pop(0)
-            if debug:
-                print('User::check_for_blocks: myblock',
-                      myblock.get_condition())
-            if debug:
-                print('User::check_for_blocks: blockset now',
-                      [b.get_condition() for b in blockset])
+            if debug: print('User::check_for_blocks: activating block',
+                            myblock.get_condition())
+            if debug: print('User::check_for_blocks: blocks remaining for user',
+                            [b.get_condition() for b in blockset])
             current.sequence_counter += 1  # TODO: why increment twice here?
             return myblock
         else:
-            if debug:
-                print('User::check_for_blocks: no blocks present')
+            if debug: print('User::check_for_blocks: no blocks present')
             return None
 
     def set_block(self, condition, kwargs=None):

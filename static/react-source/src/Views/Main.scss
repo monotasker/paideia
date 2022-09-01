@@ -2,6 +2,8 @@
 @import "../../node_modules/bootstrap/scss/_functions.scss";
 @import "../../node_modules/bootstrap/scss/_variables.scss";
 @import "../../node_modules/bootstrap/scss/_mixins.scss";
+@import "../../node_modules/@fortawesome/fontawesome-free/css/fontawesome.min.css";
+@import "../../node_modules/@fortawesome/fontawesome-free/css/all.css";
 $mapPng: "../Images/town_map.png";
 
 // layout
@@ -78,6 +80,12 @@ $vocative: #C55A11;
 $dative: #7030A0;
 $preposition: #009999;
 
+// semantic colors (badge levels)
+$beginner-color: $pallette3;
+$apprentice-color: $accent2;
+$journeyman-color: $accent4;
+$expert-color: $pallette4;
+
 $table-background: lighten($nominative, 60%);
 
 
@@ -112,6 +120,16 @@ $hard-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
 $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 // mixins --------------------------------------------------
+
+@mixin fontawesome-pseudoselector($family: "Font Awesome 5 Free", $weight: 900) {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-family: $family;
+    font-weight: $weight;
+}
 
 @mixin react-transition-fade($class, $duration: 200) {
     &.#{$class}-appear,
@@ -187,6 +205,18 @@ h3                                      {font-family: $sans-fonts;
                                          color: $heading-color;
 }
 
+// alerts --------------------------------------------------
+
+.alert                                  {
+    &.alert-info                         {background-color: $info-bg;
+                                         color: darken($info-dark, 10%);
+                                         border: 1px solid $info;
+    }
+    &.alert-success                      {background-color: $success-bg;
+                                         border: 1px solid $success;
+    }
+}
+
 // allow vertically centred left-hand icons in error messages
 .alert.error-message                    {flex-wrap: nowrap;
                                          align-items: center;
@@ -197,17 +227,29 @@ h3                                      {font-family: $sans-fonts;
 
 // lists ----------------------------------------------------
 
-@mixin icon-bullet-list($icon-color, $top-margin: 0.3rem)    {
-    ul                                  {margin-left: 2rem;
+@mixin icon-pseudo-bullet-list($icon, $icon-offset: -1.25rem, $icon-color: inherit, $top-margin: 0)   {
+    li                                  {
+        ::before                        {
+            @include fontawesome-pseudoselector();
+                                        content: $icon;
+                                        position: absolute;
+                                        left: $icon-offset;
+                                        margin-top: $top-margin;
+                                        color: $icon-color;
+        }
+    }
+}
+
+@mixin icon-bullet-list($icon-color: inherit, $top-margin: 0.3rem, $icon-offset: -2rem)    {
+                                         list-style-type: none;
                                          position: relative;
-        li                              {margin-left: -2.5rem;
+        li                              {position: relative;
             svg                         {position: absolute;
-                                        left: -2rem;
+                                        left: $icon-offset;
                                         margin-top: $top-margin;
                                         color: $icon-color;
             }
         }
-    }
 }
 
 // forms ----------------------------------------------------
@@ -222,7 +264,7 @@ form                                    {margin-bottom: 1rem;
     &:hover                {background-color: $secondaryLight;
                             color: $secondary;
     }
-    &:focus                {box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 15%);
+    &:focus                {box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.15);
     }
 }
 
@@ -257,7 +299,9 @@ form                                    {margin-bottom: 1rem;
                                          margin-top: 0.5rem;
         }
     }
-    @include icon-bullet-list($pallette1);
+    ul                                  {
+        @include icon-bullet-list($pallette1);
+    }
 }
 
 .badge-term-tooltip                     {
@@ -282,28 +326,28 @@ form                                    {margin-bottom: 1rem;
         }
     }
     &.Beginner                          {
-        .modal-header                 {background-color: $pallette3;
-            svg                         {color: desaturate(lighten($pallette3, 10%), 10%);
+        .modal-header                 {background-color: $beginner-color
+            svg                         {color: desaturate(lighten($beginner-color, 10%), 10%);
             }
         }
     }
     &.Apprentice                        {
-        .modal-header                 {background-color: $accent2;
-            svg                       {color: desaturate(lighten($accent2, 10%), 10%);
+        .modal-header                 {background-color: $apprentice-color;
+            svg                       {color: desaturate(lighten($apprentice-color, 10%), 10%);
             }
         }
 
     }
     &.Journeyman                        {
-        .modal-header                   {background-color: $accent4;
-            svg                         {color: desaturate(lighten($accent4, 10%), 10%);
+        .modal-header                   {background-color: $journeyman-color
+            svg                         {color: desaturate(lighten($journeyman-color, 10%), 10%);
             }
         }
 
     }
     &.Expert                            {
-        .modal-header                   {background-color: $pallette4;
-            svg                         {color: desaturate(lighten($pallette4, 10%), 10%);
+        .modal-header                   {background-color: $expert-color
+            svg                         {color: desaturate(lighten($expert-color, 10%), 10%);
             }
         }
 
@@ -405,13 +449,13 @@ form                                    {margin-bottom: 1rem;
 
             }
             tr                              {
-                &:nth-child(1)              {color: $pallette3;
+                &:nth-child(1)              {color: $beginner-color;
                 }
-                &:nth-child(2)              {color: $accent2;
+                &:nth-child(2)              {color: $apprentice-color;
                 }
-                &:nth-child(3)              {color: $accent4;
+                &:nth-child(3)              {color: $journeyman-color;
                 }
-                &:nth-child(4)              {color: $pallette4;
+                &:nth-child(4)              {color: $expert-color;
                 }
             }
         }
@@ -432,7 +476,9 @@ form                                    {margin-bottom: 1rem;
     }
     .arrow::after                   {border-top-color: $nominative;
     }
-    @include icon-bullet-list($pallette1);
+    ul                              {
+        @include icon-bullet-list($pallette1);
+    }
 }
 
 //-- basic layout -------------------------------------------
@@ -2432,30 +2478,30 @@ form                                    {margin-bottom: 1rem;
             }
             #profile-stages-tabs-tab-level1,
             #profile-stages-tabs-tabpane-level1     {
-                .badge                          {background-color: $pallette3;
+                .badge                          {background-color: $beginner-color;
                                                 color: $white;
-                                                border-color: $pallette3;
+                                                border-color: $beginner-color;
                 }
             }
             #profile-stages-tabs-tab-level2,
             #profile-stages-tabs-tabpane-level2     {
-                .badge                          {background-color: $accent2;
+                .badge                          {background-color: $apprentice-color;
                                                 color: $white;
-                                                border-color: $accent2;
+                                                border-color: $apprentice-color;
                 }
             }
             #profile-stages-tabs-tab-level3,
             #profile-stages-tabs-tabpane-level3     {
-                .badge                          {background-color: $accent4;
+                .badge                          {background-color: $journeyman-color;
                                                 color: $white;
-                                                border-color: $accent4;
+                                                border-color: $journeyman-color;
                 }
             }
             #profile-stages-tabs-tab-level4,
             #profile-stages-tabs-tabpane-level4     {
-                .badge                          {background-color: $pallette4;
+                .badge                          {background-color: $expert-color;
                                                  color: $white;
-                                                border-color: $pallette4;
+                                                border-color: $expert-color;
                 }
             }
             .tab-content                        {background-color: $white;
@@ -2916,16 +2962,89 @@ form                                    {margin-bottom: 1rem;
                 .cross-fade-height                  {transition: height 300ms ease-in-out;
 
                 }
-
             }
-            &:after {                   border-right: 25px solid $white;
+            .new-lesson-message                 {font-family: $sans-fonts;
+                                                 font-size: $font-size-base;
+                .new-lesson-intro               {display: block;
+
+                }
+                .new-lesson-list                {margin-top: 1rem;
+                                                 margin-bottom: 1rem;
+                                                 font-size: $font-size-base;
+                                                 line-height: 1.75rem;
+                                                 padding-left: 3rem;
+                    @include icon-bullet-list();
+                    @include icon-pseudo-bullet-list("\f03d", -1.75rem, $info-dark);
+                    a                           {color: $info-dark;
+                    }
+                }
+                .dismiss-message                {display: block;
+                                                 margin-bottom: 0.5rem;
+                }
+                .new-lessons-dismiss            {padding-right: 1.5rem;
+                    &::before                   {
+                        @include fontawesome-pseudoselector();
+                                                 content: "\f06e";
+                                                 margin-right: 0.5rem;
+                    }
+                }
+            }
+            .new-badge-message                  {font-family: $sans-fonts;
+                                                 font-size: $font-size-base;
+                .new-badge-congrats             {font-size: 1.5rem;
+                                                 color: $purple;
+                }
+                .new-badges-list                {list-style-type: none;
+                                                 margin-bottom: 1.5rem;
+                                                 margin-top: 0.5rem;
+                                                 line-height: 2rem;
+                    @include icon-bullet-list($niceGrey);
+                    @include icon-pseudo-bullet-list("\f0a3", -1.5rem, inherit, 0.07rem);
+                    li                          {
+                        .btn                    {text-align: left;
+                                                 padding: 0;
+                                                 margin: 0;
+                            &:hover,
+                            &:focus             {text-decoration: none;
+                                                 cursor: default;
+                            }
+                        }
+                        &.beginner               {color: darken($beginner-color, 5%);
+                            .btn                 {color: darken($beginner-color, 5%);
+                            }
+                        }
+                        &.apprentice             {color: $apprentice-color;
+                            .btn                 {color: $apprentice-color;
+                            }
+                        }
+                        &.journeyman             {color: $journeyman-color;
+                            .btn                 {color: $journeyman-color;
+                            }
+                        }
+                        &.expert                 {color: $expert-color;
+                            .btn                 {color: $expert-color;
+                            }
+                        }
+                    }
+                }
+                .badges-explanation,
+                .check-progress                     {font-size: $font-size-sm;
+                }
+                .badges-explanation                 {
+                }
+                .check-progress                     {
+
+                }
+            }
+
+            &::after {                   border-right: 25px solid $white;
                                         border-top: 25px solid transparent;
                                         left: -25px;
                                         top: 40%;
                                         content: '';
                                         position: absolute;
             }
-            &:before {
+            &::before {
                 border-right: 23px solid rgba(0,0,0,0.5);
                 border-top: 23px solid transparent;
                 left: -23px;
