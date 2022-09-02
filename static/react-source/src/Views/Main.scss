@@ -257,6 +257,8 @@ h3                                      {font-family: $sans-fonts;
 form                                    {margin-bottom: 1rem;
                                          margin-top: 1rem;
 }
+input.error                             {border: 2px solid $danger;
+}
 
 // buttons ----------------------------------------------------
 
