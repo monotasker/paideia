@@ -67,8 +67,8 @@ const doApiCall = async (payload, apiFunction,
     mydata = await response.json();
   } catch(err) {
     mydata = {status: "internal server error",
-              reason: "Unknown error in function do_password_reset",
-              error: err.message}
+              reason: `Unknown error in function ${apiFunction}`,
+              error: err.message}.json()
   }
   mydata.status_code = response.status;
   return mydata;
@@ -76,9 +76,11 @@ const doApiCall = async (payload, apiFunction,
 
 function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
+  console.log("in returnStatusCode::::::");
+  console.log(mydata);
   switch (mydata.status_code) {
     case 200:
-      // console.log("check succeeded!!!");
+      console.log("check succeeded!!!");
       action(mydata);
       break;
 
