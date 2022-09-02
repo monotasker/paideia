@@ -76,22 +76,34 @@ def get_prompt():
 
     Private api method to handle calls from the react front-end.
 
+    Expects the following variables in the call payload ()
+        loc: str
+        repeat: bool = False
+        response_string: str
+        set_review: bool
+        path: int = None
+        step: int = None
+        set_blocks: Dict = None
+        new_user: bool = false
+        pre_bug_step_id: int = None
+        testing: bool = False
+
     Returns:
         JSON object with the following keys:
 
-        sid: int
-        prompt_text: string
         audio: dict
-        widget_img: string
+        bg_image: string
+        sid: int
+        prompt_text: str
+        widget_img: str
         instructions: ???
         slidedecks: dict
-        bg_image: string
-        loc: string
-        response_buttons: []
+        loc: str
+        response_buttons: list(str)
         response_form: {form_type: "text", values: null}
         bugreporter: ???
         pre_bug_step_id: int
-        npc_image: string
+        npc_image: str
         completed_count: int
         category: int
         pid: int
@@ -113,6 +125,13 @@ def get_prompt():
             if k in stepargs.keys() \
                     and k not in ['loc', 'new_user', 'response_string']:
                 stepargs[k] = v
+        # handle setting of 'loc' or 'new_user' in testing scenario
+        if request.vars['testing'] is True:
+            stepargs['loc'] = request.vars['loc']
+            if request.vars['new_user'] is True:
+                stepargs['new_user'] = request.vars['new_user']
+
+        # handle setting of badge set review level
         if session.set_review and session.set_review > 0:
             stepargs['set_review'] = session.set_review
         else:

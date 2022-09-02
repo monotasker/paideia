@@ -10,7 +10,8 @@ const getPromptData = async ({location=null,
                               step=null,
                               set_blocks=null,
                               new_user=false,
-                              pre_bug_step_id=null}) => {
+                              pre_bug_step_id=null,
+                              testing=false}) => {
   return(
     doApiCall({loc: location,
                repeat: repeat,
@@ -20,7 +21,8 @@ const getPromptData = async ({location=null,
                step: step,
                set_blocks: set_blocks,
                new_user: new_user,
-               pre_bug_step_id: pre_bug_step_id},
+               pre_bug_step_id: pre_bug_step_id,
+               testing: testing},
               "get_prompt", "JSON", "POST")
   )
 }
