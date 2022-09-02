@@ -132,7 +132,7 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                       '3pActiveSing': {pres: <>λυ<u>ε</u><b>ι</b></>,
                                    fut: <>λυσ<u>ε</u><b>ι</b></>,
                                    imp: <>ἐλυ<u>ε</u><b>(ν)</b></>,
-                                   faor:  <>ἐλυσ<u>α</u><b>(ν)</b></>,
+                                   faor:  <>ἐλυσ<u className="mixed">ε</u><b>(ν)</b></>,
                                    saor:  <>ἐλαβ<u>ε</u><b>(ν)</b></>,
                                    perf: <>λελυκ<u>ε</u><b>ν</b></>,
                                    prim: "ι",
