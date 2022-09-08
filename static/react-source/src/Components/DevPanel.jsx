@@ -13,13 +13,20 @@ const PathTestForm = () => {
 
   const assembleTestBlocks = (vals) => {
     const blockArray = {};
+    const promotedObj = {
+      cat2: vals.flagsPromotedTags2 ? vals.flagsPromotedTags2.split(',') : [],
+      cat3: vals.flagsPromotedTags3 ? vals.flagsPromotedTags3.split(',') : [],
+      cat4: vals.flagsPromotedTags4 ? vals.flagsPromotedTags4.split(',') : []
+    }
     if ( vals.flagsNewBadges === true ) {
-      blockArray["new_tags"] = {new_tags: vals.flagsNewBadgesNew,
-                                promoted: vals.flagsNewBadgesPromoted}
+      blockArray["new_tags"] = {new_tags: vals.flagsNewBadgesTags ? vals.flagsNewBadgesTags.split(',') : [],
+                                promoted: promotedObj}
     }
     if ( vals.flagsPromoted === true ) {
-      blockArray["promoted"] = {new_tags: vals.flagsPromotedNew,
-                                promoted: vals.flagsPromotedPromoted}
+      blockArray["promoted"] = {
+        new_tags: vals.flagsNewBadgesTags ? vals.flagsNewBadgesTags.split(',') : [],
+        promoted: promotedObj
+        }
     }
     if ( vals.flagsQuotaReached === true ) {
       blockArray["quota_reached"] = {quota: vals.flagsQuotaReachedNum}
@@ -36,8 +43,11 @@ const PathTestForm = () => {
   return(
     <Formik
       initialValues={ {pathnum: "", stepnum: "", location: "",
-                      flagsFreshUser: false, flagsViewLessons: false,
-                      flagsNewBadges: false, flagsRedirect: false,
+                      flagsFreshUser: false,
+                      flagsViewLessons: false, flagsViewLessonsTags: "",
+                      flagsNewBadges: false, flagsNewBadgesTags: "",
+                      flagsPromoted: false, flagsPromotedTags: "",
+                      flagsRedirect: false, flagsRedirectLoc: "",
                       flagsQuotaReached: false}}
       validationSchema={Yup.object({
         pathnum: Yup.number().positive().integer("Must be a number"),
@@ -45,15 +55,20 @@ const PathTestForm = () => {
         flagsFreshUser: Yup.boolean(),
         flagsViewLessons: Yup.boolean(),
         flagsNewBadges: Yup.boolean(),
+        flagsNewBadgesTags: Yup.string(),
+        flagsPromoted: Yup.boolean(),
+        flagsPromotedTags: Yup.string(),
         flagsRedirect: Yup.boolean(),
         flagsQuotaReached: Yup.boolean()
       })}
       onSubmit={(values, { setSubmitting }) => {
-        getPromptData({testing: true,
-                       path: values.pathnum,
-                       step: values.stepnum,
-                       new_user: values.flagsFreshUser,
-                       set_blocks: assembleTestBlocks(values)})
+        const payload = {testing: true,
+                         path: values.pathnum,
+                         step: values.stepnum,
+                         new_user: values.flagsFreshUser,
+                         set_blocks: assembleTestBlocks(values)}
+        console.log(payload);
+        // getPromptData(payload);
         setSubmitting(false);
       }}
     >
@@ -115,13 +130,9 @@ const PathTestForm = () => {
             label="new badges"
             {...formik.getFieldProps("flagsNewBadges")}
           />
-          <Form.Control name="flagsNewBadgesNew"
-            placeholder="arguments for the new badges to be begun"
-            {...formik.getFieldProps("flagsNewBadgesNew")}
-            />
-          <Form.Control name="flagsNewBadgesPromoted"
-            placeholder="arguments for the new badges to be begun"
-            {...formik.getFieldProps("flagsNewBadgesPromoted")}
+          <Form.Control name="flagsNewBadgesTags"
+            placeholder="the new badges to be begun"
+            {...formik.getFieldProps("flagsNewBadgesTags")}
             />
         </Form.Group>
 
@@ -130,13 +141,17 @@ const PathTestForm = () => {
             label="promoted"
             {...formik.getFieldProps("flagsPromoted")}
           />
-          <Form.Control name="flagsPromotedNew"
-            placeholder="arguments for the new badges to be begun"
-            {...formik.getFieldProps("flagsPromotedNew")}
+          <Form.Control name="flagsPromotedTags2"
+            placeholder="the badges newly promoted to level 2"
+            {...formik.getFieldProps("flagsPromotedTags2")}
             />
-          <Form.Control name="flagsPromotedPromoted"
-            placeholder="arguments for the new badges to be begun"
-            {...formik.getFieldProps("flagsPromotedPromoted")}
+          <Form.Control name="flagsPromotedTags3"
+            placeholder="the badges newly promoted to level 3"
+            {...formik.getFieldProps("flagsPromotedTags3")}
+            />
+          <Form.Control name="flagsPromotedTags4"
+            placeholder="the badges newly promoted to level 4"
+            {...formik.getFieldProps("flagsPromotedTags4")}
             />
         </Form.Group>
 
