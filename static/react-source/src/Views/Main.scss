@@ -495,6 +495,7 @@ form                                    {margin-bottom: 1rem;
                                              flex-direction: column;
     .Main                                   {margin-left: 0;
                                             margin-right: 0;
+                                            margin-top: 4rem;
                                             flex: 1;
                                             overflow: hidden;
         .content                            {padding-left: 0;
@@ -533,6 +534,7 @@ form                                    {margin-bottom: 1rem;
                             font-family: 'Amatic SC', cursive;
                             font-weight: normal;
                             font-size: 3rem;
+                            margin-left: 1rem;
     &:hover                {color: lighten($danger, 10%);
                             transition: 100ms all linear;
     }
@@ -551,22 +553,25 @@ form                                    {margin-bottom: 1rem;
   .navbar-nav              {line-height: 3rem;
     a.nav-link             {
         &:hover,
-        &:focus            {color: $white;
-                            background-color: lighten($accent2, 20%);
+        &:focus            {color: darken($niceGrey, 10%);
+                            background-color: lighten($niceGrey, 50%);
                             transition: all 200ms linear;
         }
         &.open,
-        &:active             {color: $white;
-                            background-color: lighten($accent2, 10%);
+        &:active             {color: darken($niceGrey, 10%);
+                            background-color: lighten($niceGrey, 50%);
                             transition: all 200ms linear;
         }
         >span              {margin-left: 0.25rem;
                             margin-right: 0.25rem;
         }
+        &.active            {color: darken($niceGrey, 20%);
+
+        }
     }
-    .dropdown-menu         {background-color: lighten($accent2, 20%);
-                            border: 1px solid lighten($accent2, 15%);
-                            border-top: 1px solid lighten($accent2, 10%);
+    .dropdown-menu         {background-color: lighten($accent2, 10%);
+                            border: 1px solid lighten($accent2, 5%);
+                            border-top: 1px solid lighten($accent2, 5%);
                             margin-top: 0;
                             box-shadow: $hard-shadow;
                             border-radius: 0 0 0.25rem 0.25rem;
@@ -576,9 +581,11 @@ form                                    {margin-bottom: 1rem;
                             padding-top: 0;
                             padding-bottom: 0;
             &:hover,
-            &:active       {background-color: lighten($accent2, 10%);
+            &:active       {background-color: lighten($accent2, 5%);
             }
         }
+    }
+    &.main-nav             {margin-right: auto;
     }
     &.welcome-nav        {color: $headingColorDark;
       >span                {line-height: 3rem;
@@ -589,7 +596,8 @@ form                                    {margin-bottom: 1rem;
       a.nav-link         {color: $headingColorDark;
         &:hover,
         &:active,
-        &:focus          {color: $white;
+        &:focus          {color: darken($headingColorDark, 10%);
+                          background-color: lighten($pallette1, 5%);
         }
       }
     }
@@ -1731,6 +1739,7 @@ form                                    {margin-bottom: 1rem;
                                 border: 0px solid transparent;
                                 overflow: hidden;
                                 height: 28rem;
+                                position: relative;
         @media (max-width: map-get($grid-breakpoints, md))
                             {height: 10rem;
         }

@@ -57,7 +57,7 @@ const TopNavbar = () => {
 
 
     return(
-      <Navbar bg="light" expand="sm" className="fixed">
+      <Navbar bg="light" expand="sm" fixed="top">
           <LinkContainer to={`/${urlBase}/`}>
             <Navbar.Brand>Paideia</Navbar.Brand>
           </LinkContainer>
