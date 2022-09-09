@@ -5,11 +5,11 @@ import {
     Button,
     Form,
     OverlayTrigger,
-    Popover,
     Tooltip,
     Badge,
     ButtonGroup
 } from "react-bootstrap";
+import Popover from "react-bootstrap/Popover";
 import { useHistory, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -80,8 +80,8 @@ const Slidedecks = ({decks}) => {
     <OverlayTrigger placement="top" trigger="click" rootClose
       overlay={
         <Popover id="lessons-tooltip" >
-          <Popover.Title>Related lessons</Popover.Title>
-          <Popover.Content>
+          <Popover.Header>Related lessons</Popover.Header>
+          <Popover.Body>
             <ul>
               {Object.entries(decks).map(([id, label]) =>
                 <li key={label}>
@@ -92,7 +92,7 @@ const Slidedecks = ({decks}) => {
                 </li>
               )}
             </ul>
-          </Popover.Content>
+          </Popover.Body>
         </Popover>
     }>
       <a className='instruction-icon lessons-icon'>

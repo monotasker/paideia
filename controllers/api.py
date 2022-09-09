@@ -127,7 +127,7 @@ def get_prompt():
                 stepargs[k] = v
         # handle setting of 'loc' or 'new_user' in testing scenario
         if request.vars['testing'] is True:
-            stepargs['loc'] = request.vars['loc']
+            # stepargs['loc'] = request.vars['loc']
             if request.vars['new_user'] is True:
                 stepargs['new_user'] = request.vars['new_user']
 

@@ -11,6 +11,7 @@ import { getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import { returnStatusCheck } from "../Services/utilityService";
 import { urlBase } from "../variables";
+import DevPanel from "../Components/DevPanel";
 
 
 const Walk = () => {
@@ -60,6 +61,9 @@ const Walk = () => {
 
     return (
       <Row className="walk-container" >
+        { user.userRoles.includes('administrators') && (
+          <DevPanel setStepData={setStepData} />
+        )}
         <CSSTransition
           in={ walkPage=="map" }
           classNames="svgMapPane"

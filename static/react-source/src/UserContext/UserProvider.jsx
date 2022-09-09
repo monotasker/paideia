@@ -49,9 +49,8 @@ let userDefaults = {
   classInfo: ls.getItem('classInfo') != "undefined" &&
     JSON.parse(ls.getItem('classInfo')) || null,
   instructing: ls.getItem('instructing') != "undefined" &&
-    JSON.parse(ls.getItem('instructing')) || null
+    JSON.parse(ls.getItem('instructing')) || null,
 }
-
 
 function userReducer(state, action) {
   switch (action.type) {

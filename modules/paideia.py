@@ -245,7 +245,6 @@ class Walk(object):
             loc = Location(localias)
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # allow artificial setting of blocks during interface testing
             if set_blocks:
@@ -254,14 +253,12 @@ class Walk(object):
                     myargs = {n: a for n, a in list(v.items())}
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get tag categories and note tag progress changes
             tag_progress, promoted, new_tags, demoted = self._set_blocks()
             if (promoted or new_tags or demoted):
                 assert self._record_cats(tag_progress, promoted,
                                          new_tags, demoted)
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get the current path and note other flag conditions
             # choose a new path if the current one is finished
@@ -269,7 +266,6 @@ class Walk(object):
                 user.get_path(loc, pathid=path,
                               repeat=repeat,
                               set_review=set_review)
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             if repeat:
                 user.repeating = True  # so that information available in reply
             if debug: print('Walk::ask: path chosen is', p.get_id())
@@ -278,44 +274,34 @@ class Walk(object):
                 break
             user.active_cat = category
             user.new_content = new_content
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # set last-minute blocking conditions based on those flags
             if redir:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': redir})
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             if pastquota:
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get the next step for the current path
             # if necessary substitute with step to handle blocking condition
             s, newloc_id, error_string = p.get_step_for_prompt(loc,
                                                                repeat=repeat)
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             if newloc_id:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': newloc_id})
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
             current.sequence_counter += 1
             block = user.check_for_blocks()
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
-            print('Walk::ask block is', block)
             if block:
                 s = block.get_step()
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # assign an Npc for the final step being activated
             npc = s.get_npc(loc, prev_npc, prev_loc)
             user.set_npc(npc)
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # ensure that flags triggering blocking conditions are reset
             if not user.blocks:
                 user.clear_block_records()
-            if debug: print(f'Walk::ask: user.bloks is {user.blocks}')
 
             # get the data for the prompt interface from the step
             prompt = s.get_prompt(loc, npc, username, user_blocks_left=True
@@ -424,7 +410,7 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        debug = 1  # current.paideia_DEBUG_MODE
+        debug = 0  # current.paideia_DEBUG_MODE
         user = self._get_user()
         try:
             repeat = user.repeating
@@ -777,7 +763,7 @@ class Walk(object):
         If successful, returns an integer representing the successfully
         added/updated db row. If unsuccessful, returns False.
         """
-        debug = 1 # current.paideia_DEBUG_MODE
+        debug = 0 # current.paideia_DEBUG_MODE
         db = current.db if not db else db
 
         try:
@@ -2589,7 +2575,7 @@ class User(object):
         :attr int active_cat: An integer representing the category of tags from
                             which the user's current path was selected.
         """
-        debug = 1 # current.paideia_DEBUG_MODE
+        debug = 0 # current.paideia_DEBUG_MODE
         if debug: print('User::init:: initializing user')
         db = db if db else current.db
         auth = current.auth
@@ -2846,7 +2832,7 @@ class User(object):
         If a block is not found returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
-        debug = 1 # current.paideia_DEBUG_MODE
+        debug = 0 # current.paideia_DEBUG_MODE
         if self.blocks:
             if debug: print('User::check_for_blocks: blocks present')
             blockset = []
@@ -2871,7 +2857,7 @@ class User(object):
 
     def set_block(self, condition, kwargs=None):
         """ Set a blocking condition on this Path object. """
-        debug = 1
+        debug = 0
         myblocks = [b.get_condition() for b in self.blocks]
         if debug: print("User::set_block blocks are", myblocks)
         if debug: print("User::set_block condition is", condition)

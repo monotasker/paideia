@@ -256,9 +256,15 @@ h3                                      {font-family: $sans-fonts;
 
 form                                    {margin-bottom: 1rem;
                                          margin-top: 1rem;
+    input.error                             {border: 2px solid $danger;
+    }
+    .alert.error-message                {padding: 0.5rem;
+                                         border-radius: 0 0 0.25rem 0.25rem;
+    }
+    .row                                {margin-bottom: 1rem;
+    }
 }
-input.error                             {border: 2px solid $danger;
-}
+
 
 // buttons ----------------------------------------------------
 
@@ -615,8 +621,19 @@ input.error                             {border: 2px solid $danger;
                              right: -0.75rem;
                              padding-left: 0.5rem;
                              z-index: 30;
+                             width: 3.15rem;
     svg                     {position: relative;
                              left: -0.1rem;
+    }
+}
+
+.dev-tools-test-path-form   {
+    .label                  {font-weight: 500;
+    }
+    .row.encapsulated       {background-color: lighten($niceGrey, 50%);
+                             padding: 0.5rem 0.25rem;
+                             border-radius: 0.25rem;
+                             margin: 0 0.25rem 0.5rem 0.25rem;
     }
 }
 
