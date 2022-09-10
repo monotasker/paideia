@@ -41,7 +41,7 @@ const MyDropdown = ({label, icon, children}) => {
   )
 }
 
-const TopNavbar = () => {
+const TopNavbar = ({pageLoaded, ...props}) => {
     const { user, dispatch } = useContext(UserContext);
 
     const doLogout = () => {
@@ -57,7 +57,9 @@ const TopNavbar = () => {
 
 
     return(
-      <Navbar bg="light" expand="sm" fixed="top">
+      <Navbar bg="light" expand="sm" fixed="top"
+        className={`${!!pageLoaded ? "page-loaded" : ""}`}
+      >
           <LinkContainer to={`/${urlBase}/`}>
             <Navbar.Brand>Paideia</Navbar.Brand>
           </LinkContainer>

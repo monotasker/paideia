@@ -5,14 +5,14 @@ import {
 } from "react-transition-group";
 import {
     Button,
-    ToggleButtonGroup,
     Col,
     Form,
     Row,
-    Table,
-    ToggleButton,
+    Table
 } from "react-bootstrap";
-import { useHistory, Link } from "react-router-dom";
+import ToggleButton from "react-bootstrap/ToggleButton";
+import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
+// import { useHistory, Link } from "react-router-dom";
 import Measure from "react-measure";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { urlBase } from "../variables";
@@ -949,7 +949,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
            <Col>
                 <h2>Quick Reference</h2>
                 <Form>
-                    <Form.Row>
+                    <Row>
                         <Col>
                             <Form.Control
                                 as="select"
@@ -976,9 +976,9 @@ const ReferenceView = ({navigateAwayHandler}) => {
                                 )}
                             </Form.Control>
                         </Col>
-                    </Form.Row>
+                    </Row>
                     {userLevel!==null &&
-                    <Form.Row>
+                    <Row>
                         <Col>
                             <Form.Check inline label="Only show content I've learned so far"
                             id="only-unread-checkbox"
@@ -988,7 +988,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
                             onChange={e => setFilterByLevel(!filterByLevel)}
                             />
                         </Col>
-                    </Form.Row>
+                    </Row>
                     }
                 </Form>
                 <TransitionGroup className="reference-view-panes">

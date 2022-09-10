@@ -24,11 +24,12 @@ $cinnamon:              #845852;
 $cream:                 #F8F0E5;
 $tapioca:               #F2E5D4;
 $white:                 #fff;
-$green:                 #5BA917;
+$green:                 #63a927; // 5BA917;
 $neutralLight:          #f2eed5;
 $putty:                 #d8d3b3;
 $greenLight:            #96BC44;
-$greenDark:             #809240;
+$greenDark:             #4b801d; // = darken($green, 10%);
+$greenDarkDesaturated:  #809240;
 // $red:                   #9d261d;
 $blueDark:              #1c7f99; // #006699;
 $blue:                  #049cdb;
@@ -307,8 +308,8 @@ form                                    {margin-bottom: 1rem;
                                          margin-top: 0.5rem;
         }
     }
-    ul                                  {
-        @include icon-bullet-list($pallette1);
+    ul                                  {padding-left: 3.5rem;
+        @include icon-bullet-list($pallette1, $top-margin: 0.3rem, $icon-offset: -1.5rem);
     }
 }
 
@@ -477,15 +478,25 @@ form                                    {margin-bottom: 1rem;
     .popover-header                 {background-color: transparent;
                                         border-bottom: 1px solid transparent;
                                         font-weight: bold;
-                                        padding: 0.75rem 0.75rem 0 1rem;
+                                        padding: 0.75rem 1rem 0 1rem;
     }
     .popover-body                   {background-color: transparent;
                                         padding: 0.25rem 0.75rem;
     }
     .arrow::after                   {border-top-color: $nominative;
     }
-    ul                              {
-        @include icon-bullet-list($pallette1);
+    ul                              {padding-left: 3.5rem;
+        @include icon-bullet-list($pallette1, $top-margin: 0.3rem, $icon-offset: -1.5rem);
+    }
+}
+
+.page-loading-spinner                   {position: absolute;
+                                         top: 50vh;
+                                         margin-top: -0.5rem;
+                                         left: 50vw;
+                                         margin-left: -0.5rem;
+                                         z-index: 0;
+    &.page-loaded                        {display: none;
     }
 }
 
@@ -493,11 +504,16 @@ form                                    {margin-bottom: 1rem;
 #root                                       {height: 100vh;
                                              display:flex;
                                              flex-direction: column;
+                                             z-index: 1;
     .Main                                   {margin-left: 0;
                                             margin-right: 0;
                                             margin-top: 4rem;
                                             flex: 1;
                                             overflow: hidden;
+                                            opacity: 0;
+        &.page-loaded                       {opacity: 1;
+                                             transition: all 300ms;
+        }
         .content                            {padding-left: 0;
                                             padding-right: 0;
                                             overflow-x: hidden;
@@ -527,6 +543,10 @@ form                                    {margin-bottom: 1rem;
                             padding-bottom: 0;
                             padding-right: 0;
                             z-index: 20;
+                            opacity: 0;
+    &.page-loaded                       {opacity: 1;
+                                            transition: all 300ms;
+    }
   a.navbar-brand           {text-transform: uppercase;
                             letter-spacing: 2px;
                             color: $danger;
@@ -1744,9 +1764,14 @@ form                                    {margin-bottom: 1rem;
                             {height: 10rem;
         }
         img.welcome-maria      {position: absolute;
-                                left:0;
+                                left:-380px;
             @media (max-width: map-get($grid-breakpoints, md))
                             {height:36rem;
+            }
+            &.slid-in           {transform: translateX(380px);
+                                 transition: all 500ms cubic-bezier(0.015, 0.140, 0.000, 1.020) 1.5s;
+                &slid-in-first  {transition-delay: 0ms;
+                }
             }
         }
     }
@@ -1760,7 +1785,12 @@ form                                    {margin-bottom: 1rem;
                                     border-radius: $border-radius-lg;
                                     z-index: 10;
                                     display: none;
-                                    overflow-y: hidden;
+                                    transform: scale(0.001);
+        &.slid-in                   {transform: scale(1);
+                                     transition: all 500ms cubic-bezier(0.250, 1.610, 0.485, 0.905) 1.8s;
+                &slid-in-first      {transition-delay: 0.3s;
+                }
+        }
         &:after {                   border-right: 25px solid #fff;
                                     border-top: 25px solid transparent;
                                     left: -25px;
@@ -1849,7 +1879,7 @@ form                                    {margin-bottom: 1rem;
     }
 
     div.modal-set.row              {color: #efefef;
-                                    background-color: desaturate(lighten($pallette3, 40%), 40%);
+                                    background-color: $nominative;
                                     text-align: center;
                                     padding-top: 0.5rem;
                                     padding-bottom: 0.5rem;
@@ -1867,12 +1897,12 @@ form                                    {margin-bottom: 1rem;
                                     padding-right: 0.5rem;
         }
         .info-pane                 {cursor: pointer;
-                                    background-color: rgba(255, 255, 255, 0.3);
                                     margin-right: 0.5rem;
                                     border-radius: 1rem;
                                     transition: all 300ms ease-in-out;
             &:hover,
-            &:active                {background-color: rgba(255, 255, 255, 0.4);
+            &:active                {background-color: desaturate(lighten($nominative, 10%), 10%);
+
             }
             @media (max-width: map-get($grid-breakpoints, md)) {
                                      margin-top: 1rem;
@@ -1931,8 +1961,9 @@ form                                    {margin-bottom: 1rem;
                     }
                     a                                   {font-size: 2rem;
                                                          font-family: $title-fonts;
-                                                         color: $pallette4;
-                                                         font-weight: bold;
+                                                         color: $cream;
+                                                         font-weight: 500;
+                                                         text-decoration: none;
                         @media (max-width: map-get($grid-breakpoints, sm)) {line-height: 3em;
                                                          height: 3em;
                         }
@@ -1945,20 +1976,19 @@ form                                    {margin-bottom: 1rem;
         p                       {hyphens: auto;
         }
     }
-    .testimonials-leadin                {background-color: $nominative;
-                                         color: $white;
+    .testimonials-leadin                {background-color: $pallette1;
+                                         color: $heading-color;
                                          text-align: center;
                                          padding-top: 1rem;
                                          font-size: 1.5rem;
     }
-    div.testimonials                    {background-color: $nominative;
+    div.testimonials                    {background-color: $pallette1;
                                          padding-top: 1.5rem;
                                          position: relative;
-        .testimonial-item               {position: absolute;
-                                         font-family: "Shadows Into Light";
+        .testimonial-item               {font-family: "Shadows Into Light";
                                          padding-bottom: 1rem;
-            .testimonial-body            {background-color: lighten($nominative, 10%);
-                                         color: $cream;
+            .testimonial-body            {background-color: darken($pallette1, 10%);
+                                         color: $headingColorDark;
                                          border-radius: 2rem;
                                          font-size: $font-size-lg;
                                          padding: 1.5rem;
@@ -1969,7 +1999,7 @@ form                                    {margin-bottom: 1rem;
                                          position: absolute;
                                          left: -0.7rem;
                                          top: -1.8rem;
-                                         color: desaturate(lighten($nominative, 20%), 10%);
+                                         color: desaturate(darken($pallette1, 20%), 10%);
                                          z-index: 80;
                 }
                 .wrapper                {position: relative;
@@ -1980,7 +2010,7 @@ form                                    {margin-bottom: 1rem;
             .testimonial-name           {display: block;
                                          position: absolute;
                                          font-size: 2rem;
-                                         color: $yellow;
+                                         color: $pallette4;
                                          right: 2rem;
             }
         }
@@ -2600,13 +2630,12 @@ form                                    {margin-bottom: 1rem;
             }
             &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
             }
-            .card                         {border-radius: 0;
+            .accordion-item               {border-radius: 0;
                                            border: 0;
-                .card-header              {padding-top: 0;
+                .accordion-header              {padding-top: 0;
                                            padding-bottom: 0;
                                            background-color: $blueDark;
                                            border: 0;
-
                     &:focus,
                     &:hover,
                     &:active,
@@ -2614,27 +2643,45 @@ form                                    {margin-bottom: 1rem;
                     }
                     &:first-child         {border-radius: 0;
                     }
-                    .btn                  {text-align: left;
-                                           padding-left: 0;
-                                           padding-right: 0;
-                        &.btn-link        {color: #fff;
-                            &:focus,
-                            &:hover,
-                            &:active,
-                            &:visited     {text-decoration: none;
-                                           outline: none;
-                                           box-shadow: none;
+                    .accordion-button::after,
+                    .accordion-button:not(.collapsed)::after {
+                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2385bbc9'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e")  // change color following fill='%23
+                    }
+                    .accordion-button     {text-align: left;
+                                        //    padding-left: 0;
+                                        //    padding-right: 0;
+                                           background-color: transparent;
+                                           color: #fff;
+                                           font-family: $sans-fonts;
+                                           border-bottom: 0px solid transparent;
+                        &:focus,
+                        &:hover,
+                        &:active,
+                        &:visited           {box-shadow: none;
+                        }
+                        &.collapsed             {border-bottom: 1px solid lighten($blueDark, 10%);
+
+                        }
+                        ul                  {list-style-type: none;
+                                             padding-left: 0;
+                                             margin-bottom: 0;
+                            svg                 {margin-left: 0;
                             }
-                        }
-                        .lessonLink-grammar   {font-size: $font-size-sm;
-                                               color: desaturate(lighten($blueDark, 30%), 30%);
-                        }
-                        .lessonLink-vocab   {font-size: $font-size-sm;
-                                             color: desaturate(lighten($blueDark, 25%), 25%);
+                            .lessonLink-grammar   {font-size: $font-size-sm;
+                                                color: desaturate(lighten($blueDark, 30%), 30%);
+                                                padding: 0.5rem 0 0.25rem 0;
+                                svg             {margin-right: 0.5rem;
+                                }
+                            }
+                            .lessonLink-vocab   {font-size: $font-size-sm;
+                                                color: desaturate(lighten($blueDark, 25%), 25%);
+                                svg             {margin-right: 0.32rem;
+                                }
+                            }
                         }
                     }
                 }
-                .card-body                {padding: 0;
+                .accordion-body                {padding: 0;
                     .list-group-item      {border-right: 0;
                                            border-left: 0;
                                            border-radius: 0;
@@ -2712,6 +2759,15 @@ form                                    {margin-bottom: 1rem;
                         .btn:hover,
                         .btn:active,
                         .btn:focus                   {box-shadow: 0 0 0 0 transparent;
+                                                      position: relative;
+                                                      top: -1px;
+                                                      padding-left: 0.25rem;
+                                                      color: $info;
+                            &.btn-link               {position: relative;
+                                                      top: -1px;
+                                                      padding-left: 0.25rem;
+                                                      color: $info;
+                            }
                         }
                     }
                     .youtube-content,
@@ -2753,6 +2809,7 @@ form                                    {margin-bottom: 1rem;
 
 .walk-container                 {overflow: hidden;
                                                width: 100%;
+                                               position: relative;
   .map-spinner                                {position: absolute;
                                                top: 50%;
                                                left: 50%;
@@ -2762,9 +2819,11 @@ form                                    {margin-bottom: 1rem;
   }
   .svgMapPane                                 {width: 100%;
                                                 z-index: 2;
+                                                padding: 0;
     object#town_map                             {width: 100%;
                                                 margin:0 auto;
                                                 cursor: move;
+                                                padding: 0;
                                                 //    opacity: 0;
         svg                                       {cursor: move;
         }
@@ -2797,6 +2856,7 @@ form                                    {margin-bottom: 1rem;
                                                  padding: 0;
                                                  margin: 0;
                                                  margin-right: 0;
+                                                 margin-top: 4rem;
                                                  z-index: 2;
     @media (max-width: map-get($grid-breakpoints, sm))
                                                 {padding: 0;
@@ -2878,8 +2938,11 @@ form                                    {margin-bottom: 1rem;
                                                  align-items: stretch;
         }
         .prompt.row                             {padding-bottom: 0.5rem;
-                                                 padding-right: 0.5rem;
+                                                 padding-right: 1.5rem;
                                                  padding-left: 0.5rem;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                 padding-right: 0.5rem;
+            }
         }
         .prompt-text,
         .eval-text                                  {border-radius: $border-radius-lg * 3;
@@ -2967,6 +3030,7 @@ form                                    {margin-bottom: 1rem;
 
         }
         .prompt-text                                {background-color: $white;
+                                                     padding: 2rem;
             p                                       {
                 &:last-of-type                      {margin-bottom: 0.5rem;
                 }
@@ -3107,7 +3171,7 @@ form                                    {margin-bottom: 1rem;
             }
 
         }
-        .responder                                  {
+        .responder                                  {padding-right: 2rem;
             @media (max-width: map-get($grid-breakpoints, sm)) {
                                                     margin-top: auto !important;
                                                     background-color: desaturate(lighten($pallette3, 40%), 40%);
@@ -3140,8 +3204,9 @@ form                                    {margin-bottom: 1rem;
                 }
                 textarea                            {font-family: $greek-fonts;
                                                     font-size: $font-size-lg;
-                                                    border: 1px solid lighten($accent2, 25%);
+                                                    border: 1px solid lighten($pallette3, 5%);
                                                     margin-bottom: 0.5rem;
+                    &:focus                         {box-shadow: 0 0 0.25rem rgb(99 139 69 / 50%)} // = $success
                 }
                 .form-check                         {font-family: $greek-fonts;
                                                     font-size: $font-size-lg;
@@ -3158,7 +3223,7 @@ form                                    {margin-bottom: 1rem;
                 }
                 .instruction-row                    {display: flex;
                                                      flex-direction: row;
-                    .instruction-icon                   {color: $nominative;
+                    .instruction-icon                   {color: $pallette3;
                                                         display: inline-block;
                                                         margin-bottom: 0;
                                                         opacity: 0.5;
@@ -3173,8 +3238,8 @@ form                                    {margin-bottom: 1rem;
                             }
                         }
                         &.text-icon                     {font-weight: bold;
-                                                        background-color: $nominative;
-                                                        color: $white;
+                                                        background-color: $pallette3;
+                                                        color: desaturate(lighten($pallette3, 40%), 40%);
                                                         border-radius: 1rem;
                                                         padding: 0 0.45rem;
                                                         font-size: 1rem;
@@ -3183,7 +3248,10 @@ form                                    {margin-bottom: 1rem;
                                                         top: 0.4rem;
                                                         margin-right: 0.25rem;
                                                         margin-left: 0.25rem;
-                                                        border: 1px solid $accent2;
+                                                        border: 1px solid $pallette3;
+                                                        text-decoration: none;
+                            &:hover                     {text-decoration: none;
+                            }
                         }
                     }
                     .lessons-icon                       {margin-left: auto;
@@ -3212,17 +3280,25 @@ form                                    {margin-bottom: 1rem;
                     &.back_to_map                   {margin-left: 0;
                     }
                     &.submit_reply                  {margin-left: 0;
+                                                     background-color: $pallette3;
+                                                     border: 1px solid darken($pallette3, 5%);
                         @media (max-width: map-get($grid-breakpoints, sm)) {
                                                      padding-left: 0.75rem;
                                                      padding-right: 0.75rem;
                         }
+                        &:hover                     {background-color: darken($pallette3, 5%);
+                        }
+                        &:focus,
+                        &:active                    {box-shadow: 0 0 0.25rem rgb(99 139 69 / 50%); // = $success
+                                                     background-color: darken($pallette3, 5%);
+                        }
                     }
                 }
-                .admin-info                         {color: $accent2;
+                .admin-info                         {color: $greenDark;
                                                     font-size: $font-size-sm;
                                                     display: block;
                 }
-                .user-info                          {color: $nominative;
+                .user-info                          {color: $greenDark;
                                                     font-size: $font-size-sm;
                                                     display: block;
                                                     margin-bottom: -0.5rem;
@@ -3231,9 +3307,9 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
                 .new-indicator                      {position: absolute;
-                                                    right: 0.5rem;
+                                                    right: 1rem;
                                                     font-size: 1rem;
-                                                    bottom: 0.25rem;
+                                                    bottom: 0.5rem;
                     @media (max-width: map-get($grid-breakpoints, sm)) {
                                                     right: 0;
                                                     bottom: -2px;

@@ -420,7 +420,7 @@ const VocabView = ({ navigateAwayHandler }) => {
          <Col>
             <h2>Vocabulary</h2>
             <Form className="vocab-filter-form">
-              <Form.Row>
+              <Row>
                 <Col xs="6" md="4" xl="3">
                   <Form.Group
                     controlId="vocab-search-control"
@@ -462,8 +462,8 @@ const VocabView = ({ navigateAwayHandler }) => {
                     <span className="d-none d-xl-inline">Clear</span>
                   </Button>
                 </Col>
-              </Form.Row>
-              <Form.Row className="alphabet">
+              </Row>
+              <Row className="alphabet">
                 <div>
                   <ToggleButtonGroup type="checkbox" size="sm"
                     value={searchLetters}
@@ -476,7 +476,7 @@ const VocabView = ({ navigateAwayHandler }) => {
                     )}
                   </ToggleButtonGroup>
                 </div>
-              </Form.Row>
+              </Row>
             </Form>
             <div className="vocabtable-container" ref={scrollContainer}>
               {!!processing &&

@@ -36,7 +36,7 @@ const SettingsView = () => {
       <Col>
         <h2>Settings</h2>{user.reviewSet}
         <Form>
-          <Form.Row>
+          <Row>
             <Col>
               <Form.Group controlId="vocab-set-control">
                 <Form.Label>
@@ -74,7 +74,7 @@ const SettingsView = () => {
                 </Form.Text>
               </Form.Group>
             </Col>
-          </Form.Row>
+          </Row>
         </Form>
       </Col>
     </Row>

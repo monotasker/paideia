@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import {
   Row,
   Col,
+  Spinner,
 } from "react-bootstrap";
 import {
   Switch,
@@ -227,7 +228,7 @@ const myPrivateRoutes = [
   {path: "/" + urlBase + "/instructors/:instrPage", exact: false, Component: Instructors},
 ]
 
-const MainPage = () => {
+const MainPage = ({props}) => {
   const [ myheight, setMyheight ] = useState(null);
   const { user, dispatch } = useContext(UserContext);
 
@@ -235,11 +236,12 @@ const MainPage = () => {
     const headroom = document.querySelector('.navbar').offsetHeight;
     let divheight = window.innerHeight - headroom;
     setMyheight(divheight);
+    console.log(`set height to ${divHeight} with headroom of ${headroom}`);
   }
 
   useEffect(() => {
     // setHeight();
-  });
+  }, []);
 
   useEffect(() => {
     // console.log('=================================');
@@ -300,12 +302,29 @@ const MainPage = () => {
 
 const Main = () => {
 
+  const [ pageLoaded , setPageLoaded ] = useState(false);
+
+  useEffect(() => {
+    const onPageLoad = () => {
+      setPageLoaded(true);
+    };
+
+    // Check if the page has already loaded
+    if (document.readyState === "complete") {
+      onPageLoad();
+    } else {
+      window.addEventListener("load", onPageLoad);
+      // Remove the event listener when component unmounts
+      return () => window.removeEventListener("load", onPageLoad);
+    }
+  }, []);
+
   return (
     <UserProvider>
     <BrowserRouter>
       <React.Fragment>
-        <TopNavbar routes={myroutes} />
-        <Row className="Main">
+        <TopNavbar routes={myroutes} pageLoaded={pageLoaded} />
+        <Row className={`Main ${!!pageLoaded ? "page-loaded" : ""}`}>
           <MainPage />
         </Row>
     </React.Fragment>

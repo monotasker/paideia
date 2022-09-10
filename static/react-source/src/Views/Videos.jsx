@@ -11,13 +11,11 @@ import {
   Row,
   Col,
   Accordion,
-  Card,
   Button,
   ListGroup,
   Spinner,
   OverlayTrigger,
   Popover,
-  Tooltip
 } from "react-bootstrap";
 import {
   CSSTransition,
@@ -78,16 +76,18 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
   return  (
     <Accordion defaultActiveKey={!!defaultSet ? defaultSet : 0}>
       { !!sets && sets.map(myset =>
-        <Card key={`badgeset_header_${myset}`} id={`badgeset_header_${myset}`}>
-          <Card.Header>
-            <Accordion.Toggle as={Button} variant="link" eventKey={myset}>
-              <span className="lessonLink-set">{`Badge set ${myset}`}</span><br />
-              <span className="lessonLink-grammar"><FontAwesomeIcon icon="lightbulb" />{setTitles[myset][0]}</span><br />
-              <span className="lessonLink-vocab"><FontAwesomeIcon icon="sort-alpha-down" />{setTitles[myset][1]}</span>
-            </Accordion.Toggle>
-          </Card.Header>
-          <Accordion.Collapse eventKey={myset}>
-            <Card.Body>
+        <Accordion.Item eventKey={myset}
+          key={`badgeset_header_${myset}`}
+          id={`badgeset_header_${myset}`}
+        >
+          <Accordion.Header>
+            <ul>
+            <li className="lessonLink-set">{`Badge set ${myset}`}</li>
+            <li className="lessonLink-grammar"><FontAwesomeIcon icon="lightbulb" />{setTitles[myset][0]}</li>
+            <li className="lessonLink-vocab"><FontAwesomeIcon icon="sort-alpha-down" />{setTitles[myset][1]}</li>
+            </ul>
+          </Accordion.Header>
+          <Accordion.Body >
               <ListGroup>
                 {lessons.filter(l => l.lesson_position.toString().slice(0, -1) === myset.toString()).map(i =>
                     <ListGroup.Item key={i.title}
@@ -105,9 +105,8 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
                     </ListGroup.Item>
                 )}
               </ListGroup>
-            </Card.Body>
-          </Accordion.Collapse>
-        </Card>
+          </Accordion.Body>
+        </Accordion.Item>
       )}
     </Accordion>
   )
@@ -202,12 +201,12 @@ const Videos = (props) => {
 
   const infoPopover = (
     <Popover>
-      <Popover.Title></Popover.Title>
-      <Popover.Content>
+      <Popover.Header></Popover.Header>
+      <Popover.Body>
         Click on the icon beside each lesson title to see which badges are touched on in the video.
 
         Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.
-      </Popover.Content>
+      </Popover.Body>
     </Popover>
   );
 

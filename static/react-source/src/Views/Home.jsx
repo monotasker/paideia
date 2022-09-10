@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   Row,
   Col,
@@ -14,7 +14,7 @@ import {
   faHardHat,
   faSignInAlt
 } from '@fortawesome/free-solid-svg-icons';
-import MiniMasonry from "minimasonry";
+// import MiniMasonry from "minimasonry";
 
 import imgMaria from "../Images/woman1.png";
 import imgHowDoesItWork from "../Images/info_How_Does_It_Work.svg";
@@ -53,7 +53,7 @@ const ModalTrigger = ({title, shortTitle, img, path, history}) => {
             <Link className="long-title" to={path} onClick={e => {e.preventDefault()}}>{title}</Link>
             <Link className="short-title" to={path} onClick={e => {e.preventDefault()}}>{shortTitle}</Link>
         </h4>
-        <img className='info-pane-illustration'
+        <img className={`info-pane-illustration `}
           alt={title} src={img}
         />
       </div>
@@ -71,6 +71,8 @@ const Home = () => {
   const middlePath = locParts[locParts.length - 2]==="paideia" ? "" : "paideia/"
   const [updatingTestimonials, setUpdatingTestimonials] = useState();
   const [testimonials, setTestimonials] = useState();
+  const [ loadAnimationFired, setLoadAnimationFired ] = useState(false);
+  const [ firstLoadAnimationFired, setFirstLoadAnimationFired ] = useState(false);
 
   const chooseRandom = (rawArray, targetLength) => {
     let randomIntArray = []
@@ -80,14 +82,27 @@ const Home = () => {
         randomIntArray.push(randomInt);
       }
     }
-    console.log(randomIntArray);
     let randomItemArray = []
     for (const i of randomIntArray) {
         randomItemArray.push(rawArray[i]);
     }
-    console.log(randomItemArray);
     return(randomItemArray);
   };
+
+
+
+  useLayoutEffect(() => {
+    console.log(window.sessionStorage.getItem("firstLoadDone"));
+    if (window.sessionStorage.getItem("firstLoadDone") === null) {
+        window.sessionStorage.setItem("firstLoadDone", 1);
+      setLoadAnimationFired(true);
+    } else {
+      if ( !setLoadAnimationFired ) {
+        setFirstLoadAnimationFired(true);
+      }
+      setLoadAnimationFired(true);
+    }
+  }, []);
 
   useEffect(() => {
     setUpdatingTestimonials(true);
@@ -95,11 +110,6 @@ const Home = () => {
     .then(mydata => {
       setUpdatingTestimonials(false);
       setTestimonials(chooseRandom(mydata, 8));
-      var masonry = new MiniMasonry({
-        container: '.testimonials',
-        gutter: 24,
-        ultimateGutter: 14
-      });
     });
   }, []);
 
@@ -109,11 +119,12 @@ const Home = () => {
     <Row className="masthead-row">
       <Col className="masthead">
 
-        <img className="welcome-maria"
+        <img className={`welcome-maria ${!!firstLoadAnimationFired ? "slid-in-first" : ""} ${!!loadAnimationFired ? "slid-in" : ""}`}
           alt="A smiling Greek woman"
-          src={ imgMaria } />
+          src={ imgMaria }
+        />
 
-        <div className="maria-bubble d-md-block">
+        <div className={`maria-bubble d-md-block ${!!firstLoadAnimationFired ? "slid-in-first" : ""} ${!!loadAnimationFired ? "slid-in" : ""}`}>
           <h1>Welcome to Paideia!</h1>
           <p className='index-openmessage'>
             {openmessage}
@@ -173,24 +184,26 @@ const Home = () => {
     </Row>
 
     {/* Testimonials row ------------------------------------------------*/}
-    <Row className="testimonials-leadin"><Col>What learners are saying...</Col></Row>
-    <div className='testimonials'>
+    <Row className="testimonials-leadin">
+      <Col>What learners are saying...</Col>
+    </Row>
+    <Row className='testimonials'>
         {!!updatingTestimonials ?
           <Spinner animation="grow" size="lg" />
           :
           !!testimonials && testimonials.length > 0 ?
             testimonials.map((t, i) =>
-              <div className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={`${t.title}_${i}`}>
+              <Col className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={`${t.title}_${i}`}>
                 <p className="testimonial-body">
                   <span className="wrapper">{t.content}</span>
                   <span className="testimonial-name">{t.title}</span>
                 </p>
-              </div>
+              </Col>
             )
           :
           ""
         }
-    </div>
+    </Row>
 
   </div>
   );
