@@ -257,10 +257,21 @@ h3                                      {font-family: $sans-fonts;
 
 form                                    {margin-bottom: 1rem;
                                          margin-top: 1rem;
+    div.form-section                    {margin-bottom: 0.5rem;
+    }
+    button[type=submit]                 {margin-top: 1rem;
+
+    }
+    .form-label                         {margin-bottom: 0.25rem;
+    }
+    .form-switch.small .form-check-input      {position: relative;
+                                         top: 0.15rem;
+    }
     input.error                             {border: 2px solid $danger;
     }
-    .alert.error-message                {padding: 0.5rem;
+    .alert.error-message                {padding: 0.25rem 0.5rem;
                                          border-radius: 0 0 0.25rem 0.25rem;
+                                         margin: 0 0.5rem;
     }
     .row                                {margin-bottom: 1rem;
     }
@@ -751,20 +762,25 @@ form                                    {margin-bottom: 1rem;
                                         display: none;
                 }
             }
-            .form-row:first-child
+            .row:first-child            {
+                > div                   {padding-left: 0;
+                                         padding-right: 0.5rem;
+                }
                 > div:last-child       {display: flex;
                                         flex-direction: row;
                                         align-items: flex-end;
                                         padding-bottom: 0.25rem;
-                .btn-primary           {width: 100%;
-                                        min-width: 2.5rem;
-                    svg                {margin: auto;
-                    }
-                    span               {margin-left: 0.5rem;
+                                        padding-right: 0;
+                    .btn-primary           {width: 100%;
+                                            min-width: 2.5rem;
+                        svg                {margin: auto;
+                        }
+                        span               {margin-left: 0.5rem;
+                        }
                     }
                 }
             }
-            .form-row.alphabet         {overflow: auto;
+            .row.alphabet         {overflow: auto;
                                         flex-wrap: nowrap;
                                         margin: 0;
                                         margin-top: 0.25rem;
@@ -774,6 +790,7 @@ form                                    {margin-bottom: 1rem;
                                         flex-direction: row;
                                         align-items: stretch;
                                         padding-bottom: 0rem;
+                                        padding-left: 0;
                                         margin-bottom: 0rem;
                                         width: 100%;
                     .btn-group         {flex-wrap: nowrap;
@@ -862,6 +879,8 @@ form                                    {margin-bottom: 1rem;
                                             background-color: #fff;
                                             vertical-align: middle;
                     .lemma                 {font-weight: bold;
+                                            display: block;
+                                            padding-left: 0.5rem;
                         @media (min-width: map-get($grid-breakpoints, sm)) {
                                             font-weight: normal;
                         }
@@ -874,7 +893,8 @@ form                                    {margin-bottom: 1rem;
                         .real-stem .label  {color: lighten($nominative, 25%);
                                             margin-right: 0.5rem;
                         }
-                        .gen-sing .badge-pill {background-color: lighten($nominative, 25%);
+                        .badge.rounded-pill,
+                        .gen-sing .badge.rounded-pill {background-color: lighten($nominative, 25%) !important;
                                             color: $white;
                                             margin-right: 0.5rem;
                         }
@@ -885,7 +905,8 @@ form                                    {margin-bottom: 1rem;
                         .real-stem .label  {color: lighten($nominative, 25%);
                                             margin-right: 0.5rem;
                         }
-                        .gen-sing .badge-pill {background-color: lighten($nominative, 25%);
+                        .badge.rounded-pill,
+                        .gen-sing .badge.rounded-pill {background-color: lighten($nominative, 25%) !important;
                                             color: $white;
                                             margin-right: 0.5rem;
                         }
@@ -900,28 +921,38 @@ form                                    {margin-bottom: 1rem;
                             a              {color: darken($verb, 10%);
 
                             }
-                            .badge-pill    {background-color: lighten($verb, 12%);
+                            .badge.rounded-pill    {background-color: lighten($verb, 12%) !important;
                                                          color: $white;
                                             margin-right: 0.5rem;
                                             margin-left: -0.2rem;
                             }
                         }
+                        .badge.rounded-pill    {background-color: lighten($verb, 12%) !important;
+                        }
                     }
                     &.preposition          {background-color: lighten($preposition, 65%);
                                             color: darken($preposition, 10%);
                                             border-top-color: lighten($preposition, 55%);
+                        .badge.rounded-pill {background-color: $preposition !important;
+                        }
                     }
                     &.adverb               {background-color: lighten($dative, 55%);
                                             color: darken($dative, 10%);
                                             border-top-color: lighten($dative, 50%);
+                        .badge.rounded-pill {background-color: $dative !important;
+                        }
                     }
                     &.conjunction          {background-color: lighten($textColor, 70%);
                                             color: $textColor;
                                             border-top-color: lighten($textColor, 65%);
+                        .badge.rounded-pill {background-color: $niceGrey !important;
+                        }
                     }
                     &.particle             {background-color: lighten($textColor, 73%);
                                             color: darken($textColor, 10%);
                                             border-top-color: lighten($textColor, 63%);
+                        .badge.rounded-pill {background-color: $niceGrey !important;
+                        }
                     }
                     &.lemma                {position: sticky;
                                             left: 0;
@@ -977,7 +1008,7 @@ form                                    {margin-bottom: 1rem;
                         .label              {font-family: $sans-fonts;
                                              margin-right: 1rem;
                         }
-                        .badge-pill         {margin-top: 0.1rem;
+                        .badge.rounded-pill         {margin-top: 0.1rem;
                         }
                     }
 
@@ -1022,6 +1053,7 @@ form                                    {margin-bottom: 1rem;
                                              padding-top: 0.25rem;
                                              padding-right: 0.5rem;
                                              padding-left: 0.5rem;
+                                             padding-bottom: 0.25rem;
                                              border-top: 1px solid lighten($niceGrey, 45%);
             }
             .updating                       {flex-grow: 1;
@@ -1042,7 +1074,7 @@ form                                    {margin-bottom: 1rem;
                                          overflow-y: auto;
                                          padding-left: 0;
                                          padding-right: 3rem;
-        > form                          {padding-left: 1rem;
+        > form                          {padding-left: 0.5rem;
         }
 
         .alert                          {display: flex;
@@ -1073,6 +1105,7 @@ form                                    {margin-bottom: 1rem;
                                     font-size: 1.75rem;
                                     color: $accent1;
                                     border: 1px solid transparent;
+                                    margin-left: 1rem;
             &:hover                {background-color: color.scale(lighten($accent1, 65%), $saturation: -20%);
             }
             &.active,
@@ -1083,6 +1116,8 @@ form                                    {margin-bottom: 1rem;
                                     padding-bottom: 0;
                                     color: $accent1;
                                     margin-bottom: 3px;
+                                    padding-left: 0;
+                                    padding-right: 0;
             }
             &:first-of-type        {margin-left:1.5rem;
             }
@@ -1125,11 +1160,11 @@ form                                    {margin-bottom: 1rem;
             &:hover                {background-color: darken($pallette1, 5%);
             }
             .badge                 {margin-left: 0.5rem;
-                &.badge-secondary  {color: darken($pallette1, 40%);
-                                    background-color: lighten($pallette1, 10%);
+                &.bg-secondary  {color: darken($pallette1, 40%);
+                                    background-color: lighten($pallette1, 10%) !important;
                                     border: 1px solid darken($pallette1, 20%);
                 }
-                &.badge-success    {background-color: color.scale(lighten($success, 50%), $saturation: -20%);
+                &.bg-success    {background-color: color.scale(lighten($success, 50%), $saturation: -20%) !important;
                                     color: $success;
                                     margin-left: 0.25rem;
                                     border: 1px solid lighten($success, 20%);
@@ -1477,6 +1512,8 @@ form                                    {margin-bottom: 1rem;
                                         font-size: $font-size-sm;
                                         padding-top: 0.5rem;
                                         padding-left: 2.75rem;
+            }
+            .filter-content-switch-col {padding-top: 0.25rem;
             }
         }
         .reference-view-panes          {overflow-y: auto;
@@ -3268,16 +3305,20 @@ form                                    {margin-bottom: 1rem;
                                                     padding-right: 0.5rem;
                     }
                     .short-label                    {display: none;
-                        @media (max-width: 375px) {
+                        @media (max-width: 375px),
+                        (min-width: map-get($grid-breakpoints, sm)) and (max-width: map-get($grid-breakpoints, lg)) {
                                                      display: inline;
                         }
                     }
                     .long-label                     {display: inline;
-                        @media (max-width: 375px) {
+                        @media (max-width: 375px),
+                        (min-width: map-get($grid-breakpoints, sm)) and (max-width: map-get($grid-breakpoints, lg))  {
                                                      display: none;
                         }
                     }
-                    &.back_to_map                   {margin-left: 0;
+                    &.back_to_map,
+                    &.retry,
+                    &.continue                   {margin-left: 0;
                     }
                     &.submit_reply                  {margin-left: 0;
                                                      background-color: $pallette3;

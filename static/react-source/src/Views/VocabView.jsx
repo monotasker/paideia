@@ -425,6 +425,7 @@ const VocabView = ({ navigateAwayHandler }) => {
                   <Form.Group
                     controlId="vocab-search-control"
                     onChange={e => setSearchString(e.target.value)}
+                    className="form-group"
                   >
                     <Form.Label><FontAwesomeIcon icon="search" />Greek</Form.Label>
                     <Form.Control placeholder=""></Form.Control>
@@ -434,13 +435,14 @@ const VocabView = ({ navigateAwayHandler }) => {
                   <Form.Group
                     controlId="vocab-search-control-english"
                     onChange={e => setSearchStringEng(e.target.value)}
+                    className="form-group"
                   >
                     <Form.Label><FontAwesomeIcon icon="search" />English</Form.Label>
                     <Form.Control placeholder=""></Form.Control>
                   </Form.Group>
                 </Col>
                 <Col xs="10" sm="11" md="3" xl="4">
-                  <Form.Group controlId="vocab-set-control">
+                  <Form.Group controlId="vocab-set-control" className="form-group">
                     <Form.Label className="vocab-set-filter-label"><FontAwesomeIcon icon="filter" />Badge sets</Form.Label>
                     <Form.Control as="select"
                       onChange={e => restrictSetsAction(e.target.value)}

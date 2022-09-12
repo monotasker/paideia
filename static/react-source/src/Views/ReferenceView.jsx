@@ -979,7 +979,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
                     </Row>
                     {userLevel!==null &&
                     <Row>
-                        <Col>
+                        <Col className="filter-content-switch-col">
                             <Form.Check inline label="Only show content I've learned so far"
                             id="only-unread-checkbox"
                             type="switch"
