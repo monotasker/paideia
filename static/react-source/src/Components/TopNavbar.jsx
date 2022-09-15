@@ -82,6 +82,7 @@ const TopNavbar = ({pageLoaded, ...props}) => {
                 <NavLink title="How It Works" path="/info/how-it-works" icon='cog'  displayAt="sm" />
                 <NavLink title="Known Bugs" path="/info/known-bugs" icon='bug'  displayAt="sm" />
                 <NavLink title="Privacy Policy" path="/info/privacy-policy" icon='user-lock'  displayAt="sm" />
+                <NavLink title="Contact us" path="/contact" icon='envelope'  displayAt="sm" />
               </MyDropdown>
               {user.userRoles && user.userRoles.includes('administrators') &&
               <MyDropdown label="Admin" icon='wrench' >

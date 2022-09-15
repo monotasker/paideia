@@ -217,6 +217,9 @@ const Home = () => {
           </span>
         </Col>
         <Col xs={12} md={4} className="col">
+          <span className="contact-link">
+            <FontAwesomeIcon icon="envelope" size="sm" fixedWidth /> <Link to="contact">Contact us</Link>
+          </span>
           <span className="privacy-link">
             <FontAwesomeIcon icon="user-lock" size="sm" fixedWidth /> <Link to="info/privacy-policy">Privacy policy</Link>
           </span>
