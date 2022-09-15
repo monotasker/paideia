@@ -124,10 +124,10 @@ const StartResetForm = ({submitAction}) => {
           id="start-pass-reset-form"
         >
           <Form.Group as={Row} controlId="email">
-            <Form.Label column sm={5}>
+            <Form.Label column sm={2}>
               Email
             </Form.Label>
-            <Col sm={7}>
+            <Col sm={10}>
               <Form.Control
                 type="email"
                 name="email"
@@ -138,7 +138,7 @@ const StartResetForm = ({submitAction}) => {
             </Col>
             {!!flags.badRequestData.length > 0 &&
                 flags.badRequestData.includes("email") &&
-              <Alert variant="danger" className="row error-message">
+              <Alert variant="danger" className="row error-message alert-thin">
                 <Col xs="auto">
                   <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
                 </Col>
@@ -149,9 +149,9 @@ const StartResetForm = ({submitAction}) => {
             }
           </Form.Group>
           <Form.Group as={Row} controlId="startPassResetSubmitButton">
-            <Col xs sm={5}>
+            <Col sm={2}>
             </Col>
-            <Col className="start-pass-reset-submit-col">
+            <Col className="start-pass-reset-submit-col" sm="12">
               <Button variant="primary"
                   type="submit"
                   onClick={submitPasswordResetRequest}

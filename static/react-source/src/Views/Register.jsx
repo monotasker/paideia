@@ -134,7 +134,7 @@ const Register = ({submitAction}) => {
               </Col>
               {!!flags.missingRequestData &&
                   flags.missingRequestData.includes("first_name") &&
-                <Alert variant="danger" className="col col-sm-12">
+                <Alert variant="danger" className="col col-sm-12 alert-thin">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a first name.
                 </Alert>
               }
@@ -153,12 +153,12 @@ const Register = ({submitAction}) => {
               </Col>
               {!!flags.missingRequestData &&
                   flags.missingRequestData.includes("last_name") &&
-                <Alert variant="danger" className="col col-sm-12">
+                <Alert variant="danger" className="col col-sm-12 alert-thin">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a last name.
                 </Alert>
               }
             </Form.Group>
-            <Form.Group as={Row} controlId="email">
+            <Form.Group as={Row} controlId="email" className="form-section">
               <Form.Label column sm={5}>
                 Email
               </Form.Label>
@@ -173,13 +173,13 @@ const Register = ({submitAction}) => {
               </Col>
               {(!!flags.badRequestData &&
                   flags.badRequestData.includes("email")) &&
-                <Alert variant="danger" className="col col-sm-12">
+                <Alert variant="danger" className="col col-sm-12 alert-thin">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid email address.
                 </Alert>
               }
               {(!!flags.missingRequestData &&
                   flags.missingRequestData.includes("email")) ?
-                <Alert variant="danger" className="col col-sm-12">
+                <Alert variant="danger" className="col col-sm-12 alert-thin">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide your email address.
                 </Alert>
                 :
@@ -201,7 +201,7 @@ const Register = ({submitAction}) => {
                 )
               }
             </Form.Group>
-            <Form.Group as={Row} controlId="time_zone">
+            <Form.Group as={Row} controlId="time_zone" className="form-section">
               <Form.Label column sm={5}>
                 Your Time Zone
               </Form.Label>
@@ -218,7 +218,7 @@ const Register = ({submitAction}) => {
               </Col>
               {(!!flags.missingRequestData &&
                     flags.missingRequestData.includes("time_zone")) ?
-                  <Alert variant="danger" className="col col-sm-12">
+                  <Alert variant="danger" className="col col-sm-12 alert-thin">
                     <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid time zone.
                   </Alert>
                 :
@@ -242,7 +242,7 @@ const Register = ({submitAction}) => {
               </Col>
               {(!!flags.missingRequestData &&
                     flags.missingRequestData.includes("password")) ?
-                  <Alert variant="danger" className="col col-sm-12">
+                  <Alert variant="danger" className="col col-sm-12 alert-thin">
                     <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a password.
                   </Alert>
                   :
@@ -262,9 +262,9 @@ const Register = ({submitAction}) => {
               </Form.Text>
             </Form.Group>
             <Form.Group as={Row} controlId="registerSubmitButton">
-              <Col xs sm={5}>
+              <Col sm={5}>
               </Col>
-              <Col className="register-submit-col">
+              <Col className="register-submit-col" xs="12" sm="7">
                 <Button variant="primary"
                     type="submit"
                     onClick={getRegistration}

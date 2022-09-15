@@ -193,16 +193,40 @@ const Home = () => {
           :
           !!testimonials && testimonials.length > 0 ?
             testimonials.map((t, i) =>
-              <Col className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={`${t.title}_${i}`}>
+              <div className="testimonial-item" xs="12" sm="6" md="4" lg="3" xl="2" key={`${t.title}_${i}`}>
                 <p className="testimonial-body">
                   <span className="wrapper">{t.content}</span>
                   <span className="testimonial-name">{t.title}</span>
                 </p>
-              </Col>
+              </div>
             )
           :
           ""
         }
+    </Row>
+    <Row className="footer">
+        <Col xs={12} md={8} className="col">
+          <span className="copyright">
+            <FontAwesomeIcon icon="copyright" size="sm" fixedWidth /> 2008-{new Date().getFullYear()}  Ian W. Scott, all rights reserved
+          </span>
+          <span className="gpl">
+            <FontAwesomeIcon icon="code" size="sm" fixedWidth /> App platform free to reuse under a modified GPL3 license
+          </span>
+          <span className="github">
+            <FontAwesomeIcon icon={["fab", "github"]} size="sm" fixedWidth /> source code on <Link to="https://github.com/monotasker">Github</Link>
+          </span>
+        </Col>
+        <Col xs={12} md={4} className="col">
+          <span className="privacy-link">
+            <FontAwesomeIcon icon="user-lock" size="sm" fixedWidth /> <Link to="info/privacy-policy">Privacy policy</Link>
+          </span>
+          <span className="web2py">
+            <FontAwesomeIcon icon="hard-hat" size="sm" fixedWidth /> Built with <Link to="http://web2py.com">web2py</Link>
+          </span>
+          <span>
+            <FontAwesomeIcon icon="lock" size="sm" fixedWidth /> Protected by recaptcha
+          </span>
+        </Col>
     </Row>
 
   </div>

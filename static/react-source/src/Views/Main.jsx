@@ -12,7 +12,7 @@ import {
 import { CSSTransition } from "react-transition-group";
 import { library } from '@fortawesome/fontawesome-svg-core';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStripe } from '@fortawesome/free-brands-svg-icons';
+import { faStripe, faGithub } from '@fortawesome/free-brands-svg-icons';
 import {
   faAngleDown,
   faArrowDown,
@@ -32,9 +32,11 @@ import {
   faChevronRight,
   faCircle,
   faClock,
+  faCode,
   faCog,
   faComment,
   faCopy,
+  faCopyright,
   faEnvelope,
   faEnvelopeOpen,
   faExclamationCircle,
@@ -91,6 +93,7 @@ import {
   faUser,
   faUserCircle,
   faUserGraduate,
+  faUserLock,
   faUserPlus,
   faUsers,
   faVideo,
@@ -118,6 +121,7 @@ import JoinCourse from "./JoinCourse";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { checkLogin } from '../Services/authService';
 import ResetPassword from './ResetPassword';
+import ContactForm from '../Components/ContactForm';
 
 library.add(
   faAngleDown,
@@ -138,9 +142,11 @@ library.add(
   faChevronRight,
   faCircle,
   faClock,
+  faCode,
   faCog,
   faComment,
   faCopy,
+  faCopyright,
   faEnvelope,
   faEnvelopeOpen,
   faExclamationCircle,
@@ -151,6 +157,7 @@ library.add(
   faFilter,
   faFlag,
   faFont,
+  faGithub,
   faGlobeAmericas,
   faGraduationCap,
   faHandHoldingHeart,
@@ -198,6 +205,7 @@ library.add(
   faUser,
   faUserCircle,
   faUserGraduate,
+  faUserLock,
   faUserPlus,
   faUsers,
   faVideo,
@@ -212,6 +220,7 @@ const myroutes = [
   {path: "/" + urlBase + "/videos/:lessonParam?", exact: false,
     Component: Videos},
   {path: "/" + urlBase + "/info/:infoPage", exact: false, Component: Info},
+  {path: "/" + urlBase + "/contact", exact: false, Component: ContactForm},
   {path: "/" + urlBase + "/login", exact: false, Component: Login},
   {path: "/" + urlBase + "/register", exact: false, Component: Register},
   {path: "/" + urlBase + "/reset_password", exact: false,
@@ -234,8 +243,8 @@ const MainPage = ({props}) => {
 
   const setHeight = () => {
     const headroom = document.querySelector('.navbar').offsetHeight;
-    let divheight = window.innerHeight - headroom;
-    setMyheight(divheight);
+    let divHeight = window.innerHeight - headroom;
+    setMyheight(divHeight);
     console.log(`set height to ${divHeight} with headroom of ${headroom}`);
   }
 

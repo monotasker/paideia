@@ -120,7 +120,7 @@ const LoginInner = ({submitAction}) => {
             </Alert>
           }
           <Form onSubmit={getLogin} role="form" id="login-form">
-            <Form.Group controlId="loginEmail">
+            <Form.Group controlId="loginEmail" className="form-section">
               <Form.Label>
                 Email Address
               </Form.Label>
@@ -133,18 +133,18 @@ const LoginInner = ({submitAction}) => {
               />
               {flags.missingRequestData.length > 0 &&
                 flags.missingRequestData.includes("email") &&
-                <Alert variant="danger" className="error-message">
+                <Alert variant="danger" className="error-message hanging">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your email address.
                 </Alert>
               }
               {flags.badRequestData.length > 0 &&
               flags.badRequestData.includes("email") &&
-                <Alert variant="danger" className="error-message">
+                <Alert variant="danger" className="error-message hanging">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to provide a valid email address.
                 </Alert>
               }
             </Form.Group>
-            <Form.Group controlId="loginPassword">
+            <Form.Group controlId="loginPassword" className="form-section">
               <Form.Label>
                 Password
               </Form.Label>
@@ -152,12 +152,12 @@ const LoginInner = ({submitAction}) => {
                 type="password"
                 name="password"
                 autoComplete="current-password"
-                placeholder="Password"
+                placeholder="Enter your password"
                 onChange={e => setFormFieldValue(e.target.value, "password")}
               />
               {flags.missingRequestData.length > 0 &&
                 flags.missingRequestData.includes("password") &&
-                <Alert variant="danger" className="error-message">
+                <Alert variant="danger" className="error-message hanging">
                   <FontAwesomeIcon icon="exclamation-triangle" /> You need to include your password.
                 </Alert>
               }
@@ -170,7 +170,7 @@ const LoginInner = ({submitAction}) => {
             </Button>
           </Form>
           {flags.loginFailed===true &&
-            <Alert variant="danger" className="error-message row">
+            <Alert variant="danger" className="error-message row freestanding">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
               </Col>
@@ -181,7 +181,7 @@ const LoginInner = ({submitAction}) => {
             </Alert>
           }
           {flags.serverError===true &&
-            <Alert variant="danger" className="error-message row">
+            <Alert variant="danger" className="error-message row freestanding">
               <Col xs="auto">
                 <FontAwesomeIcon icon="exclamation-triangle" size="2x" />
               </Col>

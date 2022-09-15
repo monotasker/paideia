@@ -31,8 +31,8 @@ $greenLight:            #96BC44;
 $greenDark:             #4b801d; // = darken($green, 10%);
 $greenDarkDesaturated:  #809240;
 // $red:                   #9d261d;
-$blueDark:              #1c7f99; // #006699;
-$blue:                  #049cdb;
+$blueDark:              #235888; // #1c7f99; // #006699;
+$blue:                  #327bc0; // #049cdb;
 $purple:                #8d4a8d; // #800080;
 $yellow:                #ffc40d;
 $orange:                #f89406;
@@ -74,7 +74,7 @@ $secondaryLight: #e8ecf1;
 
 // semantic colors (grammatical)
 $verb: #BF9000;
-$nominative: #235888;
+$nominative: $blueDark;
 $genitive: #70AD47;
 $accusative: #C00000;
 $vocative: #C55A11;
@@ -209,6 +209,9 @@ h3                                      {font-family: $sans-fonts;
 // alerts --------------------------------------------------
 
 .alert                                  {
+    &.alert-thin                        {padding: 0.5rem;
+                                         margin-bottom: 0.5rem;
+    }
     &.alert-info                         {background-color: $info-bg;
                                          color: darken($info-dark, 10%);
                                          border: 1px solid $info;
@@ -224,6 +227,21 @@ h3                                      {font-family: $sans-fonts;
     &> div                              {padding-left:0;
                                          padding-right: 1rem;
     }
+}
+
+// pills  ----------------------------------------------------
+
+.badge.bg-success                       {background-color: $success !important;
+}
+.badge.bg-secondary                     {background-color: lighten($secondary, 10%) !important;
+}
+.badge.bg-info                          {background-color: $info-dark !important;
+}
+.badge.bg-primary                       {background-color: $primary !important;
+}
+.badge.bg-warning                       {background-color: $warning !important;
+}
+.badge.bg-danger                       {background-color: $danger !important;
 }
 
 // lists ----------------------------------------------------
@@ -255,25 +273,30 @@ h3                                      {font-family: $sans-fonts;
 
 // forms ----------------------------------------------------
 
-form                                    {margin-bottom: 1rem;
+#root .Main .content form               {margin-bottom: 1rem;
                                          margin-top: 1rem;
-    div.form-section                    {margin-bottom: 0.5rem;
+    div.row                             {margin-bottom: 0.25rem;
     }
-    button[type=submit]                 {margin-top: 1rem;
+    div.row.form-section,
+    div.form-section                    {margin-bottom: 1rem;
+    }
+    button[type=submit]                 {margin-top: 0.5rem;
 
     }
-    .form-label                         {margin-bottom: 0.25rem;
+    .form-label                         {font-weight: 500;
+                                         padding-bottom: 0.25rem;
     }
     .form-switch.small .form-check-input      {position: relative;
                                          top: 0.15rem;
     }
     input.error                             {border: 2px solid $danger;
     }
-    .alert.error-message                {padding: 0.25rem 0.5rem;
+    .alert.error-message.hanging        {padding: 0.25rem 0.5rem;
                                          border-radius: 0 0 0.25rem 0.25rem;
                                          margin: 0 0.5rem;
     }
-    .row                                {margin-bottom: 1rem;
+    .alert.error-message.freestanding   {margin-bottom: 1rem;
+
     }
 }
 
@@ -285,6 +308,44 @@ form                                    {margin-bottom: 1rem;
                             color: $secondary;
     }
     &:focus                {box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.15);
+    }
+}
+
+.btn.btn-primary                 {background-color: $blue;
+                                  border-color: darken($blue, 5%);
+    &:hover,
+    &:active                     {background-color: darken($blue, 5%);
+                                  border-color: darken($blue, 10%);
+    }
+    &:focus                      {box-shadow: 0 0 0 0.25rem lighten($blue, 20%);
+                                  background-color: darken($blue, 5%);
+                                  border-color: darken($blue, 10%);
+    }
+}
+
+.btn.btn-success                 {background-color: $greenDark;
+                                  border-color: darken($greenDark, 5%);
+    &:hover,
+    &:active                     {background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+    }
+    &:focus                      {box-shadow: 0 0 0 0.25rem $greenLight;
+                                  background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+    }
+}
+
+.btn.btn-outline-success         {background-color: transparent;
+                                  border-color: darken($greenDark, 5%);
+    &:hover,
+    &:active                     {background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+                                  color: $white;
+    }
+    &:focus                      {box-shadow: 0 0 0 0.25rem $greenLight;
+                                  background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+                                  color: $white;
     }
 }
 
@@ -1913,6 +1974,9 @@ form                                    {margin-bottom: 1rem;
                     @media (max-width: map-get($grid-breakpoints, md))  {
                                     display: block;
                     }
+                    @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    margin-left: auto;
+                    }
                 }
             }
         }
@@ -1921,35 +1985,33 @@ form                                    {margin-bottom: 1rem;
     div.modal-set.row              {color: #efefef;
                                     background-color: $nominative;
                                     text-align: center;
-                                    padding-top: 0.5rem;
-                                    padding-bottom: 0.5rem;
-                                    padding-left: 0.5rem;
+                                    padding: 0;
         @media (max-width: map-get($grid-breakpoints, md))  {
                                     padding: 0;
                                     text-align: left;
-                                    padding-left: 3rem;
-                                    padding-right: 3rem;
-                                    padding-bottom: 1rem;
-                                    padding-top: 0.5rem;
         }
         @media (max-width: map-get($grid-breakpoints, sm))  {
-                                    padding-left: 0.5rem;
-                                    padding-right: 0.5rem;
         }
         .info-pane                 {cursor: pointer;
-                                    margin-right: 0.5rem;
-                                    border-radius: 1rem;
                                     transition: all 300ms ease-in-out;
             &:hover,
             &:active                {background-color: desaturate(lighten($nominative, 10%), 10%);
-
+                .info-illustration-wrapper .info-pane-illustration {filter: grayscale(0);
+                                         opacity: 1;
+                }
+            }
+            &:first-child           {background-color: #7ea5cb;
+            }
+            &:nth-child(2)          {background-color: #7c9f6e;
+            }
+            &:nth-child(3)          {background-color: #cb9bcb;
             }
             @media (max-width: map-get($grid-breakpoints, md)) {
-                                     margin-top: 1rem;
+                                    //  margin-top: 1rem;
             }
             @media (max-width: map-get($grid-breakpoints, sm)) {
-                                     margin-top: 0.5rem;
-                                     margin-right: 0;
+                                    //  margin-top: 0.5rem;
+                                    //  margin-right: 0;
             }
             .info-illustration-wrapper          {//text-align: center;
                                                 // width:100%;
@@ -1966,6 +2028,9 @@ form                                    {margin-bottom: 1rem;
                 }
                 .info-pane-illustration {width:12rem;
                                         border-radius: 50%;
+                                        opacity: 0.3;
+                                        filter: grayscale(100%);
+                                        transition: all 500ms;
                     @media (max-width: map-get($grid-breakpoints, md)) {
                                         margin-left: auto;
                                         height: 10rem;
@@ -2025,8 +2090,24 @@ form                                    {margin-bottom: 1rem;
     div.testimonials                    {background-color: $pallette1;
                                          padding-top: 1.5rem;
                                          position: relative;
+                                         display: block;
+                                         column-count: 1;
+                                         padding-left: 1.5rem;
+                                         padding-right: 1.5rem;
+        @media screen and (min-width: map-get($grid-breakpoints, md))
+        and (max-width: map-get($grid-breakpoints, lg)) {
+                                         column-count: 2;
+        }
+        @media screen and (min-width: map-get($grid-breakpoints, lg))
+        and (max-width: map-get($grid-breakpoints, xl)) {
+                                         column-count: 3;
+        }
+        @media screen and (min-width: map-get($grid-breakpoints, xl)) {
+                                         column-count: 4;
+        }
         .testimonial-item               {font-family: "Shadows Into Light";
                                          padding-bottom: 1rem;
+                                         display: inline-block;
             .testimonial-body            {background-color: darken($pallette1, 10%);
                                          color: $headingColorDark;
                                          border-radius: 2rem;
@@ -2037,7 +2118,7 @@ form                                    {margin-bottom: 1rem;
                                          font-size: 8rem;
                                          font-weight: bold;
                                          position: absolute;
-                                         left: -0.7rem;
+                                         left: -1rem;
                                          top: -1.8rem;
                                          color: desaturate(darken($pallette1, 20%), 10%);
                                          z-index: 80;
@@ -2052,6 +2133,19 @@ form                                    {margin-bottom: 1rem;
                                          font-size: 2rem;
                                          color: $pallette4;
                                          right: 2rem;
+            }
+        }
+    }
+
+    // home footer --------------------------------------
+
+    div.footer                  {background-color: $blueDark;
+                                 color: $white;
+                                 padding: 1rem;
+        .col                    {padding: 1rem;
+            >span                   {display: block;
+            }
+            a                   {color: $white;
             }
         }
     }
@@ -3377,9 +3471,11 @@ form                                    {margin-bottom: 1rem;
 // Login form
 
 .login-component                                {
-    .login-register-message                     {
+    .login-register-message                     {display: flex;
+                                                 align-items: center;
        span                                     {position: relative;
                                                  top: 0.15rem;
+                                                 flex-grow: 1;
        }
        .btn                                     {margin-left: 2rem;
 
@@ -3396,19 +3492,36 @@ form                                    {margin-bottom: 1rem;
                                                  padding-right: 0;
             }
         }
+        .alert-thin.alert-danger                {margin-top: 0.25rem;
+        }
     }
-    .register-login-message                     {
-        span                                    {position: relative;
-                                                 top: 0.15rem;
+    .register-submit-col                     {text-align: right;
+    }
+    .register-login-message                     {display: flex;
+                                                 flex-direction: row;
+                                                 align-items: center;
+        span                                    {display: block;
+                                                 line-height: 2rem;
+                                                 flex-grow: 1;
         }
         .btn                                    {margin-left: 2rem;
+            @media  screen and (max-width: map-get($grid-breakpoints, sm)) {
+                                                margin-left: 0;
+            }
         }
     }
 }
 
 // Reset password form
 
-.reset-password-component                       {
+.reset-password-component                       {padding-right: 2rem;
+    p                                           {padding: 0 1rem;
+    }
+    .alert                                      {margin-right: 2rem;
+                                                 margin-left: 1rem;
+        &.alert-thin                            {margin-top: 0.25rem;
+        }
+    }
     form                                        {
         .row:first-child                        {padding-bottom: 1rem;
         }

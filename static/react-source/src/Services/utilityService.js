@@ -76,7 +76,6 @@ const doApiCall = async (payload, apiFunction,
 
 function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
-  console.log("in returnStatusCode::::::");
   console.log(mydata);
   switch (mydata.status_code) {
     case 200:

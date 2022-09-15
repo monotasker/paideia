@@ -40,6 +40,87 @@ if 0:
     db = current.db
 
 
+def contact():
+    """
+    Send an email to the contact address.
+
+    expects request parameters "subject", "return_address", and "body"
+    as well as "token" for the recaptcha token
+    """
+    request = current.request
+
+    try:
+        if request.method == "POST":
+            # check recaptcha
+            token = request.vars['token']
+            keydata = {}
+            with open('applications/paideia/private/app.keys', 'r') as keyfile:
+                for line in keyfile:
+                    k, v = line.split()
+                    keydata[k] = v
+            params = urlencode({
+                'secret': keydata['captcha3_private_key'],
+                'response': token
+            }).encode('utf-8')
+            recap_request = urllib2.Request(
+                url="https://www.google.com/recaptcha/api/siteverify",
+                data=to_bytes(params),
+                headers={'Content-type': 'application/x-www-form-urlencoded',
+                        'User-agent': 'reCAPTCHA Python'})
+            httpresp = urlopen(recap_request)
+            content = httpresp.read()
+            httpresp.close()
+            response_dict = json.loads(to_native(content))
+
+            if response_dict["success"] != True or response_dict["score"] < 0.5:
+                response = current.response
+                response.status = 403
+                return json_serializer({'status': 'forbidden',
+                                        'reason': 'Recaptcha check failed',
+                                        'error': 'You may be a robot'})
+
+            # Check for empty fields
+            for field in ['subject', 'return_address', 'body',
+                        'first_name', 'last_name']:
+                if request.vars[field] in ["", None, False]:
+                    response = current.response
+                    response.status = 400
+                    return json_serializer({'status': 'bad request',
+                                            'reason': 'Missing request data',
+                                            'error': 'Must supply ${}'.format(field)})
+
+            email_body = "Message from {} {}:\n{}".format(
+                request.vars['first_name'],
+                request.vars['last_name'], request.vars['body_text'])
+
+            if current.mail and current.mail.send(
+                    to=current.mail.settings.sender,
+                    reply_to=request.vars['return_address'],
+                    subject=request.vars['subject'],
+                    message=email_body):
+                return json_serializer({'result': 'Email sent',
+                                        'email_text': email_body,
+                                        'email_subject': request.vars['subject'],
+                                        'return_address': request.vars['return_address'],
+                                        'first_name': request.vars['first_name'],
+                                        'last_name': request.vars['last_name']})
+        else:
+            response = current.response
+            response.status = 400
+            # not using POST method
+            return json_serializer({'status': 'bad request',
+                        'reason': f'${request.method} not a valid method ' \
+                                'for this endpoint',
+                        'error': None})
+    except Exception:
+        response = current.response
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function api.contact',
+                                'error': format_exc()})
+
+
 def content_pages():
     """
     Return a list of the text for each content page matching provided tags.
@@ -52,6 +133,8 @@ def content_pages():
                      ).select().as_list()
         return json_serializer(mypages)
     else:
+        response = current.response
+        response.status = 400
         return json_serializer({'status': 'bad request',
                     'reason': f'${request.method} not a valid method ' \
                                'for this endpoint',

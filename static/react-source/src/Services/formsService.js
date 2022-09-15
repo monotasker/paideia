@@ -7,7 +7,7 @@ import { returnStatusCheck } from '../Services/utilityService';
  */
 const FormErrorMessage = ({name, ...props}) => (
   <ErrorMessage name={name} {...props}
-    render={msg => <span class="alert error-message alert-danger">{msg}</span>}
+    render={msg => <span className="alert error-message alert-danger alert-thin hanging">{msg}</span>}
   />
 );
 
