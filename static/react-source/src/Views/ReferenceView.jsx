@@ -5,14 +5,14 @@ import {
 } from "react-transition-group";
 import {
     Button,
-    ToggleButtonGroup,
     Col,
     Form,
     Row,
-    Table,
-    ToggleButton,
+    Table
 } from "react-bootstrap";
-import { useHistory, Link } from "react-router-dom";
+import ToggleButton from "react-bootstrap/ToggleButton";
+import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
+// import { useHistory, Link } from "react-router-dom";
 import Measure from "react-measure";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { urlBase } from "../variables";
@@ -132,7 +132,7 @@ const PersonalEndings = ({navigateAwayHandler}) => {
                       '3pActiveSing': {pres: <>λυ<u>ε</u><b>ι</b></>,
                                    fut: <>λυσ<u>ε</u><b>ι</b></>,
                                    imp: <>ἐλυ<u>ε</u><b>(ν)</b></>,
-                                   faor:  <>ἐλυσ<u>α</u><b>(ν)</b></>,
+                                   faor:  <>ἐλυσ<u className="mixed">ε</u><b>(ν)</b></>,
                                    saor:  <>ἐλαβ<u>ε</u><b>(ν)</b></>,
                                    perf: <>λελυκ<u>ε</u><b>ν</b></>,
                                    prim: "ι",
@@ -949,7 +949,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
            <Col>
                 <h2>Quick Reference</h2>
                 <Form>
-                    <Form.Row>
+                    <Row>
                         <Col>
                             <Form.Control
                                 as="select"
@@ -976,10 +976,10 @@ const ReferenceView = ({navigateAwayHandler}) => {
                                 )}
                             </Form.Control>
                         </Col>
-                    </Form.Row>
+                    </Row>
                     {userLevel!==null &&
-                    <Form.Row>
-                        <Col>
+                    <Row>
+                        <Col className="filter-content-switch-col">
                             <Form.Check inline label="Only show content I've learned so far"
                             id="only-unread-checkbox"
                             type="switch"
@@ -988,7 +988,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
                             onChange={e => setFilterByLevel(!filterByLevel)}
                             />
                         </Col>
-                    </Form.Row>
+                    </Row>
                     }
                 </Form>
                 <TransitionGroup className="reference-view-panes">

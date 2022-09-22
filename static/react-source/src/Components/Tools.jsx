@@ -62,7 +62,7 @@ const Tools = () => {
     ]
 
     return(
-        <React.Fragment>
+        <>
             <ButtonGroup vertical className="tools-component">
                 {panels.map( ({ label, icon, component }) =>
                     <Button key={label}
@@ -92,7 +92,7 @@ const Tools = () => {
                     </CSSTransition>
                 )}
             </div>
-        </React.Fragment>
+        </>
     )
 
 }

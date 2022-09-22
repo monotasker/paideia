@@ -4,16 +4,15 @@ import {
   Col,
   Badge,
   Button,
-  Form,
+  // Form,
   OverlayTrigger,
   Popover,
-  PopoverTitle,
-  PopoverContent,
   Row,
   Spinner,
   Tab,
   Table,
-  Tabs
+  Tabs,
+  Modal
 } from "react-bootstrap";
 // import { LinkContainer } from "react-router-bootstrap";
 import { useParams,
@@ -33,110 +32,147 @@ import { withinOneDay,
        } from "../Services/dateTimeService";
 import Collapsible from "../Components/Collapsible";
 
+// patch scrolling methods for ios and safari
+// polyfill();
+
 const UpdateNotice = ({status}) => {
   return (status ? <span className="update-msg">
-      <Spinner variant="secondary" animation="grow" size="sm" />Updating
+      <Spinner animation="grow" size="sm" />Updating
     </span>
   : <span className="updated-msg"><FontAwesomeIcon icon="check-circle" />Up-to-date</span>
   )
 }
 
 const BadgeTerm = ({title, description, lessons, data, level}) => {
-  return(
-    <OverlayTrigger placement="auto" trigger="click" rootClose
-      overlay={
-        <Popover id={`tooltip-${title}`}>
-          <PopoverTitle>
-            <FontAwesomeIcon icon="certificate" />{title}
-            <span className="badge-popover-level">{level}</span>
-          </PopoverTitle>
-          <PopoverContent>
-            {`for ${description}`}
-            <ul>
-              {lessons.length !== 0 && lessons.map(lesson =>
-              <li key={lesson[0]}>
+  const [show, setShow] = useState(false);
+
+  const handleShow = () => setShow(true);
+  const handleClose = () => setShow(false);
+
+  return(<>
+    <Button className={`profile badge badge-secondary badge-link`}
+      onClick={handleShow}
+    >{title}</Button>
+
+    <Modal id={`tooltip-${title}`}
+      className={`badge-term-tooltip ${level}`}
+      show={show}
+      onHide={handleClose}
+    >
+      <Modal.Header closeButton>
+        <FontAwesomeIcon icon="certificate" />
+        <Modal.Title>{title}
+        {/* <span className="badge-popover-level">{level}</span> */}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <span className="tooltip-badge-description">{`Awarded for ${description}`}</span>
+          <h5>Related lessons</h5>
+        <Table borderless size="sm"
+          className="tooltip-badge-lessons-table"
+        >
+          <tbody>
+            {lessons.length !== 0 && lessons.map(lesson =>
+            <tr key={lesson[0]}>
+              <td><FontAwesomeIcon icon="video" /></td>
+              <td>
                 <Button to={`/${urlBase}/videos/${lesson[0]}`}
                   className="lessonlink"
+                  variant="link"
                   as={Link}
                 >
-                    <FontAwesomeIcon icon="video" />{lesson[1]}
+                  {lesson[1]}
                 </Button>
-              </li>
-              )}
-            </ul>
-            {!!data && data.curlev===1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
-              <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
-            }
-            {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
-              <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.tright} more right attempts with this badge to have it promoted.</span>
-            }
-            {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
-              <span className="badge-promotion-tip">You've done great in the past. Just complete a right attempt again now to have it promoted.</span>
-            }
-            {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
-              <span className="badge-promotion-tip">You've done great job so far. You just can't begin and promote a badge within the same day. Keep it up and this badge should be promoted tomorrow!</span>
-            }
-            {!!data && data.curlev!==1 && data.revlev === 1 &&
-              <span className="badge-promotion-tip">This badge is due for some review to keep it fresh.</span>
-            }
-            {!!data ? (
-              <Table borderless hover size="sm">
-                  <tbody>
-                    <tr>
-                      <td>Recent average score</td>
-                      {data.curlev===1 && data.avg_score >= 0.8 ?
-                        <td className="target-reached">{data.avg_score}<FontAwesomeIcon icon="check-circle" /></td>
-                        :
-                        <td>{data.avg_score}</td>
-                      }
-                    </tr>
-                    <tr>
-                      <td><FontAwesomeIcon icon="check-circle" />Total right attempts</td>
+              </td>
+            </tr>
+            )}
+          </tbody>
+        </Table>
+        {!!data ? (<>
+          <h5>Badge performance</h5>
+          {!!data && data.curlev!==1 && data.revlev === 1 &&
+            <span className="badge-promotion-tip">This badge is due for some review to keep it fresh.</span>
+          }
+          {!!data && data.curlev===1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
+            <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
+          }
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
+            <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.tright} more right attempts with this badge to have it promoted.</span>
+          }
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
+            <span className="badge-promotion-tip">You've done great in the past. Just complete a right attempt again now to have it promoted.</span>
+          }
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
+            <span className="badge-promotion-tip">You've done great job so far. You just can't begin and promote a badge within the same day. Keep it up and this badge should be promoted tomorrow!</span>
+          }
+          <Table borderless size="sm"
+            className="tooltip-badge-performance-table"
+          >
+              <tbody>
+                <tr className="recent-average">
+                  <td><FontAwesomeIcon icon="bullseye" /></td>
+                  <td>Recent average score</td>
+                  {data.curlev===1 && data.avg_score >= 0.8 ?
+                    <td className="target-reached">{data.avg_score}<FontAwesomeIcon icon="check-circle" /></td>
+                    :
+                    <td>{data.avg_score}</td>
+                  }
+                </tr>
+                <tr className="total-right">
+                  <td><FontAwesomeIcon icon="check-circle" /></td>
+                  <td>Total right attempts</td>
+                  {data.curlev===1 && data.tright >= 20 ?
+                    <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
+                    :
+                    <td>{data.tright}</td>
+                  }
+                </tr>
+                <tr className="total-wrong">
+                  <td><FontAwesomeIcon icon="times-circle" /></td>
+                  <td>Total wrong attempts</td>
+                  <td>{data.twrong}</td>
+                </tr>
+                <tr className="right-per-wrong">
+                  <td><FontAwesomeIcon icon="balance-scale" /></td>
+                  <td>Right attempts per wrong attempt</td>
+                  <td>{data.rw_ratio}</td>
+                </tr>
+                <tr className="days-since-right">
+                  <td><FontAwesomeIcon icon="clock" /></td>
+                  <td>Days since last right</td>
+                  <td>{Math.floor(data.delta_r / (3600*24))}</td>
+                </tr>
+                <tr className="days-since-wrong">
+                  <td><FontAwesomeIcon icon="clock" /></td>
+                  <td>Days since last wrong</td>
+                  <td>{Math.floor(data.delta_w / (3600*24))}</td>
+                </tr>
+              </tbody>
+            </Table>
 
-                      {data.curlev===1 && data.tright >= 20 ?
-                        <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
-                        :
-                        <td>{data.tright}</td>
-                      }
-                    </tr>
-                    <tr>
-                      <td><FontAwesomeIcon icon="times-circle" />Total wrong attempts</td>
-                      <td>{data.twrong}</td>
-                    </tr>
-                    <tr>
-                      <td><FontAwesomeIcon icon="balance-scale" />Right attempts per wrong attempt</td>
-                      <td>{data.rw_ratio}</td>
-                    </tr>
-                    <tr>
-                      <td><FontAwesomeIcon icon="clock" />Days since last right</td>
-                      <td>{Math.floor(data.delta_r / (3600*24))}</td>
-                    </tr>
-                    <tr>
-                      <td><FontAwesomeIcon icon="clock" />Days since last wrong</td>
-                      <td>{Math.floor(data.delta_w / (3600*24))}</td>
-                    </tr>
-                    {[data.cat1_reached, data.cat2_reached, data.cat3_reached, data.cat4_reached].map((a, idx) => !!a && !!a[0] &&
-                      <tr key={`promdate_${data.tag}_cat${idx + 1}`}>
-                        <td><FontAwesomeIcon icon="flag" />
-                          Reached {["beginner", "apprentice", "journeyman", "master"][idx]} level</td>
-                        <td>{a[1]}</td>
-                      </tr>
-                    )}
-                  </tbody>
-              </Table>
-            )
-              :
-              <span>Couldn't find badge data!</span>
-            }
-          </PopoverContent>
-        </Popover>
-      }
-    >
-      <Badge className={`profile badge badge-secondary badge-link`}>
-        {title}
-      </Badge>
-    </OverlayTrigger>
-  )
+            <h5>Milestones</h5>
+            <Table borderless size="sm"
+              className="tooltip-badge-milestones-table"
+            >
+              <tbody>
+                {[data.cat1_reached, data.cat2_reached, data.cat3_reached, data.cat4_reached].map((a, idx) => !!a && !!a[0] &&
+                  <tr key={`promdate_${data.tag}_cat${idx + 1}`}>
+                    <td><FontAwesomeIcon icon="flag" /></td>
+                    <td>
+                      Reached {["beginner", "apprentice", "journeyman", "master"][idx]} level</td>
+                    <td>{a[1]}</td>
+                  </tr>
+                )}
+              </tbody>
+          </Table>
+          </>)
+            :
+            <span>Couldn't find badge data!</span>
+          }
+        </Modal.Body>
+      </Modal>
+      </>
+  );
 }
 
 const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
@@ -145,13 +181,17 @@ const ProfileCalendar = ({xs, lg, updating, calendarData, calYear, calMonth,
       <>
         <h3>My Activity</h3>
         <UpdateNotice status={updating} />
-        {calendarData &&
+        {!!calendarData ?
           <Calendar year={calYear} month={calMonth}
             user={userId} monthData={calendarData.data}
             dailyQuota={dailyQuota}
             weeklyQuota={weeklyQuota}
             parentUpdating={updating}
           />
+          :
+          <div className="calendar empty" >
+            <Spinner animation="grow" size="lg" className="content-body-spinner" />
+          </div>
         }
         {/*  TODO: Implement this user-set system of targets
         <InputGroup className="profile-calendar-targets-daily">
@@ -203,10 +243,13 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
     <UpdateNotice status={updating} />
     {/* FIXME: Update user.classInfo and this widget if enrollment discovered */}
     {!!updating ?
-      <Spinner animation="grow" variant="secondary" />
+      <div className="profile-classinfo-body empty">
+        <Spinner animation="grow" size="lg" className="content-body-spinner" />
+      </div>
       : <div className="profile-classinfo-body">
         {classInfo !== null && Object.keys(classInfo).length > 0 ?
           <>
+          <div className="profile-classinfo-current">
             <div className="profile-classinfo-section">
               {classInfo.course_section}
             </div>
@@ -274,12 +317,14 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               </tr>
             </tfoot>
           </Table>
+          </div>
           </>
         : <div className="profile-classinfo-signup">
             You're not part of a currently active class group in Paideia. If you have a class enrollment key, you can <Link to="join_course">enter it here</Link> to join the class group. (Note that there is a fee to join a class group.)
           </div>
         }
-          <Collapsible linkIcon={"history"} linkText="my past classes"
+        {!!otherClassInfo.prior_classes &&
+          <Collapsible linkIcon={"history"} linkText="My past classes"
             linkElement="h5"
             className="profile-classinfo-prior-classes"
           >
@@ -297,7 +342,12 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               <tbody>
                 {otherClassInfo.prior_classes.map(c =>
                   <tr key={`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor} (${c.classes.academic_year}, ${c.classes.term})`}>
-                    <td>{`${c.classes.course_section}, ${c.classes.institution}, ${c.classes.instructor.first_name}  ${c.classes.instructor.last_name} (${c.classes.academic_year}, ${c.classes.term})`}</td>
+                    <td><span className="prior-course-title">
+                      {`${c.classes.course_section}`}
+                      </span>
+                      <span className="prior-course-details">{`${c.classes.institution}, ${c.classes.instructor.first_name}  ${c.classes.instructor.last_name} (${c.classes.academic_year}, ${c.classes.term})`}
+                      </span>
+                    </td>
                     <td>{readableDate(c.classes.start_date)}</td>
                     <td>{readableDate(c.classes.end_date)}</td>
                     <td>{c.class_membership.starting_set}</td>
@@ -309,7 +359,9 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               </tbody>
             </Table>
           </Collapsible>
-          <Collapsible linkIcon={"hourglass-half"} linkText="my upcoming classes"
+          }
+          {!!otherClassInfo.latter_classes && otherClassInfo.latter_classes.length > 0 &&
+          <Collapsible linkIcon={"hourglass-half"} linkText="My upcoming classes"
             linkElement="h5"
             className="profile-classinfo-latter-classes"
           >
@@ -335,15 +387,61 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
               </tbody>
             </Table>
           </Collapsible>
+          }
         </div>
     }
   </>)
 }
 
 const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
+  // console.log(badgeSetMilestones && badgeSetMilestones[badgeSetMilestones.length - 1]);
+  const currentSet = !!badgeSetMilestones ? badgeSetMilestones[badgeSetMilestones.length - 1]["badge_set"] : 0;
+
+  const scrollToMiddle = (parent, child) => {
+    const parentEl = document.querySelector(parent);
+    console.log(parentEl);
+    const childEl = document.querySelector(child);
+    if (!!childEl ) {
+      let childOffset = childEl.offsetLeft;
+      console.log(`childOffset ${childEl.getBoundingClientRect().left}`);
+      let childWidth = childEl.offsetWidth;
+      let parentWidth = parentEl.offsetWidth;
+      console.log(`parentWidth ${parentEl.getBoundingClientRect().left}`);
+      let targetOffset = (parentWidth - childWidth) / 2;
+      parentEl.scrollBy({left: (childOffset - targetOffset),
+                        top: 0,
+                        behavior: "smooth"});
+      console.log(`scrolled ${childOffset - targetOffset}`);
+    }
+  };
+
+  useEffect(() => {scrollToMiddle(".profile-progress-outer-container", ".profile-progress-bar .current-set");
+  }, [currentSet]);
+
+  useEffect(() => {
+    const rscroller = document.querySelector(".scroll-right");
+    const lscroller = document.querySelector(".scroll-left");
+    const container = document.querySelector(".profile-progress-outer-container");
+    const scrollRight = (elem, ev) => {container.scrollBy({left: 100,
+                                                           top: 0,
+                                                           behavior: "smooth"})};
+    const scrollLeft = (elem, ev) => {container.scrollBy({left: -100,
+                                                           top: 0,
+                                                           behavior: "smooth"})};
+    rscroller.addEventListener("click", scrollRight);
+    lscroller.addEventListener("click", scrollLeft);
+
+    return () => {
+      rscroller.removeEventListener("click", scrollRight);
+      lscroller.removeEventListener("click", scrollLeft);
+    }
+  });
+
   return (<>
     <h3>My Progress</h3>
     <UpdateNotice status={updating} />
+    <div className="profile-progress-outer-container2">
+    <div className="profile-progress-outer-container">
     <div className="profile-progress-scale-container">
       <div className="profile-progress-scale">
         {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n =>
@@ -351,7 +449,7 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
             {n===scaleBadgeSet &&
             <div className="current-set">
               <span className="current-set-intro">
-                So far I've reached badge set</span>
+                I've reached badge set</span>
               <span className="current-set-number">{n}</span>
             </div>}
           </div>
@@ -362,15 +460,17 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
           !!badgeSetMilestones && badgeSetMilestones.find(o => o.badge_set === n) ?
             <OverlayTrigger key={`progress-bar-set-${n}`} placement="auto" trigger="click" rootClose
               overlay={
-                <Popover id={`tooltip-${n}`}>
-                  <PopoverTitle>Badge Set {n}</PopoverTitle>
-                  <PopoverContent>
+                <Popover className="progress-tooltip" id={`tooltip-${n}`}>
+                  <Popover.Header>Badge Set {n}</Popover.Header>
+                  <Popover.Body>
                     {`Reached on ${readableDate(badgeSetMilestones.find(o => o.badge_set === n).my_date)}`}
-                  </PopoverContent>
+                  </Popover.Body>
                 </Popover>
               }
             >
-              <div key={n} className="profile-progress-unit">{n}
+              <div key={n} className={`profile-progress-unit ${(n==currentSet) ? "current-set" : ''}`}
+              >
+                {n}
               </div>
             </OverlayTrigger>
           :
@@ -380,13 +480,21 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
         )}
       </div>
     </div>
+    </div>
+      <Button className="scroll-right">
+        <FontAwesomeIcon icon="chevron-right" />
+      </Button>
+      <Button className="scroll-left">
+        <FontAwesomeIcon icon="chevron-left" />
+      </Button>
+    </div>
   </>)
 }
 
 const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
                         badgeTableData}) => {
   return (<>
-    <h3>My Badge Mastery</h3>
+    <h3>My Badge Expertise</h3>
     <UpdateNotice status={updating} />
     <Tabs defaultActiveKey="level1" id="profile-stages-tabs">
       {( badgeLevels != null ) ? badgeLevelTitles.map(blevel =>
@@ -410,8 +518,8 @@ const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
           }
         </Tab>
       )
-      : <div className="tab-pane active show">
-        <Spinner variant="secondary" animation="grow" size="lg" />
+      : <div className="tab-pane active show empty">
+          <Spinner animation="grow" size="lg" className="content-body-spinner" />
         </div>}
     </Tabs>
   </>)
@@ -420,11 +528,20 @@ const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
 const ProfileInfo = ({viewingSelf, firstName, lastName, userEmail,
                       userTimezone}) => {
   return (<>
-    {!viewingSelf && <Badge variant="warning">Viewing student info</Badge>}
-    <FontAwesomeIcon icon="user-circle" size="5x" />
     <span className="profile-name">{firstName} {lastName}</span><br />
-    <span className="profile-email"><FontAwesomeIcon icon="envelope" />{userEmail}</span>&nbsp;
-    <span className="profile-timezone"><FontAwesomeIcon icon="globe-americas" />{userTimezone}</span>
+    <span className="profile-email">
+      {firstName=="fetching" ?
+        <Spinner animation="grow" size="sm" />
+        : <FontAwesomeIcon icon="envelope" />}
+      {userEmail}
+    </span>&nbsp;
+    <span className="profile-timezone">
+      {firstName=="fetching" ?
+        <Spinner animation="grow" size="sm" />
+        : <FontAwesomeIcon icon="globe-americas" />}
+      {userTimezone}
+    </span>
+    <FontAwesomeIcon icon="user-circle" size="5x" />
   </>)
 }
 
@@ -432,8 +549,8 @@ const Profile = (props) => {
   const myDate = new Date();
 
   const userIdParam = parseInt(useParams().userId);
-  console.log('userIdParam');
-  console.log(userIdParam);
+  // console.log('userIdParam');
+  // console.log(userIdParam);
   const { user, dispatch } = useContext(UserContext);
   console.log('User in Profile ++++++++++++++');
   console.log(user);
@@ -537,8 +654,8 @@ const Profile = (props) => {
      text: "I've got a basic grasp of these topics!"},
     {index: 3, slug: "level3", title: "Journeyman",
      text: "I've got a good grasp of these topics!"},
-    {index: 4, slug: "level4", title: "Master",
-     text: "I've really got a solid mastery of these topics!"}
+    {index: 4, slug: "level4", title: "Expert",
+     text: "I've really got a solid expertise in these topics!"}
   ]
 
   return (
@@ -566,6 +683,7 @@ const Profile = (props) => {
         </Col>
 
         <Col className="profile-content-column" xs={12} lg={8}>
+          {!viewingSelf && <Badge variant="warning" className="viewing-student-warning" >Viewing student info</Badge>}
           <Row>
             <Col className="profile-info d-block d-lg-none" xs={12} lg={4}
             >
@@ -585,7 +703,7 @@ const Profile = (props) => {
               />
             </Col>
 
-            <Col className="profile-calendar" xs={12}  xl={6}>
+            <Col className="profile-calendar" xs={12}  md={6}>
               <ProfileCalendar
                 updating={updating}
                 calendarData={calendarData}
@@ -597,7 +715,7 @@ const Profile = (props) => {
               />
             </Col>
 
-            <Col className="profile-classinfo" xs={12} xl={6}>
+            <Col className="profile-classinfo" xs={12} md={6}>
               <ProfileClassInfo updating={updating} classInfo={classInfo}
                 otherClassInfo={otherClassInfo}
               />

@@ -41,7 +41,7 @@ const MyDropdown = ({label, icon, children}) => {
   )
 }
 
-const TopNavbar = () => {
+const TopNavbar = ({pageLoaded, ...props}) => {
     const { user, dispatch } = useContext(UserContext);
 
     const doLogout = () => {
@@ -57,7 +57,9 @@ const TopNavbar = () => {
 
 
     return(
-      <Navbar bg="light" expand="sm" className="fixed">
+      <Navbar bg="light" expand="sm" fixed="top"
+        className={`${!!pageLoaded ? "page-loaded" : ""}`}
+      >
           <LinkContainer to={`/${urlBase}/`}>
             <Navbar.Brand>Paideia</Navbar.Brand>
           </LinkContainer>
@@ -79,6 +81,8 @@ const TopNavbar = () => {
                 <NavLink title="Typing Greek" path="/info/typing-greek" icon='keyboard'  displayAt="sm" />
                 <NavLink title="How It Works" path="/info/how-it-works" icon='cog'  displayAt="sm" />
                 <NavLink title="Known Bugs" path="/info/known-bugs" icon='bug'  displayAt="sm" />
+                <NavLink title="Privacy Policy" path="/info/privacy-policy" icon='user-lock'  displayAt="sm" />
+                <NavLink title="Contact us" path="/contact" icon='envelope'  displayAt="sm" />
               </MyDropdown>
               {user.userRoles && user.userRoles.includes('administrators') &&
               <MyDropdown label="Admin" icon='wrench' >

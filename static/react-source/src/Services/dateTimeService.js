@@ -13,7 +13,7 @@ const readableDateAndTime = myString => {
   } else if ( theDate.isSame(now, 'year') ) {
     output = theDate.local().format("MMM Do [at] h:mma");
   } else if ( !!myString && myString !== "" ) {
-    output = theDate.local().format("MMM Do YYYY [at] h:mma");
+    output = theDate.local().format("MMM Do, YYYY [at] h:mma");
   }
   return output;
 }
@@ -35,7 +35,7 @@ const readableDate = myString => {
   } else if ( theDate.isSame(now, 'year') ) {
     output = theDate.local().format("MMM Do");
   } else if ( !!myString && myString !== "" ) {
-    output = theDate.local().format("MMM Do YYYY");
+    output = theDate.local().format("MMM Do, YYYY");
   }
   return output;
 }

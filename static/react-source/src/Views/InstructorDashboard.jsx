@@ -239,7 +239,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
     <Form role="form"
       id={`dashboard-student-info-${first_name}_${last_name}_${uid}`}
     >
-      <Form.Row >
+      <Row >
         <Col md={3}>
           <Link to={`/${urlBase}/profile/${uid}`}>
             {last_name}, {first_name}
@@ -298,10 +298,10 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
             <FontAwesomeIcon icon="angle-down" size="sm" />
           </Button>
         </Col>
-      </Form.Row>
+      </Row>
       <Collapse in={showStudentDetails}>
         <div className="dashboard-student-details-container">
-      <Form.Row>
+      <Row>
         <Col xs={12} md={6}>
           <h4>Recent Activity</h4>
           <Table className="dashboard-student-info-active" size="sm">
@@ -346,14 +346,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                     formFieldValues[`custom_start%${uid}`], 'LL')}`}
                   onChange={e => setFormFieldValue(e.target.value, `custom_start%${uid}`)}
                 />
-                <InputGroup.Append>
                   <Button variant="outline-warning"
                     disabled={clearingValue}
                     onClick={() => clearFieldValue(`custom_start%${uid}`)}
                   >
                     <FontAwesomeIcon icon="undo-alt" />
                   </Button>
-                </InputGroup.Append>
               </InputGroup>
               <Form.Text>Default is {formatDate(defaults.custom_start, 'LL')}
               </Form.Text>
@@ -376,14 +374,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                     new Date(formFieldValues[`custom_end%${uid}`]), 'LL')}`}
                   onChange={e => setFormFieldValue(e.target.value, `custom_end%${uid}`)}
                 />
-                <InputGroup.Append>
                   <Button variant="outline-warning"
                     disabled={clearingValue}
                     onClick={() => clearFieldValue(`custom_end%${uid}`)}
                   >
                     <FontAwesomeIcon icon="undo-alt" />
                   </Button>
-                </InputGroup.Append>
               </InputGroup>
               <Form.Text>Default is {formatDate(defaults.custom_end, 'LL')}
               </Form.Text>
@@ -412,14 +408,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                         value={formFieldValues[`custom_a_cap%${uid}`] || "default"}
                         onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_a_cap%${uid}`)}
                       />
-                      <InputGroup.Append>
-                        <Button variant="outline-warning"
-                          disabled={clearingValue}
-                          onClick={() => clearFieldValue(`custom_a_cap%${uid}`)}
-                        >
-                          <FontAwesomeIcon icon="undo-alt" />
-                        </Button>
-                      </InputGroup.Append>
+                      <Button variant="outline-warning"
+                        disabled={clearingValue}
+                        onClick={() => clearFieldValue(`custom_a_cap%${uid}`)}
+                      >
+                        <FontAwesomeIcon icon="undo-alt" />
+                      </Button>
                     </InputGroup>
                     <Form.Text>
                       Default is {defaults.custom_a_cap}
@@ -435,14 +429,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                         value={formFieldValues[`custom_b_cap%${uid}`] || "default"}
                         onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_b_cap%${uid}`)}
                       />
-                      <InputGroup.Append>
                         <Button variant="outline-warning"
                           disabled={clearingValue}
                           onClick={() => clearFieldValue(`custom_b_cap%${uid}`)}
                         >
                           <FontAwesomeIcon icon="undo-alt" />
                         </Button>
-                      </InputGroup.Append>
                     </InputGroup>
                     <Form.Text>
                       Default is {defaults.custom_b_cap}
@@ -458,14 +450,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                         value={formFieldValues[`custom_c_cap%${uid}`] || "default"}
                         onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_c_cap%${uid}`)}
                       />
-                      <InputGroup.Append>
                         <Button variant="outline-warning"
                           disabled={clearingValue}
                           onClick={() => clearFieldValue(`custom_c_cap%${uid}`)}
                         >
                           <FontAwesomeIcon icon="undo-alt" />
                         </Button>
-                      </InputGroup.Append>
                     </InputGroup>
                     <Form.Text>
                       Default is {defaults.custom_c_cap}
@@ -482,14 +472,12 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
                         onChange={e => setFormFieldValue(!!isIntegerString(e.target.value) ? parseInt(e.target.value) : null, `custom_d_cap%${uid}`)}
                         className={formFieldValues[`custom_d_cap%${uid}`]===defaults.custom_d_cap ? "default-value" : ""}
                       />
-                      <InputGroup.Append>
                         <Button variant="outline-warning"
                           disabled={clearingValue}
                           onClick={() => clearFieldValue(`custom_c_cap%${uid}`)}
                         >
                           <FontAwesomeIcon icon="undo-alt" />
                         </Button>
-                      </InputGroup.Append>
                     </InputGroup>
                     <Form.Text>
                       Default is {defaults.custom_d_cap}
@@ -519,7 +507,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
             </Alert>
           }
         </Col>
-      </Form.Row>
+      </Row>
       </div>
 
     </Collapse>
@@ -683,7 +671,7 @@ const InstructorDashboard = () => {
           <Form role="form"
             id="dashboard-class-info-form"
           >
-            <Form.Row>
+            <Row>
               <Col className="dashboard-class-basic" xs={12} md={6} lg={4}>
                 <h3>Basic Info<FontAwesomeIcon icon="graduation-cap" /></h3>
                 <Form.Group controlId="institution">
@@ -700,7 +688,7 @@ const InstructorDashboard = () => {
                     onChange={e => setFormFieldValue(e.target.value, "course_section")}
                   ></Form.Control>
                 </Form.Group>
-                <Form.Row>
+                <Row>
                   <Col>
                     <Form.Group controlId="academic_year">
                       <Form.Label>Year</Form.Label>
@@ -719,8 +707,8 @@ const InstructorDashboard = () => {
                       ></Form.Control>
                     </Form.Group>
                   </Col>
-                </Form.Row>
-                <Form.Row>
+                </Row>
+                <Row>
                     <Form.Group controlId="instructor">
                       <Form.Label>Instructor</Form.Label>
                       <Form.Control
@@ -728,7 +716,7 @@ const InstructorDashboard = () => {
                         disabled
                       ></Form.Control>
                     </Form.Group>
-                </Form.Row>
+                </Row>
               </Col>
               <Col className="dashboard-class-key" xs={12} md={6} lg={4}>
                 <h3>Course Registration Key<FontAwesomeIcon icon="key" /></h3>
@@ -784,7 +772,7 @@ const InstructorDashboard = () => {
                     <Form.Text>
                         How much will you require your students to use Paideia? The app will track whether students are meeting these minimum targets.
                     </Form.Text>
-                    <Form.Row>
+                    <Row>
                       <Col>
                         <Form.Group controlId="paths_per_day">
                           <Form.Label>Paths per day</Form.Label>
@@ -803,7 +791,7 @@ const InstructorDashboard = () => {
                           ></Form.Control>
                         </Form.Group>
                       </Col>
-                    </Form.Row>
+                    </Row>
                   </Col>
                 </Row>
               </Col>
@@ -909,7 +897,7 @@ const InstructorDashboard = () => {
                   </tbody>
                 </Table>
               </Col>
-            </Form.Row>
+            </Row>
             <Button variant="primary"
                 type="submit"
                 onClick={updateClassData}

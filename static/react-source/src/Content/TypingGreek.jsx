@@ -50,22 +50,22 @@ class TypingGreekContent extends Component {
             <h5>Windows</h5>
             <ul>
               <li>
-                <a href="http://www.ellopos.net/elpenor/greek-texts/greek-fonts.asp?pg=3">Text-based tutorial</a>
+                <a href="https://www.youtube.com/watch?v=M49k3DTsBlM">Windows 11 video (instructions start at 4:40)</a>
               </li>
               <li>
-                <a href="http://www.dramata.com/Ancient%20polytonic%20Greek%20in%20Windows.pdf">Diagram showing position of letters</a>
-              </li>
-              <li>
-                <a href="http://www.ellopos.net/elpenor/greek-texts/gr-pol-keys/greek-keyboard.asp">Interactive page showing how to type different accent combinations</a>
-              </li>
-              <li>
-                <a href="https://vimeo.com/198227293">Windows 10 video (including optional installation of SBLGreek font)</a>
+                <a href="https://www.youtube.com/watch?v=9ketasaCpOY">Windows 10 video (including optional installation of SBLGreek font)</a> (<a href="https://www.ctsfw.edu/wp-content/uploads/2016/02/Greek-Unicode-Keyboard-Input-Windows-10.pdf">text-based instructions</a>)
               </li>
               <li>
                 <a href="http://www.youtube.com/watch?v=UkcHC3aVcsc&feature=share&list=PLThwDZhkt_VeRDppYmwlQRUI2ekaU4zSo">Windows 7 video</a>
               </li>
               <li>
                 <a href="http://www.youtube.com/watch?v=1sZtLxFNILw&feature=share&list=PLThwDZhkt_VeRDppYmwlQRUI2ekaU4zSo">Windows Vista video</a>
+              </li>
+              <li>
+                <a href="http://www.dramata.com/Ancient%20polytonic%20Greek%20in%20Windows.pdf">Diagram showing position of letters</a>
+              </li>
+              <li>
+                <a href="http://www.ellopos.net/elpenor/greek-texts/gr-pol-keys/greek-keyboard.asp">Interactive page showing how to type different accent combinations</a>
               </li>
             </ul>
           </Collapsible>
@@ -107,6 +107,15 @@ class TypingGreekContent extends Component {
             <p>The trick is knowing which "dead key" to use. Each operating system uses slightly different dead keys. The instructions here on Paideia for activating your Greek keyboard include links to keyboard layout charts for most operating systems. These should show you which dead key to use for each accent mark.</p>
 
             <p>Usually the dead key for the breathing marks is either the ; or ' key. Try each one unshifted, and then try holding shift with each of them. The other accent mark you will have to type is the acute accent (rises to the right). It is also usually typed with either ; or ' (shifted or unshifted) as the dead key. So experiment with those keys. If you can't find the acute accent there, try each of the punctuation keys (anything other than a letter) with a vowel to see whether it acts as a dead key and what it produces. It may take a bit of trial and error but you should find the acute accent in short order.</p>
+
+            <ul>
+              <li>
+                <a href="http://patristica.net/graeca/how-to-type-in-greek/">Diagrams showing dead key combinations for each accent (Windows)</a>
+              </li>
+              <li>
+                <a href="http://www.dramata.com/Ancient%20polytonic%20Greek%20in%20Windows.pdf">Alternate keyboard diagram and list of dead key combinations (Windows)</a>
+              </li>
+            </ul>
           </Collapsible>
           <Collapsible
             linkText="iOS and Android mobile devices"

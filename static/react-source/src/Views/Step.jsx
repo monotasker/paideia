@@ -5,24 +5,102 @@ import {
     Button,
     Form,
     OverlayTrigger,
-    Popover,
     Tooltip,
-    Badge
+    Badge,
+    ButtonGroup
 } from "react-bootstrap";
+import Popover from "react-bootstrap/Popover";
 import { useHistory, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import marked from "marked";
+import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { urlBase } from "../variables";
 import AudioPlayer from "../Components/AudioPlayer";
-import { evaluateAnswer, getPromptData } from "../Services/stepFetchService";
+import { evaluateAnswer, set_lessons_viewed, getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
 import useEventListener from "../Hooks/UseEventListener";
 import { returnStatusCheck } from "../Services/utilityService";
 
+const Instructions = ({instructions}) => {
+
+  const inst_set = {
+    "Please answer in Greek.": ["font", "Γ"],
+    "Please answer in English.": ["icon", "font"],
+    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"],
+    "Choose one of the options listed.": ["icon", "check-circle"]
+  }
+  const instructions_extra = [
+    "Remember to vary the word order in your Greek clauses"]
+
+  const icons = instructions.map( inst =>
+    Object.keys(inst_set).includes(inst) ?
+      (
+        <OverlayTrigger key={inst} placement="top"
+          overlay={<Tooltip id={`tooltip-instruction-${inst}`}>{inst}</Tooltip>}
+          trigger={['click', 'focus', 'hover']}
+        >
+            { inst_set[inst][0] === "font" ? (
+              <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
+              ) : (
+              <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
+              )
+            }
+        </OverlayTrigger>
+      )
+      : ""
+  );
+
+  const extra_strs = instructions.filter( inst => {
+    return !Object.keys(inst_set).includes(inst);
+  });
+
+  if ( extra_strs.length > 0 ) {
+    const extra = extra_strs.map( inst => <li key={inst} ><FontAwesomeIcon key="1" icon="info-circle" size="sm" />{inst}</li> );
+    const extra_icon = (
+      <OverlayTrigger key="extra-instruction-trigger" placement="top"
+        overlay={<Tooltip id="tooltip-instruction-extra"><ul>{extra}</ul></Tooltip>}
+        trigger={['click', 'hover', 'focus']}
+      >
+        <a className='instruction-icon'>
+          <FontAwesomeIcon key="1" icon="info-circle" />
+        </a>
+      </OverlayTrigger>
+    );
+    icons.push(extra_icon);
+  }
+  return icons;
+}
+
+const Slidedecks = ({decks}) => {
+  return(
+    <OverlayTrigger placement="top" trigger="click" rootClose
+      overlay={
+        <Popover id="lessons-tooltip" >
+          <Popover.Header>Related lessons</Popover.Header>
+          <Popover.Body>
+            <ul>
+              {Object.entries(decks).map(([id, label]) =>
+                <li key={label}>
+                  <FontAwesomeIcon icon="video" size="sm" />
+                  <Link to={`/${urlBase}/videos/${id}`}>
+                    {label}
+                  </Link>
+                </li>
+              )}
+            </ul>
+          </Popover.Body>
+        </Popover>
+    }>
+      <a className='instruction-icon lessons-icon'>
+        <FontAwesomeIcon  icon="video" />
+      </a>
+    </OverlayTrigger>
+  )
+}
 
 const Step = (props) => {
   console.log(props);
@@ -75,6 +153,13 @@ const Step = (props) => {
     (event) => {event.preventDefault()},
     document.querySelector('.responder textarea')
   );
+
+  useEventListener("click",
+    () => {
+      set_lessons_viewed();
+      setPromptText(null);
+    },
+    document.querySelector('.new-lessons-dismiss'));
 
   useEventListener("click mouseover", setPromptZIndex,
     document.querySelector('.prompt-text'));
@@ -175,7 +260,9 @@ const Step = (props) => {
     'map': () => (<Button className="back_to_map"
                     key="back_to_map"
                     onClick={mapAction}>
-                    <FontAwesomeIcon icon="map" /> Back to map
+                    <FontAwesomeIcon icon="map" />
+                      <span className="short-label">Map</span>
+                      <span className="long-label">Back to map</span>
                   </Button>),
     'retry': () => (<Button className="retry" variant="warning"
                       key="retry"
@@ -185,54 +272,13 @@ const Step = (props) => {
     'continue': () => (<Button className="continue" variant="success"
                         key="continue"
                         onClick={continueAction}>
-                        <FontAwesomeIcon icon="walking" /> Continue here
+                        <FontAwesomeIcon icon="walking" />
+                          <span className="short-label">Continue</span>
+                          <span className="long-label">Continue here</span>
                        </Button>)
   }
 
-  const inst_set = {
-    "Please answer in Greek.": ["font", "Γ"],
-    "Please answer in English.": ["icon", "font"],
-    "Please answer with a complete Greek clause.": ["icon", "arrows-alt-h"],
-    "Choose one of the options listed.": ["icon", "check-circle"]
-  }
-  const instructions_extra = [
-    "Remember to vary the word order in your Greek clauses"]
 
-  const make_instructions = () => {
-    const icons = stepData.instructions.map( inst =>
-      Object.keys(inst_set).includes(inst) ?
-        (
-          <OverlayTrigger key={inst} placement="top"
-            overlay={<Tooltip id={`tooltip-${inst}`}>{inst}</Tooltip>}
-          >
-              { inst_set[inst][0] === "font" ? (
-                <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
-                ) : (
-                <a className='instruction-icon'><FontAwesomeIcon key="1" icon={inst_set[inst][1]} /></a>
-                )
-              }
-          </OverlayTrigger>
-        )
-        : ""
-    );
-    const extra_strs = stepData.instructions.filter( inst => {
-      return !Object.keys(inst_set).includes(inst);
-    });
-    if ( extra_strs.length > 0 ) {
-      const extra = extra_strs.map( inst => <li key={inst} ><FontAwesomeIcon key="1" icon="info-circle" size="sm" />{inst}</li> );
-      const extra_icon = (
-        <OverlayTrigger key="extra-instruction-trigger" placement="top"
-          overlay={<Tooltip id="tooltip-extra"><ul>{extra}</ul></Tooltip>}
-        >
-          <a className='instruction-icon'>
-            <FontAwesomeIcon key="1" icon="info-circle" />
-          </a>
-        </OverlayTrigger>
-      );
-      icons.push(extra_icon);
-    }
-    return icons;
-  }
 
   return (
     <Row id="step_row" className="stepPane"
@@ -271,30 +317,6 @@ const Step = (props) => {
                   ogaSource={`${stepData.download_path}/${stepData.audio.oga}`}
                 />
               }
-              { !!stepData.slidedecks &&
-                <OverlayTrigger placement="top" trigger="click" rootClose
-                  overlay={
-                    <Popover id="tooltip-videos">
-                      <Popover.Title>Related lessons</Popover.Title>
-                      <Popover.Content>
-                        <ul>
-                          {Object.entries(stepData.slidedecks).map(([id, label]) =>
-                            <li key={label}>
-                              <Link to={`/${urlBase}/videos/${id}`}>
-                                <FontAwesomeIcon icon="video" size="sm" />
-                                {label}
-                              </Link>
-                            </li>
-                          )}
-                        </ul>
-                      </Popover.Content>
-                    </Popover>
-                }>
-                  <a className='instruction-icon'>
-                    <FontAwesomeIcon  icon="video" />
-                  </a>
-                </OverlayTrigger>
-              }
             </div>
           </CSSTransition>
           <CSSTransition
@@ -315,7 +337,14 @@ const Step = (props) => {
             <div className="responder-text">
           { !!stepData.response_form && !responded && (
             <Form onSubmit={submitAction}>
-              { !!stepData.instructions && make_instructions()}
+              <div className="instruction-row">
+                { !!stepData.instructions &&
+                  <Instructions instructions={stepData.instructions} />
+                }
+                { !!stepData.slidedecks &&
+                  <Slidedecks decks={stepData.slidedecks} />
+                }
+              </div>
               {widgets[stepData.response_form.form_type]()}
               <Button variant="success" type="submit" className="submit_reply">
                 { evaluatingStep ? (
@@ -325,7 +354,12 @@ const Step = (props) => {
               </Button>
             </Form>
           )}
-            { !!respButtons && respButtons.length > 0 && respButtons.map(btn => response_btns[btn]()) }
+            { !!respButtons && respButtons.length > 0 && (
+            <ButtonGroup className="responder-btn-group">
+              {respButtons.map(btn => response_btns[btn]())}
+            </ButtonGroup>
+            )
+            }
             { user.userRoles.includes('administrators') && (
               <div className="admin-info">
                 <span className="step-id">step {stepData['sid']},</span>&nbsp;

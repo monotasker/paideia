@@ -18,7 +18,7 @@ import { useLocation,
          useParams
 } from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
-import marked from "marked";
+import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 import Select from 'react-select';
@@ -474,7 +474,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
               </FormControl>
             </Form.Group>
             : <Badge pill
-                variant={queryStatusVariants[queryStatusList[queryStatus]]}
+                bg={queryStatusVariants[queryStatusList[queryStatus]]}
                 className={`${level}-display-op-status display-op-status`}
               >
                 <FontAwesomeIcon size="sm"
@@ -792,7 +792,7 @@ const ScopeView = ({scope, nonStep, singleStep,
   if ( ['class', 'students'].includes(scope) && !noGroupsAvailable ) {
      classSelectOptions = myCourses.map( c => {
         const myUnreadCounter = c.unread_count > 0 ?
-              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" />{c.unread_count}</Badge>
+              <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" />{c.unread_count}</Badge>
               : "";
         const myQueryCount = c.queries_count || "0";
         // if ( c.id===viewGroup ) {
@@ -801,7 +801,7 @@ const ScopeView = ({scope, nonStep, singleStep,
         return(
           {value: c.id,
            label: <span>{c.institution}, {c.year}, {c.term}, {c.section}, {c.instructor}&nbsp;&nbsp;
-            <Badge variant="secondary">{myQueryCount}</Badge>
+            <Badge bg="secondary">{myQueryCount}</Badge>
             {myUnreadCounter}
            </span>,
            labelText: `${c.institution}, ${c.year}, ${c.term}, ${c.section}, ${c.instructor}`
@@ -1032,9 +1032,9 @@ const ScopesFrame = ({viewScope,
           onClick={() => handleScopeChange('user')}
         >
           <FontAwesomeIcon icon="user" />Me
-          <Badge variant="secondary">{userTotalCount || "0"}</Badge>
+          <Badge bg="secondary">{userTotalCount || "0"}</Badge>
           {!!userUnreadCount &&
-            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
+            <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
           }
         </Button>
         {!!user.userLoggedIn && !!user.classInfo &&
@@ -1044,9 +1044,9 @@ const ScopesFrame = ({viewScope,
           onClick={() => handleScopeChange('class')}
         >
           <FontAwesomeIcon icon="users" />Classmates
-          <Badge variant="secondary">{classmatesTotalCount}</Badge>
+          <Badge bg="secondary">{classmatesTotalCount}</Badge>
           {!!classmatesUnreadCount &&
-            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classmatesUnreadCount}</Badge>
+            <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classmatesUnreadCount}</Badge>
           }
         </Button>
         }
@@ -1057,9 +1057,9 @@ const ScopesFrame = ({viewScope,
             onClick={() => handleScopeChange('students')}
           >
             <FontAwesomeIcon icon="users" />Students
-            <Badge variant="secondary">{studentsTotalCount}</Badge>
+            <Badge bg="secondary">{studentsTotalCount}</Badge>
             {!!studentsUnreadCount &&
-              <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {studentsUnreadCount}</Badge>
+              <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {studentsUnreadCount}</Badge>
             }
           </Button>
         }
@@ -1069,9 +1069,9 @@ const ScopesFrame = ({viewScope,
           onClick={() => handleScopeChange('public')}
         >
           <FontAwesomeIcon icon="globe-americas" />Others
-          <Badge variant="secondary">{otherTotalCount || "0"}</Badge>
+          <Badge bg="secondary">{otherTotalCount || "0"}</Badge>
           {!!otherUnreadCount &&
-            <Badge variant="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
+            <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
           }
         </Button>
       </div>
@@ -1851,6 +1851,7 @@ const QueriesView = () => {
             <Form.Check inline label="Only unread"
               id="only-unread-checkbox"
               type="switch"
+              className="small"
               // defaultValue={filterUnread}
               isSelected={filterUnread}
               onChange={e => setFilterUnread(!filterUnread)}
@@ -1858,6 +1859,7 @@ const QueriesView = () => {
             <Form.Check inline label="Only unanswered"
               id="only-unanswered-checkbox"
               type="switch"
+              className="small"
               // defaultValue={filterUnanswered}
               isSelected={filterUnanswered}
               onChange={e => setFilterUnanswered(!filterUnanswered)}

@@ -16,13 +16,13 @@ const Collapsible = ({linkElement="h3",
                       linkText,
                       children,
                       open=false,
-                      styleName="",
+                      className="",
                       ...otherProps}) => {
   const [isOpen, setOpen] = useState(open);
   const Tag = linkElement;
 
   return (
-    <Card {...otherProps} className={styleName} >
+    <Card {...otherProps} className={className} >
       <Card.Body>
         <a onClick={() => setOpen(!isOpen)}
           aria-controls="collapse-pane"

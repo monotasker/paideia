@@ -21,8 +21,6 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
   const [ onCurrentMonth, setOnCurrentMonth ] = useState(
     ( myYear === year && myMonth === month ) ? true : false );
 
-  console.log(`parentUpdating ${parentUpdating}`);
-
   useEffect(() => {
     setMyMonthData(monthData);
   }, [monthData]);
@@ -80,14 +78,12 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
     }
   );
 
-  console.log(`onCurrentMonth ${onCurrentMonth}`);
-
   return (
     <React.Fragment>
     <div className="calendar">
       <div className="month-indicator">
         {!parentUpdating ? <a onClick={() => changeMonthAction(myYear, myMonth, "back")}> <FontAwesomeIcon icon="chevron-left" /> </a> :
-         <Spinner animation="grow" />
+         <Spinner animation="grow" size="sm" />
         }
         {myMonthName} {myYear}
         {!parentUpdating ?
@@ -96,7 +92,7 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
           >
               <FontAwesomeIcon icon="chevron-right" />
           </a> :
-          <Spinner animation="grow" />
+          <Spinner animation="grow" size="sm" />
         }
       </div>
       <div className="day-of-week">
@@ -105,8 +101,9 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
         )}
         <div className="summary heading">Days on target</div>
       </div>
-      <div className="date-grid">
-          {(!updating && myMonthData) ? myMonthData.map((wk, index) => {
+      {(!updating && myMonthData) ?
+        <div className="date-grid">
+          {myMonthData.map((wk, index) => {
               return (
                 <React.Fragment key={wk}>
                 {wk.map(d =>
@@ -117,15 +114,19 @@ const Calendar = ({year, month, monthData, user, dailyQuota, weeklyQuota,
                       </span>
                   </div>
                 )}
-                 <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
-                   {weekCounts[index][0]} {weekCounts[index][1] ? <FontAwesomeIcon icon="check-circle" />
-                   : <FontAwesomeIcon icon="exclamation-triangle" />}
-                 </div>
+                <div className={`summary row${index} ${weekCounts[index][1] ? "success" : "failure"}`}>
+                  {weekCounts[index][0]} {weekCounts[index][1] ? <FontAwesomeIcon icon="check-circle" />
+                  : <FontAwesomeIcon icon="exclamation-triangle" />}
+                </div>
                 </React.Fragment>
               )
             }
-          ) : <Spinner animation="grow" />}
+          )}
       </div>
+      :
+      <Spinner className="calendar-updating-spinner" animation="grow" size="sm" variant="seconary" />
+      }
+
     </div>
     <span className="calendar-target-message">My target is at least {myDailyQuota} paths per day, {myWeeklyQuota} days per week.</span>
     </React.Fragment>

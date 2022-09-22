@@ -11,11 +11,11 @@ import {
   Row,
   Col,
   Accordion,
-  Card,
   Button,
   ListGroup,
   Spinner,
-  ResponsiveEmbed
+  OverlayTrigger,
+  Popover,
 } from "react-bootstrap";
 import {
   CSSTransition,
@@ -76,16 +76,18 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
   return  (
     <Accordion defaultActiveKey={!!defaultSet ? defaultSet : 0}>
       { !!sets && sets.map(myset =>
-        <Card key={`badgeset_header_${myset}`} id={`badgeset_header_${myset}`}>
-          <Card.Header>
-            <Accordion.Toggle as={Button} variant="link" eventKey={myset}>
-              <span className="lessonLink-set">{`Badge set ${myset}`}</span><br />
-              <span className="lessonLink-grammar"><FontAwesomeIcon icon="lightbulb" />{setTitles[myset][0]}</span><br />
-              <span className="lessonLink-vocab"><FontAwesomeIcon icon="sort-alpha-down" />{setTitles[myset][1]}</span>
-            </Accordion.Toggle>
-          </Card.Header>
-          <Accordion.Collapse eventKey={myset}>
-            <Card.Body>
+        <Accordion.Item eventKey={myset}
+          key={`badgeset_header_${myset}`}
+          id={`badgeset_header_${myset}`}
+        >
+          <Accordion.Header>
+            <ul>
+            <li className="lessonLink-set">{`Badge set ${myset}`}</li>
+            <li className="lessonLink-grammar"><FontAwesomeIcon icon="lightbulb" />{setTitles[myset][0]}</li>
+            <li className="lessonLink-vocab"><FontAwesomeIcon icon="sort-alpha-down" />{setTitles[myset][1]}</li>
+            </ul>
+          </Accordion.Header>
+          <Accordion.Body >
               <ListGroup>
                 {lessons.filter(l => l.lesson_position.toString().slice(0, -1) === myset.toString()).map(i =>
                     <ListGroup.Item key={i.title}
@@ -103,9 +105,8 @@ const LessonList = ({defaultSet, lessons, setVideoHandler, activeLesson}) => {
                     </ListGroup.Item>
                 )}
               </ListGroup>
-            </Card.Body>
-          </Accordion.Collapse>
-        </Card>
+          </Accordion.Body>
+        </Accordion.Item>
       )}
     </Accordion>
   )
@@ -198,6 +199,17 @@ const Videos = (props) => {
     setActiveLessonId(id);
   }
 
+  const infoPopover = (
+    <Popover>
+      <Popover.Header></Popover.Header>
+      <Popover.Body>
+        Click on the icon beside each lesson title to see which badges are touched on in the video.
+
+        Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.
+      </Popover.Body>
+    </Popover>
+  );
+
   return (
     <Row className="videos-component content-view">
       <Col className="">
@@ -217,22 +229,18 @@ const Videos = (props) => {
           </Col>
 
           <Col xs={{span: 12, order: 1}} md={{span: 8, order: 2}}
-            className="video-display"
+            className="video-display-column"
           >
+            <Row className="video-display-row">
 
-            <CSSTransition
+            {/* <CSSTransition
               in={!activeLessonId}
               timeout={200}
               appear={true}
               classNames="youtube-container"
-              unmountOnExit={true}
+              unmountOnExit={false}
             >
-              <Col className="youtube-container empty">
-                <h2>Choose a Lesson</h2>
-                <p> Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
-                <p> Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
-              </Col>
-            </CSSTransition>
+            </CSSTransition> */}
 
             <SwitchTransition>
               <CSSTransition
@@ -248,7 +256,7 @@ const Videos = (props) => {
                     <div className="iframe-mask">
                       <Spinner animation="grow" variant="secondary" />
                     </div>
-                    <ResponsiveEmbed aspectRatio="16by9">
+                    {!!activeLessonId ?
                       <iframe
                         title={`lesson display: lesson ${activeLessonId}`}
                         src={activeLessonSrc}
@@ -257,10 +265,40 @@ const Videos = (props) => {
                         allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
                       >
                       </iframe>
-                    </ResponsiveEmbed>
+                      :
+                      <div className="youtube-content">
+                        <h2>Choose a Lesson</h2>
+                        <p> Pick a badge set from the list here to see the related video lessons
+                          <OverlayTrigger key="info-popover-trigger"
+                            placement="bottom"
+                            trigger="click"
+                            overlay={infoPopover}
+                          >
+                            <Button variant="link">
+                              <FontAwesomeIcon icon="info-circle" />
+                            </Button>
+                          </OverlayTrigger>
+                        </p>
+                      </div>
+                    }
                   </div>
               </CSSTransition>
             </SwitchTransition>
+            </Row>
+            <Row className="lessonlist-bottom">
+              <Col xs={{span: 12, order: 2}} md={{span: 4, order: 1}}
+                className="lessonlist"
+              >
+                { lessons.length !== 0 &&
+                <LessonList
+                  defaultSet={defaultSet}
+                  lessons={lessons}
+                  setVideoHandler={setOpenVideo}
+                  activeLesson={activeLessonId}
+                />
+                }
+              </Col>
+            </Row>
 
           </Col>
         </Row>

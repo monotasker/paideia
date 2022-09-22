@@ -1,5 +1,5 @@
-#! /usr/bin/python3.6
-# -*- coding: utf-8 -*-
+#! /usr/bin/python3.9
+# encoding: utf-8
 from copy import copy
 from datetime import datetime
 from datetime import timedelta
@@ -9,7 +9,7 @@ from itertools import permutations
 import os
 from traceback import format_exc, print_exc
 # from gluon.contrib.generics import pdf_from_html
-from gluon.serializers import json as json_serializer
+from gluon.serializers import custom_json, json as json_serializer
 from gluon.utils import web2py_uuid
 from itertools import chain
 import json
@@ -26,6 +26,7 @@ import pytz
 import re
 import stripe
 import time
+from typing import List
 # from pydal.objects import Rows
 
 from gluon._compat import urllib2, urlencode, urlopen, to_bytes, to_native
@@ -37,6 +38,107 @@ if 0:
     response = current.response
     request = current.request
     db = current.db
+
+
+def contact():
+    """
+    Send an email to the contact address.
+
+    expects request parameters "subject", "return_address", and "body"
+    as well as "token" for the recaptcha token
+    """
+    request = current.request
+
+    try:
+        if request.method == "POST":
+            # check recaptcha
+            token = request.vars['token']
+            keydata = {}
+            with open('applications/paideia/private/app.keys', 'r') as keyfile:
+                for line in keyfile:
+                    k, v = line.split()
+                    keydata[k] = v
+            params = urlencode({
+                'secret': keydata['captcha3_private_key'],
+                'response': token
+            }).encode('utf-8')
+            recap_request = urllib2.Request(
+                url="https://www.google.com/recaptcha/api/siteverify",
+                data=to_bytes(params),
+                headers={'Content-type': 'application/x-www-form-urlencoded',
+                        'User-agent': 'reCAPTCHA Python'})
+            httpresp = urlopen(recap_request)
+            content = httpresp.read()
+            httpresp.close()
+            response_dict = json.loads(to_native(content))
+
+            if response_dict["success"] != True or response_dict["score"] < 0.5:
+                response = current.response
+                response.status = 403
+                return json_serializer({'status': 'forbidden',
+                                        'reason': 'Recaptcha check failed',
+                                        'error': 'You may be a robot'})
+
+            # Check for empty fields
+            for field in ['subject', 'return_address', 'body',
+                        'first_name', 'last_name']:
+                if request.vars[field] in ["", None, False]:
+                    response = current.response
+                    response.status = 400
+                    return json_serializer({'status': 'bad request',
+                                            'reason': 'Missing request data',
+                                            'error': 'Must supply ${}'.format(field)})
+
+            email_body = "Message from {} {}:\n{}".format(
+                request.vars['first_name'],
+                request.vars['last_name'], request.vars['body_text'])
+
+            if current.mail and current.mail.send(
+                    to=current.mail.settings.sender,
+                    reply_to=request.vars['return_address'],
+                    subject=request.vars['subject'],
+                    message=email_body):
+                return json_serializer({'result': 'Email sent',
+                                        'email_text': email_body,
+                                        'email_subject': request.vars['subject'],
+                                        'return_address': request.vars['return_address'],
+                                        'first_name': request.vars['first_name'],
+                                        'last_name': request.vars['last_name']})
+        else:
+            response = current.response
+            response.status = 400
+            # not using POST method
+            return json_serializer({'status': 'bad request',
+                        'reason': f'${request.method} not a valid method ' \
+                                'for this endpoint',
+                        'error': None})
+    except Exception:
+        response = current.response
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function api.contact',
+                                'error': format_exc()})
+
+
+def content_pages():
+    """
+    Return a list of the text for each content page matching provided tags.
+    """
+    db = current.db
+    request = current.request
+    tag_list = request.vars['tag_list']
+    if request.method == "POST":
+        mypages = db(db.content_pages.topics.contains(tag_list)
+                     ).select().as_list()
+        return json_serializer(mypages)
+    else:
+        response = current.response
+        response.status = 400
+        return json_serializer({'status': 'bad request',
+                    'reason': f'${request.method} not a valid method ' \
+                               'for this endpoint',
+                    'error': None})
 
 
 def download():
@@ -57,22 +159,34 @@ def get_prompt():
 
     Private api method to handle calls from the react front-end.
 
+    Expects the following variables in the call payload ()
+        loc: str
+        repeat: bool = False
+        response_string: str
+        set_review: bool
+        path: int = None
+        step: int = None
+        set_blocks: Dict = None
+        new_user: bool = false
+        pre_bug_step_id: int = None
+        testing: bool = False
+
     Returns:
         JSON object with the following keys:
 
-        sid: int
-        prompt_text: string
         audio: dict
-        widget_img: string
+        bg_image: string
+        sid: int
+        prompt_text: str
+        widget_img: str
         instructions: ???
         slidedecks: dict
-        bg_image: string
-        loc: string
-        response_buttons: []
+        loc: str
+        response_buttons: list(str)
         response_form: {form_type: "text", values: null}
         bugreporter: ???
         pre_bug_step_id: int
-        npc_image: string
+        npc_image: str
         completed_count: int
         category: int
         pid: int
@@ -94,12 +208,38 @@ def get_prompt():
             if k in stepargs.keys() \
                     and k not in ['loc', 'new_user', 'response_string']:
                 stepargs[k] = v
+        # handle setting of 'loc' or 'new_user' in testing scenario
+        if request.vars['testing'] is True:
+            # stepargs['loc'] = request.vars['loc']
+            if request.vars['new_user'] is True:
+                stepargs['new_user'] = request.vars['new_user']
+
+        # handle setting of badge set review level
         if session.set_review and session.set_review > 0:
             stepargs['set_review'] = session.set_review
         else:
             stepargs['set_review'] = False
         resp = Walk(new_user=new_user).start(myloc, **stepargs)
         return json_serializer(resp)
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
+
+
+def set_viewed_slides():
+    """
+    Sets a user's "viewed_slides" value of the stored session data to True
+    """
+    auth = current.auth
+    if auth.is_logged_in():
+        # find the current user's session data
+        db(db.session_data.name == auth.user_id
+           ).update(viewed_slides=True)
+        # update the "viewed_slides" value
+        db.commit()
+        return json_serializer({'message': 'set "viewed_slides" to "True"'})
     else:
         response = current.response
         response.status = 401
@@ -157,7 +297,7 @@ def _fetch_other_coursedata(uid, current_class, mydatetime):
                                              'last_name': myprof['last_name'],
                                              'id': myprof['id']}
     myclasses_prior = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) < mydatetime]
-    myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) >= mydatetime]
+    myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['start_date']) >= mydatetime]
     if debug:
         print ("=======================================================")
         for c in myclasses_prior:
@@ -297,7 +437,7 @@ def do_password_reset():
     """
     Actually allow a user to reset their password after email link followed.
     """
-    debug = False
+    debug = 0
     request = current.request
     response = current.response
 
@@ -691,7 +831,7 @@ def validate_class_key():
 
 
 def join_class_group():
-    debug = False
+    debug = 0
     event = None
     class_key = request.vars['course_key']
     class_id = int(request.vars['course_id'])
@@ -943,7 +1083,7 @@ def check_login():
 
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
-    debug = False
+    debug = 0
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
             myposts = db(
@@ -2473,16 +2613,31 @@ def get_vocabulary():
     mylevel :: int :: the maximum badge set currently reached by user if
                       logged in
     """
-    auth = current.auth
+    debug = 0
+    db = current.db
 
     mynorm = GreekNormalizer()
     mylemmas = []
     for l in db(db.lemmas.first_tag == db.tags.id
                 ).iterselect(orderby=db.tags.tag_position):
+        inflected_fields = [l['lemmas'][n] if l['lemmas'][n] is not None
+                            else " " for n in
+                            ['real_stem',
+                            'genitive_singular',
+                            'future',
+                            'aorist_active',
+                            'perfect_active',
+                            'aorist_passive',
+                            'perfect_passive',
+                            'other_irregular']]
+        # if debug: print(inflected_fields)
+        inflected_forms_string = ' '.join(inflected_fields)
+        normalized_inflected_string = mynorm.normalize(inflected_forms_string)
 
         myrow = {'id': l['lemmas']['id'],
                  'accented_lemma': l['lemmas']['lemma'],
                  'normalized_lemma': mynorm.normalize(l['lemmas']['lemma']),
+                 'normalized_other_forms': normalized_inflected_string,
                  'part_of_speech': l['lemmas']['part_of_speech'],
                  'glosses': l['lemmas']['glosses'],
                  'times_in_nt': l['lemmas']['times_in_nt'],
@@ -2549,38 +2704,47 @@ def get_profile_info():
     request defaults to the logged in user.
 
     Returns a json object with the following keys:
-            the_name (str):             User's name from auth.user as lastname,
-                                            firstname
-            user_id(int):               The requested user's id.
-            tz(str??):                  User's time zone from auth.user
-                                            (extended in db.py)
-            email(str):                 User's email
-            starting_set(int):          badge set at which the user began
-                                            his/her current course section
-            end_date(str??):            ending date for user's current course
-                                            section
-            cal(html helper obj):       html calendar with user path stats
-                                            (from Stats.monthcal)
-            max_set(int):               Furthest badge set reached to date by
-                                            user (from Stats.max)
+            answer_counts(list):        List of counts of right and wrong
+                                            answers for each active day
             badge_levels(dict):         Dictionary with badge levels (int) as
                                             keys and a list of badge names (or
                                             tag: int) as each value.
+            badge_set_dict():           badge_set_dict,
+            badge_set_milestones(list): List of 'upgrades' of the highest badge
+                                            set and their dates
             badge_table_data(list):     A list of dictionaries with info on
                                             user badge progress (from
                                             Stats.active_tags)
-            badge_set_milestones(list): List of 'upgrades' of the highest badge
-                                            set and their dates
-            answer_counts(list):        List of counts of right and wrong
-                                            answers for each active day
+            cal(html helper obj):       html calendar with user path stats
+                                            (from Stats.monthcal)
             chart1_data(dict):          dictionary of data to build stats chart
                                             in view (from get_chart1_data)
-            reviewing_set():            session.set_review,
-            badge_set_dict():           badge_set_dict,
             class_info:                 dict of course information if user is
                                             currently enrolled in a course
+            days_per_week(int):         number of active days per week required
+                                        for user in course
+            email(str):                 User's email
+            max_set(int):               Furthest badge set reached to date by
+                                            user (from Stats.max)
+            other_class_info(dict):     Information about the user's other
+                                        classes with the keys "prior_classes"
+                                        and "latter_classes". Each of these
+                                        contains a list of objects, each
+                                        representing data on one class
+            paths_per_day(int):         number of paths per day required for
+                                        user for the current course.
+            reviewing_set():            session.set_review
+            starting_set(int):          badge set at which the user began
+                                            his/her current course section
+            the_name (dict):            User's name from auth.user as
+                                        dictionary with 'last_name',
+                                        'first_name', and a 'namestring'
+                                        formatted first, last
+            tz(str):                    User's time zone from auth.user
+                                            (extended in db.py)
+            user_id(int):               The requested user's id.
     """
-    debug = False
+    debug = 0
     db = current.db
     auth = current.auth
     session = current.session
@@ -2622,6 +2786,7 @@ def get_profile_info():
         stats = Stats(user.id)
 
         # get user's current course
+        if debug: print('getting current course')
         myc = _fetch_current_coursedata(user.id, datetime.now(timezone.utc))
         myc_id = myc['classes']['id'] if 'classes' in myc else 0
         myc_other = _fetch_other_coursedata(user.id, myc_id,
@@ -2634,24 +2799,33 @@ def get_profile_info():
 
         # tab1
 
+        if debug: print('getting user data')
         name = stats.get_name()
         tz = user.time_zone
         email = user.email
+        if debug: print('getting max set')
         max_set = stats.get_max()
+        if debug: print('getting badge_levels')
         badge_levels = stats.get_badge_levels()
+        if debug: print('getting active_tags')
         badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
 
         # tab2
+        if debug: print('getting monthcal')
         mycal = stats.monthcal()
         # badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
         # sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
         # steps_most_wrong = stats.steps_most_wrong(badge_table_data)
 
         # tab5
+        if debug: print('getting chart1_data')
         mydata = get_chart1_data(user_id=user.id)
         chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
+        if debug: print('getting milestones')
         badge_set_milestones = mydata['badge_set_milestones']
+        if debug: print('getting answer_counts')
         answer_counts = mydata['answer_counts']
+        if debug: print('getting badge_set_dict')
         badge_set_dict = {}
         set_list_rows = db().select(db.tags.tag_position, distinct=True)
         set_list = sorted([row.tag_position for row in set_list_rows
@@ -2738,7 +2912,7 @@ def update_student_data():
         custom_d_cap (int)
         class_section (int reference classes)
     """
-    debug = True
+    debug = 0
     response = current.response
     mydata = {k: v for k, v in request.vars.items()
               if k not in ["name", "class_section"]}
@@ -2826,7 +3000,7 @@ def update_student_data():
                             "updated_record": myresult}, default=my_custom_json)
 
 def promote_user():
-    debug = 1
+    debug = 0
     if debug: print("in api::promote_user ----------------------------")
     uid = request.vars.uid
     if debug: print("uid:", uid)
@@ -2875,7 +3049,7 @@ def promote_user():
                             "updated_record": myresult}, default=my_custom_json)
 
 def demote_user():
-    debug = 1
+    debug = 0
     if debug: print("in api::demote_user ----------------------------")
     uid = request.vars.uid
     if debug: print("uid:", uid)
@@ -2956,7 +3130,7 @@ def update_course_data():
         f_target (int)
 
     """
-    debug = False
+    debug = 0
     response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.now(timezone.utc)
@@ -3093,7 +3267,7 @@ def get_course_data():
             starting_set
             custom_end
     """
-    debug = False
+    debug = 0
     auth = current.auth
     session = current.session
     response = current.response
@@ -3206,3 +3380,4 @@ def _is_student_of(user_id):
         if instructors else []
 
     return instructors_flat
+

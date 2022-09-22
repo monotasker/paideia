@@ -8,6 +8,7 @@ import TypingGreekContent from "../Content/TypingGreek";
 import HowItWorksContent from "../Content/HowItWorks";
 import FaqContent from "../Content/Faq";
 import KnownBugsContent from "../Content/KnownBugs";
+import PrivacyPolicy from '../Content/PrivacyPolicy';
 import { urlBase } from "../variables";
 
 const Info = () => {
@@ -25,6 +26,9 @@ const Info = () => {
     },
     { slug: "known-bugs",
       component: <KnownBugsContent backFunc={history.goBack} />
+    },
+    { slug: "privacy-policy",
+      component: <PrivacyPolicy backFunc={history.goBack} />
     }
   ];
 

@@ -2,6 +2,8 @@
 @import "../../node_modules/bootstrap/scss/_functions.scss";
 @import "../../node_modules/bootstrap/scss/_variables.scss";
 @import "../../node_modules/bootstrap/scss/_mixins.scss";
+@import "../../node_modules/@fortawesome/fontawesome-free/css/fontawesome.min.css";
+@import "../../node_modules/@fortawesome/fontawesome-free/css/all.css";
 $mapPng: "../Images/town_map.png";
 
 // layout
@@ -22,14 +24,15 @@ $cinnamon:              #845852;
 $cream:                 #F8F0E5;
 $tapioca:               #F2E5D4;
 $white:                 #fff;
-$green:                 #5BA917;
+$green:                 #63a927; // 5BA917;
 $neutralLight:          #f2eed5;
 $putty:                 #d8d3b3;
 $greenLight:            #96BC44;
-$greenDark:             #809240;
+$greenDark:             #4b801d; // = darken($green, 10%);
+$greenDarkDesaturated:  #809240;
 // $red:                   #9d261d;
-$blueDark:              #1c7f99; // #006699;
-$blue:                  #049cdb;
+$blueDark:              #235888; // #1c7f99; // #006699;
+$blue:                  #327bc0; // #049cdb;
 $purple:                #8d4a8d; // #800080;
 $yellow:                #ffc40d;
 $orange:                #f89406;
@@ -51,6 +54,7 @@ $textColor: #333;
 $linkColor: $pallette2;
 $navbarLinkColor: $pallette2;
 $heading-color: #ab8531;  // darken($pallette1, 40%);
+$headingColorDark: #a27d2a;
 
 // semantic colors (modded)
 // -------------------------
@@ -70,12 +74,18 @@ $secondaryLight: #e8ecf1;
 
 // semantic colors (grammatical)
 $verb: #BF9000;
-$nominative: #235888;
+$nominative: $blueDark;
 $genitive: #70AD47;
 $accusative: #C00000;
 $vocative: #C55A11;
 $dative: #7030A0;
 $preposition: #009999;
+
+// semantic colors (badge levels)
+$beginner-color: $pallette3;
+$apprentice-color: $accent2;
+$journeyman-color: $accent4;
+$expert-color: $pallette4;
 
 $table-background: lighten($nominative, 60%);
 
@@ -83,15 +93,7 @@ $table-background: lighten($nominative, 60%);
 //---------------------------------------------------
 // typography
 
-@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium');
-
-// @font-face {
-//     font-family: 'Glyphicons Halflings';
-//     src: url('../Fonts/glyphicons-halflings-regular.eot');
-//     src: url('../Fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons-halflings-regular.woff') format('woff'), url('../Fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../Fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
-//     font-weight: normal;
-//     font-style: normal;
-// }
+@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium|Shadows+Into+Light');
 
 @font-face {
     font-family: 'SBLGreekRegular';
@@ -119,6 +121,16 @@ $hard-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
 $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 // mixins --------------------------------------------------
+
+@mixin fontawesome-pseudoselector($family: "Font Awesome 5 Free", $weight: 900) {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-family: $family;
+    font-weight: $weight;
+}
 
 @mixin react-transition-fade($class, $duration: 200) {
     &.#{$class}-appear,
@@ -178,6 +190,11 @@ $soft-shadow: 2px 4px 0 rgba(0,0,0,0.5);
 
 // typography ---------------------------------------------
 
+@mixin compact-list()                   {margin-top: 0;
+                                         margin-bottom: 0;
+                                         font-size: 1.15rem;
+}
+
 h2                                      {font-family: $title-fonts;
                                          font-weight: normal;
                                          color: $heading-color;
@@ -189,6 +206,21 @@ h3                                      {font-family: $sans-fonts;
                                          color: $heading-color;
 }
 
+// alerts --------------------------------------------------
+
+.alert                                  {
+    &.alert-thin                        {padding: 0.5rem;
+                                         margin-bottom: 0.5rem;
+    }
+    &.alert-info                         {background-color: $info-bg;
+                                         color: darken($info-dark, 10%);
+                                         border: 1px solid $info;
+    }
+    &.alert-success                      {background-color: $success-bg;
+                                         border: 1px solid $success;
+    }
+}
+
 // allow vertically centred left-hand icons in error messages
 .alert.error-message                    {flex-wrap: nowrap;
                                          align-items: center;
@@ -197,11 +229,77 @@ h3                                      {font-family: $sans-fonts;
     }
 }
 
+// pills  ----------------------------------------------------
+
+.badge.bg-success                       {background-color: $success !important;
+}
+.badge.bg-secondary                     {background-color: lighten($secondary, 10%) !important;
+}
+.badge.bg-info                          {background-color: $info-dark !important;
+}
+.badge.bg-primary                       {background-color: $primary !important;
+}
+.badge.bg-warning                       {background-color: $warning !important;
+}
+.badge.bg-danger                       {background-color: $danger !important;
+}
+
+// lists ----------------------------------------------------
+
+@mixin icon-pseudo-bullet-list($icon, $icon-offset: -1.25rem, $icon-color: inherit, $top-margin: 0)   {
+    li                                  {
+        ::before                        {
+            @include fontawesome-pseudoselector();
+                                        content: $icon;
+                                        position: absolute;
+                                        left: $icon-offset;
+                                        margin-top: $top-margin;
+                                        color: $icon-color;
+        }
+    }
+}
+
+@mixin icon-bullet-list($icon-color: inherit, $top-margin: 0.3rem, $icon-offset: -2rem)    {
+                                         list-style-type: none;
+                                         position: relative;
+        li                              {position: relative;
+            svg                         {position: absolute;
+                                        left: $icon-offset;
+                                        margin-top: $top-margin;
+                                        color: $icon-color;
+            }
+        }
+}
+
 // forms ----------------------------------------------------
 
-form                                    {margin-bottom: 1rem;
+#root .Main .content form               {margin-bottom: 1rem;
                                          margin-top: 1rem;
+    div.row                             {margin-bottom: 0.25rem;
+    }
+    div.row.form-section,
+    div.form-section                    {margin-bottom: 1rem;
+    }
+    button[type=submit]                 {margin-top: 0.5rem;
+
+    }
+    .form-label                         {font-weight: 500;
+                                         padding-bottom: 0.25rem;
+    }
+    .form-switch.small .form-check-input      {position: relative;
+                                         top: 0.15rem;
+    }
+    input.error                             {border: 2px solid $danger;
+    }
+    .alert.error-message.hanging        {padding: 0.25rem 0.5rem;
+                                         border-radius: 0 0 0.25rem 0.25rem;
+                                         margin: 0 0.5rem;
+    }
+    .alert.error-message.freestanding   {margin-bottom: 1rem;
+
+    }
 }
+
 
 // buttons ----------------------------------------------------
 
@@ -209,7 +307,45 @@ form                                    {margin-bottom: 1rem;
     &:hover                {background-color: $secondaryLight;
                             color: $secondary;
     }
-    &:focus                {box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 15%);
+    &:focus                {box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.15);
+    }
+}
+
+.btn.btn-primary                 {background-color: $blue;
+                                  border-color: darken($blue, 5%);
+    &:hover,
+    &:active                     {background-color: darken($blue, 5%);
+                                  border-color: darken($blue, 10%);
+    }
+    &:focus                      {box-shadow: 0 0 0 0.25rem lighten($blue, 20%);
+                                  background-color: darken($blue, 5%);
+                                  border-color: darken($blue, 10%);
+    }
+}
+
+.btn.btn-success                 {background-color: $greenDark;
+                                  border-color: darken($greenDark, 5%);
+    &:hover,
+    &:active                     {background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+    }
+    &:focus                      {box-shadow: 0 0 0 0.25rem $greenLight;
+                                  background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+    }
+}
+
+.btn.btn-outline-success         {background-color: transparent;
+                                  border-color: darken($greenDark, 5%);
+    &:hover,
+    &:active                     {background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+                                  color: $white;
+    }
+    &:focus                      {box-shadow: 0 0 0 0.25rem $greenLight;
+                                  background-color: darken($greenDark, 5%);
+                                  border-color: darken($greenDark, 10%);
+                                  color: $white;
     }
 }
 
@@ -220,10 +356,219 @@ form                                    {margin-bottom: 1rem;
     ul                                  {list-style-type: none;
                                          padding-left: 2rem;
         li                              {margin-left: -2rem;
-            svg                             {margin-right: 0.5rem;
+            svg                         {margin-right: 0.5rem;
 
             }
         }
+    }
+}
+
+.tooltip[id^='tooltip-instruction'],
+#tooltip-instruction-extra              {
+    .tooltip-inner                      {background-color: $nominative;
+                                         color: $pallette1;
+                                         padding: 0.5rem;
+    }
+    .arrow::before                       {border-top-color: $nominative;
+    }
+}
+#tooltip-instruction-extra              {
+    .tooltip-inner                      {text-align: left;
+                                         padding-left: 0.75rem;
+                                         padding-right: 0.75rem;
+        ul                              {margin-bottom: 0.5rem;
+                                         margin-top: 0.5rem;
+        }
+    }
+    ul                                  {padding-left: 3.5rem;
+        @include icon-bullet-list($pallette1, $top-margin: 0.3rem, $icon-offset: -1.5rem);
+    }
+}
+
+.badge-term-tooltip                     {
+    .modal-content                      {border: 0;
+    }
+    .modal-header                     {color: $white;
+                                         text-transform: capitalize;
+                                         font-size: $font-size-lg;
+        .modal-title                    {z-index: 10;
+        }
+        svg                             {margin-right: 0.25rem;
+                                         font-size: 3.5rem;
+                                         top: 0.5rem;
+                                         position: absolute;
+                                         left: -1rem;
+                                         z-index: 1;
+        }
+        .btn-close                          {color: $white;
+                                         position: relative;
+                                         top: 0.35rem;
+
+        }
+    }
+    &.Beginner                          {
+        .modal-header                 {background-color: $beginner-color;
+            svg                         {color: desaturate(lighten($beginner-color, 10%), 10%);
+            }
+        }
+    }
+    &.Apprentice                        {
+        .modal-header                 {background-color: $apprentice-color;
+            svg                       {color: desaturate(lighten($apprentice-color, 10%), 10%);
+            }
+        }
+
+    }
+    &.Journeyman                        {
+        .modal-header                   {background-color: $journeyman-color;
+            svg                         {color: desaturate(lighten($journeyman-color, 10%), 10%);
+            }
+        }
+
+    }
+    &.Expert                            {
+        .modal-header                   {background-color: $expert-color;
+            svg                         {color: desaturate(lighten($expert-color, 10%), 10%);
+            }
+        }
+
+    }
+    .modal-body                       { max-height: 80vh;
+                                          overflow-y: auto;
+                                        //   background-color: #dcd7c9;
+                                        //   scrollbar-color: #a27d2a;
+                                        //   scrollbar-width: 0.5rem;
+        // &::-webkit-scrollbar           {width: 0.5rem;
+        // }
+        // &::-webkit-scrollbar-track    {background: #dcd7c9;
+        // }
+        // &::-webkit-scrollbar-thumb    {background: #a27d2a;
+        // }
+        h5                              { margin-top: 1rem;
+                                          font-size: 1rem;
+                                          color: $headingColorDark;
+        }
+        .tooltip-badge-description          {padding: 0;
+                                             font-size: 1rem;
+                                             display: block;
+                                             color: darken($headingColorDark, 10%);
+                                             margin: -1rem;
+                                             margin-bottom: 0;
+                                             padding: 0.5rem;
+                                             padding-left: 1rem;
+                                             background-color: $cream;
+        }
+        .badge-promotion-tip            { color: $pallette4;
+                                         background-color: lighten(#96BC44, 30%);
+                                         border: 1px solid lighten($pallette4, 10%);
+                                         display: block;
+                                         padding: 0.25rem 0.5rem;
+                                         border-radius: 0.25rem;
+                                         margin: 0.25rem 0;
+        }
+        table                               {margin-bottom: 0.5rem;
+                                             border-collapse: collapse;
+                                             border-radius: 0.25rem;
+                                             overflow: hidden;
+                                             border: 1px solid lighten($niceGrey, 45%);
+            tbody                           {background-color: lighten($niceGrey, 50%);
+                td                      {
+                    &:nth-child(1)      {max-width: 2rem;
+                                         width: 2rem;
+                    }
+                }
+            }
+        }
+        .tooltip-badge-lessons-table    {color: $niceGrey;
+                                         background-color: transparent;
+                                         border: 1px solid transparent;
+            tbody                       {background-color: transparent;
+                .btn                        {padding: 0;
+                                            font-size: 0.875rem;
+                                            display: inline;
+                                            text-align: left;
+                                            vertical-align: baseline;
+                                            border: 0px solid transparent;
+                                            color: darken($niceGrey, 15%);
+                }
+            }
+        }
+        .tooltip-badge-performance-table    {
+            td                              {
+                &:nth-child(3)              {text-align: right;
+                                             padding-right: 0.5rem;
+                }
+            }
+            .recent-average                 {color: $info-dark;
+                                             background-color: lighten($info, 30%);
+
+                td:nth-child(3)              {font-size: $font-size-lg;
+                                             font-weight: 500;
+                                             padding: 0 0.25rem 0 0.5rem;
+                }
+            }
+            .total-right                    {color: $pallette4;
+            }
+            .total-wrong                    {color: $niceGrey;
+            }
+            .right-per-wrong                {color: $info-dark;
+                                             background-color: lighten($info, 30%);
+                td:nth-child(3)              {font-size: $font-size-lg;
+                                             font-weight: 500;
+                                             padding: 0 0.25rem 0 0.5rem;
+                }
+            }
+            .days-since-right               {color: $pallette4;
+                                             background-color: lighten($niceGrey, 45%);
+            }
+            .days-since-wrong               {color: $niceGrey;
+                                             background-color: lighten($niceGrey, 45%);
+            }
+        }
+        .tooltip-badge-milestones-table     {border-color: transparent;
+            tbody                           {background-color: transparent;
+
+            }
+            tr                              {
+                &:nth-child(1)              {color: $beginner-color;
+                }
+                &:nth-child(2)              {color: $apprentice-color;
+                }
+                &:nth-child(3)              {color: $journeyman-color;
+                }
+                &:nth-child(4)              {color: $expert-color;
+                }
+            }
+        }
+    }
+}
+
+#lessons-tooltip                    {background-color: $nominative;
+                                        color: $pallette1;
+    a                               {color: $pallette1;
+    }
+    .popover-header                 {background-color: transparent;
+                                        border-bottom: 1px solid transparent;
+                                        font-weight: bold;
+                                        padding: 0.75rem 1rem 0 1rem;
+    }
+    .popover-body                   {background-color: transparent;
+                                        padding: 0.25rem 0.75rem;
+    }
+    .arrow::after                   {border-top-color: $nominative;
+    }
+    ul                              {padding-left: 3.5rem;
+        @include icon-bullet-list($pallette1, $top-margin: 0.3rem, $icon-offset: -1.5rem);
+    }
+}
+
+.page-loading-spinner                   {position: absolute;
+                                         top: 50vh;
+                                         margin-top: -0.5rem;
+                                         left: 50vw;
+                                         margin-left: -0.5rem;
+                                         z-index: 0;
+    &.page-loaded                        {display: none;
     }
 }
 
@@ -231,10 +576,16 @@ form                                    {margin-bottom: 1rem;
 #root                                       {height: 100vh;
                                              display:flex;
                                              flex-direction: column;
+                                             z-index: 1;
     .Main                                   {margin-left: 0;
                                             margin-right: 0;
+                                            margin-top: 4rem;
                                             flex: 1;
                                             overflow: hidden;
+                                            opacity: 0;
+        &.page-loaded                       {opacity: 1;
+                                             transition: all 300ms;
+        }
         .content                            {padding-left: 0;
                                             padding-right: 0;
                                             overflow-x: hidden;
@@ -264,6 +615,10 @@ form                                    {margin-bottom: 1rem;
                             padding-bottom: 0;
                             padding-right: 0;
                             z-index: 20;
+                            opacity: 0;
+    &.page-loaded                       {opacity: 1;
+                                            transition: all 300ms;
+    }
   a.navbar-brand           {text-transform: uppercase;
                             letter-spacing: 2px;
                             color: $danger;
@@ -271,6 +626,7 @@ form                                    {margin-bottom: 1rem;
                             font-family: 'Amatic SC', cursive;
                             font-weight: normal;
                             font-size: 3rem;
+                            margin-left: 1rem;
     &:hover                {color: lighten($danger, 10%);
                             transition: 100ms all linear;
     }
@@ -289,22 +645,25 @@ form                                    {margin-bottom: 1rem;
   .navbar-nav              {line-height: 3rem;
     a.nav-link             {
         &:hover,
-        &:focus            {color: $white;
-                            background-color: lighten($accent2, 20%);
+        &:focus            {color: darken($niceGrey, 10%);
+                            background-color: lighten($niceGrey, 50%);
                             transition: all 200ms linear;
         }
         &.open,
-        &:active             {color: $white;
-                            background-color: lighten($accent2, 10%);
+        &:active             {color: darken($niceGrey, 10%);
+                            background-color: lighten($niceGrey, 50%);
                             transition: all 200ms linear;
         }
         >span              {margin-left: 0.25rem;
                             margin-right: 0.25rem;
         }
+        &.active            {color: darken($niceGrey, 20%);
+
+        }
     }
-    .dropdown-menu         {background-color: lighten($accent2, 20%);
-                            border: 1px solid lighten($accent2, 15%);
-                            border-top: 1px solid lighten($accent2, 10%);
+    .dropdown-menu         {background-color: lighten($accent2, 10%);
+                            border: 1px solid lighten($accent2, 5%);
+                            border-top: 1px solid lighten($accent2, 5%);
                             margin-top: 0;
                             box-shadow: $hard-shadow;
                             border-radius: 0 0 0.25rem 0.25rem;
@@ -314,19 +673,23 @@ form                                    {margin-bottom: 1rem;
                             padding-top: 0;
                             padding-bottom: 0;
             &:hover,
-            &:active    {background-color: lighten($accent2, 10%);
+            &:active       {background-color: lighten($accent2, 5%);
             }
         }
     }
-    &.welcome-nav        {color: darken($pallette1, 50%);
+    &.main-nav             {margin-right: auto;
+    }
+    &.welcome-nav        {color: $headingColorDark;
       >span                {line-height: 3rem;
                             padding: 0.5rem;
         span               {padding-left: 0.25rem;
         }
       }
-      a.nav-link         {color: darken($pallette1, 50%);
+      a.nav-link         {color: $headingColorDark;
         &:hover,
-        &:active         {color: $white;
+        &:active,
+        &:focus          {color: darken($headingColorDark, 10%);
+                          background-color: lighten($pallette1, 5%);
         }
       }
     }
@@ -351,10 +714,33 @@ form                                    {margin-bottom: 1rem;
   }
 }
 
+//-- dev panel --------------------------------------------------
+
+.dev-tools-button           {position: absolute;
+                             top: 14.5rem;
+                             right: -0.75rem;
+                             padding-left: 0.5rem;
+                             z-index: 30;
+                             width: 3.15rem;
+    svg                     {position: relative;
+                             left: -0.1rem;
+    }
+}
+
+.dev-tools-test-path-form   {
+    .label                  {font-weight: 500;
+    }
+    .row.encapsulated       {background-color: lighten($niceGrey, 50%);
+                             padding: 0.5rem 0.25rem;
+                             border-radius: 0.25rem;
+                             margin: 0 0.25rem 0.5rem 0.25rem;
+    }
+}
+
 //-- tools --------------------------------------------------
 
 .tools-component           {position: fixed;
-                            right: -5.5rem;
+                            right: -5.25rem;
                             top: 5rem;
                             z-index: 30;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
@@ -419,47 +805,94 @@ form                                    {margin-bottom: 1rem;
                                         flex-direction: column;
                                         height: 100%;
                                         padding: 0;
-        .vocab-filter-form             {padding-right: 2.5rem;
-                                        margin-bottom: .25rem;
+        .vocab-filter-form             {padding-right: 2.75rem;
+                                        margin-bottom: .5rem;
+                                        margin-top: 0;
                                         padding-left: 1rem;
+            @media (max-width: map-get($grid-breakpoints, "sm")) {
+                                        padding-left: 0.5rem;
+            }
             .form-label                {font-size: $font-size-sm;
                                         color: darken($pallette1, 60%);
-                                        margin-bottom: 0.25rem;
+                                        margin-bottom: 0rem;
             }
             .form-group                {margin-bottom: 0.25rem;
             }
-            .form-row:first-child > div:last-child            {display: flex;
+            .vocab-set-filter-label    {
+                @media (max-width: map-get($grid-breakpoints, md)) {
+                                        display: none;
+                }
+            }
+            .row:first-child            {
+                > div                   {padding-left: 0;
+                                         padding-right: 0.5rem;
+                }
+                > div:last-child       {display: flex;
                                         flex-direction: row;
                                         align-items: flex-end;
                                         padding-bottom: 0.25rem;
+                                        padding-right: 0;
+                    .btn-primary           {width: 100%;
+                                            min-width: 2.5rem;
+                        svg                {margin: auto;
+                        }
+                        span               {margin-left: 0.5rem;
+                        }
+                    }
+                }
             }
-            .form-row.alphabet .col    {display: flex;
+            .row.alphabet         {overflow: auto;
+                                        flex-wrap: nowrap;
+                                        margin: 0;
+                                        margin-top: 0.25rem;
+                                        border: 1px solid #ced4da;
+                                        border-radius: 0.25rem;
+                div                    {display: flex;
                                         flex-direction: row;
                                         align-items: stretch;
                                         padding-bottom: 0rem;
-                                        margin-bottom: 0.25rem;
-                .btn-group             {flex-wrap: wrap;
+                                        padding-left: 0;
+                                        margin-bottom: 0rem;
                                         width: 100%;
-                    .btn                   {padding: .25rem;
-                                            margin-top: .25rem;
-                    }
-                    .btn-outline-secondary {border-color: #ced4da;
+                    .btn-group         {flex-wrap: nowrap;
+                                        width: 100%;
+                        .btn           {padding: .25rem;
+                                        margin-top: 0;
+                                        flex-grow: 1;
+                            @media (max-width: map-get($grid-breakpoints, xl)) {
+                                        min-width: 2rem;
+                            }
+                        }
+                        .btn-outline-secondary {border-color: #ced4da;
+                                        border-top: 0;
+                                        border-bottom: 0;
+                                        border-left: 0;
+                        }
                     }
                 }
             }
         }
         .vocabtable-container          {flex: 1;
                                         overflow-y: auto;
-                                        overflow-x: hidden;
+                                        overflow-x: auto;
                                         position: relative;
                                         margin-left: 0;
             .vocabtable-loading-spinner     {position: absolute;
-                                             top: 50%;
+                                             top: 47%;
                                              margin-top: -0.5rem;
                                              left: 50%;
                                              margin-left: -0.5rem;
+                                             color: lighten($niceGrey, 30%);
+            }
+            .alert                         {margin: 1rem;
+                svg                        {opacity: 50%;
+                }
             }
             table                          {position: absolute;
+                                            width: 48rem;
+                @media (min-width: map-get($grid-breakpoints, xl)) {
+                                            width: 100%;
+                }
                 th                         {position: sticky;
                                             top: 0;
                                             background-color: lighten($pallette2, 20%);
@@ -467,13 +900,23 @@ form                                    {margin-bottom: 1rem;
                                             border-bottom-color: lighten($pallette2, 15%);
                                             color: darken($pallette1, 60%);
                                             font-weight: normal;
-                    &:first-child,
-                    &:nth-child(2)         {left: 0;
+                    &.lemma,
+                    &.part-of-speech       {left: 0;
                                             z-index: 10;
                                             background-color: lighten($pallette2, 10%);
                                             color: darken($pallette1, 65%);
                     }
-                    &:nth-child(2)         {padding-right: 0;
+                    &.lemma                {z-index: 11;
+                        svg                {position: relative;
+                                            margin-left: 0.35rem;
+                                            margin-bottom: -0.1rem;
+                        }
+                    }
+                    &.part-of-speech       {padding-right: 0;
+                                            padding-left: 0;
+                                            max-width: 2rem;
+                        a                  {left: 1rem;
+                        }
                     }
                     a                      {color: darken($pallette1, 60%);
                                             position: relative;
@@ -487,72 +930,108 @@ form                                    {margin-bottom: 1rem;
                         &.inactive         {opacity: 30%;
                         }
                     }
-                    &:nth-child(4),
-                    &:nth-child(5)         {width: 5rem;}
-                    &:first-child svg         {position: relative;
-                                               margin-left: 0.25rem;
-                                               margin-bottom: -0.2rem;
-
+                    &.set-introduced       {width: 3rem;}
+                    &.times-in-nt          {width: 5rem;}
+                    &.related-lessons      {width: 6rem;
+                                            z-index: 7;
                     }
                 }
                 td                         {border-top-color: lighten($pallette2, 10%);
                                             background-color: #fff;
                                             vertical-align: middle;
+                    .lemma                 {font-weight: bold;
+                                            display: block;
+                                            padding-left: 0.5rem;
+                        @media (min-width: map-get($grid-breakpoints, sm)) {
+                                            font-weight: normal;
+                        }
+                    }
                     &.noun,
                     &.pronoun,
                     &.proper_noun          {background-color: lighten($nominative, 60%);
                                             color: $nominative;
                                             border-top-color: lighten($nominative, 55%);
                         .real-stem .label  {color: lighten($nominative, 25%);
+                                            margin-right: 0.5rem;
                         }
-                        .gen-sing .badge-pill {background-color: lighten($nominative, 25%);
+                        .badge.rounded-pill,
+                        .gen-sing .badge.rounded-pill {background-color: lighten($nominative, 25%) !important;
                                             color: $white;
+                                            margin-right: 0.5rem;
                         }
                     }
                     &.adjective            {background-color: lighten($nominative, 62%);
                                             color: lighten($nominative, 10%);
                                             border-top-color: lighten($nominative, 57%);
                         .real-stem .label  {color: lighten($nominative, 25%);
+                                            margin-right: 0.5rem;
                         }
-                        .gen-sing .badge-pill {background-color: lighten($nominative, 25%);
+                        .badge.rounded-pill,
+                        .gen-sing .badge.rounded-pill {background-color: lighten($nominative, 25%) !important;
                                             color: $white;
+                                            margin-right: 0.5rem;
                         }
                     }
                     &.verb                 {background-color: lighten($verb, 50%);
                                             color: darken($verb, 10%);
                                             border-top-color: lighten($verb, 40%);
                         .real-stem .label  {color: lighten($verb, 12%);
+                                            margin-right: 0.5rem;
                         }
-                        .principal-parts .badge-pill {background-color: lighten($verb, 12%);
+                        .principal-parts   {
+                            a              {color: darken($verb, 10%);
+
+                            }
+                            .badge.rounded-pill    {background-color: lighten($verb, 12%) !important;
                                                          color: $white;
+                                            margin-right: 0.5rem;
+                                            margin-left: -0.2rem;
+                            }
+                        }
+                        .badge.rounded-pill    {background-color: lighten($verb, 12%) !important;
                         }
                     }
                     &.preposition          {background-color: lighten($preposition, 65%);
                                             color: darken($preposition, 10%);
                                             border-top-color: lighten($preposition, 55%);
+                        .badge.rounded-pill {background-color: $preposition !important;
+                        }
                     }
                     &.adverb               {background-color: lighten($dative, 55%);
                                             color: darken($dative, 10%);
                                             border-top-color: lighten($dative, 50%);
+                        .badge.rounded-pill {background-color: $dative !important;
+                        }
                     }
                     &.conjunction          {background-color: lighten($textColor, 70%);
                                             color: $textColor;
                                             border-top-color: lighten($textColor, 65%);
+                        .badge.rounded-pill {background-color: $niceGrey !important;
+                        }
                     }
                     &.particle             {background-color: lighten($textColor, 73%);
                                             color: darken($textColor, 10%);
                                             border-top-color: lighten($textColor, 63%);
+                        .badge.rounded-pill {background-color: $niceGrey !important;
+                        }
                     }
-                    &:first-child             {position: sticky;
+                    &.lemma                {position: sticky;
                                             left: 0;
                                             font-family: $greek-fonts;
                                             font-size: 1.5rem;
                                             width: 16rem;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                            font-size: 1.2rem;
+                                            width: 12rem;
+                                            max-width: 12rem;
+                        }
                     }
-                    &:nth-child(2)          {padding-right: 0;
+                    &.part-of-speech       {padding-right: 0;
+                                            padding-left: -1.75rem;
+                                            max-width: 2rem;
                     }
-                    &:nth-child(3)          { // glosses
-                        ul                  {margin-bottom: 0;
+                    &.glosses              {
+                        ul                 {margin-bottom: 0;
                             li                  {
                                 &::after           {content: ",";
                                 }
@@ -563,9 +1042,11 @@ form                                    {margin-bottom: 1rem;
                             }
                         }
                     }
+                    &.set-introduced        {
+
+                    }
 
                     .vocab-videos           {font-size: $font-size-base;
-                                             margin-left: 1rem;
                         .btn                {padding: 0;
                             svg                 {opacity: 30%;
                                 &:hover         {opacity: 100%;
@@ -582,10 +1063,13 @@ form                                    {margin-bottom: 1rem;
                                              flex-direction: row;
                                              align-items: flex-start;
                                              margin-left: 1rem;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                             margin-left: 0;
+                        }
                         .label              {font-family: $sans-fonts;
                                              margin-right: 1rem;
                         }
-                        .badge-pill         {margin-top: 0.1rem;
+                        .badge.rounded-pill         {margin-top: 0.1rem;
                         }
                     }
 
@@ -596,9 +1080,10 @@ form                                    {margin-bottom: 1rem;
 
                     .principal-parts        {
                         ul                  {float: right;
-                                             margin-left: -0.325rem;
+                                             margin-bottom: 0;
+                                            //  margin-left: -0.325rem;
                             li              {display: inline;
-                                             white-space: pre;
+                                             white-space: pre-wrap;
                                 &::after    {content: ", ";
                                 }
                                 &:nth-child(3)::after   {content: ",\A";
@@ -625,14 +1110,16 @@ form                                    {margin-bottom: 1rem;
                                          flex-direction: row;
             .updating,
             .displaycount                   {font-size: $font-size-sm;
-                                             margin-bottom: -1.5rem;
+                                             margin-bottom: 0;
                                              padding-top: 0.25rem;
+                                             padding-right: 0.5rem;
+                                             padding-left: 0.5rem;
+                                             padding-bottom: 0.25rem;
+                                             border-top: 1px solid lighten($niceGrey, 45%);
             }
             .updating                       {flex-grow: 1;
                 .spinner-grow               {font-size: 0.5rem;
                 }
-            }
-            .displaycount                   {padding-right: 1rem;
             }
         }
     }
@@ -648,7 +1135,10 @@ form                                    {margin-bottom: 1rem;
                                          overflow-y: auto;
                                          padding-left: 0;
                                          padding-right: 3rem;
-        > form                          {padding-left: 1rem;
+        > form                          {padding-left: 0.5rem;
+            #vocab-set-control          {margin-bottom: 0.5rem;
+
+            }
         }
 
         .alert                          {display: flex;
@@ -679,6 +1169,7 @@ form                                    {margin-bottom: 1rem;
                                     font-size: 1.75rem;
                                     color: $accent1;
                                     border: 1px solid transparent;
+                                    margin-left: 1rem;
             &:hover                {background-color: color.scale(lighten($accent1, 65%), $saturation: -20%);
             }
             &.active,
@@ -689,6 +1180,8 @@ form                                    {margin-bottom: 1rem;
                                     padding-bottom: 0;
                                     color: $accent1;
                                     margin-bottom: 3px;
+                                    padding-left: 0;
+                                    padding-right: 0;
             }
             &:first-of-type        {margin-left:1.5rem;
             }
@@ -731,11 +1224,11 @@ form                                    {margin-bottom: 1rem;
             &:hover                {background-color: darken($pallette1, 5%);
             }
             .badge                 {margin-left: 0.5rem;
-                &.badge-secondary  {color: darken($pallette1, 40%);
-                                    background-color: lighten($pallette1, 10%);
+                &.bg-secondary  {color: darken($pallette1, 40%);
+                                    background-color: lighten($pallette1, 10%) !important;
                                     border: 1px solid darken($pallette1, 20%);
                 }
-                &.badge-success    {background-color: color.scale(lighten($success, 50%), $saturation: -20%);
+                &.bg-success    {background-color: color.scale(lighten($success, 50%), $saturation: -20%) !important;
                                     color: $success;
                                     margin-left: 0.25rem;
                                     border: 1px solid lighten($success, 20%);
@@ -1084,6 +1577,8 @@ form                                    {margin-bottom: 1rem;
                                         padding-top: 0.5rem;
                                         padding-left: 2.75rem;
             }
+            .filter-content-switch-col {padding-top: 0.25rem;
+            }
         }
         .reference-view-panes          {overflow-y: auto;
                                         flex: 1;
@@ -1365,13 +1860,19 @@ form                                    {margin-bottom: 1rem;
                                 border: 0px solid transparent;
                                 overflow: hidden;
                                 height: 28rem;
+                                position: relative;
         @media (max-width: map-get($grid-breakpoints, md))
                             {height: 10rem;
         }
         img.welcome-maria      {position: absolute;
-                                left:0;
+                                left:-380px;
             @media (max-width: map-get($grid-breakpoints, md))
                             {height:36rem;
+            }
+            &.slid-in           {transform: translateX(380px);
+                                 transition: all 500ms cubic-bezier(0.015, 0.140, 0.000, 1.020) 1.5s;
+                &slid-in-first  {transition-delay: 0ms;
+                }
             }
         }
     }
@@ -1385,7 +1886,12 @@ form                                    {margin-bottom: 1rem;
                                     border-radius: $border-radius-lg;
                                     z-index: 10;
                                     display: none;
-                                    overflow-y: hidden;
+                                    transform: scale(0.001);
+        &.slid-in                   {transform: scale(1);
+                                     transition: all 500ms cubic-bezier(0.250, 1.610, 0.485, 0.905) 1.8s;
+                &slid-in-first      {transition-delay: 0.3s;
+                }
+        }
         &:after {                   border-right: 25px solid #fff;
                                     border-top: 25px solid transparent;
                                     left: -25px;
@@ -1406,6 +1912,9 @@ form                                    {margin-bottom: 1rem;
     div.maria-bubble-mobile        {background-color: white;
                                     padding:2rem;
                                     margin-right: 2rem;
+        @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    padding: 1rem 0.75rem 1.25rem 0.75rem;
+        }
         h1                         {font-family: 'Amatic SC', cursive;
                                     font-weight: regular;
                                     font-size: 3rem;
@@ -1423,51 +1932,144 @@ form                                    {margin-bottom: 1rem;
     div.warning.row                {background-color: $danger;
                                     color: $cream;
                                     padding: 1.25rem 0;
-        p                          {text-align: center;
+        @media (max-width: map-get($grid-breakpoints, md))  {
+                                    padding: 0.75rem 2rem;
+        }
+        @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    padding: 0.75rem 0;
+        }
+        .bg-danger                 {display: flex;
+                                    flex-direction: row;
+            @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    flex-direction: column-reverse;
+                                    margin-left: 1.5rem;
+                                    margin-right: 1.5rem;
+            }
+            .icon-wrapper          {display: flex;
+                                    flex-direction: column;
+                                    padding-right: 1rem;
+                                    margin-left: auto;
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                    padding-right: 0.75rem;
+                }
+                @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                    margin-top: 0.5rem;
+                }
+                svg                {color: $yellow;
+                                    margin-top: auto;
+                                    margin-bottom: auto;
+                }
+            }
+            p                      {text-align: center;
                                     margin-bottom: 0;
+                                    margin-right: auto;
+                &.long-warning-text {display: block;
+                    @media (max-width: map-get($grid-breakpoints, md))  {
+                                    display: none;
+                    }
+                }
+                &.short-warning-text {display: none;
+                    @media (max-width: map-get($grid-breakpoints, md))  {
+                                    display: block;
+                    }
+                    @media (max-width: map-get($grid-breakpoints, sm))  {
+                                    margin-left: auto;
+                    }
+                }
+            }
         }
     }
 
     div.modal-set.row              {color: #efefef;
-                                    background-color: desaturate(lighten($pallette3, 40%), 40%);
+                                    background-color: $nominative;
                                     text-align: center;
-                                    padding-top: 0.5rem;
-                                    padding-bottom: 0.5rem;
-                                    padding-left: 0.5rem;
-        @media (max-width: map-get($grid-breakpoints, md))  {padding: 0;
-                                            text-align: left;
-                                            padding-left: 2rem;
-                                            padding-right: 2rem;
+                                    padding: 0;
+        @media (max-width: map-get($grid-breakpoints, md))  {
+                                    padding: 0;
+                                    text-align: left;
+        }
+        @media (max-width: map-get($grid-breakpoints, sm))  {
         }
         .info-pane                 {cursor: pointer;
-                                    background-color: rgba(255, 255, 255, 0.3);
-                                    margin-right: 0.5rem;
-                                    border-radius: 1rem;
                                     transition: all 300ms ease-in-out;
             &:hover,
-            &:active                {background-color: rgba(255, 255, 255, 0.4);
-
+            &:active                {background-color: desaturate(lighten($nominative, 10%), 10%);
+                .info-illustration-wrapper .info-pane-illustration {filter: grayscale(0);
+                                         opacity: 1;
+                }
+            }
+            &:first-child           {background-color: #7ea5cb;
+            }
+            &:nth-child(2)          {background-color: #7c9f6e;
+            }
+            &:nth-child(3)          {background-color: #cb9bcb;
+            }
+            @media (max-width: map-get($grid-breakpoints, md)) {
+                                    //  margin-top: 1rem;
+            }
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                    //  margin-top: 0.5rem;
+                                    //  margin-right: 0;
             }
             .info-illustration-wrapper          {//text-align: center;
                                                 // width:100%;
                 @media (max-width: map-get($grid-breakpoints, md)) {text-align: left;
+                                        display: flex;
+                                        flex-direction: row;
+                                        height: 6rem;
+                                        overflow: hidden;
+                }
+                @media (max-width: map-get($grid-breakpoints, sm)) {
+                                        display: flex;
+                                        flex-direction: row;
+                                        height: auto;
                 }
                 .info-pane-illustration {width:12rem;
                                         border-radius: 50%;
-                                        padding: 0.5rem;
-                                        // margin: 0px auto;
-                    @media (max-width: $breakpoint-sm) {float: right;
-                                                        width: 3rem;
-                                                        padding: 1rem;
+                                        opacity: 0.3;
+                                        filter: grayscale(100%);
+                                        transition: all 500ms;
+                    @media (max-width: map-get($grid-breakpoints, md)) {
+                                        margin-left: auto;
+                                        height: 10rem;
+                                        margin-top: -2rem;
+                    }
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                        margin-left: auto;
+                                        margin-top: 0;
+                                        height: auto;
+                                        width: 5rem;
                     }
                 }
                 h4                      {margin-bottom: 0;
                                          margin-top: 1rem;
+                    @media (max-width: map-get($grid-breakpoints, md)) {
+                                         margin-top: auto;
+                                         margin-bottom: auto;
+                                         margin-left: 1.5rem;
+                    }
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                         margin-top: 0;
+                                         margin-left: 1rem;
+                    }
+                    .long-title              {display: block;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                         display: none;
+                        }
+                    }
+                    .short-title         {display: none;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                         display: block;
+                        }
+                    }
                     a                                   {font-size: 2rem;
                                                          font-family: $title-fonts;
-                                                         color: $pallette4;
-                                                         font-weight: bold;
-                        @media (max-width: $breakpoint-sm) {line-height: 3em;
+                                                         color: $cream;
+                                                         font-weight: 500;
+                                                         text-decoration: none;
+                        @media (max-width: map-get($grid-breakpoints, sm)) {line-height: 3em;
                                                          height: 3em;
                         }
                         &:hover                         {text-decoration: dotted;
@@ -1479,6 +2081,74 @@ form                                    {margin-bottom: 1rem;
         p                       {hyphens: auto;
         }
     }
+    .testimonials-leadin                {background-color: $pallette1;
+                                         color: $heading-color;
+                                         text-align: center;
+                                         padding-top: 1rem;
+                                         font-size: 1.5rem;
+    }
+    div.testimonials                    {background-color: $pallette1;
+                                         padding-top: 1.5rem;
+                                         position: relative;
+                                         display: block;
+                                         column-count: 1;
+                                         padding-left: 1.5rem;
+                                         padding-right: 1.5rem;
+        @media screen and (min-width: map-get($grid-breakpoints, md))
+        and (max-width: map-get($grid-breakpoints, lg)) {
+                                         column-count: 2;
+        }
+        @media screen and (min-width: map-get($grid-breakpoints, lg))
+        and (max-width: map-get($grid-breakpoints, xl)) {
+                                         column-count: 3;
+        }
+        @media screen and (min-width: map-get($grid-breakpoints, xl)) {
+                                         column-count: 4;
+        }
+        .testimonial-item               {font-family: "Shadows Into Light";
+                                         padding-bottom: 1rem;
+                                         display: inline-block;
+            .testimonial-body            {background-color: darken($pallette1, 10%);
+                                         color: $headingColorDark;
+                                         border-radius: 2rem;
+                                         font-size: $font-size-lg;
+                                         padding: 1.5rem;
+                                         position: relative;
+                &::after                {content: "\201C";
+                                         font-size: 8rem;
+                                         font-weight: bold;
+                                         position: absolute;
+                                         left: -1rem;
+                                         top: -1.8rem;
+                                         color: desaturate(darken($pallette1, 20%), 10%);
+                                         z-index: 80;
+                }
+                .wrapper                {position: relative;
+                                         z-index: 99;
+
+                }
+            }
+            .testimonial-name           {display: block;
+                                         position: absolute;
+                                         font-size: 2rem;
+                                         color: $pallette4;
+                                         right: 2rem;
+            }
+        }
+    }
+
+    // home footer --------------------------------------
+
+    div.footer                  {background-color: $blueDark;
+                                 color: $white;
+                                 padding: 1rem;
+        .col                    {padding: 1rem;
+            >span                   {display: block;
+            }
+            a                   {color: $white;
+            }
+        }
+    }
 }
 
 
@@ -1487,10 +2157,14 @@ form                                    {margin-bottom: 1rem;
 .profile-component               {background-color: $cream;
                                   align-content: start;
                                   height: 100%;
+                                  padding-top: 0;
     h3                           {font-family: $title-fonts;
                                   color: $heading-color;
                                   font-size: 2rem;
                                   margin-top: 1rem;
+    }
+    .viewing-student-warning    {display: block;
+                                 width: 100%;
     }
     .update-msg,
     .updated-msg                 {position: relative;
@@ -1499,18 +2173,50 @@ form                                    {margin-bottom: 1rem;
                                   color: $pallette3;
     }
     .update-msg                  {color: $warning;
-        svg                      {color: $warning;
+        .spinner-grow
+                                 {color: lighten($warning, 20%);
+                                  margin-right: 0.5rem;
+                                  position: relative;
+                                  top: 1px;
+                                  opacity: 0.7;
+                                  font-size: 0.8rem;
         }
+    }
+    .content-body-spinner        {margin: auto;
+                                  color: lighten($niceGrey, 30%);
     }
     .profile-info                {flex-grow: 0;
                                   height: 100%;
-        >svg                    {float: left;
-                                  font-size: 7rem;
-                                  color: #e2d2af;
-                                  margin-top: .75rem;
+                                  padding-top: 1rem;
+                                  text-align: right;
+        >svg                    {font-size: 7rem;
+                                 color: #e2d2af;
+                                 margin-top: -.25rem;
+            @media (max-width: map-get($grid-breakpoints, lg)) {
+                position: absolute;
+                margin-right: 1rem;
+                margin-top: 0.75rem;
+                right: 0;
+                top: 2.5rem;
+            }
+        }
+        .profile-email,
+        .profile-timezone        {position: relative;
+                                  z-index: 99;
+                                  top: -1rem;
+            svg                  {margin-right: 0.5rem;
+            }
+            .spinner-grow        {margin-right: 0.5rem;
+                                  font-size: 0.8rem;
+            }
         }
         .profile-name            {font-size: 3rem;
                                   font-family: $title-fonts;
+                                  position: relative;
+                                  z-index: 99;
+                                  line-height: 3rem;
+                                  padding-top: 1.4rem;
+                                  display: block;
         }
         .profile-email           {color: $accent2;
         }
@@ -1518,6 +2224,7 @@ form                                    {margin-bottom: 1rem;
                                   display: block;
         }
         @media (max-width: map-get($grid-breakpoints, lg))  {height: auto;
+                text-align: left;
         }
     }
     .profile-content-column      {height: 100%;
@@ -1529,17 +2236,37 @@ form                                    {margin-bottom: 1rem;
                                         border: 1px solid $pallette1;
                                         background-color: $white;
                                         margin-right: 4rem;
+                                        min-width: 16rem;
+                                        min-height: 15rem;
+                                        text-align: center;
+                &.empty                {display: flex;
+                                        min-width: 100%;
+                }
+
+                @media (max-width: map-get($grid-breakpoints, sm))  {
+                                        margin-right: 0;
+                }
                 .month-indicator         {text-align: center;
                                         font-size: $font-size-lg;
                                         line-height: 3rem;
                                         color: $accent2;
+                    .spinner-grow        {margin: 0 1.5rem;
+                    }
                     a                    {cursor: pointer;
-                                        margin: 0 2rem;
+                                        margin: 0 1.5rem;
                                         color: $pallette2;
+                                        // position: relative;
+                                        // top: -0.1rem;
                         &.disabled       {opacity: 50%;
                                         cursor: not-allowed;
                         }
                     }
+                }
+                .calendar-updating-spinner        {margin: auto;
+                                        color: lighten($niceGrey, 30%);
+                                        height: 1.5rem;
+                                        width: 1.5rem;
+                                        margin-top: 4rem;
                 }
                 .day-of-week,
                 .date-grid               {display: grid;
@@ -1550,39 +2277,55 @@ form                                    {margin-bottom: 1rem;
                                         position: relative;
                                         font-variant: all-small-caps;
                     .summary             {position: absolute;
-                                        right: -3.5rem;
+                                        right: -3rem;
                                         top: -2rem;
                                         max-width: 2.5rem;
                                         color: $heading-color;
                                         font-variant: normal;
                                         font-size: $font-size-sm;
                                         line-height: 1rem;
+                        @media (max-width: map-get($grid-breakpoints, sm))  {
+                                        display: none;
+                        }
                     }
                 }
                 .date-grid               {position: relative;
+                                          width: 100%;
                     div               {border: 1px solid $pallette1;
                                             border-right: 0;
                                             border-bottom: 0;
                                             min-height: 2rem;
-                                            text-align: center;
+                                            text-align: right;
                                             position: relative;
                                             color: $danger;
                         &.success                {color: $green;
                         }
                         &.summary                {position: absolute;
-                                                right: -3.5rem;
-                                                font-size: $font-size-lg;
+                                                right: -2.6rem;
+                                                font-size: $font-size-base;
                                                 line-height: 1.5rem;
                                                 text-align: center;
-                            &.row0               {top: 0;
+                            @media (max-width: map-get($grid-breakpoints, sm))  {
+                                            display: none;
                             }
-                            &.row1               {top: 2rem;
+                            &.row0               {top: 0.5rem;
                             }
-                            &.row2               {top: 4rem;
+                            &.row1               {top: 2.5rem;
                             }
-                            &.row3               {top: 6rem;
+                            &.row2               {top: 4.5rem;
                             }
-                            &.row4               {top: 8rem;
+                            &.row3               {top: 6.5rem;
+                            }
+                            &.row4               {top: 8.5rem;
+                            }
+                            &.row5               {top: 10.5rem;
+                            }
+                            svg                  {font-size: 0.5rem;
+                                                  opacity: 0.5;
+                                                  margin: 0;
+                                                  position: relative;
+                                                  top: -0.75rem;
+                                                  left: -0.25rem;
                             }
                             &.failure            {
                                 svg              {color: $heading-color;
@@ -1594,7 +2337,15 @@ form                                    {margin-bottom: 1rem;
                                             position: absolute;
                                             left: 0.25rem;
                         }
-                        .countnum            {font-size: $font-size-lg;
+                        .countnum            {font-size: $font-size-base;
+                                              position: relative;
+                                              display: inline-block;
+                                              font-weight: 500;
+                                              top: 0.5rem;
+                                              padding-right: 0.25rem;
+                            @media (max-width: map-get($grid-breakpoints, sm))  {
+                                              font-size: $font-size-base;
+                            }
                         }
                         &.current             {
                             .datenum         {color: $heading-color;
@@ -1611,12 +2362,75 @@ form                                    {margin-bottom: 1rem;
                                          padding: 0.25rem 0.5rem;
                                          margin-right: 4rem;
                                          display: block;
+                                         min-width: 16rem;
+                @media (max-width: map-get($grid-breakpoints, sm))  {
+                                         margin-right: 0;
+                                         min-width: 16rem;
+                }
             }
         }
-        .profile-progress            {margin-top: 1rem;
+        .profile-progress            {margin-top: 0;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                               margin-top: 0.5rem;
+            }
+            @media (min-width: map-get($grid-breakpoints, lg)) {
+                                               padding-top: 1.5rem;
+            }
+            .scroll-left,
+            .scroll-right                     {position: absolute;
+                                               bottom: 0.55rem;
+                                               display: none;
+                                               height: 3.1rem;
+                                               width: 1.5rem;
+                                               color: $white;
+                                               border: 1px solid lighten($niceGrey, 10%);
+                                               background-color: lighten($niceGrey, 20%);
+                                               border-radius: 0.25rem 0 0 0.25rem;
+                                               left: 1rem;
+                &:hover,
+                &:active                      {background-color: $niceGrey;
+                                               border: 1px solid $niceGrey;
+                }
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               display: block;
+                }
+                svg                           {font-size: 1.25rem;
+                                               transform: translateX(-0.7rem);
+                                               vertical-align: -0.2rem;
+                }
+            }
+            .scroll-right                     {right: 1rem;
+                                               left: auto;
+                                               border-radius: 0 0.25rem 0.25rem 0;
+                svg                           {transform: translateX(-0.6rem);
+                }
+            }
+            .profile-progress-outer-container2 {margin-top: -1rem;
+                                                position: relative;
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               padding: 0 1.5rem;
+                                               margin-top: -1rem;
+                }
+            }
+            .profile-progress-outer-container {position: relative;
+                                                overflow-x: auto;
+                                                height: 8rem;
+                                                scrollbar-color: $blueDark;
+                                                scrollbar-height: 0.5rem;
+                &::-webkit-scrollbar           {height: 0.5rem;
+                }
+                &::-webkit-scrollbar-track    {background: lighten($cream, 20%);
+                }
+                &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
+                }
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               overflow-x: scroll;
+                }
+            }
             .profile-progress-scale-container {width: 100%;
                                             border-radius: 0.25rem;
-                                            position: relative;
+                                            position: absolute;
+                                            bottom: 0;
                                             border: 1px solid $pallette1;
                                             @include neumorphism-shadow();
                 .profile-progress-scale,
@@ -1625,12 +2439,14 @@ form                                    {margin-bottom: 1rem;
                                             display: flex;
                                             flex-direction: row;
                                             border-radius: 0.25rem;
+                                            min-width: 43.2rem;
                     .profile-progress-unit    {border-right: 1px solid $pallette1;
                                             flex-basis: 5%;
                                             flex-grow: 1;
                                             height: 3rem;
                                             text-align: center;
                                             line-height: 3rem;
+                                            cursor: pointer;
                         .current-set          {position: absolute;
                                             top: -4rem;
                                             display: flex;
@@ -1642,14 +2458,19 @@ form                                    {margin-bottom: 1rem;
                                             box-shadow: $hard-shadow;
                                             transform: translate(-50%, 0);
                                             margin-left: 2.5%;
+                                            width: 9.5rem;
+                                            align-items: center;
                                             @include triangle-bottom($accent2);
                                             @include triangle-bottom-shadow();
                             .current-set-number     {font-size: 2rem;
+                                                     margin-left: 0.5rem;
+                                                     margin-right: 0.25rem;
                             }
                             .current-set-intro      {font-size: 0.75rem;
-                                                    max-width: 4rem;
                                                     line-height: 1rem;
                                                     text-align: left;
+                                                    flex-grow: 1;
+                                                    margin-left: 0.5rem;
                             }
                         }
                     }
@@ -1688,13 +2509,24 @@ form                                    {margin-bottom: 1rem;
         .profile-classinfo           {
             .profile-classinfo-body     {background-color: $white;
                                          padding: 0.5rem;
-                                         padding-left: 1rem;
+                                         padding-bottom: 0;
+                                         min-height: 15rem;
+                                         transition: height 300ms ease-in-out;
                 @include neumorphism-shadow();
 
-                .profile-classinfo-section          {font-weight: bold;
+                &.empty                 {display: flex;
+                }
+                .profile-classinfo-current          {padding: 0 0.5rem;}
+                .profile-classinfo-signup           {padding: 0.5rem;
+                                                     margin-bottom: 0.25rem;
+                }
+                .profile-classinfo-section          {font-weight: normal;
+                                                     font-size: $font-size-lg;
+                                                     padding-top: 0.25rem;
                 }
                 .profile-classinfo-institution-term {font-variant-caps: all-small-caps;
                                                     font-variant-numeric: oldstyle-nums;
+                                                    margin-top: -0.25rem;
                     .profile-classinfo-institution {color: $pallette4;
                                                     margin-right: 1rem;
                     }
@@ -1712,7 +2544,7 @@ form                                    {margin-bottom: 1rem;
                                                      margin-left: 0.5rem;
                     }
                 }
-                .profile-classinfo-targets          {
+                .profile-classinfo-targets          {margin-top: 1rem;
                     thead                           {
                         tr                          {
                             td                      {border-top: 0;
@@ -1766,35 +2598,77 @@ form                                    {margin-bottom: 1rem;
                 }
                 .profile-classinfo-prior-classes,
                 .profile-classinfo-latter-classes   {border: 0;
+                                                     padding-bottom: 0.5rem;
                     .card-body                      {padding-left: 0;
                                                      padding-right: 0;
                                                      padding-bottom: 0;
-                        table thead td              {color: $accent4;
-
+                                                     padding-top: 0.5rem;
+                                                     background-color: lighten($niceGrey, 50%);
+                        .collapse                   {overflow-x: auto;
+                            table                       {min-width: 55rem;
+                                                         margin-bottom: 0;
+                                                         background-color: $white;
+                                thead                   {
+                                    td                  {color: $accent4;
+                                        &:nth-child(1)  {position: sticky;
+                                                        left: 0;
+                                                        background-color: lighten($niceGrey, 45%);
+                                                        border-right: 1px solid lighten($niceGrey, 35%);
+                                                        width: 12rem;
+                                        }
+                                    }
+                                }
+                                tbody                   {
+                                    td:nth-child(1)    {position: sticky;
+                                                        left: 0;
+                                                        background-color: lighten($niceGrey, 45%);
+                                                        border-right: 1px solid lighten($niceGrey, 35%);
+                                                        border-top: 1px solid lighten($niceGrey, 50%);
+                                    }
+                                    .prior-course-title {display: block;
+                                                         font-weight: bold;
+                                    }
+                                    .prior-course-details {display: block;
+                                                           font-size: $font-size-sm;
+                                    }
+                                }
+                            }
                         }
-                        h5                          {color: $accent2;
+                        h5                          {color: $heading-color;
+                                                    font-weight: normal;
+                                                    font-size: $font-size-base;
+                                                    padding: 0 0.5rem 0 0.25rem;
                             &:hover                 {cursor: pointer;
+                            }
+                            .fa-minus               {position: relative;
+                                                     top: 0.2rem;
                             }
                         }
                     }
                 }
             }
         }
-        .profile-stages                         {margin-top: 1rem;
+        .profile-stages                         {
             .nav-tabs                           {border-bottom: 1px solid $pallette1;
+                                                 margin-bottom: 1rem;
+                @media (min-width: map-get($grid-breakpoints, md))  {
+                                                 margin-bottom: 0;
+                }
                 .nav-link                           {color: $heading-color;
                     &.active                        {@include neumorphism-shadow();
                                                     position: relative;
                                                     border-color: $pallette1 $pallette1 $white $pallette1;
-                        &:after                     {position: absolute;
-                                                    width: 100%;
-                                                    content: "";
-                                                    box-shadow: 8px 3px 0 0 $white;
-                                                    z-index: 9;
-                                                    height: 0.5rem;
-                                                    background-color: $white;
-                                                    left: 0;
-                                                    top: 2.4rem;
+                        @media (min-width: map-get($grid-breakpoints, md))  {
+                            &:after                     {position: absolute;
+                                                        width: 100%;
+                                                        content: "";
+                                                        box-shadow: 8px 3px 0 0 $white;
+                                                        z-index: 9;
+                                                        height: 0.5rem;
+                                                        background-color: $white;
+                                                        left: 0;
+                                                        top: 2.4rem;
+                            }
                         }
                     }
                     .badge                          {color: $white;
@@ -1804,40 +2678,56 @@ form                                    {margin-bottom: 1rem;
                     }
                 }
             }
-            #profile-stages-tabs-tab-level1     {
-                .badge                          {background-color: $pallette3;
+
+            #profile-stages-tabs-tab-undefined  {display: flex;
+            }
+            #profile-stages-tabs-tab-level1,
+            #profile-stages-tabs-tabpane-level1     {
+                .badge                          {background-color: $beginner-color;
                                                 color: $white;
+                                                border-color: $beginner-color;
                 }
             }
-            #profile-stages-tabs-tab-level2     {
-                .badge                          {background-color: $accent2;
+            #profile-stages-tabs-tab-level2,
+            #profile-stages-tabs-tabpane-level2     {
+                .badge                          {background-color: $apprentice-color;
                                                 color: $white;
+                                                border-color: $apprentice-color;
                 }
             }
-            #profile-stages-tabs-tab-level3     {
-                .badge                          {background-color: $accent4;
+            #profile-stages-tabs-tab-level3,
+            #profile-stages-tabs-tabpane-level3     {
+                .badge                          {background-color: $journeyman-color;
                                                 color: $white;
+                                                border-color: $journeyman-color;
                 }
             }
-            #profile-stages-tabs-tab-level4     {
-                .badge                          {background-color: $pallette4;
-                                                color: $white;
+            #profile-stages-tabs-tab-level4,
+            #profile-stages-tabs-tabpane-level4     {
+                .badge                          {background-color: $expert-color;
+                                                 color: $white;
+                                                border-color: $expert-color;
                 }
             }
             .tab-content                        {background-color: $white;
-                                                border: 1px solid $pallette1;
-                                                padding: 0.5rem;
-                                                @include neumorphism-shadow();
+                                                 border: 1px solid $pallette1;
+                                                 padding: 1rem;
+                                                 @include neumorphism-shadow();
+                .tab-pane.active.show               {min-height: 20rem;
+                    &.empty                         {display: flex;
+                    }
+                }
                 .badge                          {padding: 0.5rem;
-                                                font-weight: normal;
-                                                margin-right: 0.5rem;
-                                                margin-bottom: 0.5rem;
+                                                 font-weight: normal;
+                                                 margin-right: 0.5rem;
+                                                 margin-bottom: 0.5rem;
+                    &:hover                     {cursor: pointer;
+                    }
                 }
-                .level-explanation               {display: block;
-                                                 padding-bottom: 0.5rem;
+                .level-explanation              {display: block;
+                                                 padding: 0.5rem;
+                                                 padding-bottom: 1rem;
                 }
-                // #profile-stages-tabs-tabpanel-level1 .badge {
-                // }
             }
         }
     }
@@ -1854,98 +2744,137 @@ form                                    {margin-bottom: 1rem;
                                                flex-direction: column;
                                                padding-right: 0;
                                                padding-left: 0;
-        .lessons-display-container            {overflow: hidden;
-                                               height: 100%;
-            .lessonlist                       {overflow: auto;
-                                               max-height: 100%;
-                                               padding-left: 0;
-                                               padding-right: 0;
-                                               scrollbar-color: lighten($blueDark, 10%) $blueDark;
-                                               scrollbar-width: thin;
-                &::-webkit-scrollbar           {width: 0.5rem;
-                }
-                &::-webkit-scrollbar-track    {background: $blueDark;
-                }
-                &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
-                }
-                .card                         {border-radius: 0;
-                                               border: 0;
-                    .card-header              {padding-top: 0;
-                                               padding-bottom: 0;
-                                               background-color: $blueDark;
-                                               border: 0;
 
+        .lessonlist                       {overflow: auto;
+                                           max-height: 100%;
+                                           padding-left: 0;
+                                           padding-right: 0;
+                                           scrollbar-color: lighten($blueDark, 10%) $blueDark;
+                                           scrollbar-width: thin;
+
+            @media (max-aspect-ratio: 1) {
+                                           display: none;
+            }
+            @media (max-width: map-get($grid-breakpoints, md))  {
+                                           display: none;
+            }
+            &::-webkit-scrollbar           {width: 0.5rem;
+            }
+            &::-webkit-scrollbar-track    {background: $blueDark;
+            }
+            &::-webkit-scrollbar-thumb    {background: lighten($blueDark, 10%);
+            }
+            .accordion-item               {border-radius: 0;
+                                           border: 0;
+                .accordion-header              {padding-top: 0;
+                                           padding-bottom: 0;
+                                           background-color: $blueDark;
+                                           border: 0;
+                    &:focus,
+                    &:hover,
+                    &:active,
+                    &:visited     {background-color: darken($blueDark, 10%);
+                    }
+                    &:first-child         {border-radius: 0;
+                    }
+                    .accordion-button::after,
+                    .accordion-button:not(.collapsed)::after {
+                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2385bbc9'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e")  // change color following fill='%23
+                    }
+                    .accordion-button     {text-align: left;
+                                        //    padding-left: 0;
+                                        //    padding-right: 0;
+                                           background-color: transparent;
+                                           color: #fff;
+                                           font-family: $sans-fonts;
+                                           border-bottom: 0px solid transparent;
                         &:focus,
                         &:hover,
                         &:active,
-                        &:visited     {background-color: darken($blueDark, 10%);
+                        &:visited           {box-shadow: none;
                         }
-                        &:first-child         {border-radius: 0;
+                        &.collapsed             {border-bottom: 1px solid lighten($blueDark, 10%);
+
                         }
-                        .btn                  {text-align: left;
-                                               padding-left: 0;
-                                               padding-right: 0;
-                            &.btn-link        {color: #fff;
-                                &:focus,
-                                &:hover,
-                                &:active,
-                                &:visited     {text-decoration: none;
-                                               outline: none;
-                                               box-shadow: none;
-                                }
+                        ul                  {list-style-type: none;
+                                             padding-left: 0;
+                                             margin-bottom: 0;
+                            svg                 {margin-left: 0;
                             }
                             .lessonLink-grammar   {font-size: $font-size-sm;
-                                                   color: desaturate(lighten($blueDark, 30%), 30%);
+                                                color: desaturate(lighten($blueDark, 30%), 30%);
+                                                padding: 0.5rem 0 0.25rem 0;
+                                svg             {margin-right: 0.5rem;
+                                }
                             }
                             .lessonLink-vocab   {font-size: $font-size-sm;
-                                                 color: desaturate(lighten($blueDark, 25%), 25%);
+                                                color: desaturate(lighten($blueDark, 25%), 25%);
+                                svg             {margin-right: 0.32rem;
+                                }
                             }
                         }
                     }
-                    .card-body                {padding: 0;
-                        .list-group-item      {border-right: 0;
-                                               border-left: 0;
-                                               border-radius: 0;
-                                               border-top: 0;
-                                               border-bottom: 0;
-                                               background-color: lighten($pallette2, 10%);
-                            .lesson-list-item-pdf   {float: right;
-                                                     color: $heading-color;
-                                                     opacity: 50%;
-                            }
-                            &.active          {background-color: $pallette2;
-                                               color: #333;
-                                &:focus,
-                                &:active      {outline: none;
-                                }
-                            }
-                            &:active,
+                }
+                .accordion-body                {padding: 0;
+                    .list-group-item      {border-right: 0;
+                                           border-left: 0;
+                                           border-radius: 0;
+                                           border-top: 0;
+                                           border-bottom: 0;
+                                           background-color: lighten($pallette2, 10%);
+                        .lesson-list-item-pdf   {float: right;
+                                                 color: $heading-color;
+                                                 opacity: 50%;
+                        }
+                        &.active          {background-color: $pallette2;
+                                           color: #333;
                             &:focus,
-                            &:hover           {border: 0;
-                                               background-color: lighten($pallette2, 5%);
-                                .lesson-list-item-pdf   {opacity: 100%;
-                                    &:hover             {color: $danger;
-                                    }
+                            &:active      {outline: none;
+                            }
+                        }
+                        &:active,
+                        &:focus,
+                        &:hover           {border: 0;
+                                           background-color: lighten($pallette2, 5%);
+                            .lesson-list-item-pdf   {opacity: 100%;
+                                &:hover             {color: $danger;
                                 }
                             }
                         }
                     }
                 }
             }
-            .video-display                    {padding-right: 0;
-                                               padding-left: 0;
-                .youtube-container            {overflow: hidden;
-                                               position: absolute;
-                                               width: 100%;
-                                               opacity: 0;
-                    @include react-transition-fade("youtube-container", 200);
-                    @media (max-width: map-get($grid-breakpoints, md))  {position: relative;
+        }
+        .lessons-display-container            {height: 100%;
+                                               display: flex;
+            .lessonlist-bottom                {display: none;
+                @media (max-width: map-get($grid-breakpoints, md))  {
+                                               display: block;
+                                               overflow: auto;
+                }
+                .lessonlist                   {
+                    @media (max-width: map-get($grid-breakpoints, md))  {
+                                                display: block;
+                                                height: 100%;
                     }
+                }
+            }
+            .video-display-column             {padding-right: 0;
+                                               padding-left: 0;
+                                               display: flex;
+                                               flex-direction: column;
+                                               height: 100%;
+                .youtube-container            {position: relative;
+                                               width: 100%;
+                                               height: 100%;
+                                               opacity: 0;
+                                               top: 0;
+                                               padding-top: 56.25%;
+                    @include react-transition-fade("youtube-container", 200);
                     &.empty                   {background-color: #fff;
                                                padding-left: 1rem;
                                                padding-right: 1rem;
                                                padding-top: 2rem;
-                                               position: absolute;
                         @include react-transition-fade("youtube-container", 200);
                         &::after              {padding-top: 0;}
                         p                     {padding-right: 1.5rem;
@@ -1955,16 +2884,38 @@ form                                    {margin-bottom: 1rem;
                     //                            display: block;
                     //                            content: "";
                     // }
-                    iframe                    {
-                                               position: absolute;
-                                            //    top: 0;
-                                            //    left: 0;
-                                            //    width: 100%;
-                                            //    height: 100%;
+                    .youtube-content          {padding: 2rem;
+                                               padding-top: 3rem;
+                        @media (max-width: map-get($grid-breakpoints, md))  {
+
+                        }
+                        .btn,
+                        .btn:hover,
+                        .btn:active,
+                        .btn:focus                   {box-shadow: 0 0 0 0 transparent;
+                                                      position: relative;
+                                                      top: -1px;
+                                                      padding-left: 0.25rem;
+                                                      color: $info;
+                            &.btn-link               {position: relative;
+                                                      top: -1px;
+                                                      padding-left: 0.25rem;
+                                                      color: $info;
+                            }
+                        }
+                    }
+                    .youtube-content,
+                    iframe                    {position: absolute;
+                                               top: 0;
+                                               left: 0;
+                                               width: 100%;
+                                               height: 100%;
                     }
                     .iframe-mask              {position: absolute;
                                                width: 100%;
                                                height: 100%;
+                                               top: 0;
+                                               left: 0;
                                                background-color: #fff;
                                                opacity: 1;
                                                z-index: 10;
@@ -1992,6 +2943,7 @@ form                                    {margin-bottom: 1rem;
 
 .walk-container                 {overflow: hidden;
                                                width: 100%;
+                                               position: relative;
   .map-spinner                                {position: absolute;
                                                top: 50%;
                                                left: 50%;
@@ -2001,9 +2953,11 @@ form                                    {margin-bottom: 1rem;
   }
   .svgMapPane                                 {width: 100%;
                                                 z-index: 2;
+                                                padding: 0;
     object#town_map                             {width: 100%;
                                                 margin:0 auto;
                                                 cursor: move;
+                                                padding: 0;
                                                 //    opacity: 0;
         svg                                       {cursor: move;
         }
@@ -2028,7 +2982,6 @@ form                                    {margin-bottom: 1rem;
   .stepPane                                     {position: absolute;
                                                  width: 100%;
                                                  top: -3000px;
-                                                 background-attachment: fixed;
                                                  background-position-x: 0%;
                                                  background-position-y: 50%;
                                                  background-size: cover;
@@ -2037,10 +2990,14 @@ form                                    {margin-bottom: 1rem;
                                                  padding: 0;
                                                  margin: 0;
                                                  margin-right: 0;
+                                                 margin-top: 4rem;
                                                  z-index: 2;
     @media (max-width: map-get($grid-breakpoints, sm))
                                                 {padding: 0;
                                                  padding-right: 0;
+                                                 background-position-y: 0;
+                                                 background-size: 100% auto;
+                                                 background-color: desaturate(lighten($pallette3, 40%), 40%);
     }
     &.stepPane-enter,
     &.stepPane-appear                             {opacity: 0;
@@ -2070,6 +3027,13 @@ form                                    {margin-bottom: 1rem;
     .speaker-inner-wrapper                      {position: absolute;
                                                  height:100%;
                                                  overflow-y: hidden;
+        @media (max-width: map-get($grid-breakpoints, sm)) {
+            height: 20rem;
+            width: 100%;
+            position: relative;
+            padding-top: 67%; // 56.25%;
+            overflow: hidden;
+        }
         img                                     {left: -20%;
                                                  width: 480px;
 
@@ -2079,14 +3043,41 @@ form                                    {margin-bottom: 1rem;
             @media (max-width: map-get($grid-breakpoints, md)) {
                 margin-left: -7rem;
             }
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                margin-left: 0;
+                left: 0;
+                width: auto;
+                height: 24rem;
+                position: absolute;
+                top: 0;
+            }
         }
     }
     .speaker                                    {height: 100%;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                display: none;
+            }
     }
-    .prompt-column                              {height: 100%;
-                                                 overflow: auto;
+    .prompt-column                              {overflow: auto;
                                                  padding-top: 1rem;
                                                  padding-right: 3rem;
+        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                 padding-top: 1.5rem;
+                                                 padding-left: 0;
+                                                 padding-right: 0;
+                                                 overflow: visible;
+                                                 margin-top: -12rem;
+                                                 display: flex;
+                                                 flex-direction: column;
+                                                 align-items: stretch;
+        }
+        .prompt.row                             {padding-bottom: 0.5rem;
+                                                 padding-right: 1.5rem;
+                                                 padding-left: 0.5rem;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                 padding-right: 0.5rem;
+            }
+        }
         .prompt-text,
         .eval-text                                  {border-radius: $border-radius-lg * 3;
                                                     padding: 1rem;
@@ -2099,6 +3090,10 @@ form                                    {margin-bottom: 1rem;
                                                     min-width: 80%;
                                                     transform: scale(0);
                                                     opacity: 0;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    height: auto;
+                                                    margin-left: 0;
+            }
             &.eval-text-enter,
             &.prompt-text-enter,
             &.eval-text-appear,
@@ -2129,6 +3124,12 @@ form                                    {margin-bottom: 1rem;
                                                         transform-origin: center left;
                                                         opacity: 0;
             }
+            p                                           {margin-top: 0.25rem;
+                                                         margin-bottom: 0.25rem;
+            }
+            ul                                          {color: darken($heading-color, 10%);
+                @include compact-list();
+            }
         }
         .eval-text                                  {background-color: $pallette1;
                                                     left: 1rem;
@@ -2148,9 +3149,22 @@ form                                    {margin-bottom: 1rem;
                 content: '';
                 position: absolute;
             }
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                width: 92%;
+                &:after {                   border-bottom: 25px solid $pallette1;
+                                            border-right: 25px solid transparent;
+                                            left: 90px;
+                                            top: -50px;
+                }
+                &:before {
+                    border-bottom: 0;
+                    border-right: 0;
+                }
+            }
 
         }
         .prompt-text                                {background-color: $white;
+                                                     padding: 2rem;
             p                                       {
                 &:last-of-type                      {margin-bottom: 0.5rem;
                 }
@@ -2187,16 +3201,89 @@ form                                    {margin-bottom: 1rem;
                 .cross-fade-height                  {transition: height 300ms ease-in-out;
 
                 }
-
             }
-            &:after {                   border-right: 25px solid $white;
+            .new-lesson-message                 {font-family: $sans-fonts;
+                                                 font-size: $font-size-base;
+                .new-lesson-intro               {display: block;
+
+                }
+                .new-lesson-list                {margin-top: 1rem;
+                                                 margin-bottom: 1rem;
+                                                 font-size: $font-size-base;
+                                                 line-height: 1.75rem;
+                                                 padding-left: 3rem;
+                    @include icon-bullet-list();
+                    @include icon-pseudo-bullet-list("\f03d", -1.75rem, $info-dark);
+                    a                           {color: $info-dark;
+                    }
+                }
+                .dismiss-message                {display: block;
+                                                 margin-bottom: 0.5rem;
+                }
+                .new-lessons-dismiss            {padding-right: 1.5rem;
+                    &::before                   {
+                        @include fontawesome-pseudoselector();
+                                                 content: "\f06e";
+                                                 margin-right: 0.5rem;
+                    }
+                }
+            }
+            .new-badge-message                  {font-family: $sans-fonts;
+                                                 font-size: $font-size-base;
+                .new-badge-congrats             {font-size: 1.5rem;
+                                                 color: $purple;
+                }
+                .new-badges-list                {list-style-type: none;
+                                                 margin-bottom: 1.5rem;
+                                                 margin-top: 0.5rem;
+                                                 line-height: 2rem;
+                    @include icon-bullet-list($niceGrey);
+                    @include icon-pseudo-bullet-list("\f0a3", -1.5rem, inherit, 0.07rem);
+                    li                          {
+                        .btn                    {text-align: left;
+                                                 padding: 0;
+                                                 margin: 0;
+                            &:hover,
+                            &:focus             {text-decoration: none;
+                                                 cursor: default;
+                            }
+                        }
+                        &.beginner               {color: darken($beginner-color, 5%);
+                            .btn                 {color: darken($beginner-color, 5%);
+                            }
+                        }
+                        &.apprentice             {color: $apprentice-color;
+                            .btn                 {color: $apprentice-color;
+                            }
+                        }
+                        &.journeyman             {color: $journeyman-color;
+                            .btn                 {color: $journeyman-color;
+                            }
+                        }
+                        &.expert                 {color: $expert-color;
+                            .btn                 {color: $expert-color;
+                            }
+                        }
+                    }
+                }
+                .badges-explanation,
+                .check-progress                     {font-size: $font-size-sm;
+                }
+                .badges-explanation                 {
+                }
+                .check-progress                     {
+
+                }
+            }
+
+            &::after {                   border-right: 25px solid $white;
                                         border-top: 25px solid transparent;
                                         left: -25px;
                                         top: 40%;
                                         content: '';
                                         position: absolute;
             }
-            &:before {
+            &::before {
                 border-right: 23px solid rgba(0,0,0,0.5);
                 border-top: 23px solid transparent;
                 left: -23px;
@@ -2204,12 +3291,35 @@ form                                    {margin-bottom: 1rem;
                 content: '';
                 position: absolute;
             }
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                width: 100%;
+                &:after {                   border-bottom: 25px solid $white;
+                                            border-right: 25px solid transparent;
+                                            left: 100px;
+                                            top: -50px;
+                }
+                &:before {
+                    border-bottom: 0;
+                    border-right: 0;
+                }
+            }
 
         }
-        .responder                                  {
+        .responder                                  {padding-right: 2rem;
+            @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    margin-top: auto !important;
+                                                    background-color: desaturate(lighten($pallette3, 40%), 40%);
+                                                    padding-right: 0.5rem;
+                                                    padding-left: 0.5rem;
+            }
+            .col                                    {
+                @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                     padding: 0;
+                }
+            }
             form                                    {margin: 0;
             }
-            .responder-text                         {background-color: lighten($accent2, 50%);
+            .responder-text                         {background-color: desaturate(lighten($pallette3, 40%), 40%);
                                                     margin-top: 2rem;
                                                     padding: 1rem;
                                                     border-radius: $border-radius-lg * 3;
@@ -2217,64 +3327,134 @@ form                                    {margin-bottom: 1rem;
                                                     position: relative;
                                                     left: 1rem;
                                                     margin-right: -2rem;
+                @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    margin-top: 0.5rem;
+                                                    left: 0;
+                                                    margin-right: 0;
+                                                    padding: 0;
+                                                    padding-top: 0;
+                                                    background-color: transparent;
+                                                    box-shadow: 0 0 0 transparent;
+                }
                 textarea                            {font-family: $greek-fonts;
                                                     font-size: $font-size-lg;
-                                                    border: 1px solid lighten($accent2, 25%);
+                                                    border: 1px solid lighten($pallette3, 5%);
                                                     margin-bottom: 0.5rem;
+                    &:focus                         {box-shadow: 0 0 0.25rem rgb(99 139 69 / 50%)} // = $success
                 }
                 .form-check                         {font-family: $greek-fonts;
                                                     font-size: $font-size-lg;
+                                                    padding-left: 1.5rem;
+                    &:nth-child(2)                  {margin-top: 0.25rem;
+                    }
                     &:last-of-type                  {margin-bottom: 0.5rem;
                     }
                     label                           {position: relative;
-                                                     top: -0.25rem;
+                                                     top: -0.15rem;
                                                      cursor: pointer;
+                                                     line-height: 2rem;
                     }
                 }
-                .instruction-icon                   {color: $accent2;
-                                                     display: inline-block;
-                                                     margin-bottom: 0.5rem;
-                                                     opacity: 0.5;
-                                                     font-size: 1.5rem;
-                    &:hover,
-                    &:active                        {opacity: 1;
-                                                     cursor: pointer;
-                                                     text-decoration: none;
-                    }
-                    &:first-of-type                 {
-                        svg                         {margin-left: 0;
+                .instruction-row                    {display: flex;
+                                                     flex-direction: row;
+                    .instruction-icon                   {color: $pallette3;
+                                                        display: inline-block;
+                                                        margin-bottom: 0;
+                                                        opacity: 0.5;
+                                                        font-size: 1.5rem;
+                        &:hover,
+                        &:active                        {opacity: 1;
+                                                        cursor: pointer;
+                                                        text-decoration: none;
+                        }
+                        &:first-of-type                 {
+                            svg                         {margin-left: 0;
+                            }
+                        }
+                        &.text-icon                     {font-weight: bold;
+                                                        background-color: $pallette3;
+                                                        color: desaturate(lighten($pallette3, 40%), 40%);
+                                                        border-radius: 1rem;
+                                                        padding: 0 0.45rem;
+                                                        font-size: 1rem;
+                                                        height: 1.5rem;
+                                                        position: relative;
+                                                        top: 0.4rem;
+                                                        margin-right: 0.25rem;
+                                                        margin-left: 0.25rem;
+                                                        border: 1px solid $pallette3;
+                                                        text-decoration: none;
+                            &:hover                     {text-decoration: none;
+                            }
                         }
                     }
-                    &.text-icon                     {font-weight: bold;
-                                                     background-color: $accent2;color: $white;
-                                                     border-radius: 1rem;
-                                                     padding: 0 0.5rem;
-                                                     font: 1rem;
+                    .lessons-icon                       {margin-left: auto;
                     }
+                }
+                .btn-group                          {width: 100%;
                 }
                 .btn                                {margin-left: 0.5rem;
                                                     margin-bottom: 0.5rem;
-                    &.back_to_map                   {margin-left: 0;
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    margin-right: 0;
+                                                    margin-left: 0;
+                                                    padding-left: 0.25rem;
+                                                    padding-right: 0.5rem;
+                    }
+                    .short-label                    {display: none;
+                        @media (max-width: 375px),
+                        (min-width: map-get($grid-breakpoints, sm)) and (max-width: map-get($grid-breakpoints, lg)) {
+                                                     display: inline;
+                        }
+                    }
+                    .long-label                     {display: inline;
+                        @media (max-width: 375px),
+                        (min-width: map-get($grid-breakpoints, sm)) and (max-width: map-get($grid-breakpoints, lg))  {
+                                                     display: none;
+                        }
+                    }
+                    &.back_to_map,
+                    &.retry,
+                    &.continue                   {margin-left: 0;
                     }
                     &.submit_reply                  {margin-left: 0;
+                                                     background-color: $pallette3;
+                                                     border: 1px solid darken($pallette3, 5%);
+                        @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                     padding-left: 0.75rem;
+                                                     padding-right: 0.75rem;
+                        }
+                        &:hover                     {background-color: darken($pallette3, 5%);
+                        }
+                        &:focus,
+                        &:active                    {box-shadow: 0 0 0.25rem rgb(99 139 69 / 50%); // = $success
+                                                     background-color: darken($pallette3, 5%);
+                        }
                     }
                 }
-                .admin-info                         {color: $accent2;
+                .admin-info                         {color: $greenDark;
                                                     font-size: $font-size-sm;
                                                     display: block;
                 }
-                .user-info                          {color: $accent2;
+                .user-info                          {color: $greenDark;
                                                     font-size: $font-size-sm;
                                                     display: block;
                                                     margin-bottom: -0.5rem;
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    margin-bottom: .5rem;
+                    }
                 }
                 .new-indicator                      {position: absolute;
-                                                    right: 1.25rem;
-                                                    font-size: 2rem;
-                                                    bottom: 0.25rem;
-                    .fa-history                     {color: lighten($accent2, 60%);
+                                                    right: 1rem;
+                                                    font-size: 1rem;
+                                                    bottom: 0.5rem;
+                    @media (max-width: map-get($grid-breakpoints, sm)) {
+                                                    right: 0;
+                                                    bottom: -2px;
                     }
-                    .fa-leaf                        {color: $green;
+                    .fa-history                     {color: desaturate(lighten($pallette3, 60%), 40%);
+                    }
+                    .fa-leaf                        {color: desaturate(lighten($pallette3, 60%), 40%);
                     }
                 }
             }
@@ -2291,9 +3471,11 @@ form                                    {margin-bottom: 1rem;
 // Login form
 
 .login-component                                {
-    .login-register-message                     {
+    .login-register-message                     {display: flex;
+                                                 align-items: center;
        span                                     {position: relative;
                                                  top: 0.15rem;
+                                                 flex-grow: 1;
        }
        .btn                                     {margin-left: 2rem;
 
@@ -2310,19 +3492,36 @@ form                                    {margin-bottom: 1rem;
                                                  padding-right: 0;
             }
         }
+        .alert-thin.alert-danger                {margin-top: 0.25rem;
+        }
     }
-    .register-login-message                     {
-        span                                    {position: relative;
-                                                 top: 0.15rem;
+    .register-submit-col                     {text-align: right;
+    }
+    .register-login-message                     {display: flex;
+                                                 flex-direction: row;
+                                                 align-items: center;
+        span                                    {display: block;
+                                                 line-height: 2rem;
+                                                 flex-grow: 1;
         }
         .btn                                    {margin-left: 2rem;
+            @media  screen and (max-width: map-get($grid-breakpoints, sm)) {
+                                                margin-left: 0;
+            }
         }
     }
 }
 
 // Reset password form
 
-.reset-password-component                       {
+.reset-password-component                       {padding-right: 2rem;
+    p                                           {padding: 0 1rem;
+    }
+    .alert                                      {margin-right: 2rem;
+                                                 margin-left: 1rem;
+        &.alert-thin                            {margin-top: 0.25rem;
+        }
+    }
     form                                        {
         .row:first-child                        {padding-bottom: 1rem;
         }

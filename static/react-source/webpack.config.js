@@ -20,8 +20,11 @@ module.exports = {
       {test: /\.(png|jpg|gif|svg)$/,
        use: [{loader: 'file-loader', options: {outputPath: 'images'}}],
       },
-      {test: /\.(eot|ttf|woff)$/,
-       use: [{loader: 'file-loader', options: {outputPath: 'fonts'}}],
+      {test: /\.(eot|ttf|woff(2)?)(\?v=\d+\.\d+\.\d+)?$/,
+       use: [{loader: 'file-loader',
+              options: {outputPath: 'fonts',
+                        name: '[name].[ext]'}
+            }],
       },
       {test: /\.(js|jsx)$/, exclude: /node_modules/,
        use: [
@@ -58,4 +61,5 @@ module.exports = {
         filename: "./index.html"
     }),
   ]
+  // watch: true
 }

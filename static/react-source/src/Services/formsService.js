@@ -1,5 +1,15 @@
+import { ErrorMessage } from 'formik';
 import React, {useState} from 'react';
 import { returnStatusCheck } from '../Services/utilityService';
+
+/**
+ * Wrapper for formik form error message to aid in layout and styling
+ */
+const FormErrorMessage = ({name, ...props}) => (
+  <ErrorMessage name={name} {...props}
+    render={msg => <span className="alert error-message alert-danger alert-thin hanging">{msg}</span>}
+  />
+);
 
 /**
  * Abstracted function to handle the server request on submission of a form
@@ -386,6 +396,7 @@ const useFormManagement = (formFields) => {
 }
 
 export {
+    FormErrorMessage,
     sendFormRequest,
     useFormManagement
 }
