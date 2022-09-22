@@ -3,7 +3,7 @@ import TownMapPng from "./Images/town_map.png";
 
 const urlBase = "paideia";
 const recaptchaKey = "6LcLJyoaAAAAADFtQswBddP8CICf4sXENGHBKK2-"
-const DEBUGGING = true;
+const DEBUGGING = false;
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans');
