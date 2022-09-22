@@ -584,6 +584,9 @@ h3                                      {font-family: $sans-fonts;
                                             flex: 1;
                                             overflow: hidden;
                                             opacity: 0;
+        @media screen and (max-width: map-get($grid-breakpoints, md)) {
+                                            margin-top: 3.7rem;
+        }
         &.page-loaded                       {opacity: 1;
                                              transition: all 300ms;
         }
@@ -615,7 +618,7 @@ h3                                      {font-family: $sans-fonts;
                             padding-top: 0;
                             padding-bottom: 0;
                             padding-right: 0;
-                            z-index: 20;
+                            z-index: 120;
                             opacity: 0;
     &.page-loaded                       {opacity: 1;
                                             transition: all 300ms;
@@ -633,6 +636,8 @@ h3                                      {font-family: $sans-fonts;
     }
   }
   .navbar-toggler          {margin-right: 0.5rem;
+    &:focus                {box-shadow: 0 0 0 0.25rem rgb(0 0 0 / 10%);
+    }
   }
   small                    {display: none;
   }
@@ -643,8 +648,14 @@ h3                                      {font-family: $sans-fonts;
   }
   .navbar-toggle span      {background-color: #aaa;
   }
+  .navbar-collapse.collapse {border-top: 1px solid rgb(0 0 0 / 5%);
+  }
   .navbar-nav              {line-height: 3rem;
     a.nav-link             {
+        @media screen and (max-width: map-get($grid-breakpoints, md)) {
+                            line-height: 2.5rem;
+                            padding-left: 1rem;
+        }
         &:hover,
         &:focus            {color: darken($niceGrey, 10%);
                             background-color: lighten($niceGrey, 50%);
@@ -679,10 +690,21 @@ h3                                      {font-family: $sans-fonts;
         }
     }
     &.main-nav             {margin-right: auto;
+        @media screen and (max-width: map-get($grid-breakpoints, md)) {
+                            padding-top: 0.5rem;
+        }
     }
     &.welcome-nav        {color: $headingColorDark;
+        @media screen and (max-width: map-get($grid-breakpoints, md)) {
+                          border-top: 1px solid darken($pallette1, 5%);
+                          background-color: lighten($pallette1, 7%);
+        }
       >span                {line-height: 3rem;
                             padding: 0.5rem;
+        @media screen and (max-width: map-get($grid-breakpoints, md)) {
+                            padding-left: 1rem;
+                            display: none;
+        }
         span               {padding-left: 0.25rem;
         }
       }
@@ -743,7 +765,7 @@ h3                                      {font-family: $sans-fonts;
 .tools-component           {position: fixed;
                             right: -5.25rem;
                             top: 5rem;
-                            z-index: 30;
+                            z-index: 101;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
                             border-radius: $border-radius 0 0 $border-radius;
     &:hover                {right: 0;
@@ -762,11 +784,11 @@ h3                                      {font-family: $sans-fonts;
                             height: 100%;
                             right: 0;
                             top: -1rem;
-                            z-index: 20;
+                            z-index: 100;
                             background-color: $white;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
                             border-radius: $border-radius 0 0 $border-radius;
-                            padding: 2rem 0 0 0;
+                            padding: 5rem 0 0 0;
 
     h2                      {margin-left: 1rem;
     }
@@ -797,11 +819,12 @@ h3                                      {font-family: $sans-fonts;
     @media (min-width: map-get($grid-breakpoints, lg))
                                {width: 60vw;
     }
-
+    .panel-view                {padding-top: 1rem;
+    }
 }
 
 //-- vocab view -----------------------------------------------
-.vocabview-component                   {height: 100%;
+#root .Main .vocabview-component                   {height: 100%;
     > .col                             {display: flex;
                                         flex-direction: column;
                                         height: 100%;
@@ -1155,7 +1178,7 @@ h3                                      {font-family: $sans-fonts;
 
 //-- queries view ---------------------------------------------
 
-.queriesview-component                 {display: flex;
+#root .Main .queriesview-component                 {display: flex;
                                         flex-direction: column;
                                         height: 100%;
     > div                              {flex: 1;
@@ -1200,6 +1223,8 @@ h3                                      {font-family: $sans-fonts;
                                     line-height: 1.5rem;
                                     color: $niceGrey;
                                     margin: 0;
+                                    margin-top: 0;
+                                    margin-bottom: 0;
                                     padding-right: 2rem;
     }
     .queries-view-wrapper          {flex: 1 0;
@@ -1560,25 +1585,32 @@ h3                                      {font-family: $sans-fonts;
 
 //-- reference view --------------------------------------------
 
-.referenceview-component               {height: 100%;
+#root .Main .referenceview-component               {height: 100%;
     > .col                             {display: flex;
                                         flex-direction: column;
                                         height: 100%;
                                         padding: 0;
         h2,
-        form                           {padding-right: 3rem;
+        form                           {padding-right: 2.25rem;
         }
         form                           {padding-left: 1rem;
                                         padding-top: 0.5rem;
-                                        padding-bottom: 0.5rem;
-                                        margin: 0;
+                                        padding-bottom: 0rem;
+                                        margin: 0.25rem 0;
                                         background-color: $secondaryLight;
+            .row:nth-child(2)          {margin-bottom: 0;
+            }
+            .col                       {padding-left: 0;
+            }
             .custom-switch             {line-height: 1.5rem;
                                         font-size: $font-size-sm;
                                         padding-top: 0.5rem;
                                         padding-left: 2.75rem;
             }
             .filter-content-switch-col {padding-top: 0.25rem;
+                                        font-size: $font-size-sm;
+                .form-check-inline     {margin-bottom: 0;
+                }
             }
         }
         .reference-view-panes          {overflow-y: auto;
@@ -1707,6 +1739,8 @@ h3                                      {font-family: $sans-fonts;
                 }
             }
         }
+        tbody th                       {padding-left: 0;
+        }
     }
 
     .personal-endings-table            {
@@ -1806,7 +1840,7 @@ h3                                      {font-family: $sans-fonts;
     }
 
     .vowel-contractions-tableA,
-    .vowel-contractions-tableB         {
+    .vowel-contractions-tableB         {margin-left: -0.35rem;
         th                             {font-size: 1.5rem;
                                         font-family: "SBL Greek";
                                         text-align: center;
@@ -1827,6 +1861,7 @@ h3                                      {font-family: $sans-fonts;
                                          transform: rotate(180deg);
                                          font-family: $sans-fonts;
                                          font-size: $font-size-sm;
+                                         width: 1rem;
                 }
             }
             th                          {color: $nominative;
@@ -2195,8 +2230,8 @@ h3                                      {font-family: $sans-fonts;
                                  margin-top: -.25rem;
             @media (max-width: map-get($grid-breakpoints, lg)) {
                 position: absolute;
-                margin-right: 1rem;
-                margin-top: 0.75rem;
+                margin-right: 3rem;
+                margin-top: 4rem;
                 right: 0;
                 top: 2.5rem;
             }
@@ -2387,7 +2422,7 @@ h3                                      {font-family: $sans-fonts;
                                                border: 1px solid lighten($niceGrey, 10%);
                                                background-color: lighten($niceGrey, 20%);
                                                border-radius: 0.25rem 0 0 0.25rem;
-                                               left: 1rem;
+                                               left: 0.05rem;
                 &:hover,
                 &:active                      {background-color: $niceGrey;
                                                border: 1px solid $niceGrey;
@@ -2400,7 +2435,7 @@ h3                                      {font-family: $sans-fonts;
                                                vertical-align: -0.2rem;
                 }
             }
-            .scroll-right                     {right: 1rem;
+            .scroll-right                     {right: 0.05rem;
                                                left: auto;
                                                border-radius: 0 0.25rem 0.25rem 0;
                 svg                           {transform: translateX(-0.6rem);
@@ -2684,28 +2719,28 @@ h3                                      {font-family: $sans-fonts;
             }
             #profile-stages-tabs-tab-level1,
             #profile-stages-tabs-tabpane-level1     {
-                .badge                          {background-color: $beginner-color;
+                .badge                          {background-color: $beginner-color !important;
                                                 color: $white;
                                                 border-color: $beginner-color;
                 }
             }
             #profile-stages-tabs-tab-level2,
             #profile-stages-tabs-tabpane-level2     {
-                .badge                          {background-color: $apprentice-color;
+                .badge                          {background-color: $apprentice-color !important;
                                                 color: $white;
                                                 border-color: $apprentice-color;
                 }
             }
             #profile-stages-tabs-tab-level3,
             #profile-stages-tabs-tabpane-level3     {
-                .badge                          {background-color: $journeyman-color;
+                .badge                          {background-color: $journeyman-color !important;
                                                 color: $white;
                                                 border-color: $journeyman-color;
                 }
             }
             #profile-stages-tabs-tab-level4,
             #profile-stages-tabs-tabpane-level4     {
-                .badge                          {background-color: $expert-color;
+                .badge                          {background-color: $expert-color !important;
                                                  color: $white;
                                                 border-color: $expert-color;
                 }
@@ -2942,7 +2977,7 @@ h3                                      {font-family: $sans-fonts;
 
 // walk interface---------------------------------------
 
-.walk-container                 {overflow: hidden;
+#root .Main .walk-container                 {overflow: hidden;
                                                width: 100%;
                                                position: relative;
   .map-spinner                                {position: absolute;
@@ -2991,7 +3026,7 @@ h3                                      {font-family: $sans-fonts;
                                                  padding: 0;
                                                  margin: 0;
                                                  margin-right: 0;
-                                                 margin-top: 4rem;
+                                                 margin-top: 0;
                                                  z-index: 2;
     @media (max-width: map-get($grid-breakpoints, sm))
                                                 {padding: 0;
@@ -3319,6 +3354,8 @@ h3                                      {font-family: $sans-fonts;
                 }
             }
             form                                    {margin: 0;
+                                                     margin-top: 0;
+                                                     margin-bottom: 0;
             }
             .responder-text                         {background-color: desaturate(lighten($pallette3, 40%), 40%);
                                                     margin-top: 2rem;
@@ -3421,6 +3458,7 @@ h3                                      {font-family: $sans-fonts;
                     &.submit_reply                  {margin-left: 0;
                                                      background-color: $pallette3;
                                                      border: 1px solid darken($pallette3, 5%);
+                                                     margin-top: 0;
                         @media (max-width: map-get($grid-breakpoints, sm)) {
                                                      padding-left: 0.75rem;
                                                      padding-right: 0.75rem;

@@ -18,7 +18,7 @@ const NavLink = ({title, path, icon, displayAt, ...rest}) => {
   return(
     <LinkContainer key={title} to={`/${urlBase}${path}`} {...rest}>
       <Nav.Link>
-        <FontAwesomeIcon icon={icon} size="sm" />
+        <FontAwesomeIcon icon={icon} size="sm" fixedWidth />
         <span className={`${extraDisplay} d-${displayAt}-inline`}>{title}</span>
       </Nav.Link>
     </LinkContainer>
@@ -30,7 +30,7 @@ const MyDropdown = ({label, icon, children}) => {
     <NavDropdown
       title={
         <React.Fragment>
-          <FontAwesomeIcon icon={icon} />
+          <FontAwesomeIcon icon={icon} fixedWidth />
           <span className="d-sm-none d-lg-inline">{label}</span>
         </React.Fragment>
       }

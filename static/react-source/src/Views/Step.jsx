@@ -239,11 +239,12 @@ const Step = (props) => {
 
 
   const widgets = {
-    'text': () => <Form.Control type="text" name="responder_field"
+    'text': () => <Form.Control autoFocus type="text" name="responder_field"
       id="responder_field" as={TextareaAutosize} />,
     'radio': () => {if (stepData.response_form.values != null) {
         return stepData.response_form.values.map( val => (
           <Form.Check
+            autoFocus
             type="radio"
             name={`responder_radio`}
             id={`radio-${val}`}
@@ -258,6 +259,7 @@ const Step = (props) => {
 
   const response_btns = {
     'map': () => (<Button className="back_to_map"
+                    autoFocus
                     key="back_to_map"
                     onClick={mapAction}>
                     <FontAwesomeIcon icon="map" />
@@ -270,6 +272,7 @@ const Step = (props) => {
                       <FontAwesomeIcon icon="redo-alt" /> Retry
                     </Button>),
     'continue': () => (<Button className="continue" variant="success"
+                        autoFocus
                         key="continue"
                         onClick={continueAction}>
                         <FontAwesomeIcon icon="walking" />
