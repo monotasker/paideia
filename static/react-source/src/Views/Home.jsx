@@ -14,13 +14,12 @@ import {
   faHardHat,
   faSignInAlt
 } from '@fortawesome/free-solid-svg-icons';
-// import MiniMasonry from "minimasonry";
 
 import imgMaria from "../Images/woman1.png";
 import imgHowDoesItWork from "../Images/info_How_Does_It_Work.svg";
 import imgHowDoIType from "../Images/info_How_Do_I_Type_Greek.svg";
 import imgFAQs from "../Images/info_What_Do_I_Need.svg";
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 import { fetchTestimonials } from "../Services/infoService";
 
 const modalContent = [
@@ -92,7 +91,7 @@ const Home = () => {
 
 
   useLayoutEffect(() => {
-    console.log(window.sessionStorage.getItem("firstLoadDone"));
+    DEBUGGING && console.log(window.sessionStorage.getItem("firstLoadDone"));
     if (window.sessionStorage.getItem("firstLoadDone") === null) {
         window.sessionStorage.setItem("firstLoadDone", 1);
       setLoadAnimationFired(true);

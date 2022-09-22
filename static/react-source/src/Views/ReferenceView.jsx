@@ -15,7 +15,7 @@ import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
 // import { useHistory, Link } from "react-router-dom";
 import Measure from "react-measure";
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 
 
 const DativeUses = ({navigateAwayHandler}) => (
@@ -594,7 +594,7 @@ const GenitiveUses = ({navigateAwayHandler}) => (
 );
 
 const CaseEndings = ({navigateAwayHandler, userLevel, filterByLevel}) => {
-    console.log(`filterByLevel: ${filterByLevel}`);
+    DEBUGGING && console.log(`filterByLevel: ${filterByLevel}`);
     return(
     <React.Fragment>
         <Table className="case-endings-table" size="sm">
@@ -887,7 +887,7 @@ const ReferenceView = ({navigateAwayHandler}) => {
     const { user, } = useContext(UserContext);
     const userLevel = user.currentBadgeSet;
     const [ filterByLevel, setFilterByLevel ] = useState(userLevel!==null ? true : false);
-    console.log(`userLevel: ${typeof(userLevel)}`);
+    DEBUGGING && console.log(`userLevel: ${typeof(userLevel)}`);
     const commonProps = {navigateAwayHandler: navigateAwayHandler,
                          userLevel: userLevel,
                          filterByLevel: filterByLevel
@@ -941,8 +941,8 @@ const ReferenceView = ({navigateAwayHandler}) => {
         setViewChosen(sections.filter(s => s.label===value)[0].views[0].label);
     }
 
-    console.log(`filterByLevel: ${filterByLevel}`);
-    console.log(`userLevel: ${userLevel}`);
+    DEBUGGING && console.log(`filterByLevel: ${filterByLevel}`);
+    DEBUGGING && console.log(`userLevel: ${userLevel}`);
 
     return(
        <Row key="ReferenceView" className="referenceview-component panel-view">

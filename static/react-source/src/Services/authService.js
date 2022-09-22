@@ -6,6 +6,7 @@ import { loadScriptByURL,
          doApiCall
        } from "../Services/utilityService";
 import { async } from 'regenerator-runtime';
+import { DEBUGGING } from '../variables';
 
 /**
  *
@@ -85,18 +86,18 @@ const checkLogin = async (user, dispatch) => {
   let myVal = true;
 
   if ( !!user.userLoggedIn && !!response.logged_in ) {
-    console.log('logged in both');
+    DEBUGGING && console.log('logged in both');
 
     if ( user.userId !== response.user ) {
       myVal = false;
       throw new Error("local user doesn't match server login");
     }
   } else if ( !user.userLoggedIn && !!response.logged_in ) {
-    console.log('logged in server only');
+    DEBUGGING && console.log('logged in server only');
     updateUserInfo(dispatch);
 
   } else if ( (!!user.userID || !!user.userLoggedIn) && !response.logged_in ) {
-    console.log('logged in local only');
+    DEBUGGING && console.log('logged in local only');
     dispatch({type: 'deactivateUser'});
     myVal = false;
   }
@@ -198,7 +199,7 @@ const withRecaptcha = (Component, actionName) => ({rkey=recaptchaKey,
   useEffect(() => {
     loadScriptByURL("recaptcha-key",
         `https://www.google.com/recaptcha/api.js?render=${rkey}`, function () {
-            console.log("Recaptcha Script loaded!");
+            DEBUGGING && console.log("Recaptcha Script loaded!");
         }
     );
   }, []);
@@ -219,13 +220,13 @@ const withRecaptcha = (Component, actionName) => ({rkey=recaptchaKey,
 }
 
 const useRecaptcha = (actionName, requestFunction) => {
-  console.log(actionName);
-  console.log(requestFunction);
+  DEBUGGING && console.log(actionName);
+  DEBUGGING && console.log(requestFunction);
   const rkey = recaptchaKey
   useEffect(() => {
     loadScriptByURL("recaptcha-key",
         `https://www.google.com/recaptcha/api.js?render=${rkey}`, function () {
-            console.log("Recaptcha Script loaded!");
+            DEBUGGING && console.log("Recaptcha Script loaded!");
         }
     );
   }, []);

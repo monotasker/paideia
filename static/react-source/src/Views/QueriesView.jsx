@@ -38,6 +38,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
 import Collapsible from '../Components/Collapsible';
+import { DEBUGGING } from "../variables";
 
 
 const roles = {instructors: "chalkboard-teacher",
@@ -326,7 +327,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
                      score=null, adjustedScore=null,
                      children=null, threadIndex=0, scope
                     }) => {
-  // console.log('starting display row');
+  // DEBUGGING && console.log('starting display row');
   const myRoles = !!opRole && opRole != null ?
     opRole.map(r => `${r}`).join(" ") : "";
   const readClass = read===true ? "read" : (read===false ? "unread" : "");
@@ -758,12 +759,12 @@ const ScopeView = ({scope, nonStep, singleStep,
     (scope==="students" ? viewStudents : null));
   const [currentQueryTotal, setCurrentQueryTotal] = useState();
   const [noGroupsAvailable, setNoGroupsAvailable] = useState(checkForGroupsAvailable());
-  // console.log("in ScopeView: user.classInfo is");
-  // console.log(user.classInfo);
-  // console.log(Object.keys(user.classInfo).length);
-  // console.log("in ScopeView: user.instructing is");
-  // console.log(user.instructing);
-  // console.log(Object.keys(user.instructing).length);
+  // DEBUGGING && console.log("in ScopeView: user.classInfo is");
+  // DEBUGGING && console.log(user.classInfo);
+  // DEBUGGING && console.log(Object.keys(user.classInfo).length);
+  // DEBUGGING && console.log("in ScopeView: user.instructing is");
+  // DEBUGGING && console.log(user.instructing);
+  // DEBUGGING && console.log(Object.keys(user.instructing).length);
 
 
   function checkForGroupsAvailable() {
@@ -783,7 +784,7 @@ const ScopeView = ({scope, nonStep, singleStep,
     if (!!byClass && myCourses.length > 0) {
       let myVal = !!viewGroup ? viewGroup : myCourses[0].id;
       courseChangeFunctions[scope](myVal);
-      // console.log(`changing course to: ${myVal}`);
+      // DEBUGGING && console.log(`changing course to: ${myVal}`);
     }
   }, [byClass, viewGroup, scope, queries]);
 
@@ -1151,9 +1152,9 @@ const QueriesView = () => {
     const [otherTotalCount, setOtherTotalCount] = useState(null);
     const [otherUnreadCount, setOtherUnreadCount] = useState(null);
     const [page, setPage] = useState(1);
-    console.log("QueriesView top----------------------");
-    console.log("queries");
-    console.log(queries);
+    DEBUGGING && console.log("QueriesView top----------------------");
+    DEBUGGING && console.log("queries");
+    DEBUGGING && console.log(queries);
 
     const [loading, setLoading] = useState(!queries ? true : false);
 
@@ -1322,7 +1323,7 @@ const QueriesView = () => {
     // if the new query has deleted: true it is removed
     const _findAndUpdateItem = (mylist, newItem, itemLevel, queryId=0) => {
       // TODO: mark children read when marked read
-      // console.log("_findAndUpdateItem-------------------------------------");
+      // DEBUGGING && console.log("_findAndUpdateItem-------------------------------------");
       const dbTableFields = {'query': 'bugs',
                              'reply': 'bug_posts',
                              'comment': 'bug_post_comments'}
@@ -1346,16 +1347,16 @@ const QueriesView = () => {
         myReplyId = !!markingRead ? newItem.on_bug_post : newItem[itemTableField].on_post;
         myCommentId = myItemId;
       }
-      // console.log(`myQueryId: ${myQueryId}`);
+      // DEBUGGING && console.log(`myQueryId: ${myQueryId}`);
       const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
-      // console.log(`queryIndex: ${queryIndex}`);
+      // DEBUGGING && console.log(`queryIndex: ${queryIndex}`);
 
       const _innerFindAndUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
                             ) => {
-        // console.log("inner find and update..........");
-        // console.log(i_itemIndex);
-        // console.log(i_itemlist);
-        // console.log(`markingRead: ${markingRead}`);
+        // DEBUGGING && console.log("inner find and update..........");
+        // DEBUGGING && console.log(i_itemIndex);
+        // DEBUGGING && console.log(i_itemlist);
+        // DEBUGGING && console.log(`markingRead: ${markingRead}`);
         if ( !!markingRead ) {
           i_itemlist[i_itemIndex].read = i_newItem.read_status;
         } else if ( !!deleting ) {
@@ -1363,36 +1364,36 @@ const QueriesView = () => {
         } else {
           i_itemlist[i_itemIndex] = formatAction(i_newItem);
         }
-        // console.log("returning from inner:");
-        // console.log(i_itemlist);
+        // DEBUGGING && console.log("returning from inner:");
+        // DEBUGGING && console.log(i_itemlist);
         return i_itemlist
       }
 
       const _markChildrenRead = (i_mylist, myIndex) => {
-        // console.log("marking children read********");
-        // console.log(i_mylist);
-        // console.log(myIndex);
+        // DEBUGGING && console.log("marking children read********");
+        // DEBUGGING && console.log(i_mylist);
+        // DEBUGGING && console.log(myIndex);
         let myReplyList = i_mylist[myIndex].children;
         for (let i=0; i<myReplyList.length; i++) {
           if ( myReplyList[i].read===false ) {
-            // console.log("marking item");
-            // console.log(i);
+            // DEBUGGING && console.log("marking item");
+            // DEBUGGING && console.log(i);
             myReplyList = _innerFindAndUpdate(i, myReplyList, _formatReplyData,
                                       {read_status: true})
             if ( myReplyList[i].hasOwnProperty('children') &&
                 myReplyList[i].children !== undefined &&
                 myReplyList[i].children.length>0 )
               {
-              // console.log("marking grandchildren read below========");
+              // DEBUGGING && console.log("marking grandchildren read below========");
               let myCommentList = myReplyList[i].children;
               for (let x=0; x<myCommentList.length; x++) {
                 if ( myCommentList[x].read===false ) {
-                  // console.log(myCommentList);
-                  // console.log(x);
+                  // DEBUGGING && console.log(myCommentList);
+                  // DEBUGGING && console.log(x);
                   myCommentList = _innerFindAndUpdate(x,
                     myCommentList, _formatCommentData, {read_status: true})
-                  // console.log("grandchild result");
-                  // console.log(myCommentList);
+                  // DEBUGGING && console.log("grandchild result");
+                  // DEBUGGING && console.log(myCommentList);
                 }
               }
               myReplyList[i].children = myCommentList;
@@ -1404,29 +1405,29 @@ const QueriesView = () => {
       }
 
       if ( queryIndex > -1 ) {
-        // console.log(`updating at query level ${itemLevel}`);
+        // DEBUGGING && console.log(`updating at query level ${itemLevel}`);
         // update at query level
         if (itemLevel==='query') {
           mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData, newItem);
           if ( !!markingRead && newItem.read_status===true) {
             mylist = _markChildrenRead(mylist, queryIndex);
-            // console.log('returned from marking children read======');
-            // console.log(mylist);
+            // DEBUGGING && console.log('returned from marking children read======');
+            // DEBUGGING && console.log(mylist);
           }
         } else {
           // update either reply or comment level...
           let myReplyList = mylist[queryIndex].children;
-          // console.log(`myReplyList:`);
-          // console.log(JSON.parse(JSON.stringify(myReplyList)));
-          // console.log(myReplyList.findIndex(p => p.replyId===3));
-          // console.log(myReplyList.findIndex(p => p.replyId > 333));
+          // DEBUGGING && console.log(`myReplyList:`);
+          // DEBUGGING && console.log(JSON.parse(JSON.stringify(myReplyList)));
+          // DEBUGGING && console.log(myReplyList.findIndex(p => p.replyId===3));
+          // DEBUGGING && console.log(myReplyList.findIndex(p => p.replyId > 333));
           const replyIndex = myReplyList.findIndex(p => p.replyId===myReplyId);
-          // console.log(`rplyId:`);
-          // console.log(myReplyId);
-          // console.log(`rplyIndex: ${replyIndex}`);
-          // console.log(JSON.parse(JSON.stringify(replyIndex)));
+          // DEBUGGING && console.log(`rplyId:`);
+          // DEBUGGING && console.log(myReplyId);
+          // DEBUGGING && console.log(`rplyIndex: ${replyIndex}`);
+          // DEBUGGING && console.log(JSON.parse(JSON.stringify(replyIndex)));
           if (replyIndex > -1) {
-            // console.log('Got a good index!!!!!!!!');
+            // DEBUGGING && console.log('Got a good index!!!!!!!!');
             if ( itemLevel==='reply') {
               // update at reply level
               mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
@@ -1475,13 +1476,13 @@ const QueriesView = () => {
     // expects myresponse to have keys "auth_user", "bugs", and "posts"
     const _updateItemInState = (newItem, itemLevel, queryId, scope) => {
 
-      // console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
+      // DEBUGGING && console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
       const extraArg = itemLevel==="comment" ? [queryId] : [];
 
       const innerUpdate = (qList, updateAction) => {
         return new Promise((resolve, reject) => {
-          // console.log("innerUpdate: qList");
-          // console.log(qList);
+          // DEBUGGING && console.log("innerUpdate: qList");
+          // DEBUGGING && console.log(qList);
           let newQList = [];
           if ( qList.length && !!qList[0].classId ) {
             newQList = qList.map(myClass => {
@@ -1490,16 +1491,16 @@ const QueriesView = () => {
               return myClass;
             })
           } else if ( qList.length ) {
-            // console.log(`updating ${itemLevel}`);
+            // DEBUGGING && console.log(`updating ${itemLevel}`);
             newQList = _findAndUpdateItem(qList, newItem, itemLevel,
                                           ...extraArg);
-            // console.log('inner_update*********************');
-            // console.log(newQList);
+            // DEBUGGING && console.log('inner_update*********************');
+            // DEBUGGING && console.log(newQList);
           }
-          // console.log("innerUpdate: newQList");
-          // console.log(newQList);
-          // console.log(`sending to:`);
-          // console.log(updateAction);
+          // DEBUGGING && console.log("innerUpdate: newQList");
+          // DEBUGGING && console.log(newQList);
+          // DEBUGGING && console.log(`sending to:`);
+          // DEBUGGING && console.log(updateAction);
           updateAction(newQList);
           resolve(newQList);
         })
@@ -1514,9 +1515,9 @@ const QueriesView = () => {
           _setCounts({[scope]: result});
         },
         result => {
-          console.log('I broke!!!!!!!!!!!');
-          console.log(result);
-          console.log(scopeLabel);
+          DEBUGGING && console.log('I broke!!!!!!!!!!!');
+          DEBUGGING && console.log(result);
+          DEBUGGING && console.log(scopeLabel);
         }
       )
     }
@@ -1532,9 +1533,9 @@ const QueriesView = () => {
       //       _setCounts({[scopeLabel]: result});
       //     },
       //     result => {
-      //       console.log('I broke!!!!!!!!!!!');
-      //       console.log(result);
-      //       console.log(scopeLabel);
+      //       DEBUGGING && console.log('I broke!!!!!!!!!!!');
+      //       DEBUGGING && console.log(result);
+      //       DEBUGGING && console.log(scopeLabel);
       //     }
       //   )
       // }
@@ -1686,7 +1687,7 @@ const QueriesView = () => {
           if (myresponse.status_code===200) {
             _updateItemInState(myresponse.result, postLevel, 0, scope);
           } else {
-            console.log(myresponse);
+            DEBUGGING && console.log(myresponse);
           }
       });
     }

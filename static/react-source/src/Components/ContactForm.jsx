@@ -15,12 +15,13 @@ import { UserContext } from "../UserContext/UserProvider";
 import { FormErrorMessage } from "../Services/formsService";
 import { withRecaptcha } from "../Services/authService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { DEBUGGING } from "../variables";
 
 const sendMessageAction = async (payload, setSubmitting, token) => {
     payload['token'] = token;
     const mailResponse = await doApiCall(payload, "contact", "JSON", "POST")
-      .then(mydata => { console.log(mydata); return mydata;});
-    console.log(mailResponse);
+      .then(mydata => { DEBUGGING && console.log(mydata); return mydata;});
+    DEBUGGING && console.log(mailResponse);
     return( mailResponse );
 }
 
@@ -82,7 +83,7 @@ const ContactFormInner = ({submitAction}) => {
               .then(messageResponse => {
                 returnStatusCheck(messageResponse, history,
                   (mydata) => {
-                    console.log(mydata);
+                    DEBUGGING && console.log(mydata);
                     setSubmitting(false);
                     setSubmissionSucceeded(true);
                     setEmailResult(mydata.email);

@@ -26,6 +26,7 @@ import { UserContext } from '../UserContext/UserProvider';
 import { useQuery } from "../Services/utilityService";
 import { sendFormRequest,
          useFormManagement } from "../Services/formsService";
+import { DEBUGGING } from "../variables";
 
 const Register = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
@@ -56,8 +57,8 @@ const Register = ({submitAction}) => {
   const fieldSet = fieldNames.reduce((current, myName) => {
     return {...current, [myName]: formFieldValues[myName]}
   }, {});
-  console.log('before submission: fieldSet is');
-  console.log(fieldSet);
+  DEBUGGING && console.log('before submission: fieldSet is');
+  DEBUGGING && console.log(fieldSet);
 
   const getRegistration = (event) => {
     submitAction(event,

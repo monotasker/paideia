@@ -9,7 +9,7 @@ import { LinkContainer } from "react-router-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { logout } from '../Services/authService';
 import { UserContext } from "../UserContext/UserProvider";
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 
 
 

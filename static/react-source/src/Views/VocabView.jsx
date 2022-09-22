@@ -20,7 +20,7 @@ import greekUtils from 'greek-utils/lib/index'
 
 import { fetchVocabulary } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 
 
 const LinkHeading = ({ field, label, mySortCol, myOrder, sortHandler,
@@ -172,7 +172,7 @@ const WordRow = ({ w, navigateAwayHandler }) => {
 
 // FIXME: Don't fire when pane just flies in!
 const vocabIsEqual = (prevProps, nextProps) => {
-  // console.log('checking vocab equality');
+  // DEBUGGING && console.log('checking vocab equality');
   const oldWordIDs = JSON.stringify(prevProps.vocab.map(w => w.id));
   const newWordIDs = JSON.stringify(nextProps.vocab.map(w => w.id));
   return oldWordIDs === newWordIDs;
@@ -247,7 +247,7 @@ const VocabView = ({ navigateAwayHandler }) => {
       );
       gkSetFinal = gkSetMatched.concat(gkSetFuzzy);
     }
-    console.log(gkSetFinal);
+    DEBUGGING && console.log(gkSetFinal);
 
     let engSetFinal = gkSetFinal;
     if ( strEng != "" ) {
@@ -324,11 +324,11 @@ const VocabView = ({ navigateAwayHandler }) => {
   );
 
   useEffect(() => {
-    // console.log('fetching from server');
+    // DEBUGGING && console.log('fetching from server');
     setUpdating(true);
     fetchVocabulary({vocab_scope_selector: 0})
     .then(mydata => {
-      console.log(mydata);
+      DEBUGGING && console.log(mydata);
       setVocab(assembleVocab(mydata.mylemmas));
       window.localStorage.setItem('vocab', JSON.stringify(mydata.mylemmas));
       setUpdating(false);
@@ -341,7 +341,7 @@ const VocabView = ({ navigateAwayHandler }) => {
     // if ( storedData ) {
     //   try {
     //     const myvocab = JSON.parse(storedData || "[]");
-    //     console.log(myvocab);
+    //     DEBUGGING && console.log(myvocab);
     //     setVocab(assembleVocab(myvocab));
     //   } catch(SyntaxError) {
     //     window.localStorage.removeItem('vocab');

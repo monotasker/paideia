@@ -28,6 +28,7 @@ import { validateCourseKey,
 import { isAlphanumericString,
          isNumericString,
        } from "../Services/utilityService";
+import { DEBUGGING } from "../variables";
 
 // FIXME: use actual publishable key in production
 // const stripe_promise = loadStripe("pk_test_51IYtbhCzY7JkMiXGdU7a5MhH7UO6kk0pIiHEFZb5X4dKJ9KS98wdLKlfc4i9VCLekCtsRaV9uksdLTLNKP6Oy5sw000lqIdBpU");
@@ -77,7 +78,7 @@ const CheckoutForm = ({ submitAction, courseKey, courseId, courseLabel }) => {
     if ( data.reason==="Stripe checkout session creation failed" ) {
       setFlags({...flags, serverError: data.error});
     }
-    console.log(flags);
+    DEBUGGING && console.log(flags);
   }
 
   // Create PaymentIntent as soon as the page loads
@@ -137,7 +138,7 @@ const CheckoutForm = ({ submitAction, courseKey, courseId, courseLabel }) => {
         }
       }
     });
-    console.log(payload);
+    DEBUGGING && console.log(payload);
     if (payload.error) {
       setFlags({...flags,
                 success: false,
@@ -155,11 +156,11 @@ const CheckoutForm = ({ submitAction, courseKey, courseId, courseLabel }) => {
   };
 
   const handleSuccess = async () => {
-    console.log("handling success***");
+    DEBUGGING && console.log("handling success***");
     let joinResult = await joinCourseGroup({user_id: user.userId,
                                       course_key: courseKey,
                                       course_id: courseId});
-    console.log(joinResult);
+    DEBUGGING && console.log(joinResult);
     if (joinResult.status!=="success") {
       setJoinFailed(true);
       setJoinFailureReason(joinResult.error);

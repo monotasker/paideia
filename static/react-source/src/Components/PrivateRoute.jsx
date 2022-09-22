@@ -6,7 +6,7 @@ import {
   useLocation
 } from 'react-router-dom';
 import { UserContext } from '../UserContext/UserProvider';
-import { urlBase } from '../variables';
+import { urlBase, DEBUGGING } from '../variables';
 import { checkLogin } from '../Services/authService';
 
 
@@ -21,8 +21,8 @@ const PrivateRoute = ({ ...options }) => {
   }, [loggedIn, user.userLoggedIn]);
 
   useEffect(() => {
-    console.log('***********');
-    console.log('Checking login in private route');
+    DEBUGGING && console.log('***********');
+    DEBUGGING && console.log('Checking login in private route');
     setLoggedIn(checkLogin(user, dispatch));
   }, [history, location]);
 

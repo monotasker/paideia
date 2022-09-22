@@ -10,20 +10,21 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { UserContext } from "../UserContext/UserProvider";
 import { setServerReviewMode } from "../Services/stepFetchService";
+import { DEBUGGING } from "../variables";
 
 const SettingsView = () => {
 
   const [settingReview, setSettingReview] = useState(false);
   const { user, dispatch } = useContext(UserContext);
-  console.log(user);
-  console.log(user.reviewSet);
-  console.log(user.currentBadgeSet);
+  DEBUGGING && console.log(user);
+  DEBUGGING && console.log(user.reviewSet);
+  DEBUGGING && console.log(user.currentBadgeSet);
 
 
   const reviewAction = setNum => {
     setSettingReview(true);
     const myNum = setNum.slice(0, 10) == "review set" ? parseInt(setNum.slice(10)) : 0
-    console.log(myNum);
+    DEBUGGING && console.log(myNum);
     setServerReviewMode(myNum)
     .then(mydata => {
       dispatch({type: 'setReviewSet', payload: mydata.review_set});

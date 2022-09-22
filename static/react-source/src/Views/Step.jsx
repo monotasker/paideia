@@ -18,7 +18,7 @@ import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 import AudioPlayer from "../Components/AudioPlayer";
 import { evaluateAnswer, set_lessons_viewed, getPromptData } from "../Services/stepFetchService";
 import { UserContext } from "../UserContext/UserProvider";
@@ -103,7 +103,7 @@ const Slidedecks = ({decks}) => {
 }
 
 const Step = (props) => {
-  console.log(props);
+  DEBUGGING && console.log(props);
   const history = useHistory();
   const { user, dispatch } = useContext(UserContext);
   const [ stepData, setStepData ] = useState(props.stepdata);
@@ -116,9 +116,9 @@ const Step = (props) => {
   const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
-  console.log('STEPDATA IS (in Step)');
-  console.log(stepData);
-  console.log(stepData.audio);
+  DEBUGGING && console.log('STEPDATA IS (in Step)');
+  DEBUGGING && console.log(stepData);
+  DEBUGGING && console.log(stepData.audio);
 
   useEffect(() => {
     setStepData(props.stepdata);
@@ -180,7 +180,7 @@ const Step = (props) => {
       .then(stepfetch => {
         returnStatusCheck(stepfetch, history,
           (mydata) => {
-              console.log(mydata);
+              DEBUGGING && console.log(mydata);
               setEvaluatingStep(false);
               setResponded(true);
               setScore(mydata.score);

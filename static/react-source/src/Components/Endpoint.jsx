@@ -8,6 +8,7 @@ import {
   Route,
 } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
+import { DEBUGGING } from '../variables';
 
 const Endpoint = ({path, branches}) => {
 

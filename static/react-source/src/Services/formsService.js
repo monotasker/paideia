@@ -1,6 +1,7 @@
 import { ErrorMessage } from 'formik';
 import React, {useState} from 'react';
 import { returnStatusCheck } from '../Services/utilityService';
+import { DEBUGGING } from '../variables';
 
 /**
  * Wrapper for formik form error message to aid in layout and styling
@@ -61,12 +62,12 @@ const sendFormRequest = (token, setFields,
                       ) => {
     setInProgressAction(true);
     // handle autocompleted form fields that aren't picked up by React state
-    // console.log('formId===========');
-    // console.log(formId);
+    // DEBUGGING && console.log('formId===========');
+    // DEBUGGING && console.log(formId);
     let requestArgs = {};
     Object.keys(fieldSet).forEach(key => {
-      // console.log('key');
-      // console.log(key);
+      // DEBUGGING && console.log('key');
+      // DEBUGGING && console.log(key);
       let mycontrol = document.getElementById(formId).elements[key]
       let myval = !!mycontrol ? mycontrol.value : undefined;
 
@@ -163,8 +164,8 @@ const useFormManagement = (formFields) => {
               return {...obj, [item]: !!Array.isArray(formFields[item]) ? formFields[item][1] : null }
             }, {})
             );
-    // console.log('formFieldValues is');
-    // console.log(formFieldValues);
+    // DEBUGGING && console.log('formFieldValues is');
+    // DEBUGGING && console.log(formFieldValues);
 
     // const _findMissingAndBadValues
 
@@ -176,12 +177,12 @@ const useFormManagement = (formFields) => {
       setFormFieldValuesDirectly({...formFieldValues, [fieldName]: val});
       let newFlags = { ...flags };
 
-      // console.log(`setting field ${fieldName}: ${val}`);
+      // DEBUGGING && console.log(`setting field ${fieldName}: ${val}`);
 
       // unflag missing field values if we're now entering them
       var myMissing = [...newFlags.missingRequestData ];
       const missingIndex = myMissing.indexOf(fieldName);
-      // console.log(`missingIndex ${missingIndex}`);
+      // DEBUGGING && console.log(`missingIndex ${missingIndex}`);
       if (missingIndex > -1) {
         myMissing.splice(missingIndex, 1);
         newFlags.missingRequestData = myMissing;
@@ -196,8 +197,8 @@ const useFormManagement = (formFields) => {
         let myBad = [ ...newFlags.badRequestData ];
         const emailIndex = myBad.indexOf(fieldName);
         const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-        // console.log('passed email test?');
-        // console.log(re.test(String(val).toLowerCase()));
+        // DEBUGGING && console.log('passed email test?');
+        // DEBUGGING && console.log(re.test(String(val).toLowerCase()));
         if ( !re.test(String(val).toLowerCase()) ) {
           if (emailIndex === -1) { myBad.push(fieldName); }
         } else {
@@ -211,8 +212,8 @@ const useFormManagement = (formFields) => {
         let myBad = [ ...newFlags.badRequestData ];
         const passwordIndex = myBad.indexOf(fieldName);
         const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{8,20}$/;
-        // console.log('passed password test?');
-        // console.log(re.test(val));
+        // DEBUGGING && console.log('passed password test?');
+        // DEBUGGING && console.log(re.test(val));
         if ( !re.test(val) ) {
           if (passwordIndex === -1) { myBad.push(fieldName); }
         } else {
@@ -234,10 +235,10 @@ const useFormManagement = (formFields) => {
         newFlags.badRequestData = myBad;
       }
       setFlags(newFlags);
-      // console.log('missingRequestData is');
-      // console.log(flags.missingRequestData);
-      // console.log('badRequestData is');
-      // console.log(flags.badRequestData);
+      // DEBUGGING && console.log('missingRequestData is');
+      // DEBUGGING && console.log(flags.missingRequestData);
+      // DEBUGGING && console.log('badRequestData is');
+      // DEBUGGING && console.log(flags.badRequestData);
     }
 
     const myCallbacks = {

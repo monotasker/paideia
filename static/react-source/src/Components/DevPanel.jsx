@@ -13,6 +13,7 @@ import * as Yup from 'yup';
 import { getPromptData } from "../Services/stepFetchService";
 import { FormErrorMessage } from "../Services/formsService";
 import { urlBase } from "../variables";
+import { DEBUGGING } from "../variables";
 
 const PathTestForm = ({setStepData}) => {
 
@@ -92,7 +93,7 @@ const PathTestForm = ({setStepData}) => {
                          new_user: values.flagsFreshUser,
                          location: values.location,
                          set_blocks: assembleTestBlocks(values)}
-        console.log(payload);
+        DEBUGGING && console.log(payload);
         const myStepData = getPromptData(payload).then(mydata => {
           setStepData(mydata);
           history.push(`/${urlBase}/walk/${values.location}/${values.stepnum}`);

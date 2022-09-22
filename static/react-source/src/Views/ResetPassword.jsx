@@ -24,6 +24,7 @@ import { useQuery} from '../Services/utilityService';
 import { UserContext } from '../UserContext/UserProvider';
 import { sendFormRequest,
          useFormManagement } from '../Services/formsService';
+import { DEBUGGING } from "../variables";
 
 
 const StartResetForm = ({submitAction}) => {
@@ -36,7 +37,7 @@ const StartResetForm = ({submitAction}) => {
       } = useFormManagement({email: "email"});
 
   const submitPasswordResetRequest = (event) => {
-    console.log(`requesting for ${formFieldValues.email}`);
+    DEBUGGING && console.log(`requesting for ${formFieldValues.email}`);
     submitAction(event,
         (token) => {sendFormRequest(token, setFormFieldValue,
           {formId: "start-pass-reset-form",
@@ -58,8 +59,8 @@ const StartResetForm = ({submitAction}) => {
       }
     )
   }
-  console.log("flags is:");
-  console.log(flags);
+  DEBUGGING && console.log("flags is:");
+  DEBUGGING && console.log(flags);
 
   return (
     <React.Fragment>

@@ -104,7 +104,7 @@ import {
 
 import './Main.scss';
 
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 import PrivateRoute from "../Components/PrivateRoute";
 import TopNavbar from "../Components/TopNavbar";
 import Tools from "../Components/Tools";
@@ -245,7 +245,7 @@ const MainPage = ({props}) => {
     const headroom = document.querySelector('.navbar').offsetHeight;
     let divHeight = window.innerHeight - headroom;
     setMyheight(divHeight);
-    console.log(`set height to ${divHeight} with headroom of ${headroom}`);
+    DEBUGGING && console.log(`set height to ${divHeight} with headroom of ${headroom}`);
   }
 
   useEffect(() => {

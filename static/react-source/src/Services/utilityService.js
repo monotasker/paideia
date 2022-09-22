@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { recaptchaKey } from "../variables";
+import { recaptchaKey, DEBUGGING } from "../variables";
 
 /**
  * Load scripts dynamically as needed by a component
@@ -40,7 +40,7 @@ const useQuery = () => {
 
 const doApiCall = async (payload, apiFunction,
                          format="none", method="POST") => {
-  // console.log(`method: ${method}`);
+  // DEBUGGING && console.log(`method: ${method}`);
   let callObject = {method: method,
                     cache: "no-cache",
                     mode: "same-origin"
@@ -60,7 +60,7 @@ const doApiCall = async (payload, apiFunction,
       default:
         break;
   }
-  // console.log(callObject);
+  // DEBUGGING && console.log(callObject);
   let response = await fetch(`/paideia/api/${apiFunction}`, callObject);
   let mydata;
   try {
@@ -76,10 +76,10 @@ const doApiCall = async (payload, apiFunction,
 
 function returnStatusCheck(mydata, history, action, reducer,
                            otherActions={}) {
-  console.log(mydata);
+  DEBUGGING && console.log(mydata);
   switch (mydata.status_code) {
     case 200:
-      console.log("check succeeded!!!");
+      DEBUGGING && console.log("check succeeded!!!");
       action(mydata);
       break;
 

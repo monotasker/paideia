@@ -21,7 +21,7 @@ import { useParams,
        } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { urlBase } from "../variables";
+import { urlBase, DEBUGGING } from "../variables";
 import { isAlphanumericString, returnStatusCheck } from "../Services/utilityService";
 import { useFormManagement } from "../Services/formsService";
 import { getProfileInfo } from "../Services/authService";
@@ -394,24 +394,24 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
 }
 
 const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
-  // console.log(badgeSetMilestones && badgeSetMilestones[badgeSetMilestones.length - 1]);
+  // DEBUGGING && console.log(badgeSetMilestones && badgeSetMilestones[badgeSetMilestones.length - 1]);
   const currentSet = !!badgeSetMilestones ? badgeSetMilestones[badgeSetMilestones.length - 1]["badge_set"] : 0;
 
   const scrollToMiddle = (parent, child) => {
     const parentEl = document.querySelector(parent);
-    console.log(parentEl);
+    DEBUGGING && console.log(parentEl);
     const childEl = document.querySelector(child);
     if (!!childEl ) {
       let childOffset = childEl.offsetLeft;
-      console.log(`childOffset ${childEl.getBoundingClientRect().left}`);
+      DEBUGGING && console.log(`childOffset ${childEl.getBoundingClientRect().left}`);
       let childWidth = childEl.offsetWidth;
       let parentWidth = parentEl.offsetWidth;
-      console.log(`parentWidth ${parentEl.getBoundingClientRect().left}`);
+      DEBUGGING && console.log(`parentWidth ${parentEl.getBoundingClientRect().left}`);
       let targetOffset = (parentWidth - childWidth) / 2;
       parentEl.scrollBy({left: (childOffset - targetOffset),
                         top: 0,
                         behavior: "smooth"});
-      console.log(`scrolled ${childOffset - targetOffset}`);
+      DEBUGGING && console.log(`scrolled ${childOffset - targetOffset}`);
     }
   };
 
@@ -549,11 +549,11 @@ const Profile = (props) => {
   const myDate = new Date();
 
   const userIdParam = parseInt(useParams().userId);
-  // console.log('userIdParam');
-  // console.log(userIdParam);
+  // DEBUGGING && console.log('userIdParam');
+  // DEBUGGING && console.log(userIdParam);
   const { user, dispatch } = useContext(UserContext);
-  console.log('User in Profile ++++++++++++++');
-  console.log(user);
+  DEBUGGING && console.log('User in Profile ++++++++++++++');
+  DEBUGGING && console.log(user);
 
   const [ updating, setUpdating ] = useState(true);
   const [ authorized, setAuthorized ] = useState(true);
@@ -618,7 +618,7 @@ const Profile = (props) => {
     .then(info => {
       returnStatusCheck(info, props.history,
         (info) => {
-          console.log(info);
+          DEBUGGING && console.log(info);
 
           setFirstName(info.firstName);
           setLastName(info.lastName);
