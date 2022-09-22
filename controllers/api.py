@@ -44,8 +44,14 @@ def contact():
     """
     Send an email to the contact address.
 
-    expects request parameters "subject", "return_address", and "body"
-    as well as "token" for the recaptcha token
+    expects request parameters "subject", "return_address", "first_name", "last_name", and "body" as well as "token" for the recaptcha token
+
+    a successful request returns a JSON object with the keys
+    - "result" (default value "Email sent")
+    - "email" (dict with the fields used for the submission)
+    - "status_code" (number, 200 if successful)
+
+    This endpoint will only respond to a "POST" request.
     """
     request = current.request
 
@@ -87,11 +93,11 @@ def contact():
                     response.status = 400
                     return json_serializer({'status': 'bad request',
                                             'reason': 'Missing request data',
-                                            'error': 'Must supply ${}'.format(field)})
+                                            'error': {"missing": field}})
 
             email_body = "Message from {} {}:\n{}".format(
                 request.vars['first_name'],
-                request.vars['last_name'], request.vars['body_text'])
+                request.vars['last_name'], request.vars['body'])
 
             if current.mail and current.mail.send(
                     to=current.mail.settings.sender,
@@ -99,11 +105,13 @@ def contact():
                     subject=request.vars['subject'],
                     message=email_body):
                 return json_serializer({'result': 'Email sent',
-                                        'email_text': email_body,
-                                        'email_subject': request.vars['subject'],
-                                        'return_address': request.vars['return_address'],
-                                        'first_name': request.vars['first_name'],
-                                        'last_name': request.vars['last_name']})
+                                        'email': {'email_text': email_body,
+                                                  'email_subject': request.vars['subject'],
+                                                  'return_address': request.vars['return_address'],
+                                                  'first_name': request.vars['first_name'],
+                                                   'last_name': request.vars['last_name']
+                                        }
+                                        })
         else:
             response = current.response
             response.status = 400

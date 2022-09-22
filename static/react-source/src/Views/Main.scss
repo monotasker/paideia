@@ -285,6 +285,7 @@ h3                                      {font-family: $sans-fonts;
     }
     .form-label                         {font-weight: 500;
                                          padding-bottom: 0.25rem;
+                                         margin-bottom: 0;
     }
     .form-switch.small .form-check-input      {position: relative;
                                          top: 0.15rem;
@@ -3748,6 +3749,30 @@ h3                                      {font-family: $sans-fonts;
     .alert                          {
         .icon-column                {padding-left: 0;
                                         padding-top: 0.25rem;
+        }
+    }
+}
+
+.Main .contact-form-component       {
+    .result-display-row             {
+        >.col                       {padding-left: 0;
+            h3                      {color: $successDark;
+
+            }
+            &.label                  {font-weight: 500;
+                                      color: $headingColorDark;
+            }
+            .contactResultLeadin,
+            .contactResultReturn,
+            .contactResultSubject    {margin-bottom: 1rem;
+            }
+            .contactResultEmailText  {margin-left: 1rem;
+                                      padding: 1rem;
+                                      background-color: $info-bg;
+                                      color: $info-dark;
+                                      border: 1px solid $info-dark;
+                                      border-radius: 0.25rem;
+            }
         }
     }
 }
