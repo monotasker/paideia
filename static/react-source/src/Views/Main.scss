@@ -596,6 +596,7 @@ h3                                      {font-family: $sans-fonts;
                                             display: flex;
                                             height: 100%;
             .content-view                   {width: 100%;
+                                             padding-top: 2rem;
             }
             .row                            {margin-left: 0;
                                             margin-right: 0;
@@ -3792,21 +3793,37 @@ h3                                      {font-family: $sans-fonts;
 }
 
 #root .Main .contact-form-component       {
+    form                            {margin-top: 0;
+    }
     .result-display-row             {
         >.col                       {padding-left: 0;
             h3                      {color: $successDark;
+                                     margin-top: 1rem;
 
             }
-            &.label                  {font-weight: 500;
+            .label                  {font-weight: 500;
                                       color: $headingColorDark;
+            }
+            .contactResultSuccessMessage  >.col {
+                                     padding-left: 0;
+                                     padding-right: 0;
+                .alert              {padding: 1rem 0.5rem;
+                }
+            }
+            .contactResultMessage >.col   {border: 1px solid lighten($niceGrey, 30%);
+                                     padding-top: 1rem;
+                                     padding-left: 0;
+                                     margin-bottom: 1rem;
+                                     border-radius: 0.25rem;
             }
             .contactResultLeadin,
             .contactResultReturn,
             .contactResultSubject    {margin-bottom: 1rem;
             }
-            .contactResultEmailText  {margin-left: 1rem;
-                                      margin-top: 1rem;
-                                      padding: 1rem;
+            .contactResultEmailText  {margin-left: 0.75rem;
+                                      margin-top: 0rem;
+                                      margin-bottom: 1rem;
+                                      padding: 0.5rem 0;
                                       background-color: $info-bg;
                                       color: $info-dark;
                                       border: 1px solid $info-dark;

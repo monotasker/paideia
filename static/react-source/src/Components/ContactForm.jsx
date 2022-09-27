@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react";
 import {
+    Alert,
     Button,
     Form,
     Row,
@@ -9,6 +10,7 @@ import {
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { useHistory } from "react-router";
+import TextareaAutosize from 'react-textarea-autosize';
 
 import { doApiCall, returnStatusCheck } from "../Services/utilityService";
 import { UserContext } from "../UserContext/UserProvider";
@@ -38,18 +40,18 @@ const ContactFormInner = ({submitAction}) => {
         missingRequestDataAction: (data) => {
           setSubmitting(false);
           setSubmissionSucceeded(false);
-          setSubmissionFailure(`Missing field: ${data.error.missing}`);
+          setSubmissionFailure(`Missing information. Cannot send the message without filling the ${data.error.missing.replace("_", " ")} field.`);
         },
         badRequestDataAction: null, // bad endpoint
         insufficientPrivilegesAction: () => {
           setSubmitting(false);
           setSubmissionSucceeded(false);
-          setSubmissionFailure("Recaptcha check failed")
+          setSubmissionFailure("Recaptcha check failed. Your message was not sent.")
         },  // failed recaptcha
         serverErrorAction: () => {
           setSubmitting(false);
           setSubmissionSucceeded(false);
-          setSubmissionFailure("Something went wrong")
+          setSubmissionFailure("Something went wrong and your message was not sent.")
         }
         }
       )
@@ -63,7 +65,7 @@ const ContactFormInner = ({submitAction}) => {
                       firstName: !!user.userLoggedIn ? user.firstName : "",
                       lastName: !!user.userLoggedIn ? user.lastName : "",
                       body: "",
-                      returnAddress: !!user.userLoggedIn ? user.email : ""}}
+                      returnAddress: !!user.userLoggedIn ? user.userEmail : ""}}
       validationSchema={Yup.object({
         subject: Yup.string().required(),
         body: Yup.string().required(),
@@ -106,9 +108,11 @@ const ContactFormInner = ({submitAction}) => {
         <Row>
           <Form.Group as={Col} controlId="contactFormFirstName">
             <Form.Label>First Name</Form.Label>
-            <Form.Control name="firstName" placeholder="Provide your first name"
+            <Form.Control name="firstName"
+              placeholder="Provide your first name"
               {...formik.getFieldProps("firstName")}
               className={formik.touched.firstName && formik.errors.firstName ? "error" : null}
+              autoFocus
             />
             <FormErrorMessage component="span" name="firstName" />
           </Form.Group>
@@ -147,7 +151,7 @@ const ContactFormInner = ({submitAction}) => {
         <Row>
           <Form.Group as={Col} controlId="contactFormBody">
             <Form.Label>Your Message</Form.Label>
-            <Form.Control name="body" as="textarea" rows="10"
+            <Form.Control name="body" as={TextareaAutosize} rows="10"
               placeholder="Type your message here"
               {...formik.getFieldProps("body")}
               className={formik.touched.body && formik.errors.body ? "error" : null}
@@ -162,9 +166,22 @@ const ContactFormInner = ({submitAction}) => {
             >
               {!formik.isSubmitting ? <FontAwesomeIcon icon="envelope" /> : <Spinner animation="grow" size="sm" />} Send
             </Button>
-            {submissionFailure}
           </Col>
         </Row>
+        {!!submissionFailure &&
+          <Row>
+            <Col>
+              <Alert variant="danger" className="error-message row">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+                </Col>
+                <Col xs="10">
+                  {submissionFailure}
+                </Col>
+              </Alert>
+            </Col>
+          </Row>
+        }
       </Form>
       ): (<>
         <Row>
@@ -174,29 +191,45 @@ const ContactFormInner = ({submitAction}) => {
           <Col>
             {!emailResult ? "Waiting..." : (
               <>
-              <Row>
+              <Row className="contactResultSuccessMessage">
                 <Col>
-                  <h3>Success!</h3>
+                  <Alert variant="success">
+                    <FontAwesomeIcon icon="paper-plane" /> Success!
+                  </Alert>
                 </Col>
               </Row>
               <Row className="contactResultLeadin">
                 <Col>Here's the message that was sent.</Col>
               </Row>
-              <Row className="contactResultFrom">
-                <Col xs sm="4" className="label"> From</Col>
-                <Col>{emailResult.first_name} {emailResult.last_name} </Col>
-              </Row>
-              <Row className="contactResultReturn">
-                <Col xs sm="4" className="label"> Return address </Col>
-                <Col> {emailResult.return_address} </Col>
-              </Row>
-              <Row className="contactResultSubject">
-                <Col xs sm="2" className="label">Subject</Col>
-                <Col>{emailResult.email_subject} </Col>
-              </Row>
-              <Row className="contactResultEmailText">
+              <Row className="contactResultMessage">
                 <Col>
-                  {emailResult.email_text}
+                  <Row className="contactResultFrom">
+                    <Col xs sm="4" className="label"> From</Col>
+                    <Col>{emailResult.first_name} {emailResult.last_name} </Col>
+                  </Row>
+                  <Row className="contactResultReturn">
+                    <Col xs sm="4" className="label"> Return address </Col>
+                    <Col> {emailResult.return_address} </Col>
+                  </Row>
+                  <Row className="contactResultSubject">
+                    <Col xs sm="4" className="label">Subject</Col>
+                    <Col>{emailResult.email_subject} </Col>
+                  </Row>
+                  <Row className="contactResultEmailText">
+                    <Col>
+                      {emailResult.email_text}
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+              <Row className="contactResultAnotherButton">
+                <Col>
+                  <Button color="primary" onClick={() => {
+                    setSubmissionSucceeded(false);
+                    formik.values.body = "";
+                    }}>
+                    <FontAwesomeIcon icon="redo-alt" /> Send another message
+                  </Button>
                 </Col>
               </Row>
               </>

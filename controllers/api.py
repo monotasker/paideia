@@ -95,7 +95,7 @@ def contact():
                                             'reason': 'Missing request data',
                                             'error': {"missing": field}})
 
-            email_body = "Message from {} {}:\n{}".format(
+            email_body = "A message from {} {}:  \n\n{}".format(
                 request.vars['first_name'],
                 request.vars['last_name'], request.vars['body'])
 
