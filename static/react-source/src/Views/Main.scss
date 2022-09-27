@@ -3791,7 +3791,7 @@ h3                                      {font-family: $sans-fonts;
     }
 }
 
-.Main .contact-form-component       {
+#root .Main .contact-form-component       {
     .result-display-row             {
         >.col                       {padding-left: 0;
             h3                      {color: $successDark;
@@ -3805,6 +3805,7 @@ h3                                      {font-family: $sans-fonts;
             .contactResultSubject    {margin-bottom: 1rem;
             }
             .contactResultEmailText  {margin-left: 1rem;
+                                      margin-top: 1rem;
                                       padding: 1rem;
                                       background-color: $info-bg;
                                       color: $info-dark;
