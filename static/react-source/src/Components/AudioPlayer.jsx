@@ -9,7 +9,7 @@ import {
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 
-const AudioPlayer = (props) => {
+const AudioPlayer = ({ mp3Source, m4aSource, ogaSource }) => {
   const [ playing, setPlaying ] = useState('loading');
 
   const clickAction = (event) => {
@@ -64,9 +64,9 @@ const AudioPlayer = (props) => {
         onEnded={clickAction}
         onCanPlayThrough={clickAction}
         >
-          {!!props.mp3Source && <source src={props.mp3Source} type="audio/mpeg" />}
-          {!!props.m4aSource && <source src={props.m4aSource} type="audio/mp4" />}
-          {!!props.ogaSource && <source src={props.ogaSource} type="audio/ogg" />}
+          {!!mp3Source && <source src={mp3Source} type="audio/mpeg" />}
+          {!!m4aSource && <source src={m4aSource} type="audio/mp4" />}
+          {!!ogaSource && <source src={ogaSource} type="audio/ogg" />}
         </audio>
     </span>
   )

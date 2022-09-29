@@ -41,7 +41,7 @@ const Instructions = ({instructions}) => {
       (
         <OverlayTrigger key={inst} placement="top"
           overlay={<Tooltip id={`tooltip-instruction-${inst}`}>{inst}</Tooltip>}
-          trigger={['click', 'focus', 'hover']}
+          trigger={['click']}
         >
             { inst_set[inst][0] === "font" ? (
               <a className='instruction-icon text-icon'>{inst_set[inst][1]}</a>
@@ -281,8 +281,6 @@ const Step = (props) => {
                        </Button>)
   }
 
-
-
   return (
     <Row id="step_row" className="stepPane"
       style={{backgroundImage: `url("${stepData.bg_image}")`}}
@@ -315,9 +313,9 @@ const Step = (props) => {
               )}
               { stepData.audio != null &&
                 <AudioPlayer
-                  m4aSource={`${stepData.download_path}/${stepData.audio.m4a}`}
-                  mp3Source={`${stepData.download_path}/${stepData.audio.mp3}`}
-                  ogaSource={`${stepData.download_path}/${stepData.audio.oga}`}
+                  m4aSource={`/${urlBase}/static/audio/${stepData.audio.m4a}`}
+                  mp3Source={`/${urlBase}/static/audio/${stepData.audio.mp3}`}
+                  ogaSource={`/${urlBase}/static/audio/${stepData.audio.oga}`}
                 />
               }
             </div>

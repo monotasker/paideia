@@ -671,7 +671,7 @@ const Profile = (props) => {
           </Alert>
         )
       : (<>
-        <Col className="profile-info d-none d-lg-block" xs={12} lg={4}
+        <Col className="profile-info d-none d-lg-block" xs={12} lg={3} xl={3}
         >
           <ProfileInfo
             viewingSelf={viewingSelf}
@@ -682,10 +682,10 @@ const Profile = (props) => {
           />
         </Col>
 
-        <Col className="profile-content-column" xs={12} lg={8}>
+        <Col className="profile-content-column" xs={12} lg={9} xl={9}>
           {!viewingSelf && <Badge variant="warning" className="viewing-student-warning" >Viewing student info</Badge>}
           <Row>
-            <Col className="profile-info d-block d-lg-none" xs={12} lg={4}
+            <Col className="profile-info d-block d-lg-none" xs={12} lg={3}
             >
               <ProfileInfo
                 viewingSelf={viewingSelf}

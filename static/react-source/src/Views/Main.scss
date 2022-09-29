@@ -2191,7 +2191,7 @@ h3                                      {font-family: $sans-fonts;
 
 // profile interface------------------------------------
 
-.profile-component               {background-color: $cream;
+#root .Main .content .profile-component               {background-color: $cream;
                                   align-content: start;
                                   height: 100%;
                                   padding-top: 0;
@@ -2226,13 +2226,14 @@ h3                                      {font-family: $sans-fonts;
                                   height: 100%;
                                   padding-top: 1rem;
                                   text-align: right;
+                                  position: relative;
         >svg                    {font-size: 7rem;
                                  color: #e2d2af;
                                  margin-top: -.25rem;
             @media (max-width: map-get($grid-breakpoints, lg)) {
                 position: absolute;
                 margin-right: 3rem;
-                margin-top: 4rem;
+                margin-top: 0.5rem;
                 right: 0;
                 top: 2.5rem;
             }
@@ -2287,10 +2288,10 @@ h3                                      {font-family: $sans-fonts;
                                         font-size: $font-size-lg;
                                         line-height: 3rem;
                                         color: $accent2;
-                    .spinner-grow        {margin: 0 1.5rem;
+                    .spinner-grow        {margin: 0 .5rem;
                     }
                     a                    {cursor: pointer;
-                                        margin: 0 1.5rem;
+                                        margin: 0 .5rem;
                                         color: $pallette2;
                                         // position: relative;
                                         // top: -0.1rem;
