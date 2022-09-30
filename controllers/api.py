@@ -39,6 +39,8 @@ if 0:
     request = current.request
     db = current.db
 
+GLOBAL_VBS = False
+
 
 def contact():
     """
@@ -199,7 +201,7 @@ def get_prompt():
         category: int
         pid: int
         new_content: bool
-        paideia_debug: ???
+        paideia_vbs: ???
     """
     auth = current.auth
     session = current.session
@@ -294,7 +296,7 @@ def _fetch_other_coursedata(uid, current_class, mydatetime):
     Called by get_profile_info.
 
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     myclasses = db((db.class_membership.name == uid) &
                    (db.class_membership.class_section != current_class) &
                    (db.class_membership.class_section == db.classes.id)
@@ -306,7 +308,7 @@ def _fetch_other_coursedata(uid, current_class, mydatetime):
                                              'id': myprof['id']}
     myclasses_prior = [c for c in myclasses if pytz.utc.localize(c['classes']['end_date']) < mydatetime]
     myclasses_latter = [c for c in myclasses if pytz.utc.localize(c['classes']['start_date']) >= mydatetime]
-    if debug:
+    if vbs:
         print ("=======================================================")
         for c in myclasses_prior:
             print (c['classes']['id'], c['class_membership']['id'], c['classes']['academic_year'], c['classes']['course_section'], c['classes']['term'])
@@ -445,7 +447,7 @@ def do_password_reset():
     """
     Actually allow a user to reset their password after email link followed.
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     request = current.request
     response = current.response
 
@@ -514,8 +516,8 @@ def do_password_reset():
                 return json_serializer({'status': 'conflict',
                                         'reason': 'Action blocked',
                                         'error': "Reset blocked or pending"})
-            if debug: print('USER=========================')
-            if debug: pprint(user)
+            if vbs: print('USER=========================')
+            if vbs: pprint(user)
             encrypted_password = db.auth_user.password.validate(new_password_B)[0]
             user.update_record(**{'password': encrypted_password,
                                 'registration_key': '',
@@ -655,7 +657,7 @@ def start_password_reset():
 def get_registration():
     """
     """
-    debug=False
+    vbs=False
     request = current.request
     auth = current.auth
     response = current.response
@@ -693,7 +695,7 @@ def get_registration():
                     'reason': 'User with this email exists',
                     'error': None})
     else:
-        if debug: print("in api: registering new user***************")
+        if vbs: print("in api: registering new user***************")
 
         keydata = {}
         with open('applications/paideia/private/app.keys', 'r') as keyfile:
@@ -713,7 +715,7 @@ def get_registration():
         content = httpresp.read()
         httpresp.close()
         response_dict = json.loads(to_native(content))
-        if debug: pprint(response_dict)
+        if vbs: pprint(response_dict)
 
         if response_dict["success"] == True and response_dict["score"] > 0.5:
             try:
@@ -839,7 +841,7 @@ def validate_class_key():
 
 
 def join_class_group():
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     event = None
     class_key = request.vars['course_key']
     class_id = int(request.vars['course_id'])
@@ -848,14 +850,14 @@ def join_class_group():
         result = ""
 
         validity = _check_class_key(class_key)
-        if debug: print('in join')
-        if debug: print(validity)
-        if debug: print(type(validity['class_row']['classes']['id']))
-        if debug: print(type(class_id))
+        if vbs: print('in join')
+        if vbs: print(validity)
+        if vbs: print(type(validity['class_row']['classes']['id']))
+        if vbs: print(type(class_id))
         if (validity['status'] != "ok") \
                 or (validity['class_row']['classes']['id'] != class_id):
-            if debug: print(validity['status'] != "ok")
-            if debug: print(validity['class_row']['classes']['id'] != class_id)
+            if vbs: print(validity['status'] != "ok")
+            if vbs: print(validity['class_row']['classes']['id'] != class_id)
             response.status = 403
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges',
@@ -955,16 +957,16 @@ def get_login():
     Returns:
         JSON object with data on the user that was successfully logged in. If the login is unsuccessful, the JSON object carries just an 'id' value of None.
     """
-    debug=False
+    vbs=False
     request = current.request
     auth = current.auth
     session = current.session
     response = current.response
     token = request.vars['token'].strip() if request.vars['token'] else None
     email = request.vars['email'].strip() if request.vars['email'] else None
-    if debug: print('api::get_login: email:', email)
+    if vbs: print('api::get_login: email:', email)
     password = request.vars['password'].strip()
-    # if debug: print('api::get_login: password:', password)
+    # if vbs: print('api::get_login: password:', password)
 
     email_pat = re.compile('^([a-zA-Z0-9]?[\._]?[a-zA-Z0-9]+)+[@]\w+[.]\w+$')
     password_pat = re.compile("^[A-Za-z\d!\"#\$%&'\(\)\*\+,-\.\/:;<=>\?@\[\]\\\^_`\{\|\}~]{2,50}$")
@@ -1001,12 +1003,12 @@ def get_login():
         content = httpresp.read()
         httpresp.close()
         response_dict = json.loads(to_native(content))
-        if debug: pprint(response_dict)
+        if vbs: pprint(response_dict)
 
         if response_dict["success"] == True and response_dict["score"] > 0.5:
             mylogin = auth.login_bare(email, password)
-            if debug: print('mylogin********')
-            if debug: print(mylogin)
+            if vbs: print('mylogin********')
+            if vbs: print(mylogin)
             if mylogin == False:
                 response.status = 401
                 return json_serializer({'status': 'unauthorized',
@@ -1091,7 +1093,7 @@ def check_login():
 
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     for idx, q in enumerate(queries):
         if q['bugs']['posts']:
             myposts = db(
@@ -1177,8 +1179,8 @@ def _add_posts_to_queries(queries, unread_posts, unread_comments):
                         c['read'] = False if c['bug_post_comments']['id'] \
                             in unread_comments else True
                 myposts[i]['comments'] = mycomments
-                if debug: pprint('===================================')
-                if debug: pprint(mycomments)
+                if vbs: pprint('===================================')
+                if vbs: pprint(mycomments)
 
             queries[idx]['posts'] = myposts
         else:
@@ -1198,7 +1200,7 @@ def _fetch_unread_queries(user_id):
     user_id (int)
 
     """
-    vbs = 1
+    vbs = GLOBAL_VBS or 0
     if vbs: print("user_id:", user_id)
     db = current.db
     unread_queries = db((db.bugs_read_by_user.user_id==user_id) &
@@ -1837,7 +1839,7 @@ def add_query_post():
     post_text (str) *required
     public (bool) *required
     """
-    vbs = False
+    vbs = GLOBAL_VBS or False
 
     uid = request.vars['user_id']
 
@@ -1896,7 +1898,7 @@ def update_query_post():
     deleted (bool)
     hidden (bool)
     """
-    vbs = False
+    vbs = GLOBAL_VBS or False
 
     uid = request.vars['user_id']
 
@@ -1960,7 +1962,7 @@ def update_query_post():
 def add_post_comment():
     """
     """
-    vbs = False
+    vbs = GLOBAL_VBS or False
 
     uid = request.vars['user_id']
 
@@ -2021,7 +2023,7 @@ def update_post_comment():
     helpfulness (double)
     popularity (double)
     """
-    vbs = False
+    vbs = GLOBAL_VBS or False
 
     uid = request.vars['user_id']
 
@@ -2069,42 +2071,75 @@ def update_post_comment():
         return json_serializer({'status': 'unauthorized',
                      'reason': 'Not logged in'})
 
+def queries():
+    """
+    Public endpoint for operations on queries.
 
-def log_new_query():
+    GET request fetches a list of queries
+    POST request creates a new query
+
+        Expected request variables:
+        user_id (int)
+        step_id (int)
+        path_id (int)
+        loc_name (str)
+        answer (str)
+        log_id (int)
+        score (double)
+        user_comment (str)
+        public (bool)
+
+    PUT request updates an existing query
+    DELETE request deletes an existing query
+    """
+    try:
+        if request.method == 'POST':
+            return _log_new_query(**request.vars)
+        if request.method == 'PUT':
+            pass
+        if request.method == 'DELETE':
+            pass
+        if request.method == 'GET':
+            pass
+        else:
+            response = current.response
+            response.status = 400
+            # not using POST method
+            return json_serializer({'status': 'bad request',
+                        'reason': f'${request.method} not a valid method ' \
+                                'for this endpoint',
+                        'error': None})
+    except Exception:
+        response = current.response
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function api.queries',
+                                'error': format_exc()})
+
+
+def _log_new_query(user_id: int, step_id: int, path_id: int, loc_name: str,
+                   answer: str, log_id: int, score: float, user_comment: str,
+                   public: bool) -> str:
     """
     API method to log a new user query.
 
-    Expected request variables:
-    user_id (int)
-    step_id (int)
-    path_id (int)
-    loc_name (str)
-    answer (str)
-    log_id (int)
-    score (double)
-    user_comment (str)
-    public (bool)
-
     Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
     """
-    vbs = False
-    user_id = request.vars['user_id']
+    vbs = GLOBAL_VBS or False
     auth = current.auth
     db = current.db
 
     if auth.is_logged_in():
-        if vbs: print('creating::submit_bug: vars are', request.vars)
-        b = Bug(step_id=request.vars['step_id'],
-                path_id=request.vars['path_id'],
-                loc_id=db(db.locations.loc_alias == request.vars['loc_name']
-                        ).select().first().id
+        if vbs: print('creating::submit_bug: vars are',
+                      _log_new_query.__code__.co_varnames)
+        b = Bug(step_id=step_id,
+                path_id=path_id,
+                loc_id=db(db.locations.loc_alias == loc_name
+                          ).select().first().id
                 )
         if vbs: print('creating::submit_bug: created bug object successfully')
-        logged = b.log_new(request.vars['answer'],
-                           request.vars['log_id'],
-                           request.vars['score'],
-                           request.vars['user_comment'],
-                           request.vars['public'])
+        logged = b.log_new(answer, log_id, score, user_comment, public)
         if vbs: print('creating::submit_bug: logged bug - response is', logged)
 
         read_status_changes = _flag_conversation_change(user_id, 'query',
@@ -2112,7 +2147,7 @@ def log_new_query():
                                                         new_item_id=logged,
                                                         db=db)
 
-        myqueries = db((db.bugs.step == request.vars['step_id']) &
+        myqueries = db((db.bugs.step == step_id) &
                        (db.bugs.user_name == db.auth_user.id) &
                        (db.bugs.user_name == user_id) &
                        ((db.bugs.deleted == False) |
@@ -2173,7 +2208,7 @@ def update_query():
     A value of None for a parameter indicates that no update is requested. A value of False is a negative boolean value to be updated.
     ...
     """
-    vbs = True
+    vbs = GLOBAL_VBS or False
     response = current.response
 
     user_id = request.vars['user_id']
@@ -2274,7 +2309,7 @@ def mark_read_status():
         to look at to record the item's read status. Allowed
         values are 'query', 'post', and 'comment'
     """
-    vbs = False
+    vbs = GLOBAL_VBS or False
     auth = current.auth
     db = current.db
     response = current.response
@@ -2401,7 +2436,7 @@ def _flag_conversation_change(user_id, post_level, op=0,
     - mark unread for anyone subscribed to item
 
     """
-    vbs = False
+    vbs = GLOBAL_VBS or False
     db = current.db if not db else db
     active_item_id = new_item_id if new_item_id > 0 else edited_item_id
     if vbs: print('_flag_conversation_change: active_item_id')
@@ -2621,7 +2656,7 @@ def get_vocabulary():
     mylevel :: int :: the maximum badge set currently reached by user if
                       logged in
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     db = current.db
 
     mynorm = GreekNormalizer()
@@ -2638,7 +2673,7 @@ def get_vocabulary():
                             'aorist_passive',
                             'perfect_passive',
                             'other_irregular']]
-        # if debug: print(inflected_fields)
+        # if vbs: print(inflected_fields)
         inflected_forms_string = ' '.join(inflected_fields)
         normalized_inflected_string = mynorm.normalize(inflected_forms_string)
 
@@ -2752,7 +2787,7 @@ def get_profile_info():
                                             (extended in db.py)
             user_id(int):               The requested user's id.
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     db = current.db
     auth = current.auth
     session = current.session
@@ -2794,46 +2829,46 @@ def get_profile_info():
         stats = Stats(user.id)
 
         # get user's current course
-        if debug: print('getting current course')
+        if vbs: print('getting current course')
         myc = _fetch_current_coursedata(user.id, datetime.now(timezone.utc))
         myc_id = myc['classes']['id'] if 'classes' in myc else 0
         myc_other = _fetch_other_coursedata(user.id, myc_id,
                                             datetime.now(timezone.utc))
-        if debug: print('myc=============')
-        if debug: print(myc)
+        if vbs: print('myc=============')
+        if vbs: print(myc)
         if myc['class_info']:
             starting_set = myc['class_info']['starting_set']
         # FIXME: UserProvider should be updated here with class info if new
 
         # tab1
 
-        if debug: print('getting user data')
+        if vbs: print('getting user data')
         name = stats.get_name()
         tz = user.time_zone
         email = user.email
-        if debug: print('getting max set')
+        if vbs: print('getting max set')
         max_set = stats.get_max()
-        if debug: print('getting badge_levels')
+        if vbs: print('getting badge_levels')
         badge_levels = stats.get_badge_levels()
-        if debug: print('getting active_tags')
+        if vbs: print('getting active_tags')
         badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
 
         # tab2
-        if debug: print('getting monthcal')
+        if vbs: print('getting monthcal')
         mycal = stats.monthcal()
         # badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
         # sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
         # steps_most_wrong = stats.steps_most_wrong(badge_table_data)
 
         # tab5
-        if debug: print('getting chart1_data')
+        if vbs: print('getting chart1_data')
         mydata = get_chart1_data(user_id=user.id)
         chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
-        if debug: print('getting milestones')
+        if vbs: print('getting milestones')
         badge_set_milestones = mydata['badge_set_milestones']
-        if debug: print('getting answer_counts')
+        if vbs: print('getting answer_counts')
         answer_counts = mydata['answer_counts']
-        if debug: print('getting badge_set_dict')
+        if vbs: print('getting badge_set_dict')
         badge_set_dict = {}
         set_list_rows = db().select(db.tags.tag_position, distinct=True)
         set_list = sorted([row.tag_position for row in set_list_rows
@@ -2920,15 +2955,15 @@ def update_student_data():
         custom_d_cap (int)
         class_section (int reference classes)
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     response = current.response
     mydata = {k: v for k, v in request.vars.items()
               if k not in ["name", "class_section"]}
     course_id = request.vars.class_section
     uid = request.vars.name
-    if debug: print("api::update_student_data::course_id:", course_id)
-    if debug: print("api::update_student_data::mydata:")
-    if debug: print(mydata)
+    if vbs: print("api::update_student_data::course_id:", course_id)
+    if vbs: print("api::update_student_data::mydata:")
+    if vbs: print(mydata)
 
     try:
         try:
@@ -2986,13 +3021,13 @@ def update_student_data():
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
-        if debug: print('api::update_student_data: member_rec:')
-        if debug: print(member_rec)
-        if debug: print('api::update_student_data: update_data:')
-        if debug: print(update_data)
+        if vbs: print('api::update_student_data: member_rec:')
+        if vbs: print(member_rec)
+        if vbs: print('api::update_student_data: update_data:')
+        if vbs: print(update_data)
         myresult = member_rec.update_record(**update_data)
-        if debug: print('api::update_student_data: myresult:')
-        if debug: print(myresult)
+        if vbs: print('api::update_student_data: myresult:')
+        if vbs: print(myresult)
         if not myresult:
             raise ValueError("Class membership record was not updated")
         db.commit()
@@ -3008,12 +3043,12 @@ def update_student_data():
                             "updated_record": myresult}, default=my_custom_json)
 
 def promote_user():
-    debug = 0
-    if debug: print("in api::promote_user ----------------------------")
+    vbs = GLOBAL_VBS or 0
+    if vbs: print("in api::promote_user ----------------------------")
     uid = request.vars.uid
-    if debug: print("uid:", uid)
+    if vbs: print("uid:", uid)
     classid = request.vars.classid
-    if debug: print("classid:", classid)
+    if vbs: print("classid:", classid)
     db = current.db
     auth = current.auth
     try:
@@ -3057,12 +3092,12 @@ def promote_user():
                             "updated_record": myresult}, default=my_custom_json)
 
 def demote_user():
-    debug = 0
-    if debug: print("in api::demote_user ----------------------------")
+    vbs = GLOBAL_VBS or 0
+    if vbs: print("in api::demote_user ----------------------------")
     uid = request.vars.uid
-    if debug: print("uid:", uid)
+    if vbs: print("uid:", uid)
     classid = request.vars.classid
-    if debug: print("classid:", classid)
+    if vbs: print("classid:", classid)
     db = current.db
     auth = current.auth
     try:
@@ -3138,14 +3173,14 @@ def update_course_data():
         f_target (int)
 
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     response = current.response
     mydata = request.vars
     mydata['modified_on'] = datetime.now(timezone.utc)
     course_id = request.vars.id
-    if debug: print("api::update_course_data::course_id:", course_id)
-    if debug: print("api::update_course_data::mydata:")
-    if debug: print(mydata)
+    if vbs: print("api::update_course_data::course_id:", course_id)
+    if vbs: print("api::update_course_data::mydata:")
+    if vbs: print(mydata)
 
     try:
         try:
@@ -3172,9 +3207,9 @@ def update_course_data():
                 update_data['end_date'] = dateutil.parser.parse(
                     update_data['end_date'])
 
-            if debug: print('api::update_course_data: received start_date:',
+            if vbs: print('api::update_course_data: received start_date:',
                             update_data['start_date'])
-            if debug: print(type(update_data['start_date']))
+            if vbs: print(type(update_data['start_date']))
             # print('old data:')
             # print(course_rec)
         except AttributeError:
@@ -3196,13 +3231,13 @@ def update_course_data():
             return json_serializer({'status': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
-        if debug: print('api::update_course_data: course_rec:')
-        if debug: print(course_rec)
-        if debug: print('api::update_course_data: update_data:')
-        if debug: print(update_data)
+        if vbs: print('api::update_course_data: course_rec:')
+        if vbs: print(course_rec)
+        if vbs: print('api::update_course_data: update_data:')
+        if vbs: print(update_data)
         myresult = course_rec.update_record(**update_data)
-        if debug: print('api::update_course_data: myresult:')
-        if debug: print(myresult)
+        if vbs: print('api::update_course_data: myresult:')
+        if vbs: print(myresult)
         if not myresult:
             raise ValueError("Course record was not updated")
         db.commit()
@@ -3275,13 +3310,13 @@ def get_course_data():
             starting_set
             custom_end
     """
-    debug = 0
+    vbs = GLOBAL_VBS or 0
     auth = current.auth
     session = current.session
     response = current.response
     db = current.db
     try:
-        if debug: print('getting course', request.vars.course_id)
+        if vbs: print('getting course', request.vars.course_id)
         course_rec = db.classes(request.vars.course_id)
     except AttributeError:
         print(format_exc(5))
@@ -3337,9 +3372,9 @@ def get_course_data():
     users = db((db.auth_user.id == db.tag_progress.name) &
                 (db.auth_user.id.belongs([m['name'] for m in memberships]))
                 ).select(orderby=db.auth_user.last_name)
-    if debug: print('course_rec======================')
-    if debug: print(course_rec)
-    if debug: print(type(course_rec))
+    if vbs: print('course_rec======================')
+    if vbs: print(course_rec)
+    if vbs: print(type(course_rec))
     classlist = make_classlist(memberships, users, course_rec['start_date'],
                                 course_rec['end_date'], course_rec['paths_per_day'], course_rec)
 

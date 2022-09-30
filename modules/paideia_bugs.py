@@ -3,6 +3,7 @@ from gluon import current
 import traceback
 from pprint import pprint
 
+GLOBAL_VBS = False
 
 class Bug(object):
     """
@@ -30,6 +31,7 @@ class Bug(object):
         """
         creates a new bug report and provides confirmation to the user.
         """
+        vbs = GLOBAL_VBS or False;
         response = current.response
         db = current.db
         try:
@@ -50,11 +52,11 @@ class Bug(object):
             # if self.step_id and not self.prompt:  # for queries before step V
             #     argdict['prompt'] = db.steps(self.step_id).prompt
 
-            pprint(argdict)
+            if vbs: pprint(argdict)
             my_id = db.bugs.insert(**argdict)
             return my_id
         except Exception:
-            print(traceback.format_exc(5))
+            if vbs: print(traceback.format_exc(5))
             mail = current.mail
             msg = '<html>A user tried to submit a step bug report, but the' \
                   'report failed. Traceback: {} \n\n' \
@@ -166,7 +168,7 @@ class Bug(object):
                             db.commit()
 
                 else:  # user has no wrong logs to be changed
-                    print('user has no wrong logs to be changed')
+                    if vbs: print('user has no wrong logs to be changed')
             message += '\nUpdated these tag records rows: {}. '.format(updated_list)
 
         except Exception:
@@ -183,7 +185,7 @@ class Bug(object):
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
-        vbs = False
+        vbs = GLOBAL_VBS or False
         if vbs: print("in Bug.undo*****************")
         if vbs: print("score", score)
         if vbs: print("adjusted_score", adjusted_score)
@@ -454,7 +456,7 @@ class Bug(object):
                 newly inserted or updated post.
 
         """
-        vbs = False
+        vbs = GLOBAL_VBS or False
         db = current.db
         request = current.request
         if vbs: print('in paideia_bugs::record_bug_post')

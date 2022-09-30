@@ -33,7 +33,7 @@ import { getQueriesMetadata,
          addReplyComment,
          updateReplyComment,
          updateReadStatus
- } from "../Services/stepFetchService";
+ } from "../Services/queriesService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { findIndex } from "core-js/es/array";
 import { readableDateAndTime } from "../Services/dateTimeService";
@@ -234,6 +234,12 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
         onSubmit={(event) => action(queryText, showPublic, event)}
         className="add-query-form"
       >
+      {!!singleStep && !!nonStep &&
+        <Alert variant="info">You are asking a general question, not linked to your current step. To ask about the current step, select 'This Step' above.</Alert>
+      }
+      {!!singleStep && !nonStep &&
+        <Alert variant="info">You are asking a question linked to your current step. To ask a general question, select "General" above.</Alert>
+      }
         {(!nonStep && !!singleStep) &&
           <Form.Group controlId="newQueryFormAnswer"
             className="alert alert-info"
@@ -1656,17 +1662,24 @@ const QueriesView = () => {
       event.preventDefault();
       const myscore = !['null', undefined].includes(user.currentScore) ?
         user.currentScore : null;
-      const myStep = !!singleStep ? user.currentStep : null;
-      const myPath = !!singleStep ? user.currentPath : null;
-      addQuery({step_id: myStep,
-                path_id: myPath,
-                user_id: user.userId,
-                loc_name: user.currentLocation,
-                answer: user.currentAnswer,
-                log_id: user.currentLogID,
-                score: myscore,
-                user_comment: myComment,
-                show_public: showPublic})
+      let queryArgs = {step_id: user.currentStep,
+                       path_id: user.currentPath,
+                       user_id: user.userId,
+                       loc_name: user.currentLocation,
+                       answer: user.currentAnswer,
+                       log_id: user.currentLogID,
+                       score: myscore,
+                       user_comment: myComment,
+                       show_public: showPublic}
+      if ( !singleStep || !!nonStep ) {
+        queryArgs = {...queryArgs,
+                     step_id: null,
+                     path_id: null,
+                     answer: null,
+                     score: null,
+                     }
+      }
+      addQuery(queryArgs)
       .then(myresponse => {
         setQueries(myresponse.queries.map(
           q => _formatQueryData(q)
