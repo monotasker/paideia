@@ -1,4 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, {
+         useContext,
+         useState,
+         useEffect
+} from "react";
 import { Alert,
          Badge,
          Button,
@@ -14,7 +18,8 @@ import { Alert,
          Table,
          Tooltip,
 } from "react-bootstrap";
-import { useLocation,
+import { useHistory,
+         useLocation,
          useParams
 } from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
@@ -22,6 +27,10 @@ import { marked } from "marked";
 import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 import Select from 'react-select';
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { findIndex } from "core-js/es/array";
 
 import UserProvider, { UserContext } from "../UserContext/UserProvider";
 import { getQueriesMetadata,
@@ -34,11 +43,11 @@ import { getQueriesMetadata,
          updateReplyComment,
          updateReadStatus
  } from "../Services/queriesService";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { findIndex } from "core-js/es/array";
+import { returnStatusCheck } from "../Services/utilityService";
 import { readableDateAndTime } from "../Services/dateTimeService";
 import Collapsible from '../Components/Collapsible';
 import { DEBUGGING } from "../variables";
+import { FormErrorMessage } from "../Services/formsService";
 
 
 const roles = {instructors: "chalkboard-teacher",
@@ -214,10 +223,26 @@ const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
   )
 }
 
+/**
+ * A Formik-based react component to submit a new query
+ *
+ * @param {string}   answer The text of the answer submitted for the
+ *                          current step attempt if there is one
+ * @param {number}   score  The score awarded for the current step
+ *                          if there is one
+ * @param {function} action The function to use for submitting the form
+ * @param {boolean}  nonStep  Indicates whether the currently viewed
+ *                            category of queries is those not linked to
+ *                            a specific step
+ * @param {boolean} singleStep  Indicates whether there is currently a
+ *                              specific step attempt active in context
+ * @returns React component containing the form and wrapping entities
+ */
 const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
-  const [queryText, setQueryText] = useState(" ");
-  const [showPublic, setShowPublic] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [ showForm, setShowForm ] = useState(false);
+  const [ submissionSucceeded, setSubmissionSucceeded ] = useState(false);
+  const [ submissionFailure, setSubmissionFailure ] = useState("");
+
   return (
     <React.Fragment>
     <Button variant="outline-success"
@@ -230,48 +255,109 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
       {"Ask a new question or make a comment!"}
     </Button>
     <Collapse in={showForm}>
+    <Formik
+      initialValues={{queryText: "", showPublic: false}}
+      validationSchema={Yup.object({
+        queryText: Yup.string().required(),
+        showPublic: Yup.boolean()
+      })}
+      onSubmit={(values, { setSubmitting }) => {
+        // (event) => action(queryText, showPublic, event)
+        setSubmissionSucceeded(false);
+        action(values.queryText, values.showPublic, setSubmitting,
+               setSubmissionFailure, setSubmissionSucceeded);
+        }
+      }
+    >
+      {formik => (!submissionSucceeded ? (
       <Form
-        onSubmit={(event) => action(queryText, showPublic, event)}
         className="add-query-form"
+        onSubmit={formik.handleSubmit}
       >
-      {!!singleStep && !!nonStep &&
-        <Alert variant="info">You are asking a general question, not linked to your current step. To ask about the current step, select 'This Step' above.</Alert>
-      }
-      {!!singleStep && !nonStep &&
-        <Alert variant="info">You are asking a question linked to your current step. To ask a general question, select "General" above.</Alert>
-      }
+        {!!singleStep && !!nonStep &&
+          <Alert variant="warning" className="left-icon"><FontAwesomeIcon icon="question-circle" size="2x" /> You are asking a general question, not linked to your current step. To ask about the current step, select 'This Step' above.</Alert>
+        }
+        {!!singleStep && !nonStep &&
+          <Alert variant="warning" className="left-icon"><FontAwesomeIcon icon="shoe-prints" size="2x" /> You are asking a question linked to your current step. To ask a general question, select "General" above.</Alert>
+        }
         {(!nonStep && !!singleStep) &&
-          <Form.Group controlId="newQueryFormAnswer"
-            className="alert alert-info"
-          >
-            {!!answer && answer !== "null" ?
+            !!answer && answer !== "null" ?
+            <Form.Group controlId="newQueryFormAnswer"
+              className="alert alert-info"
+            >
               <React.Fragment>
                 <Form.Label>You said</Form.Label>
                 <Alert variant="light">{answer}</Alert>
                 <Form.Label>and that was counted for {score} {score===1 ? "point" : (score===0 ? "points" : "of a point")}</Form.Label>
               </React.Fragment>
+            </Form.Group>
             :
-              <Form.Label>You haven't answered this question yet</Form.Label>
-            }
-          </Form.Group>
+              ""
         }
-        <Form.Group controlId="newQueryFormTextarea">
-          <Form.Label>Your question or comment</Form.Label>
-          <Form.Control as="textarea" rows="3"
-            defaultValue={queryText}
-            onChange={e => setQueryText(e.target.value)}
-          />
-        </Form.Group>
-
-        <Form.Group controlId={`addQueryPrivateCheckbox`}>
-          <Form.Check type="checkbox" label="Keep this question or comment private."
-            defaultValue={!showPublic}
-            onChange={e => setShowPublic(!e.target.value)}
+        <Row>
+          <Form.Group controlId="newQueryFormTextarea" as={Col}>
+            <Form.Label>Your question or comment</Form.Label>
+            <Form.Control as="textarea"
+              name="queryText"
+              rows="3"
+              placeholder="Type your question or comment here."
+              {...formik.getFieldProps("queryText")}
+              className={formik.touched.queryText && formik.errors.queryText ? "error" : null}
             />
-        </Form.Group>
-        <Button variant="primary" type="submit"
-        >Submit my query</Button>
-      </Form>
+            <FormErrorMessage component="span" name="queryText" />
+          </Form.Group>
+        </Row>
+
+        <Row>
+          <Form.Group controlId={`addQueryPrivateCheckbox`} as={Col}>
+            <Form.Check name="showPublic"
+              type="checkbox"
+              label="Keep this question or comment private."
+              />
+          </Form.Group>
+        </Row>
+        <Row>
+          <Col>
+            <Button variant="primary" type="submit"
+              disabled={!!formik.isSubmitting ? true : false}
+            >
+              {!formik.isSubmitting ? <FontAwesomeIcon icon="comment" /> : <Spinner animation="grow" size="sm" />} Submit my query
+            </Button>
+          </Col>
+        </Row>
+        {!!submissionFailure &&
+          <Row>
+            <Col>
+              <Alert variant="danger" className="error-message row">
+                <Col xs="auto">
+                  <FontAwesomeIcon size="2x" icon="exclamation-triangle" />
+                </Col>
+                <Col xs="10">
+                  {submissionFailure}
+                </Col>
+              </Alert>
+            </Col>
+          </Row>
+        }
+      </Form>)
+      : (<>
+        <Row>
+          <Col>Success!!</Col>
+        </Row>
+        <Row className="newQueryResultAnotherButton">
+          <Col>
+            <Button color="primary"
+              onClick={() => {
+                setSubmissionSucceeded(false);
+                formik.values.queryText = "";
+              }}>
+              <FontAwesomeIcon icon="redo-alt" /> Submit another query
+            </Button>
+          </Col>
+        </Row>
+        </>
+      ))}
+      </Formik>
     </Collapse>
     </React.Fragment>
   );
@@ -870,7 +956,7 @@ const ScopeView = ({scope, nonStep, singleStep,
             </Form>
           :
           <>
-          <span>You aren't part of any course groups.</span><br/><br/>
+          <Alert variant="warning">You aren't part of any course groups.</Alert>
           </>
         )
         :
@@ -893,7 +979,7 @@ const ScopeView = ({scope, nonStep, singleStep,
           scope={scope}
         />
         :
-        <span>No {scope} questions to view.</span>
+        <Alert variant="warning">No {scope} questions to view.</Alert>
       }
     </div>
     {myPagerArray.length > 1 &&
@@ -1143,9 +1229,358 @@ const ScopesFrame = ({viewScope,
   )
 }
 
+const _formatCommentData = c => {
+  return ({level: "comment",
+            replyId: c.bug_post_comments.on_post,
+            commentId: c.bug_post_comments.id,
+            opId: c.bug_post_comments.commenter,
+            opNameFirst: c.auth_user.first_name,
+            opNameLast: c.auth_user.last_name,
+            opText: c.bug_post_comments.comment_body,
+            dateSubmitted: c.bug_post_comments.dt_posted,
+            dateUpdated: c.bug_post_comments.modified_on,
+            opRole: c.bug_post_comments.commenter_role,
+            hidden: c.bug_post_comments.hidden,
+            deleted: c.bug_post_comments.deleted,
+            flagged: c.bug_post_comments.flagged,
+            pinned: c.bug_post_comments.pinned,
+            popularity: c.bug_post_comments.popularity,
+            helpfulness: c.bug_post_comments.helpfulness,
+            showPublic: c.bug_post_comments.public,
+            threadIndex: c.bug_post_comments.thread_index,
+            read: c.read
+          })
+}
+
+const _formatReplyData = p => {
+  let formattedComments = p.comments.map(c => _formatCommentData(c));
+  return ({level: "reply",
+            replyId: p.bug_posts.id,
+            opId: p.bug_posts.poster,
+            opNameFirst: p.auth_user.first_name,
+            opNameLast: p.auth_user.last_name,
+            opText: p.bug_posts.post_body,
+            dateSubmitted: p.bug_posts.dt_posted,
+            dateUpdated: p.bug_posts.modified_on,
+            opRole: p.bug_posts.poster_role,
+            hidden: p.bug_posts.hidden,
+            deleted: p.bug_posts.deleted,
+            flagged: p.bug_posts.flagged,
+            pinned: p.bug_posts.pinned,
+            popularity: 0,
+            helpfulness: 0,
+            showPublic: p.bug_posts.public,
+            threadIndex: p.bug_posts.thread_index,
+            read: p.read,
+            children: formattedComments
+          }
+  )
+}
+
+const _formatQueryData = q => {
+  let formattedReplies = q.posts.map(p => _formatReplyData(p));
+  if ( !!q.bugs.admin_comment ) {
+    formattedReplies.unshift({
+      level: "reply",
+      replyId: undefined,
+      opId: 19,
+      opNameFirst: "Ian",
+      opNameLast: "Scott",
+      opText: q.bugs.admin_comment,
+      sampleAnswers: q.bugs.sample_answers,
+      dateSubmitted: q.bugs.date_submitted,
+      dateUpdated: q.bugs.modified_on,
+      opRole: ["administrators", "instructors"],
+      hidden: false,
+      deleted: false,
+      flagged: false,
+      pinned: false,
+      popularity: 0,
+      helpfulness: 0,
+      showPublic: true,
+      threadIndex: 0,
+      children: [],
+      score: q.bugs.score,
+      adjustedScore: q.bugs.adjusted_score,
+      read: false
+    });
+  }
+  let myPrompt = q.bugs.prompt;
+  if ( !!q.bugs.step_options && q.bugs.step_options.length ) {
+    const optString = q.bugs.step_options.join("\n- ");
+    myPrompt = `${myPrompt}\n\n- ${optString}`;
+  }
+  return ({level: "query",
+            queryId: q.bugs.id,
+            opId: q.auth_user.id,
+            opNameFirst: q.auth_user.first_name,
+            opNameLast: q.auth_user.last_name,
+            children: formattedReplies,
+            dateSubmitted: q.bugs.date_submitted,
+            dateUpdated: q.bugs.modified_on,
+            queryStatus: q.bugs.bug_status,
+            opResponseText: q.bugs.user_response,
+            opText: q.bugs.user_comment,
+            sampleAnswers: q.bugs.sample_answers,
+            stepPrompt: myPrompt,
+            hidden: q.bugs.hidden,
+            showPublic: q.bugs.public,
+            flagged: q.bugs.flagged,
+            deleted: q.bugs.deleted,
+            pinned: q.bugs.pinned,
+            helpfulness: q.bugs.helpfulness,
+            popularity: q.bugs.popularity,
+            queryStep: q.bugs.step,
+            queryPath: q.bugs.in_path,
+            score: q.bugs.score,
+            adjustedScore: q.bugs.adjusted_score,
+            read: q.read
+          }
+  )
+}
+
+/**
+ * finds and updates a query/reply/comment in a list in React state
+ *
+ * DOES NOT create new query if specified doesn't exist
+ * DOES create new post if specified doesn't exist
+ * if the new query has deleted: true it is removed
+ *
+ * @param   {array}  mylist   the list of queries in Reacts state
+ * @param   {*}      newItem  the query/reply/comment to be updated
+ * @param   {string} itemLevel the name of the item type ("query", "reply"
+ *                             or "comment")
+ * @param   {number} queryId
+ * @return  {array} returns the modified version of the supplied query list
+ */
+const _findAndUpdateItem = (mylist, newItem, itemLevel, queryId=0) => {
+  // TODO: mark children read when marked read
+  // DEBUGGING && console.log("_findAndUpdateItem-------------------------------------");
+  const dbTableFields = {'query': 'bugs',
+                          'reply': 'bug_posts',
+                          'comment': 'bug_post_comments'}
+  const itemTableField = dbTableFields[itemLevel];
+  const markingRead = !!newItem[itemTableField] ? false : true;
+  const deleting = !!markingRead ? false
+    : newItem[itemTableField].deleted;
+
+  const myItemId = !!markingRead ? newItem.read_item_id
+    : newItem[itemTableField].id;
+
+  let myQueryId = myItemId;
+  let myReplyId = 0;
+  let myCommentId = 0;
+  if ( itemLevel==='reply' ) {
+    myQueryId = !!markingRead ? newItem.on_bug
+      : newItem[itemTableField].on_bug;
+    myReplyId = myItemId;
+  } else if ( itemLevel ==='comment' ) {
+    myQueryId = !!markingRead ? newItem.on_bug : queryId;
+    myReplyId = !!markingRead ? newItem.on_bug_post : newItem[itemTableField].on_post;
+    myCommentId = myItemId;
+  }
+  // DEBUGGING && console.log(`myQueryId: ${myQueryId}`);
+  const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
+  // DEBUGGING && console.log(`queryIndex: ${queryIndex}`);
+
+  const _innerFindAndUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
+                        ) => {
+    // DEBUGGING && console.log("inner find and update..........");
+    // DEBUGGING && console.log(i_itemIndex);
+    // DEBUGGING && console.log(i_itemlist);
+    // DEBUGGING && console.log(`markingRead: ${markingRead}`);
+    if ( !!markingRead ) {
+      i_itemlist[i_itemIndex].read = i_newItem.read_status;
+    } else if ( !!deleting ) {
+      i_itemlist.splice(i_itemIndex, 1);
+    } else {
+      i_itemlist[i_itemIndex] = formatAction(i_newItem);
+    }
+    // DEBUGGING && console.log("returning from inner:");
+    // DEBUGGING && console.log(i_itemlist);
+    return i_itemlist
+  }
+
+  const _markChildrenRead = (i_mylist, myIndex) => {
+    // DEBUGGING && console.log("marking children read********");
+    // DEBUGGING && console.log(i_mylist);
+    // DEBUGGING && console.log(myIndex);
+    let myReplyList = i_mylist[myIndex].children;
+    for (let i=0; i<myReplyList.length; i++) {
+      if ( myReplyList[i].read===false ) {
+        // DEBUGGING && console.log("marking item");
+        // DEBUGGING && console.log(i);
+        myReplyList = _innerFindAndUpdate(i, myReplyList, _formatReplyData,
+                                  {read_status: true})
+        if ( myReplyList[i].hasOwnProperty('children') &&
+            myReplyList[i].children !== undefined &&
+            myReplyList[i].children.length>0 )
+          {
+          // DEBUGGING && console.log("marking grandchildren read below========");
+          let myCommentList = myReplyList[i].children;
+          for (let x=0; x<myCommentList.length; x++) {
+            if ( myCommentList[x].read===false ) {
+              // DEBUGGING && console.log(myCommentList);
+              // DEBUGGING && console.log(x);
+              myCommentList = _innerFindAndUpdate(x,
+                myCommentList, _formatCommentData, {read_status: true})
+              // DEBUGGING && console.log("grandchild result");
+              // DEBUGGING && console.log(myCommentList);
+            }
+          }
+          myReplyList[i].children = myCommentList;
+        }
+        i_mylist[myIndex].children = myReplyList;
+      }
+    }
+    return i_mylist;
+  }
+
+  if ( queryIndex > -1 ) {
+    // DEBUGGING && console.log(`updating at query level ${itemLevel}`);
+    // update at query level
+    if (itemLevel==='query') {
+      mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData, newItem);
+      if ( !!markingRead && newItem.read_status===true) {
+        mylist = _markChildrenRead(mylist, queryIndex);
+        // DEBUGGING && console.log('returned from marking children read======');
+        // DEBUGGING && console.log(mylist);
+      }
+    } else {
+      // update either reply or comment level...
+      let myReplyList = mylist[queryIndex].children;
+      // DEBUGGING && console.log(`myReplyList:`);
+      // DEBUGGING && console.log(JSON.parse(JSON.stringify(myReplyList)));
+      // DEBUGGING && console.log(myReplyList.findIndex(p => p.replyId===3));
+      // DEBUGGING && console.log(myReplyList.findIndex(p => p.replyId > 333));
+      const replyIndex = myReplyList.findIndex(p => p.replyId===myReplyId);
+      // DEBUGGING && console.log(`rplyId:`);
+      // DEBUGGING && console.log(myReplyId);
+      // DEBUGGING && console.log(`rplyIndex: ${replyIndex}`);
+      // DEBUGGING && console.log(JSON.parse(JSON.stringify(replyIndex)));
+      if (replyIndex > -1) {
+        // DEBUGGING && console.log('Got a good index!!!!!!!!');
+        if ( itemLevel==='reply') {
+          // update at reply level
+          mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
+                                                      myReplyList,
+                                                      _formatReplyData, newItem);
+          if ( !!markingRead && newItem.read_status===false ) {
+            mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData,
+                                  {read_status: false});
+          } else if ( !!markingRead && newItem.read_status===true ) {
+            mylist[queryIndex].children = _markChildrenRead(
+              mylist[queryIndex].children, replyIndex);
+          }
+        } else {
+          // update at comment level
+          const commentIndex = mylist[queryIndex].children[replyIndex]
+            .children.findIndex(p => p.commentId===myCommentId);
+          if ( commentIndex > -1 ) {
+            let myCommentList = mylist[queryIndex].children[replyIndex]
+              .children;
+            mylist[queryIndex].children[replyIndex]
+              .children = _innerFindAndUpdate(commentIndex, myCommentList,
+                                        _formatCommentData, newItem);
+
+            if ( !!markingRead && newItem.read_status===false ) {
+              mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData,
+                                    {read_status: false});
+              mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
+                myReplyList, _formatReplyData, {read_status: false});
+            }
+          } else {
+            // or create comment
+            mylist[queryIndex].children[replyIndex].children
+              .push(_formatCommentData(newItem));
+          }
+        }
+      } else {
+        // or create reply
+        mylist[queryIndex].children.push(_formatReplyData(newItem));
+      }
+    }
+  }
+  return mylist;
+}
+
+
+/**
+ * Update state with one query/reply/comment
+ *
+ * expects myresponse to have keys "auth_user", "bugs", and "posts"
+ *
+ * @param {object} newItem    the query/reply/comment to update
+ * @param {string} itemLevel  the level of the updating item ("query", "reply",
+ *                            "comment")
+ * @param {number} queryId
+ * @param {string} scope
+ * @param {object[]}  queries    the array of queries to be updated
+ * @param {function} setQueries  function to update queries array in React state
+ * @param {function} _setCounts  function to update the counts for various query
+ *                               categories in state
+ * @return {undefined} (non-returning)
+ */
+const _updateItemInState = (newItem, itemLevel, queryId, scope, queries,
+                            setQueries, _setCounts) => {
+
+  // DEBUGGING && console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
+  const extraArg = itemLevel==="comment" ? [queryId] : [];
+
+  const innerUpdate = (qList, updateAction) => {
+    return new Promise((resolve, reject) => {
+      // DEBUGGING && console.log("innerUpdate: qList");
+      // DEBUGGING && console.log(qList);
+      let newQList = [];
+      if ( qList.length && !!qList[0].classId ) {
+        newQList = qList.map(myClass => {
+          myClass.queries = _findAndUpdateItem(myClass.queries, newItem,
+                                                itemLevel, ...extraArg);
+          return myClass;
+        })
+      } else if ( qList.length ) {
+        // DEBUGGING && console.log(`updating ${itemLevel}`);
+        newQList = _findAndUpdateItem(qList, newItem, itemLevel,
+                                      ...extraArg);
+        // DEBUGGING && console.log('inner_update*********************');
+        // DEBUGGING && console.log(newQList);
+      }
+      // DEBUGGING && console.log("innerUpdate: newQList");
+      // DEBUGGING && console.log(newQList);
+      // DEBUGGING && console.log(`sending to:`);
+      // DEBUGGING && console.log(updateAction);
+      updateAction(newQList);
+      resolve(newQList);
+    })
+  }
+
+  let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
+  const scopeLabel = `${scope}_${levelLabel}s`;
+  let myPromise = innerUpdate([ ...queries ],
+                              setQueries);
+  myPromise.then(
+    result => {
+      _setCounts({[scope]: result});
+    },
+    result => {
+      DEBUGGING && console.log('I broke!!!!!!!!!!!');
+      DEBUGGING && console.log(result);
+      DEBUGGING && console.log(scopeLabel);
+    }
+  )
+}
+
+/**
+ * A React component to render the queries interface
+ *
+ * expects no parameters
+ *
+ * @returns React component to render the queries interface
+ */
 const QueriesView = () => {
 
-    const {user, } = useContext(UserContext);
+    const {user, dispatch} = useContext(UserContext);
+    const history = useHistory();
     const [queries, setQueries] = useState(null);
     const [userTotalCount, setUserTotalCount] = useState(null);
     const [userUnreadCount, setUserUnreadCount] = useState(null);
@@ -1212,339 +1647,6 @@ const QueriesView = () => {
       }
     }, [location]);
 
-    const _formatCommentData = c => {
-      return ({level: "comment",
-               replyId: c.bug_post_comments.on_post,
-               commentId: c.bug_post_comments.id,
-               opId: c.bug_post_comments.commenter,
-               opNameFirst: c.auth_user.first_name,
-               opNameLast: c.auth_user.last_name,
-               opText: c.bug_post_comments.comment_body,
-               dateSubmitted: c.bug_post_comments.dt_posted,
-               dateUpdated: c.bug_post_comments.modified_on,
-               opRole: c.bug_post_comments.commenter_role,
-               hidden: c.bug_post_comments.hidden,
-               deleted: c.bug_post_comments.deleted,
-               flagged: c.bug_post_comments.flagged,
-               pinned: c.bug_post_comments.pinned,
-               popularity: c.bug_post_comments.popularity,
-               helpfulness: c.bug_post_comments.helpfulness,
-               showPublic: c.bug_post_comments.public,
-               threadIndex: c.bug_post_comments.thread_index,
-               read: c.read
-              })
-    }
-
-    const _formatReplyData = p => {
-      let formattedComments = p.comments.map(c => _formatCommentData(c));
-      return ({level: "reply",
-               replyId: p.bug_posts.id,
-               opId: p.bug_posts.poster,
-               opNameFirst: p.auth_user.first_name,
-               opNameLast: p.auth_user.last_name,
-               opText: p.bug_posts.post_body,
-               dateSubmitted: p.bug_posts.dt_posted,
-               dateUpdated: p.bug_posts.modified_on,
-               opRole: p.bug_posts.poster_role,
-               hidden: p.bug_posts.hidden,
-               deleted: p.bug_posts.deleted,
-               flagged: p.bug_posts.flagged,
-               pinned: p.bug_posts.pinned,
-               popularity: 0,
-               helpfulness: 0,
-               showPublic: p.bug_posts.public,
-               threadIndex: p.bug_posts.thread_index,
-               read: p.read,
-               children: formattedComments
-              }
-      )
-    }
-
-    const _formatQueryData = q => {
-      let formattedReplies = q.posts.map(p => _formatReplyData(p));
-      if ( !!q.bugs.admin_comment ) {
-        formattedReplies.unshift({
-          level: "reply",
-          replyId: undefined,
-          opId: 19,
-          opNameFirst: "Ian",
-          opNameLast: "Scott",
-          opText: q.bugs.admin_comment,
-          sampleAnswers: q.bugs.sample_answers,
-          dateSubmitted: q.bugs.date_submitted,
-          dateUpdated: q.bugs.modified_on,
-          opRole: ["administrators", "instructors"],
-          hidden: false,
-          deleted: false,
-          flagged: false,
-          pinned: false,
-          popularity: 0,
-          helpfulness: 0,
-          showPublic: true,
-          threadIndex: 0,
-          children: [],
-          score: q.bugs.score,
-          adjustedScore: q.bugs.adjusted_score,
-          read: false
-        });
-      }
-      let myPrompt = q.bugs.prompt;
-      if ( !!q.bugs.step_options && q.bugs.step_options.length ) {
-        const optString = q.bugs.step_options.join("\n- ");
-        myPrompt = `${myPrompt}\n\n- ${optString}`;
-      }
-      return ({level: "query",
-               queryId: q.bugs.id,
-               opId: q.auth_user.id,
-               opNameFirst: q.auth_user.first_name,
-               opNameLast: q.auth_user.last_name,
-               children: formattedReplies,
-               dateSubmitted: q.bugs.date_submitted,
-               dateUpdated: q.bugs.modified_on,
-               queryStatus: q.bugs.bug_status,
-               opResponseText: q.bugs.user_response,
-               opText: q.bugs.user_comment,
-               sampleAnswers: q.bugs.sample_answers,
-               stepPrompt: myPrompt,
-               hidden: q.bugs.hidden,
-               showPublic: q.bugs.public,
-               flagged: q.bugs.flagged,
-               deleted: q.bugs.deleted,
-               pinned: q.bugs.pinned,
-               helpfulness: q.bugs.helpfulness,
-               popularity: q.bugs.popularity,
-               queryStep: q.bugs.step,
-               queryPath: q.bugs.in_path,
-               score: q.bugs.score,
-               adjustedScore: q.bugs.adjusted_score,
-               read: q.read
-              }
-      )
-    }
-
-    // finds and updates an item in a list in state
-    // DOES NOT create new query if specified doesn't exist
-    // DOES create new post if specified doesn't exist
-    // returns the modified version of the supplied query list
-    // if the new query has deleted: true it is removed
-    const _findAndUpdateItem = (mylist, newItem, itemLevel, queryId=0) => {
-      // TODO: mark children read when marked read
-      // DEBUGGING && console.log("_findAndUpdateItem-------------------------------------");
-      const dbTableFields = {'query': 'bugs',
-                             'reply': 'bug_posts',
-                             'comment': 'bug_post_comments'}
-      const itemTableField = dbTableFields[itemLevel];
-      const markingRead = !!newItem[itemTableField] ? false : true;
-      const deleting = !!markingRead ? false
-        : newItem[itemTableField].deleted;
-
-      const myItemId = !!markingRead ? newItem.read_item_id
-        : newItem[itemTableField].id;
-
-      let myQueryId = myItemId;
-      let myReplyId = 0;
-      let myCommentId = 0;
-      if ( itemLevel==='reply' ) {
-        myQueryId = !!markingRead ? newItem.on_bug
-          : newItem[itemTableField].on_bug;
-        myReplyId = myItemId;
-      } else if ( itemLevel ==='comment' ) {
-        myQueryId = !!markingRead ? newItem.on_bug : queryId;
-        myReplyId = !!markingRead ? newItem.on_bug_post : newItem[itemTableField].on_post;
-        myCommentId = myItemId;
-      }
-      // DEBUGGING && console.log(`myQueryId: ${myQueryId}`);
-      const queryIndex = mylist.findIndex(q => q.queryId===myQueryId);
-      // DEBUGGING && console.log(`queryIndex: ${queryIndex}`);
-
-      const _innerFindAndUpdate = (i_itemIndex, i_itemlist, formatAction, i_newItem
-                            ) => {
-        // DEBUGGING && console.log("inner find and update..........");
-        // DEBUGGING && console.log(i_itemIndex);
-        // DEBUGGING && console.log(i_itemlist);
-        // DEBUGGING && console.log(`markingRead: ${markingRead}`);
-        if ( !!markingRead ) {
-          i_itemlist[i_itemIndex].read = i_newItem.read_status;
-        } else if ( !!deleting ) {
-          i_itemlist.splice(i_itemIndex, 1);
-        } else {
-          i_itemlist[i_itemIndex] = formatAction(i_newItem);
-        }
-        // DEBUGGING && console.log("returning from inner:");
-        // DEBUGGING && console.log(i_itemlist);
-        return i_itemlist
-      }
-
-      const _markChildrenRead = (i_mylist, myIndex) => {
-        // DEBUGGING && console.log("marking children read********");
-        // DEBUGGING && console.log(i_mylist);
-        // DEBUGGING && console.log(myIndex);
-        let myReplyList = i_mylist[myIndex].children;
-        for (let i=0; i<myReplyList.length; i++) {
-          if ( myReplyList[i].read===false ) {
-            // DEBUGGING && console.log("marking item");
-            // DEBUGGING && console.log(i);
-            myReplyList = _innerFindAndUpdate(i, myReplyList, _formatReplyData,
-                                      {read_status: true})
-            if ( myReplyList[i].hasOwnProperty('children') &&
-                myReplyList[i].children !== undefined &&
-                myReplyList[i].children.length>0 )
-              {
-              // DEBUGGING && console.log("marking grandchildren read below========");
-              let myCommentList = myReplyList[i].children;
-              for (let x=0; x<myCommentList.length; x++) {
-                if ( myCommentList[x].read===false ) {
-                  // DEBUGGING && console.log(myCommentList);
-                  // DEBUGGING && console.log(x);
-                  myCommentList = _innerFindAndUpdate(x,
-                    myCommentList, _formatCommentData, {read_status: true})
-                  // DEBUGGING && console.log("grandchild result");
-                  // DEBUGGING && console.log(myCommentList);
-                }
-              }
-              myReplyList[i].children = myCommentList;
-            }
-            i_mylist[myIndex].children = myReplyList;
-          }
-        }
-        return i_mylist;
-      }
-
-      if ( queryIndex > -1 ) {
-        // DEBUGGING && console.log(`updating at query level ${itemLevel}`);
-        // update at query level
-        if (itemLevel==='query') {
-          mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData, newItem);
-          if ( !!markingRead && newItem.read_status===true) {
-            mylist = _markChildrenRead(mylist, queryIndex);
-            // DEBUGGING && console.log('returned from marking children read======');
-            // DEBUGGING && console.log(mylist);
-          }
-        } else {
-          // update either reply or comment level...
-          let myReplyList = mylist[queryIndex].children;
-          // DEBUGGING && console.log(`myReplyList:`);
-          // DEBUGGING && console.log(JSON.parse(JSON.stringify(myReplyList)));
-          // DEBUGGING && console.log(myReplyList.findIndex(p => p.replyId===3));
-          // DEBUGGING && console.log(myReplyList.findIndex(p => p.replyId > 333));
-          const replyIndex = myReplyList.findIndex(p => p.replyId===myReplyId);
-          // DEBUGGING && console.log(`rplyId:`);
-          // DEBUGGING && console.log(myReplyId);
-          // DEBUGGING && console.log(`rplyIndex: ${replyIndex}`);
-          // DEBUGGING && console.log(JSON.parse(JSON.stringify(replyIndex)));
-          if (replyIndex > -1) {
-            // DEBUGGING && console.log('Got a good index!!!!!!!!');
-            if ( itemLevel==='reply') {
-              // update at reply level
-              mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
-                                                         myReplyList,
-                                                         _formatReplyData, newItem);
-              if ( !!markingRead && newItem.read_status===false ) {
-                mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData,
-                                      {read_status: false});
-              } else if ( !!markingRead && newItem.read_status===true ) {
-                mylist[queryIndex].children = _markChildrenRead(
-                  mylist[queryIndex].children, replyIndex);
-              }
-            } else {
-              // update at comment level
-              const commentIndex = mylist[queryIndex].children[replyIndex]
-                .children.findIndex(p => p.commentId===myCommentId);
-              if ( commentIndex > -1 ) {
-                let myCommentList = mylist[queryIndex].children[replyIndex]
-                  .children;
-                mylist[queryIndex].children[replyIndex]
-                  .children = _innerFindAndUpdate(commentIndex, myCommentList,
-                                           _formatCommentData, newItem);
-
-                if ( !!markingRead && newItem.read_status===false ) {
-                  mylist = _innerFindAndUpdate(queryIndex, mylist, _formatQueryData,
-                                        {read_status: false});
-                  mylist[queryIndex].children = _innerFindAndUpdate(replyIndex,
-                    myReplyList, _formatReplyData, {read_status: false});
-                }
-              } else {
-                // or create comment
-                mylist[queryIndex].children[replyIndex].children
-                  .push(_formatCommentData(newItem));
-              }
-            }
-          } else {
-            // or create reply
-            mylist[queryIndex].children.push(_formatReplyData(newItem));
-          }
-        }
-      }
-      return mylist;
-    }
-
-    // Non-returning function to properly update state with one post
-    // expects myresponse to have keys "auth_user", "bugs", and "posts"
-    const _updateItemInState = (newItem, itemLevel, queryId, scope) => {
-
-      // DEBUGGING && console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
-      const extraArg = itemLevel==="comment" ? [queryId] : [];
-
-      const innerUpdate = (qList, updateAction) => {
-        return new Promise((resolve, reject) => {
-          // DEBUGGING && console.log("innerUpdate: qList");
-          // DEBUGGING && console.log(qList);
-          let newQList = [];
-          if ( qList.length && !!qList[0].classId ) {
-            newQList = qList.map(myClass => {
-              myClass.queries = _findAndUpdateItem(myClass.queries, newItem,
-                                                   itemLevel, ...extraArg);
-              return myClass;
-            })
-          } else if ( qList.length ) {
-            // DEBUGGING && console.log(`updating ${itemLevel}`);
-            newQList = _findAndUpdateItem(qList, newItem, itemLevel,
-                                          ...extraArg);
-            // DEBUGGING && console.log('inner_update*********************');
-            // DEBUGGING && console.log(newQList);
-          }
-          // DEBUGGING && console.log("innerUpdate: newQList");
-          // DEBUGGING && console.log(newQList);
-          // DEBUGGING && console.log(`sending to:`);
-          // DEBUGGING && console.log(updateAction);
-          updateAction(newQList);
-          resolve(newQList);
-        })
-      }
-
-      let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
-      const scopeLabel = `${scope}_${levelLabel}s`;
-      let myPromise = innerUpdate([ ...queries ],
-                                  setQueries);
-      myPromise.then(
-        result => {
-          _setCounts({[scope]: result});
-        },
-        result => {
-          DEBUGGING && console.log('I broke!!!!!!!!!!!');
-          DEBUGGING && console.log(result);
-          DEBUGGING && console.log(scopeLabel);
-        }
-      )
-    }
-
-      // for (let i=0; i < myscopes.length; i++) {
-      //   let scopeLabel = myscopes[i];
-      //   let levelLabel = itemLevel==="query" ? "querie" : itemLevel;
-      //   scopeLabel = `${scopeLabel}_${levelLabel}s`;
-      //   let myPromise = innerUpdate([ ...queries ],
-      //                               setQueries);
-      //   myPromise.then(
-      //     result => {
-      //       _setCounts({[scopeLabel]: result});
-      //     },
-      //     result => {
-      //       DEBUGGING && console.log('I broke!!!!!!!!!!!');
-      //       DEBUGGING && console.log(result);
-      //       DEBUGGING && console.log(scopeLabel);
-      //     }
-      //   )
-      // }
 
     // expects four lists of queries in internal formatted form (not raw server response)
     const _setCounts = ({user_queries=null, other_queries=null,
@@ -1552,51 +1654,6 @@ const QueriesView = () => {
 
       fetchQueriesMetadataAction({thenFetchQueries: false});
 
-      // if ( !!user_queries ) {
-      //   setUserUnreadCount(
-      //     user_queries.filter(q => q.read===false).length
-      //   );
-      // }
-      // if ( !!other_queries ) {
-      //   setOtherUnreadCount(
-      //     other_queries.filter(q => q.read===false).length
-      //   );
-      // }
-
-      // if ( !!class_queries ) {
-      //   let classUnreadList = [];
-      //   let classTotalList = [];
-      //   class_queries.forEach(myClass => {
-      //     let unreadInClass = myClass.queries.filter(q =>
-      //       q.read===false && classUnreadList.indexOf(q.queryId)===-1
-      //     );
-      //     classUnreadList = classUnreadList.concat(unreadInClass.map(i => i.queryId));
-      //     classTotalList = classTotalList.concat(myClass.queries
-      //       .filter(q => classTotalList.indexOf(q.queryId)===-1)
-      //       .map(i => i.queryId)
-      //     );
-      //   });
-
-      //   setClassmatesUnreadCount(classUnreadList.length);
-      //   setClassmatesTotalCount(classTotalList.length);
-      // }
-
-      // if ( !!students_queries ) {
-      //   let studentsUnreadList = [];
-      //   let studentsTotalList = [];
-      //   students_queries.forEach(myCourse => {
-      //     let unreadInCourse = myCourse.queries.filter(q =>
-      //       q.read===false && studentsUnreadList.indexOf(q.queryId)===-1
-      //     );
-      //     studentsUnreadList = studentsUnreadList.concat(unreadInCourse.map(i => i.queryId));
-      //     studentsTotalList = studentsTotalList.concat(myCourse.queries
-      //       .filter(q => studentsTotalList.indexOf(q.queryId)===-1)
-      //       .map(i => i.queryId)
-      //     );
-      //   });
-      //   setStudentsUnreadCount(studentsUnreadList.length);
-      //   setStudentsTotalCount(studentsTotalList.length);
-      // }
     }
 
     const fetchViewQueriesAction = () => {
@@ -1658,8 +1715,9 @@ const QueriesView = () => {
     useEffect(() => fetchQueriesMetadataAction({thenFetchQueries: true}),
       [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
 
-    const newQueryAction = (myComment, showPublic, event) => {
-      event.preventDefault();
+    const newQueryAction = (myComment, showPublic, setSubmitting,
+      setSubmissionFailure, setSubmissionSucceeded) => {
+      // event.preventDefault();
       const myscore = !['null', undefined].includes(user.currentScore) ?
         user.currentScore : null;
       let queryArgs = {step_id: user.currentStep,
@@ -1679,12 +1737,44 @@ const QueriesView = () => {
                      score: null,
                      }
       }
+      const otherActions = (setSubmitting) => {
+        return(
+          {
+          missingRequestDataAction: (data) => {
+            setSubmitting(false);
+            setSubmissionSucceeded(false);
+            setSubmissionFailure(`Missing information. Cannot send the message without filling the ${data.error.missing.replace("_", " ")} field.`);
+          },
+          badRequestDataAction: null, // bad endpoint
+          insufficientPrivilegesAction: () => {
+            setSubmitting(false);
+            setSubmissionSucceeded(false);
+            // setSubmissionFailure("Recaptcha check failed. Your message was not sent.")
+          },  // failed recaptcha
+          serverErrorAction: () => {
+            setSubmitting(false);
+            setSubmissionSucceeded(false);
+            setSubmissionFailure("Something went wrong and your query was not submitted.")
+          }
+          }
+        )
+      };
+
       addQuery(queryArgs)
-      .then(myresponse => {
-        setQueries(myresponse.queries.map(
-          q => _formatQueryData(q)
-        ));
-      });
+      .then(messageResponse => {
+        returnStatusCheck(messageResponse, history,
+          (mydata) => {
+            DEBUGGING && console.log(mydata);
+            setSubmitting(false);
+            setSubmissionSucceeded(true);
+            setQueries(myresponse.queries.map(
+              q => _formatQueryData(q)
+            );
+          },
+          dispatch,
+          otherActions(setSubmitting)
+        )
+      })
     }
 
     const setReadStatusAction = ({postLevel,
@@ -1698,7 +1788,7 @@ const QueriesView = () => {
                         readStatus: readStatus})
       .then(myresponse => {
           if (myresponse.status_code===200) {
-            _updateItemInState(myresponse.result, postLevel, 0, scope);
+            _updateItemInState(myresponse.result, postLevel, 0, scope, queries, setQueries, _setCounts);
           } else {
             DEBUGGING && console.log(myresponse);
           }

@@ -64,7 +64,7 @@ $info-bg: #f0f7fd; //#d0e3f0;
 $info: #5bc0de;
 $info-dark: #2f96b4; // #5387B2;
 $warning-bg: #fefbed;
-$warning: $orange; // #f1e7bc;
+$warning: $headingColorDark; // #f1e7bc;
 $error: $danger;
 $success-bg: #dff0d8;
 $success: $pallette3;  // #d6e9c6;
@@ -219,14 +219,26 @@ h3                                      {font-family: $sans-fonts;
     &.alert-success                      {background-color: $success-bg;
                                          border: 1px solid $success;
     }
+    &.alert-warning                      {border: 1px solid desaturate(lighten($warning, 20%), 10%);
+                                          color: $warning;
+                                          background-color: $warning-bg;
+    }
 }
 
 // allow vertically centred left-hand icons in error messages
-.alert.error-message                    {flex-wrap: nowrap;
+@mixin left-centered-icon               {display: flex;
+                                         flex-wrap: nowrap;
                                          align-items: center;
+    &> svg                              {margin-right: 0.75rem;
+                                         margin-left: 0;
+    }
     &> div                              {padding-left:0;
                                          padding-right: 1rem;
     }
+}
+.alert.left-icon,
+.alert.error-message                    {
+    @include left-centered-icon();
 }
 
 // pills  ----------------------------------------------------
@@ -1194,7 +1206,9 @@ h3                                      {font-family: $sans-fonts;
                                     font-size: 1.75rem;
                                     color: $accent1;
                                     border: 1px solid transparent;
-                                    margin-left: 1rem;
+                                    margin-left: 1.5rem;
+                                    padding-left: 0;
+                                    padding-right: 0;
             &:hover                {background-color: color.scale(lighten($accent1, 65%), $saturation: -20%);
             }
             &.active,
@@ -1205,18 +1219,25 @@ h3                                      {font-family: $sans-fonts;
                                     padding-bottom: 0;
                                     color: $accent1;
                                     margin-bottom: 3px;
-                                    padding-left: 0;
-                                    padding-right: 0;
             }
             &:first-of-type        {margin-left:1.5rem;
             }
         }
     }
-    .add-query-form-toggle         {margin-top: 0.5rem;
+    .add-query-form-toggle         {margin-top: 1.5rem;
+                                    margin-bottom: 1rem;
         svg                        {margin-right: 0.5rem;
         }
     }
     .add-query-form                {margin-right: 1rem;
+                                    margin-top: 0;
+                                    background-color: $success-bg;
+                                    border: $success solid 3px;
+                                    border-radius: 1rem;
+                                    color: $successDark;
+                                    padding: 1rem;
+                                    margin-bottom: 2rem;
+        textarea                    {border: 1px solid darken($success-bg, 20%);}
     }
     .query-filter-form             {display: flex;
                                     justify-content: flex-end;
@@ -1268,6 +1289,7 @@ h3                                      {font-family: $sans-fonts;
                                      overflow-y: auto;
                                      height: 100%;
                                      padding-left: 1rem;
+                                     padding-right: 1rem;
         @include react-transition-fade('queries-view-pane');
         .me-new-query-info          {margin-top: 0.5rem;
                                      margin-right: 1rem;
@@ -3384,7 +3406,7 @@ h3                                      {font-family: $sans-fonts;
                 }
                 .form-check                         {font-family: $greek-fonts;
                                                     font-size: $font-size-lg;
-                                                    padding-left: 1.5rem;
+                                                    padding-left: 2rem;
                     &:nth-child(2)                  {margin-top: 0.25rem;
                     }
                     &:last-of-type                  {margin-bottom: 0.5rem;
