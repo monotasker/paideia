@@ -45,7 +45,6 @@ import { getQueriesMetadata,
  } from "../Services/queriesService";
 import { returnStatusCheck } from "../Services/utilityService";
 import { readableDateAndTime } from "../Services/dateTimeService";
-import Collapsible from '../Components/Collapsible';
 import { DEBUGGING } from "../variables";
 import { FormErrorMessage } from "../Services/formsService";
 
@@ -247,7 +246,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
     <React.Fragment>
     <Button variant="outline-success"
       onClick={() => setShowForm(!showForm)}
-      aria-controls={`add-query-form`}
+      aria-controls={`add-query-form-wrapper`}
       aria-expanded={showForm}
       className="add-query-form-toggle"
     >
@@ -255,6 +254,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
       {"Ask a new question or make a comment!"}
     </Button>
     <Collapse in={showForm}>
+      <div className="add-query-form-wrapper">
     <Formik
       initialValues={{queryText: "", showPublic: false}}
       validationSchema={Yup.object({
@@ -264,7 +264,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
       onSubmit={(values, { setSubmitting }) => {
         // (event) => action(queryText, showPublic, event)
         setSubmissionSucceeded(false);
-        action(values.queryText, values.showPublic, setSubmitting,
+        action(values.queryText, !values.showPublic, setSubmitting,
                setSubmissionFailure, setSubmissionSucceeded);
         }
       }
@@ -272,6 +272,7 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
       {formik => (!submissionSucceeded ? (
       <Form
         className="add-query-form"
+        id="add-query-form"
         onSubmit={formik.handleSubmit}
       >
         {!!singleStep && !!nonStep &&
@@ -341,10 +342,11 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
         }
       </Form>)
       : (<>
+      <div className="add-query-result-div add-query-form">
         <Row>
           <Col>Success!!</Col>
         </Row>
-        <Row className="newQueryResultAnotherButton">
+        <Row className="new-query-result-another-button">
           <Col>
             <Button color="primary"
               onClick={() => {
@@ -355,9 +357,11 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
             </Button>
           </Col>
         </Row>
-        </>
+      </div>
+      </>
       ))}
       </Formik>
+      </div>
     </Collapse>
     </React.Fragment>
   );
@@ -1767,9 +1771,9 @@ const QueriesView = () => {
             DEBUGGING && console.log(mydata);
             setSubmitting(false);
             setSubmissionSucceeded(true);
-            setQueries(myresponse.queries.map(
+            setQueries(mydata.queries.map(
               q => _formatQueryData(q)
-            );
+            ));
           },
           dispatch,
           otherActions(setSubmitting)

@@ -1229,7 +1229,8 @@ h3                                      {font-family: $sans-fonts;
         svg                        {margin-right: 0.5rem;
         }
     }
-    .add-query-form                {margin-right: 1rem;
+    .add-query-form,
+    .add-query-result-div          {margin-right: 1rem;
                                     margin-top: 0;
                                     background-color: $success-bg;
                                     border: $success solid 3px;
@@ -1238,6 +1239,9 @@ h3                                      {font-family: $sans-fonts;
                                     padding: 1rem;
                                     margin-bottom: 2rem;
         textarea                    {border: 1px solid darken($success-bg, 20%);}
+        .new-query-result-another-button {margin-top: 1rem;
+
+        }
     }
     .query-filter-form             {display: flex;
                                     justify-content: flex-end;
@@ -1291,6 +1295,8 @@ h3                                      {font-family: $sans-fonts;
                                      padding-left: 1rem;
                                      padding-right: 1rem;
         @include react-transition-fade('queries-view-pane');
+        .alert:first-child          {margin-top: 1.5rem;
+        }
         .me-new-query-info          {margin-top: 0.5rem;
                                      margin-right: 1rem;
         }
