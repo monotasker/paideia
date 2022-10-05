@@ -1091,6 +1091,336 @@ def check_login():
     return json_serializer(my_login)
 
 
+def queries():
+    """
+    Public endpoint for operations on queries.
+
+    GET request fetches either a list of queries or just metadata about the queries
+        Expected request variables for all GET requests:
+        ** note: all variables are strings because sent as query parameters
+
+        metadata_only (str)    indicates a list of queries is to be
+                                fetched or only metadata about all queries. (expects "true" or "false")
+        nonstep (str)  indicates whether the returned queries should *not* be
+                        tied to a specific step (expects "true" or "false";default=False)
+        step_id (str)   the currently active step (if any) when the request was
+                        made (expects integer as string)
+        unanswered (str)    expects either "true" or "false"
+        user_id (str)   the id of the user making the current request
+                        (expects integer as string)
+
+        Additional expected request variables if `metadata_only` is "false":
+
+        classmates_course (str) the course id of a course being viewed as
+                                a fellow student (default=0). (expects integer
+                                as string)
+        students_course (str) the course id of a course being viewed as
+                                a course instructor (default=0). (expects
+                                integer as string)
+        orderby (str)   expects a string that can be passed to gluon's
+                        select function as an `orderby` value. (expects integer
+                        as string)
+        own_queries (str)  indicates whether returned queries should be those
+                            posted by the currently logged-in user (expects
+                            either "true" or "false")
+        page (str)      expects integer as string
+        pagesize (str)  expects integer as string
+        unread (bool)   expects either "true" or "false"
+
+    POST request creates a new query, reply, or comment
+
+        Expected request variables for all POST requests:
+        user_id (int)
+        public (bool)
+        item_level (str)   Allowable values are "query", "reply", and "comment"
+
+        Additional variables if `item_level` is "query":
+        step_id (int)
+        path_id (int)
+        loc_name (str)
+        answer (str)
+        log_id (int)
+        score (double)
+        user_comment (str)
+
+        Additional variables if `item_level` is "reply":
+        query_id (int) *required
+        post_body (str) *required
+
+    PUT request updates an existing query
+        item_level (str)   Allowable values are "query", "reply", and "comment"
+
+    DELETE request deletes an existing query
+
+    :returns: the http response payload as a JSON-parsable string
+    :rtype:   str (JSON parsable)
+    """
+    try:
+        if request.method == 'POST':
+            if request.vars.item_level == "query":
+                return _log_new_query(**request.vars)
+            elif request.vars.item_level == "reply":
+                return _add_query_post(**request.vars)
+            else:
+                return _add_post_comment(**request.vars)
+        if request.method == 'PUT':
+            pass
+        if request.method == 'DELETE':
+            pass
+        if request.method == 'GET':
+            if request.vars.metadata_only == "true":
+                return _get_queries_metadata(**request.vars)
+            else:
+                return _get_view_queries(**request.vars)
+        else:
+            response = current.response
+            response.status = 400
+            # not using POST method
+            return json_serializer({'status': 'bad request',
+                        'reason': f'${request.method} not a valid method ' \
+                                'for this endpoint',
+                        'error': None})
+    except Exception:
+        response = current.response
+        print_exc()
+        response.status = 500
+        return json_serializer({'status': 'internal server error',
+                                'reason': 'Unknown error in function api.queries',
+                                'error': format_exc()})
+
+
+def _get_view_queries(step_id: str="0", user_id: str="0",
+                      own_queries: str="false",
+                      nonstep: str="true",
+                      unanswered: str="false", unread: str="false",
+                      pagesize: str="20", page: str="1",
+                      orderby: str="modified_on",
+                      classmates_course: str="0",
+                      students_course: str="0", metadata_only: str="false") -> str:
+    """
+
+    Page request parameter is indexed from 1. A value of 0 indicates the request
+    is not paginated.
+    """
+    vbs=False
+    step_id = int(step_id)
+    user_id = int(user_id) if user_id != "null" else 0
+    pagesize = int(pagesize)
+    page = int(page)
+    classmates_course = int(classmates_course)
+    students_course = int(students_course)
+    own_queries = False if own_queries in ["false", False] else True
+    nonstep = False if nonstep in ["false", False] else True
+    unanswered = False if unanswered in ["false", False] else True
+    unread = False if unread in ["false", False] else True
+    metadata_only = False if metadata_only in ["false", False] else True
+
+    offset_start = pagesize * (page - 1)
+    offset_end = offset_start + pagesize
+    table_fields = [db.bugs.id,
+                    db.bugs.user_name,
+                    db.bugs.step,
+                    db.bugs.in_path,
+                    db.bugs.prompt,
+                    db.bugs.step_options,
+                    db.bugs.user_response,
+                    db.bugs.sample_answers,
+                    db.bugs.score,
+                    db.bugs.adjusted_score,
+                    db.bugs.log_id,
+                    db.bugs.user_comment,
+                    db.bugs.date_submitted,
+                    db.bugs.bug_status,
+                    db.bugs.admin_comment,
+                    db.bugs.deleted,
+                    db.bugs.public,
+                    db.bugs.posts,
+                    db.bugs.pinned,
+                    db.bugs.popularity,
+                    db.bugs.helpfulness,
+                    db.bugs.user_role,
+                    db.auth_user.id,
+                    db.auth_user.first_name,
+                    db.auth_user.last_name]
+                    # FIXME:  re-add db.bugs.hidden here and in model,
+
+    queries = []
+    unread_queries, unread_posts, unread_comments = _fetch_unread_queries(user_id)
+    if vbs: print("api::_get_view_queries: unread_queries")
+    if vbs: print(unread_queries)
+    if vbs: print("api::_get_view_queries: unread_posts")
+    if vbs: print(unread_posts)
+    if vbs: print("api::_get_view_queries: unread_comments")
+    if vbs: print(unread_comments)
+
+    unanswered_term = True
+    if unanswered==True:
+        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
+        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
+        if vbs: print("filtering for unanswered")
+        if vbs: print("raw unanswered finds {} of {} rows".format(
+            db(unanswered_term).count(),
+            db(db.bugs.id > 0).count()
+            ))
+
+    if vbs: print('A')
+
+    step_term = (db.bugs.step == step_id) # queries tied to specified step
+    if nonstep==True:  # queries not tied to step
+        if vbs: print("not filtering for a step")
+        step_term = (db.bugs.step == None)
+    elif step_id==0:  #  queries on all steps, not just one
+        if vbs: print("filtering for any step")
+        step_term = (db.bugs.step != None)
+    else:
+        if vbs: print("filtering for step", step_id)
+    if vbs: print("found", db())
+
+    if vbs: print('b')
+
+    basic_term = ((db.bugs.user_name == db.auth_user.id) &
+                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)))
+    if vbs: print("with basic_term found ", db((step_term) & (basic_term)).count(), "records")
+
+    #  requesting queries not marked as read
+    unread_term = True
+    if unread is True:
+        unread_term = (db.bugs.id.belongs(unread_queries))
+    if vbs: print("with unread_term found ", db((step_term) & (basic_term) & (unread_term)).count(), "records")
+
+
+    own_queries_term = (db.bugs.user_name != user_id)
+    if own_queries is True:
+        own_queries_term = (db.bugs.user_name == user_id)
+    if vbs: print("with own_queries term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term)).count(), "records")
+
+    #  requesting queries for own class's students
+    students_term = True
+    if vbs: print("students_course is", students_course)
+    if students_course not in [None, 0]:
+        myclass = db.classes[students_course]
+        assert user_id == myclass.instructor
+        members = list(set([m.name for m in
+                            db(db.class_membership.class_section ==
+                               students_course).iterselect()
+                            if m.name != user_id]
+                            ))
+        students_term = ((db.bugs.user_name.belongs(members)) &
+                         (db.bugs.date_submitted >= myclass.start_date) &
+                         (db.bugs.date_submitted <= myclass.end_date))
+    if vbs and students_course != 0: print("with students_term found ", len(list(set(m.bugs.id for m in db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (students_term)).select()))), "records")
+
+    #  requesting queries for own classmates
+    classmates_term = True
+    if vbs: print("classmates_course is", classmates_course)
+    if classmates_course not in [None, 0]:
+        myclass = db.classes[classmates_course]
+        members = list(set([m.name for m in
+                            db(db.class_membership.class_section ==
+                               classmates_course).iterselect()
+                            if m.name != user_id]
+                           ))
+        # assert userid in members
+        # other_members = [m for m in members if m != userid]
+        classmates_term = ((db.bugs.user_name.belongs(members)) &
+                           (db.bugs.date_submitted >= myclass.start_date) &
+                           (db.bugs.date_submitted <= myclass.end_date))
+    if vbs: print("with classmates_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term)).count(), "records")
+
+    # requesting queries not by self, student, or classmates
+    # FIXME: make current class?
+    external_term = True
+    if (not own_queries) and \
+            students_course in [None, 0] and classmates_course in [None, 0]:
+        class_queries = []
+        myclasses = list(set(c.class_section for c in
+                             db(db.class_membership.name == user_id
+                                ).iterselect(db.class_membership.class_section)
+                             )
+                         )
+        if vbs: print("myclasses: ", myclasses)
+        for c in myclasses:
+            if vbs: print("c:")
+            if vbs: print(c)
+            classmembers = list(set([m.name for m in
+                db(db.class_membership.class_section == c
+                ).iterselect(db.class_membership.name)]
+                ))
+            if vbs: print("classmembers:", [m for m in classmembers])
+            my_m_class = db(db.classes.id == c
+                         ).select(db.classes.start_date, db.classes.end_date).first()
+            # if vbs: print("myclass:")
+            # if vbs: print(myclass)
+            if vbs: print("myclass.start_date", my_m_class.start_date)
+            if vbs: print("myclass.end_date", my_m_class.end_date)
+            myqueries = [q.id for q in
+                         db((db.bugs.user_name.belongs(classmembers)) &
+                            (db.bugs.date_submitted >= my_m_class.start_date) &
+                            (db.bugs.date_submitted <= my_m_class.end_date)
+                            ).select(db.bugs.id)]
+            class_queries.extend(myqueries)
+            if vbs: print("class_queries:", class_queries)
+
+        instructing_queries = []
+        instructing = list(set(db(db.classes.instructor == user_id
+                                  ).iterselect(db.classes.id)))
+        if vbs: print("instructing: ", instructing)
+        for i in instructing:
+            instructingmembers = list(set([m.name for m in
+                db(db.class_membership.class_section == i.id
+                ).iterselect(db.class_membership.name)]
+                ))
+            if vbs: print("instructingmembers is")
+            if vbs: print(instructingmembers)
+            my_i_class = db(db.classes.id == i.id
+                         ).select(db.classes.start_date, db.classes.end_date).first()
+            if vbs: print("myclass.start_date", my_i_class.start_date)
+            if vbs: print("myclass.end_date", my_i_class.end_date)
+            myqueries = [q.id for q in
+                         db((db.bugs.user_name.belongs(instructingmembers)) &
+                            (db.bugs.date_submitted >= my_i_class.start_date) &
+                            (db.bugs.date_submitted <= my_i_class.end_date)
+                            ).select(db.bugs.id)]
+            if vbs: print("found", len(myqueries), "queries")
+            instructing_queries.extend(myqueries)
+        if vbs: print("excluding", len(class_queries), "class queries")
+        if vbs: print("excluding", len(instructing_queries), "instructing queries")
+
+        external_term = ~(db.bugs.id.belongs(chain(class_queries,
+                                                   instructing_queries)))
+
+    if vbs: print("with external_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term) & (external_term)).count(), "records")
+
+    if vbs: print('c')
+    queries = db((step_term) &
+                 (basic_term) &
+                 (unread_term) &
+                 (unanswered_term) &
+                 (classmates_term) &
+                 (students_term) &
+                 (own_queries_term) &
+                 (external_term)
+                 ).select(*table_fields,
+                          orderby=~db.bugs[orderby],
+                          limitby=(offset_start, offset_end)
+                          )
+    if vbs: print(queries[0] if len(queries) else "No records found")
+
+    if vbs: print('d')
+    queries_list = queries.as_list()
+    if vbs: print('e')
+    for q in queries_list:
+        q['read'] = False if q['bugs']['id'] in unread_queries else True
+    if vbs: print('f')
+    if vbs: print("in _get_view_queries===============================")
+    if vbs: print("got {} query rows".format(len(queries_list)))
+    if vbs: print('g')
+    queries_list = _add_posts_to_queries(queries_list,
+                                         unread_posts, unread_comments)
+
+    return json_serializer(queries_list)
+
+
 def _add_posts_to_queries(queries, unread_posts, unread_comments):
 
     vbs = GLOBAL_VBS or 0
@@ -1227,244 +1557,22 @@ def _fetch_unread_queries(user_id):
 
     return unread_queries, unread_posts, unread_comments
 
-def get_view_queries():
-    """
 
-    Page request parameter is indexed from 1. A value of 0 indicates the request
-    is not paginated.
-    """
-    vbs=False
-    stepid = request.vars['step_id']
-    userid = request.vars['user_id']
-    own_queries = request.vars['own_queries']
-    nonstep = request.vars['nonstep']
-    unanswered = request.vars['unanswered']
-    unread = request.vars['unread']
-    pagesize = request.vars['pagesize']
-    page = request.vars['page']
-    orderby = request.vars['orderby']
-    classmates_course = int(request.vars['classmates_course'])
-    students_course = int(request.vars['students_course'])
-    if vbs: print(request.vars)
-
-    offset_start = pagesize * (page - 1)
-    offset_end = offset_start + pagesize
-    table_fields = [db.bugs.id,
-                    db.bugs.user_name,
-                    db.bugs.step,
-                    db.bugs.in_path,
-                    db.bugs.prompt,
-                    db.bugs.step_options,
-                    db.bugs.user_response,
-                    db.bugs.sample_answers,
-                    db.bugs.score,
-                    db.bugs.adjusted_score,
-                    db.bugs.log_id,
-                    db.bugs.user_comment,
-                    db.bugs.date_submitted,
-                    db.bugs.bug_status,
-                    db.bugs.admin_comment,
-                    db.bugs.deleted,
-                    db.bugs.public,
-                    db.bugs.posts,
-                    db.bugs.pinned,
-                    db.bugs.popularity,
-                    db.bugs.helpfulness,
-                    db.bugs.user_role,
-                    db.auth_user.id,
-                    db.auth_user.first_name,
-                    db.auth_user.last_name]
-                    # FIXME:  re-add db.bugs.hidden here and in model,
-
-    queries = []
-    unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
-    if vbs: print("api::_get_view_queries: unread_queries")
-    if vbs: print(unread_queries)
-    if vbs: print("api::_get_view_queries: unread_posts")
-    if vbs: print(unread_posts)
-    if vbs: print("api::_get_view_queries: unread_comments")
-    if vbs: print(unread_comments)
-
-    unanswered_term = True
-    if unanswered==True:
-        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
-        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
-        if vbs: print("filtering for unanswered")
-        if vbs: print("raw unanswered finds {} of {} rows".format(
-            db(unanswered_term).count(),
-            db(db.bugs.id > 0).count()
-            ))
-
-    if vbs: print('A')
-
-    step_term = (db.bugs.step == stepid) # queries tied to specified step
-    if nonstep==True:  # queries not tied to step
-        if vbs: print("not filtering for a step")
-        step_term = (db.bugs.step == None)
-    elif stepid==0:  #  queries on all steps, not just one
-        if vbs: print("filtering for any step")
-        step_term = (db.bugs.step != None)
-    else:
-        if vbs: print("filtering for step", stepid)
-    if vbs: print("found", db())
-
-    if vbs: print('b')
-
-    basic_term = ((db.bugs.user_name == db.auth_user.id) &
-                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)))
-    if vbs: print("with basic_term found ", db((step_term) & (basic_term)).count(), "records")
-
-    #  requesting queries not marked as read
-    unread_term = True
-    if unread is True:
-        unread_term = (db.bugs.id.belongs(unread_queries))
-    if vbs: print("with unread_term found ", db((step_term) & (basic_term) & (unread_term)).count(), "records")
-
-
-    own_queries_term = (db.bugs.user_name != userid)
-    if own_queries is True:
-        own_queries_term = (db.bugs.user_name == userid)
-    if vbs: print("with own_queries term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term)).count(), "records")
-
-    #  requesting queries for own class's students
-    students_term = True
-    if vbs: print("students_course is", students_course)
-    if students_course not in [None, 0]:
-        myclass = db.classes[students_course]
-        assert userid == myclass.instructor
-        members = list(set([m.name for m in
-                            db(db.class_membership.class_section ==
-                               students_course).iterselect()
-                            if m.name != userid]
-                            ))
-        students_term = ((db.bugs.user_name.belongs(members)) &
-                         (db.bugs.date_submitted >= myclass.start_date) &
-                         (db.bugs.date_submitted <= myclass.end_date))
-    if vbs and students_course != 0: print("with students_term found ", len(list(set(m.bugs.id for m in db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (students_term)).select()))), "records")
-
-    #  requesting queries for own classmates
-    classmates_term = True
-    if vbs: print("classmates_course is", classmates_course)
-    if classmates_course not in [None, 0]:
-        myclass = db.classes[classmates_course]
-        members = list(set([m.name for m in
-                            db(db.class_membership.class_section ==
-                               classmates_course).iterselect()
-                            if m.name != userid]
-                           ))
-        # assert userid in members
-        # other_members = [m for m in members if m != userid]
-        classmates_term = ((db.bugs.user_name.belongs(members)) &
-                           (db.bugs.date_submitted >= myclass.start_date) &
-                           (db.bugs.date_submitted <= myclass.end_date))
-    if vbs: print("with classmates_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term)).count(), "records")
-
-    # requesting queries not by self, student, or classmates
-    # FIXME: make current class?
-    external_term = True
-    if (not own_queries) and \
-            students_course in [None, 0] and classmates_course in [None, 0]:
-        class_queries = []
-        myclasses = list(set(c.class_section for c in
-                             db(db.class_membership.name == userid
-                                ).iterselect(db.class_membership.class_section)
-                             )
-                         )
-        if vbs: print("myclasses: ", myclasses)
-        for c in myclasses:
-            if vbs: print("c:")
-            if vbs: print(c)
-            classmembers = list(set([m.name for m in
-                db(db.class_membership.class_section == c
-                ).iterselect(db.class_membership.name)]
-                ))
-            if vbs: print("classmembers:", [m for m in classmembers])
-            my_m_class = db(db.classes.id == c
-                         ).select(db.classes.start_date, db.classes.end_date).first()
-            # if vbs: print("myclass:")
-            # if vbs: print(myclass)
-            if vbs: print("myclass.start_date", my_m_class.start_date)
-            if vbs: print("myclass.end_date", my_m_class.end_date)
-            myqueries = [q.id for q in
-                         db((db.bugs.user_name.belongs(classmembers)) &
-                            (db.bugs.date_submitted >= my_m_class.start_date) &
-                            (db.bugs.date_submitted <= my_m_class.end_date)
-                            ).select(db.bugs.id)]
-            class_queries.extend(myqueries)
-            if vbs: print("class_queries:", class_queries)
-
-        instructing_queries = []
-        instructing = list(set(db(db.classes.instructor == userid
-                                  ).iterselect(db.classes.id)))
-        if vbs: print("instructing: ", instructing)
-        for i in instructing:
-            instructingmembers = list(set([m.name for m in
-                db(db.class_membership.class_section == i.id
-                ).iterselect(db.class_membership.name)]
-                ))
-            if vbs: print("instructingmembers is")
-            if vbs: print(instructingmembers)
-            my_i_class = db(db.classes.id == i.id
-                         ).select(db.classes.start_date, db.classes.end_date).first()
-            if vbs: print("myclass.start_date", my_i_class.start_date)
-            if vbs: print("myclass.end_date", my_i_class.end_date)
-            myqueries = [q.id for q in
-                         db((db.bugs.user_name.belongs(instructingmembers)) &
-                            (db.bugs.date_submitted >= my_i_class.start_date) &
-                            (db.bugs.date_submitted <= my_i_class.end_date)
-                            ).select(db.bugs.id)]
-            if vbs: print("found", len(myqueries), "queries")
-            instructing_queries.extend(myqueries)
-        if vbs: print("excluding", len(class_queries), "class queries")
-        if vbs: print("excluding", len(instructing_queries), "instructing queries")
-
-        external_term = ~(db.bugs.id.belongs(chain(class_queries,
-                                                   instructing_queries)))
-
-    if vbs: print("with external_term found ", db((step_term) & (basic_term) & (unread_term) & (own_queries_term) & (classmates_term) & (external_term)).count(), "records")
-
-    if vbs: print('c')
-    queries = db((step_term) &
-                 (basic_term) &
-                 (unread_term) &
-                 (unanswered_term) &
-                 (classmates_term) &
-                 (students_term) &
-                 (own_queries_term) &
-                 (external_term)
-                 ).select(*table_fields,
-                          orderby=~db.bugs[orderby],
-                          limitby=(offset_start, offset_end)
-                          )
-    if vbs: print(queries[0] if len(queries) else "No records found")
-
-    if vbs: print('d')
-    queries_list = queries.as_list()
-    if vbs: print('e')
-    for q in queries_list:
-        q['read'] = False if q['bugs']['id'] in unread_queries else True
-    if vbs: print('f')
-    if vbs: print("in _get_view_queries===============================")
-    if vbs: print("got {} query rows".format(len(queries_list)))
-    if vbs: print('g')
-    queries_list = _add_posts_to_queries(queries_list,
-                                         unread_posts, unread_comments)
-
-    return json_serializer(queries_list)
-
-
-def get_queries_metadata():
+def _get_queries_metadata(user_id: str="0", step_id: str="0",
+                          nonstep: str="true",
+                          unread: str="false", unanswered: str="false", metadata_only: str="true") -> str:
     """
     Return counts for query categories.
     """
-    vbs=True
+    vbs=False
     db = current.db
     if vbs: print("api::get_queries_metadata============================")
-
-    user_id = request.vars["user_id"]
-    step_id = request.vars["step_id"]
-    nonstep = request.vars["nonstep"]
-    unanswered = request.vars["unanswered"]
+    step_id = int(step_id)
+    user_id = int(user_id) if user_id != "null" else 0
+    nonstep = False if nonstep in ["false", False] else True
+    unanswered = False if unanswered in ["false", False] else True
+    unread = False if unread in ["false", False] else True
+    metadata_only = False if metadata_only in ["false", False] else True
 
     unread_queries, unread_posts, unread_comments = _fetch_unread_queries(user_id)
     if vbs: print("unread_queries:")
@@ -1606,525 +1714,18 @@ def get_queries_metadata():
                             "other_unread_count": other_unread_count
                             })
 
-#  FIXME: This function is deprecated
-def _fetch_queries(stepid=0, userid=0, nonstep=True, unread=False,
-                   unanswered=False, pagesize=20, page=0,
-                   orderby="date_submitted"):
-    """
-    Return a list of student queries from the db.bugs table.
-
-    If nonstep=True, this only returns general queries that aren't
-    linked with a particular step.
-
-    If unanswered=True, this only returns queries that have not yet been
-    answered.
-
-    pagination, via the "page" parameter, is zero indexed
-    """
-    vbs=False
-    offset_start = pagesize * page
-    offset_end = offset_start + pagesize
-    table_fields = [db.bugs.id,
-                    db.bugs.user_name,
-                    db.bugs.step,
-                    db.bugs.in_path,
-                    db.bugs.prompt,
-                    db.bugs.step_options,
-                    db.bugs.user_response,
-                    db.bugs.sample_answers,
-                    db.bugs.score,
-                    db.bugs.adjusted_score,
-                    db.bugs.log_id,
-                    db.bugs.user_comment,
-                    db.bugs.date_submitted,
-                    db.bugs.bug_status,
-                    db.bugs.admin_comment,
-                    db.bugs.deleted,
-                    db.bugs.public,
-                    db.bugs.posts,
-                    db.bugs.pinned,
-                    db.bugs.popularity,
-                    db.bugs.helpfulness,
-                    db.bugs.user_role,
-                    db.auth_user.id,
-                    db.auth_user.first_name,
-                    db.auth_user.last_name]
-                    # FIXME:  re-add db.bugs.hidden here and in model,
-
-    queries = []
-    unread_queries, unread_posts, unread_comments = _fetch_unread_queries(userid)
-    if vbs: print("api::_fetch_queries: unread_queries")
-    if vbs: print(unread_posts)
-    if vbs: print("api::_fetch_queries: unread_posts")
-    if vbs: print(unread_posts)
-    if vbs: print("api::_fetch_queries: unread_queries")
-    if vbs: print(unread_posts)
-
-    unanswered_term = True
-    if unanswered==True:
-        answered_rows = db(db.bug_posts.id > 0)._select(db.bug_posts.on_bug)
-        unanswered_term = ~(db.bugs.id.belongs(answered_rows))
-        # if vbs: print("filtering for unanswered")
-        # if vbs: print("raw unanswered finds {} of {} rows".format(
-            # db(unanswered_term).count(),
-            # db(db.bugs.id > 0).count()
-            # ))
-
-    if vbs: print('A')
-
-    step_term = (db.bugs.step == stepid) # queries tied to specified step
-    if nonstep==True:  # queries not tied to step
-        step_term = (db.bugs.step == None)
-    elif stepid==0:  #  queries on all steps, not just one
-        step_term = (db.bugs.step != None)
-
-    if vbs: print('b')
-    #  requesting queries not marked as read
-    unread_term = True
-    if unread is True:
-        unread_term = (db.bugs.id.belongs(unread_queries))
-
-    if vbs: print('c')
-    queries = db((step_term) &
-                 (db.bugs.user_name == db.auth_user.id) &
-                 ((db.bugs.deleted == False) | (db.bugs.deleted == None)) &
-                 (unread_term) &
-                 (unanswered_term)
-                 ).select(*table_fields,
-                          orderby=~db.bugs[orderby]
-                          )  #   limitby=(offset_start, offset_end),
-
-    if vbs: print('d')
-    queries_list = queries.as_list()
-    if vbs: print('e')
-    for q in queries_list:
-        q['read'] = False if q['bugs']['id'] in unread_queries else True
-    if vbs: print('f')
-    if vbs: print("in _fetch_queries===============================")
-    if vbs: print("got {} query rows".format(len(queries_list)))
-    if vbs: print('g')
-    queries_recs = _add_posts_to_queries(queries_list,
-                                         unread_posts, unread_comments)
-
-    if vbs: print('h')
-    #  collect queries posted by current user
-    user_queries = []
-    if userid and userid > 0:
-        user_queries = [q for q in queries_recs
-                        if q['auth_user']['id'] == userid]
-
-    if vbs: print('i')
-    #  collect queries posted by user's class members
-    #  and queries posted by those outside the user's classes
-    myclasses = db((db.class_membership.name == userid) &
-                   (db.class_membership.class_section == db.classes.id)
-                   ).iterselect(db.classes.id,
-                                db.classes.institution,
-                                db.classes.academic_year,
-                                db.classes.course_section, orderby=~db.classes.start_date
-                                )
-
-    if vbs: print('j')
-    myclasses_queries = []
-    external_queries = copy(queries_recs)
-    member_queries = copy(queries_recs)
-    for myclass in myclasses:
-        members = list(set([m.name for m in
-                            db(db.class_membership.class_section ==
-                               myclass.id).iterselect()
-                            if m.name != userid]
-                            ))
-
-        member_queries = list(filter(lambda x: x['auth_user']['id'] in members,
-                                     member_queries))
-        external_queries = list(filter(lambda x: x['auth_user']['id']
-                                       not in members + [userid], external_queries))
-        if member_queries:
-            myclasses_queries.append({'id': myclass.id,
-                                      'institution': myclass.institution,
-                                      'year': myclass.academic_year,
-                                      'section': myclass.course_section,
-                                      'queries': member_queries}
-                                    )
-
-    if vbs: print('k')
-
-    # collect queries posted by the user's students and remove from
-    # external queries as well
-
-    mycourses_queries = []
-    if auth.has_membership('instructors') or \
-            auth.has_membership('administrators'):
-        mycourses = db(db.classes.instructor == userid
-                       ).select(orderby=~db.classes.start_date)
-        # print('found {} courses'.format(len(mycourses)))
-        for course in mycourses:
-            students = [s['name'] for s in
-                        db(db.class_membership.class_section == course.id
-                           ).select(db.class_membership.name).as_list()]
-            # print('found {} students'.format(len(students)))
-            # print(students)
-            student_queries = copy(queries_recs)
-            student_queries = [s for s in student_queries
-                               if s['auth_user']['id'] in students]
-            # print([s['auth_user']['id'] for s in student_queries])
-            # print('found {} student queries'.format(len(student_queries)))
-            instructor_row = db.auth_user(course.instructor)
-            instructor_name = " ".join([instructor_row['first_name'],
-                                        instructor_row['last_name']])
-            mycourses_queries.append({'id': course.id,
-                                      'institution': course.institution,
-                                      'year': course.academic_year,
-                                      'section': course.course_section,
-                                      'term': course.term,
-                                      'instructor': instructor_name,
-                                      'queries': student_queries})
-            external_queries = list(filter(lambda x: x['auth_user']['id']
-                                           not in students + [userid],
-                                           external_queries))
-
-    if vbs: print('l')
-    #  collect queries posted by other users
-
-    if not auth.has_membership('administrators'):
-        if auth.has_membership('instructors'):
-
-            mystudents = db((db.classes.instructor == userid) &
-                            (db.classes.id == db.class_membership.class_section)
-                            ).select(db.class_membership.name).as_list()
-            mystudent_ids = list(set(s['name'] for s in mystudents))
-
-            external_queries = list(filter(lambda x:
-                (x['bugs']['public'] is True)
-                or auth.user_id in mystudent_ids,
-                external_queries))
-        else:
-            external_queries = list(filter(
-                lambda x: x['bugs']['public'] is True,
-                external_queries))
-
-    if vbs: print('m')
-    return {'user_queries': user_queries,
-            'class_queries': myclasses_queries,
-            'course_queries': mycourses_queries,
-            'other_queries': external_queries,
-            'page_start': offset_start,
-            'page_end': offset_end
-            }
-
-
-#  FIXME: This function is deprecated
-def get_queries():
-    """
-    API method to return queries for the selected step.
-    """
-    queries = _fetch_queries(request.vars['step_id'],
-                             request.vars['user_id'],
-                             nonstep=request.vars['nonstep'],
-                             unanswered=request.vars['unanswered'],
-                             unread=request.vars['unread'],
-                             pagesize=request.vars['pagesize'],
-                             page=request.vars['page'],
-                             orderby=request.vars['orderby']
-                             )
-    return json_serializer(queries)
-
-
-def add_query_post():
-    """
-    API method to add a post in an existing query discussion.
-
-    Expected request variables:
-    query_id (int) *required
-    post_text (str) *required
-    public (bool) *required
-    """
-    vbs = GLOBAL_VBS or False
-
-    uid = request.vars['user_id']
-
-    if auth.is_logged_in():
-        if vbs: print('api::add_query_post: vars are', request.vars)
-
-        data = {k: v for k, v in request.vars.items()
-                    if k in ['post_body', 'public']
-                    }
-
-        data['poster_role'] = []
-        if auth.has_membership('administrators'):
-            data['poster_role'].append('administrators')
-        if auth.has_membership('instructors'):
-            data['poster_role'].append('instructors')
-
-        post_result = Bug.record_bug_post(
-            uid=uid,
-            bug_id=request.vars['query_id'],
-            **data
-            )
-
-        # subscribe op to notices of updates/replies
-        read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
-            op=auth.user_id, new_item_id=post_result['new_post']['id'], db=db)
-
-        user_rec = db(db.auth_user.id==post_result['new_post']['poster']
-                      ).select(db.auth_user.id,
-                               db.auth_user.first_name,
-                               db.auth_user.last_name
-                               ).first().as_dict()
-        full_rec = {'auth_user': user_rec,
-                    'bug_posts': post_result['new_post'],
-                    'comments': []}
-        full_rec['read'] = read_status_updates['reply']['op_sub']['read_status']
-        return json_serializer({'post_list': post_result['bug_post_list'],
-                     'new_post': full_rec,
-                     'read_status_updates': read_status_updates})
-    else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
-
-
-def update_query_post():
-    """
-    API method to update a post in an existing query discussion.
-
-    Expects the following required request parameters:
-    user_id (int)
-    query_id (int)
-    post_id (int)
-    post_text (str)
-    public (bool)
-    deleted (bool)
-    hidden (bool)
-    """
-    vbs = GLOBAL_VBS or False
-
-    uid = request.vars['user_id']
-
-    if (auth.is_logged_in() and
-        (auth.user_id == uid
-         or auth.has_membership('administrators')
-         or auth.has_membership('instructors')
-         and _is_my_student(auth.user_id, auth.user_id, uid)
-         )
-    ):
-        if vbs: print('api::update_query_post: vars are', request.vars)
-        new_data = {k: v for k, v in request.vars.items()
-                    if k in ['post_body', 'public', 'deleted', 'hidden',
-                                'pinned', 'popularity', 'helpfulness']}
-        if vbs: print('api::update_query_post: new_data')
-        result = Bug.record_bug_post(
-            uid=uid,
-            bug_id=request.vars['query_id'],
-            post_id=request.vars['post_id'],
-            **new_data
-            )
-
-        if not new_data['deleted']:
-            if vbs: print('api::update_query_post: flagging read status')
-            read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
-                op=result['new_post']['poster'],
-                new_item_id=result['new_post']['id'],
-                db=db)
-
-        user_rec = db(db.auth_user.id==result['new_post']['poster']
-                    ).select(db.auth_user.id,
-                             db.auth_user.first_name,
-                             db.auth_user.last_name
-                             ).first().as_dict()
-        mycomments = []
-        if result['new_post']['comments']:
-            mycomments = db(
-                (db.bug_post_comments.id.belongs(result['new_post']['comments'])) &
-                (db.bug_post_comments.commenter==db.auth_user.id) &
-                ((db.bug_post_comments.deleted == False) |
-                (db.bug_post_comments.deleted == None))
-                ).select(orderby=db.bug_post_comments.thread_index
-                        ).as_list()
-        full_rec = {'auth_user': user_rec,
-                    'bug_posts': result['new_post'],
-                    'comments': mycomments}
-
-        if not new_data['deleted']:
-            full_rec['read'] = read_status_updates['reply'
-                                                   ]['op_sub']['read_status']
-
-        return json_serializer({'post_list': result['bug_post_list'],
-                     'new_post': full_rec})
-    else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
-
-
-def add_post_comment():
-    """
-    """
-    vbs = GLOBAL_VBS or False
-
-    uid = request.vars['user_id']
-
-    if auth.is_logged_in():
-        if vbs: print('api::add_post_comment: vars are', request.vars)
-
-        data = {k: v for k, v in request.vars.items()
-                if k in ['comment_body', 'public']
-                }
-
-        data['commenter_role'] = []
-        if auth.has_membership('administrators'):
-            data['commenter_role'].append('administrators')
-        if auth.has_membership('instructors'):
-            data['commenter_role'].append('instructors')
-
-        result = Bug.record_post_comment(
-            uid=uid,
-            post_id=request.vars['post_id'],
-            **data
-            )
-        db.commit()
-
-        # add subscription and notify those subscribed to ancestors
-        read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
-            op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
-
-
-        user_rec = db(db.auth_user.id==result['new_comment']['commenter']
-                      ).select(db.auth_user.id,
-                               db.auth_user.first_name,
-                               db.auth_user.last_name
-                               ).first().as_dict()
-        full_rec = {'auth_user': user_rec,
-                    'bug_post_comments': result['new_comment']}
-        return json_serializer({'comment_list': result['post_comment_list'],
-                     'new_comment': full_rec})
-    else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
-
-
-def update_post_comment():
-    """
-    API method to update a post comment in an existing query discussion.
-
-    Expects the following request parameters:
-    user_id (int)* required
-    comment_id (int)* required
-    post_id (int)* required
-    comment_body (str)
-    public (bool)
-    deleted (bool)
-    hidden (bool)
-    pinned (bool)
-    helpfulness (double)
-    popularity (double)
-    """
-    vbs = GLOBAL_VBS or False
-
-    uid = request.vars['user_id']
-
-    if (auth.is_logged_in() and
-        (auth.user_id == uid
-         or auth.has_membership('administrators')
-         or auth.has_membership('instructors')
-         and _is_my_student(auth.user_id, auth.user_id, uid)
-         )
-    ):
-        if vbs: print('api::update_post_comment: vars are', request.vars)
-        new_data = {k: v for k, v in request.vars.items()
-                    if k in ['comment_body', 'public', 'deleted', 'hidden',
-                             'pinned', 'popularity', 'helpfulness']}
-        result = Bug.record_post_comment(
-            uid=uid,
-            post_id=request.vars['post_id'],
-            comment_id=request.vars['comment_id'],
-            **new_data
-            )
-        db.commit()
-
-        # subscribe op to notices of updates/replies
-        read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
-            op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
-        if vbs: pprint(read_status_updates)
-
-        user_rec = db(db.auth_user.id==result['new_comment']['commenter']
-                      ).select(db.auth_user.id,
-                               db.auth_user.first_name,
-                               db.auth_user.last_name
-                               ).first().as_dict()
-        full_rec = {'auth_user': user_rec,
-                    'bug_post_comments': result['new_comment'],
-                    }
-        if not new_data['deleted']:
-            full_rec['read'] = read_status_updates['query'
-                                                   ]['op_sub']['read_status']
-
-        return json_serializer({'comment_list': result['post_comment_list'],
-                     'new_comment': full_rec})
-    else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'status': 'unauthorized',
-                     'reason': 'Not logged in'})
-
-def queries():
-    """
-    Public endpoint for operations on queries.
-
-    GET request fetches a list of queries
-    POST request creates a new query
-
-        Expected request variables:
-        user_id (int)
-        step_id (int)
-        path_id (int)
-        loc_name (str)
-        answer (str)
-        log_id (int)
-        score (double)
-        user_comment (str)
-        public (bool)
-
-    PUT request updates an existing query
-    DELETE request deletes an existing query
-    """
-    try:
-        if request.method == 'POST':
-            return _log_new_query(**request.vars)
-        if request.method == 'PUT':
-            pass
-        if request.method == 'DELETE':
-            pass
-        if request.method == 'GET':
-            pass
-        else:
-            response = current.response
-            response.status = 400
-            # not using POST method
-            return json_serializer({'status': 'bad request',
-                        'reason': f'${request.method} not a valid method ' \
-                                'for this endpoint',
-                        'error': None})
-    except Exception:
-        response = current.response
-        print_exc()
-        response.status = 500
-        return json_serializer({'status': 'internal server error',
-                                'reason': 'Unknown error in function api.queries',
-                                'error': format_exc()})
-
 
 def _log_new_query(user_id: int, step_id: int, path_id: int, loc_name: str,
                    answer: str, log_id: int, score: float, user_comment: str,
-                   public: bool) -> str:
+                   public: bool, item_level: str="query") -> str:
     """
     API method to log a new user query.
 
-    Returns a json object containing the user's updated queries for the current step (if any) or for the app in general.
+    :returns:   Returns a json object (serialized as a string) containing the
+                user's updated queries for the current step (if any) or for
+                the app in general as well as information on any items
+                whose read status changed because of this insertion.
+    :rtype: str (JSON parseable format)
     """
     vbs = GLOBAL_VBS or False
     auth = current.auth
@@ -2193,6 +1794,114 @@ def _log_new_query(user_id: int, step_id: int, path_id: int, loc_name: str,
         response.status = 401
         return json_serializer({'status': 'unauthorized',
                                 'reason': 'Not logged in'})
+
+
+def _add_query_post(user_id: int=0, query_id: int=0, post_body: str="",
+                    public: bool=True, item_level: str="reply") -> str:
+    """
+    API method to add a post in an existing query discussion.
+
+    :returns:   Returns a json object (serialized as a string) containing the
+                data for the newly created post, a list of posts for the
+                current query, and information on any items
+                whose read status changed because of this insertion.
+    :rtype: str (JSON parseable format)
+    """
+    vbs = GLOBAL_VBS or False
+
+    uid = user_id
+
+    if auth.is_logged_in():
+
+        data = {'post_body': post_body,
+                'public': public}
+
+        data['poster_role'] = []
+        if auth.has_membership('administrators'):
+            data['poster_role'].append('administrators')
+        if auth.has_membership('instructors'):
+            data['poster_role'].append('instructors')
+
+        post_result = Bug.record_bug_post(
+            uid=uid,
+            bug_id=query_id,
+            **data
+            )
+
+        # subscribe op to notices of updates/replies
+        read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
+            op=auth.user_id, new_item_id=post_result['new_post']['id'], db=db)
+
+        user_rec = db(db.auth_user.id==post_result['new_post']['poster']
+                      ).select(db.auth_user.id,
+                               db.auth_user.first_name,
+                               db.auth_user.last_name
+                               ).first().as_dict()
+        full_rec = {'auth_user': user_rec,
+                    'bug_posts': post_result['new_post'],
+                    'comments': []}
+        full_rec['read'] = read_status_updates['reply']['op_sub']['read_status']
+        return json_serializer({'post_list': post_result['bug_post_list'],
+                     'new_post': full_rec,
+                     'read_status_updates': read_status_updates})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
+
+
+def _add_post_comment(user_id: int=0, bug_id: int=0,
+                      post_id: int=0, comment_body: str="",
+                      public: bool=True, item_level: str="comment"):
+    """
+    API method to add a comment to an existing post in a query discussion.
+
+    :returns:   Returns a json object (serialized as a string) containing the
+                data for the newly created comment and a list of comments for
+                the current post
+    :rtype: str (JSON parseable format)
+    """
+    vbs = GLOBAL_VBS or False
+
+    uid = user_id
+
+    if auth.is_logged_in():
+        data = {'comment_body': comment_body,
+                'public': public}
+
+        data['commenter_role'] = []
+        if auth.has_membership('administrators'):
+            data['commenter_role'].append('administrators')
+        if auth.has_membership('instructors'):
+            data['commenter_role'].append('instructors')
+
+        result = Bug.record_post_comment(
+            uid=uid,
+            post_id=post_id,
+            **data
+            )
+        db.commit()
+
+        # add subscription and notify those subscribed to ancestors
+        read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
+            op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
+
+
+        user_rec = db(db.auth_user.id==result['new_comment']['commenter']
+                      ).select(db.auth_user.id,
+                               db.auth_user.first_name,
+                               db.auth_user.last_name
+                               ).first().as_dict()
+        full_rec = {'auth_user': user_rec,
+                    'bug_post_comments': result['new_comment']}
+        return json_serializer({'comment_list': result['post_comment_list'],
+                     'new_comment': full_rec})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def update_query():
@@ -2287,6 +1996,145 @@ def update_query():
             return json_serializer({'status': 'success',
                                     'new_item': full_rec,
                                     'read_status_updates': read_status_updates})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
+
+
+def update_query_post():
+    """
+    API method to update a post in an existing query discussion.
+
+    Expects the following required request parameters:
+    user_id (int)
+    query_id (int)
+    post_id (int)
+    post_text (str)
+    public (bool)
+    deleted (bool)
+    hidden (bool)
+    """
+    vbs = GLOBAL_VBS or False
+
+    uid = request.vars['user_id']
+
+    if (auth.is_logged_in() and
+        (auth.user_id == uid
+         or auth.has_membership('administrators')
+         or auth.has_membership('instructors')
+         and _is_my_student(auth.user_id, auth.user_id, uid)
+         )
+    ):
+        if vbs: print('api::update_query_post: vars are', request.vars)
+        new_data = {k: v for k, v in request.vars.items()
+                    if k in ['post_body', 'public', 'deleted', 'hidden',
+                                'pinned', 'popularity', 'helpfulness']}
+        if vbs: print('api::update_query_post: new_data')
+        result = Bug.record_bug_post(
+            uid=uid,
+            bug_id=request.vars['query_id'],
+            post_id=request.vars['post_id'],
+            **new_data
+            )
+
+        if not new_data['deleted']:
+            if vbs: print('api::update_query_post: flagging read status')
+            read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
+                op=result['new_post']['poster'],
+                new_item_id=result['new_post']['id'],
+                db=db)
+
+        user_rec = db(db.auth_user.id==result['new_post']['poster']
+                    ).select(db.auth_user.id,
+                             db.auth_user.first_name,
+                             db.auth_user.last_name
+                             ).first().as_dict()
+        mycomments = []
+        if result['new_post']['comments']:
+            mycomments = db(
+                (db.bug_post_comments.id.belongs(result['new_post']['comments'])) &
+                (db.bug_post_comments.commenter==db.auth_user.id) &
+                ((db.bug_post_comments.deleted == False) |
+                (db.bug_post_comments.deleted == None))
+                ).select(orderby=db.bug_post_comments.thread_index
+                        ).as_list()
+        full_rec = {'auth_user': user_rec,
+                    'bug_posts': result['new_post'],
+                    'comments': mycomments}
+
+        if not new_data['deleted']:
+            full_rec['read'] = read_status_updates['reply'
+                                                   ]['op_sub']['read_status']
+
+        return json_serializer({'post_list': result['bug_post_list'],
+                     'new_post': full_rec})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'status': 'unauthorized',
+                     'reason': 'Not logged in'})
+
+
+def update_post_comment():
+    """
+    API method to update a post comment in an existing query discussion.
+
+    Expects the following request parameters:
+    user_id (int)* required
+    comment_id (int)* required
+    post_id (int)* required
+    comment_body (str)
+    public (bool)
+    deleted (bool)
+    hidden (bool)
+    pinned (bool)
+    helpfulness (double)
+    popularity (double)
+    """
+    vbs = GLOBAL_VBS or False
+
+    uid = request.vars['user_id']
+
+    if (auth.is_logged_in() and
+        (auth.user_id == uid
+         or auth.has_membership('administrators')
+         or auth.has_membership('instructors')
+         and _is_my_student(auth.user_id, auth.user_id, uid)
+         )
+    ):
+        if vbs: print('api::update_post_comment: vars are', request.vars)
+        new_data = {k: v for k, v in request.vars.items()
+                    if k in ['comment_body', 'public', 'deleted', 'hidden',
+                             'pinned', 'popularity', 'helpfulness']}
+        result = Bug.record_post_comment(
+            uid=uid,
+            post_id=request.vars['post_id'],
+            comment_id=request.vars['comment_id'],
+            **new_data
+            )
+        db.commit()
+
+        # subscribe op to notices of updates/replies
+        read_status_updates = _flag_conversation_change(auth.user_id, 'comment',
+            op=auth.user_id, new_item_id=result['new_comment']['id'], db=db)
+        if vbs: pprint(read_status_updates)
+
+        user_rec = db(db.auth_user.id==result['new_comment']['commenter']
+                      ).select(db.auth_user.id,
+                               db.auth_user.first_name,
+                               db.auth_user.last_name
+                               ).first().as_dict()
+        full_rec = {'auth_user': user_rec,
+                    'bug_post_comments': result['new_comment'],
+                    }
+        if not new_data['deleted']:
+            full_rec['read'] = read_status_updates['query'
+                                                   ]['op_sub']['read_status']
+
+        return json_serializer({'comment_list': result['post_comment_list'],
+                     'new_comment': full_rec})
     else:
         response = current.response
         response.status = 401

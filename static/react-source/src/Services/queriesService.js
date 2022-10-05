@@ -9,8 +9,9 @@ const getQueriesMetadata = async ({user_id=0,
     doApiCall({ user_id: user_id,
                 step_id: step_id,
                 nonstep: nonstep,
-                unanswered: unanswered
-              }, "get_queries_metadata", "JSON", "POST")
+                unanswered: unanswered,
+                metadata_only: true
+              }, "queries", "queryString", "GET")
   )
 }
 
@@ -37,26 +38,12 @@ const getViewQueries = async ({step_id=0,
               orderby: orderby,
               classmates_course: classmates_course,
               students_course: students_course,
-              own_queries: own_queries
+              own_queries: own_queries,
+              metadata_only: false
               },
-              "get_view_queries", "JSON", "POST")
+              "queries", "queryString", "GET")
   )
 }
-
-const getQueries = async ({step_id=null,
-                           user_id=null,
-                           nonstep=true,
-                           unread=false,
-                           unanswered=false,
-                           pagesize=50,
-                           page=0,
-                           orderby="modified_on"
-                          }) => doApiCall({step_id: step_id, user_id: user_id,
-                                           nonstep: nonstep, unread: unread,
-                                           unanswered: unanswered,
-                                           pagesize: pagesize, page: page,
-                                           orderby: orderby},
-                                          "get_queries", "JSON", "POST");
 
 const addQuery = async ({step_id=null,
                          path_id=null,
@@ -66,7 +53,8 @@ const addQuery = async ({step_id=null,
                          log_id=null,
                          score=null,
                          user_comment=null,
-                         show_public=true}) => doApiCall(
+                         show_public=true,
+                         item_level="query"}) => doApiCall(
                                                   {step_id: step_id,
                                                    path_id: path_id,
                                                    user_id: user_id,
@@ -75,7 +63,8 @@ const addQuery = async ({step_id=null,
                                                    log_id: log_id,
                                                    score: score,
                                                    user_comment: user_comment,
-                                                   public: show_public
+                                                   public: show_public,
+                                                   item_level: item_level
                                                    },
                                                    "queries", "JSON", "POST");
 
@@ -109,12 +98,14 @@ const updateQuery = async({user_id=null,
 const addQueryReply = async({user_id=null,
                             query_id=null,
                             post_text=null,
-                            show_public=true
+                            show_public=true,
+                            item_level="reply"
                             }) => doApiCall({user_id: user_id,
                                              query_id: query_id,
                                              post_body: post_text,
-                                             public: show_public},
-                                            "add_query_post", "JSON", "POST");
+                                             public: show_public,
+                                             item_level: item_level},
+                                            "queries", "JSON", "POST");
 
 const updateQueryReply = async({user_id=null,
                                post_id=null,
@@ -144,13 +135,15 @@ const addReplyComment = async({user_id=null,
                                post_id=null,
                                query_id=null,
                                comment_text=null,
-                               show_public=null
+                               show_public=null,
+                               item_level="comment"
                                }) => doApiCall(
                                       {user_id: user_id, bug_id: query_id,
                                        post_id: post_id,
                                        comment_body: comment_text,
-                                       public: show_public},
-                                      "add_post_comment", "JSON", "POST");
+                                       public: show_public,
+                                       item_level: item_level},
+                                      "queries", "JSON", "POST");
 
 const updateReplyComment = async({user_id=null,
                                post_id=null,
@@ -188,7 +181,6 @@ const updateReadStatus = async({postLevel="",
                                       "mark_read_status", "JSON", "POST");
 
 export { getQueriesMetadata,
-         getQueries,
          getViewQueries,
          addQuery,
          updateQuery,

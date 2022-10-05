@@ -169,7 +169,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
 const UpdateForm = ({level, idArgs, updateAction, updateField="opText",
                      currentText, setEditingAction,
                      autosize=true, optionList=null,
-                     submitButton=true, labels=false, inline=false
+                     submitButton=true, labels=false, inline="false"
                     }) => {
   const [myText, setMyText] = useState();
   const idString = Object.values(idArgs).join("-");
@@ -523,7 +523,7 @@ const DisplayRow = ({level, newReplyAction, newCommentAction,
 
     <Form id={`update-${level}-form-${idString}`}
       className={`update-${level}-form update-form`}
-      inline={true}
+      inline="true"
       onSubmit={sendUpdate}
     >
       <Row className={`${level}-display-wrapper display-wrapper ${readClass} ${myRoles}`} >
@@ -1732,7 +1732,8 @@ const QueriesView = () => {
                        log_id: user.currentLogID,
                        score: myscore,
                        user_comment: myComment,
-                       show_public: showPublic}
+                       show_public: showPublic,
+                       item_level: "query"}
       if ( !singleStep || !!nonStep ) {
         queryArgs = {...queryArgs,
                      step_id: null,
@@ -1808,7 +1809,8 @@ const QueriesView = () => {
       addQueryReply({user_id: user.userId,
                      query_id: queryId,
                      post_text: opText,
-                     show_public: showPublic
+                     show_public: showPublic,
+                     item_level: "reply"
                      })
       .then(myresponse => {
         _updateItemInState(myresponse.new_post, 'reply', 0, scope);
@@ -1825,7 +1827,8 @@ const QueriesView = () => {
                       post_id: replyId,
                       query_id: queryId,
                       comment_text: opText,
-                      show_public: showPublic
+                      show_public: showPublic,
+                      item_level: "comment"
                       })
       .then(myresponse => {
         _updateItemInState(myresponse.new_comment, "comment", queryId, scope);

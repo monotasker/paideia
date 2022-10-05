@@ -46,6 +46,10 @@ const doApiCall = async (payload, apiFunction,
                     mode: "same-origin"
                    }
   switch (format) {
+      case "queryString":
+        let searchParams = new URLSearchParams(payload);
+        apiFunction += `?${searchParams}`;
+        console.log(apiFunction);
       case "JSON":
         callObject['headers'] = {'Content-Type': 'application/json'};
         callObject['body'] = JSON.stringify(payload);
@@ -61,7 +65,12 @@ const doApiCall = async (payload, apiFunction,
         break;
   }
   // DEBUGGING && console.log(callObject);
-  let response = await fetch(`/paideia/api/${apiFunction}`, callObject);
+  let response;
+  if ( method==="GET" ) {
+    response = await fetch(`/paideia/api/${apiFunction}`);
+  } else {
+    response = await fetch(`/paideia/api/${apiFunction}`, callObject);
+  }
   let mydata;
   try {
     mydata = await response.json();
