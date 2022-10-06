@@ -1528,13 +1528,17 @@ const _findAndUpdateItem = (mylist, newItem, itemLevel, queryId=0) => {
 const _updateItemInState = (newItem, itemLevel, queryId, scope, queries,
                             setQueries, _setCounts) => {
 
-  // DEBUGGING && console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
+  DEBUGGING && console.log("starting _updateItemInState &&&&&&&&&&&&&&&&&");
+  DEBUGGING && console.log("queries");
+  DEBUGGING && console.log(queries);
+  DEBUGGING && console.log("setQueries");
+  DEBUGGING && console.log(setQueries);
   const extraArg = itemLevel==="comment" ? [queryId] : [];
 
   const innerUpdate = (qList, updateAction) => {
     return new Promise((resolve, reject) => {
-      // DEBUGGING && console.log("innerUpdate: qList");
-      // DEBUGGING && console.log(qList);
+      DEBUGGING && console.log("innerUpdate: qList");
+      DEBUGGING && console.log(qList);
       let newQList = [];
       if ( qList.length && !!qList[0].classId ) {
         newQList = qList.map(myClass => {
@@ -1813,7 +1817,8 @@ const QueriesView = () => {
                      item_level: "reply"
                      })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_post, 'reply', 0, scope);
+        _updateItemInState(myresponse.new_post, 'reply', 0, scope, queries,
+                           setQueries, _setCounts);
       });
     }
 
@@ -1831,7 +1836,8 @@ const QueriesView = () => {
                       item_level: "comment"
                       })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_comment, "comment", queryId, scope);
+        _updateItemInState(myresponse.new_comment, "comment", queryId, scope,
+                           queries, setQueries, _setCounts);
       });
     }
 
@@ -1863,7 +1869,8 @@ const QueriesView = () => {
                    queryStatus: queryStatus
                    })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_item, "query", 0, scope);
+        _updateItemInState(myresponse.new_item, "query", 0, scope, queries,
+                           setQueries, _setCounts);
       });
     }
 
@@ -1894,7 +1901,8 @@ const QueriesView = () => {
                        deleted: deleted
                        })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_post, "reply", 0, scope);
+        _updateItemInState(myresponse.new_post, "reply", 0, scope, queries,
+                           setQueries, _setCounts);
       });
     }
 
@@ -1925,7 +1933,8 @@ const QueriesView = () => {
                          helpfulness: helpfulness
                         })
       .then(myresponse => {
-        _updateItemInState(myresponse.new_comment, "comment", queryId, scope);
+        _updateItemInState(myresponse.new_comment, "comment", queryId, scope,
+                           queries, setQueries, _setCounts);
       });
     }
 
