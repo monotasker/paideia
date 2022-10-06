@@ -66,8 +66,8 @@ const doApiCall = async (payload, apiFunction,
   }
   // DEBUGGING && console.log(callObject);
   let response;
-  if ( method==="GET" ) {
-    response = await fetch(`/paideia/api/${apiFunction}`);
+  if ( ["GET", "DELETE"].includes(method) ) {
+    response = await fetch(`/paideia/api/${apiFunction}`, {method: method});
   } else {
     response = await fetch(`/paideia/api/${apiFunction}`, callObject);
   }

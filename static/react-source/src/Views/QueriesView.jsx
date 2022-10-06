@@ -1866,7 +1866,8 @@ const QueriesView = () => {
                    helpfulness: helpfulness,
                    deleted: deleted,
                    score: score,
-                   queryStatus: queryStatus
+                   queryStatus: queryStatus,
+                   item_level: "query"
                    })
       .then(myresponse => {
         _updateItemInState(myresponse.new_item, "query", 0, scope, queries,
@@ -1898,7 +1899,8 @@ const QueriesView = () => {
                        pinned: pinned,
                        popularity: popularity,
                        helpulness: helpfulness,
-                       deleted: deleted
+                       deleted: deleted,
+                       item_level: "reply"
                        })
       .then(myresponse => {
         _updateItemInState(myresponse.new_post, "reply", 0, scope, queries,
@@ -1930,7 +1932,8 @@ const QueriesView = () => {
                          flagged: flagged,
                          pinned: pinned,
                          popularity: popularity,
-                         helpfulness: helpfulness
+                         helpfulness: helpfulness,
+                         item_level: "comment"
                         })
       .then(myresponse => {
         _updateItemInState(myresponse.new_comment, "comment", queryId, scope,

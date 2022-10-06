@@ -80,20 +80,35 @@ const updateQuery = async({user_id=null,
                            popularity=null,
                            score=null,
                            queryStatus=null,
-                          }) => doApiCall({user_id: user_id,
-                                           query_id: query_id,
-                                           user_comment: query_text,
-                                           public: show_public,
-                                           // hidden: hidden,
-                                           deleted: deleted,
-                                           flagged: flagged,
-                                           pinned: pinned,
-                                           helpfulness: helpfulness,
-                                           popularity: popularity,
-                                           score: score,
-                                           bug_status: queryStatus
-                                           },
-                                           "update_query", "JSON", "POST");
+                           item_level="query"
+                          }) => {
+  if ( deleted !== null ) {
+    return(doApiCall({user_id: user_id,
+                      query_id: query_id,
+                      deleted: deleted,
+                      item_level: item_level
+                      },
+                      "queries", "queryString", "DELETE")
+    )
+  } else {
+    return(doApiCall({user_id: user_id,
+                      query_id: query_id,
+                      user_comment: query_text,
+                      public: show_public,
+                      // hidden: hidden,
+                      deleted: deleted,
+                      flagged: flagged,
+                      pinned: pinned,
+                      helpfulness: helpfulness,
+                      popularity: popularity,
+                      score: score,
+                      bug_status: queryStatus,
+                      item_level: item_level
+                      },
+                      "queries", "JSON", "PUT")
+    )
+  }
+}
 
 const addQueryReply = async({user_id=null,
                             query_id=null,
@@ -117,19 +132,35 @@ const updateQueryReply = async({user_id=null,
                                flagged=null,
                                pinned=null,
                                helpfulness=null,
-                               popularity=null
-                              }) => doApiCall({user_id: user_id,
-                                               post_id: post_id,
-                                               query_id: query_id,
-                                               post_body: post_text,
-                                               public: show_public,
-                                               hidden: hidden,
-                                               deleted: deleted,
-                                               flagged: flagged,
-                                               pinned: pinned,
-                                               helpfulness: helpfulness,
-                                               popularity: popularity},
-                                               "update_query_post", "JSON", "POST");
+                               popularity=null,
+                               item_level="reply"
+                              }) => {
+  if ( deleted !== null ) {
+    return(doApiCall({user_id: user_id,
+                      post_id: post_id,
+                      query_id: query_id,
+                      deleted: deleted,
+                      item_level: item_level
+                      },
+                      "queries", "queryString", "DELETE")
+    )
+  } else {
+  return(doApiCall({user_id: user_id,
+                    post_id: post_id,
+                    query_id: query_id,
+                    post_body: post_text,
+                    public: show_public,
+                    hidden: hidden,
+                    deleted: deleted,
+                    flagged: flagged,
+                    pinned: pinned,
+                    helpfulness: helpfulness,
+                    popularity: popularity,
+                    item_level: item_level},
+                    "queries", "JSON", "PUT")
+  )
+  }
+}
 
 const addReplyComment = async({user_id=null,
                                post_id=null,
@@ -155,20 +186,35 @@ const updateReplyComment = async({user_id=null,
                                flagged=null,
                                pinned=null,
                                helpfulness=null,
-                               popularity=null
-                              }) => doApiCall(
-                                        {user_id: user_id,
-                                         post_id: post_id,
-                                         comment_id: comment_id,
-                                         comment_body: comment_text,
-                                         public: show_public,
-                                         hidden: hidden,
-                                         deleted: deleted,
-                                         flagged: flagged,
-                                         pinned: pinned,
-                                         helpfulness: helpfulness,
-                                         popularity: popularity},
-                                         "update_post_comment", "JSON", "POST");
+                               popularity=null,
+                               item_level="comment"
+                              }) => {
+  if ( deleted !== null ) {
+    return(doApiCall({user_id: user_id,
+                      post_id: post_id,
+                      comment_id: comment_id,
+                      deleted: deleted,
+                      item_level: item_level
+                      },
+                      "queries", "queryString", "DELETE")
+    )
+  } else {
+  return(doApiCall({user_id: user_id,
+                    post_id: post_id,
+                    comment_id: comment_id,
+                    comment_body: comment_text,
+                    public: show_public,
+                    hidden: hidden,
+                    deleted: deleted,
+                    flagged: flagged,
+                    pinned: pinned,
+                    helpfulness: helpfulness,
+                    popularity: popularity,
+                    item_level: item_level},
+                    "queries", "JSON", "PUT")
+  )
+  }
+}
 
 const updateReadStatus = async({postLevel="",
                                 userId=0,

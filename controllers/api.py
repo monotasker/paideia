@@ -26,7 +26,7 @@ import pytz
 import re
 import stripe
 import time
-from typing import List
+from typing import List, Union
 # from pydal.objects import Rows
 
 from gluon._compat import urllib2, urlencode, urlopen, to_bytes, to_native
@@ -1134,23 +1134,23 @@ def queries():
         public (bool)
         item_level (str)   Allowable values are "query", "reply", and "comment"
 
-        Additional variables if `item_level` is "query":
-        step_id (int)
-        path_id (int)
-        loc_name (str)
-        answer (str)
-        log_id (int)
-        score (double)
-        user_comment (str)
-
-        Additional variables if `item_level` is "reply":
-        query_id (int) *required
-        post_body (str) *required
+        Additional variables depend on the item_level and correspond to the
+        expected arguments for the functions _log_new_query, _add_query_post,
+        and _add_post_comment
 
     PUT request updates an existing query
-        item_level (str)   Allowable values are "query", "reply", and "comment"
+        expected request variables correspond to the expected arguments
+        for the appropriate update function: _update_query, _update_query_post,
+        or _update_post_comment
 
     DELETE request deletes an existing query
+        Currently "deleted" records are not actually deleted from the DB but
+        simply flagged as "deleted" and not displayed. So DELETE requests are
+        currently routed through the same update functions as PUT requests.
+
+        Since the parameters for a delete request are sent via a query string,
+        they need to be converted from strings before being sent to the
+        relevant update function.
 
     :returns: the http response payload as a JSON-parsable string
     :rtype:   str (JSON parsable)
@@ -1164,9 +1164,28 @@ def queries():
             else:
                 return _add_post_comment(**request.vars)
         if request.method == 'PUT':
-            pass
+            if request.vars.item_level == "query":
+                return _update_query(**request.vars)
+            elif request.vars.item_level == "reply":
+                return _update_query_post(**request.vars)
+            else:
+                return _update_post_comment(**request.vars)
         if request.method == 'DELETE':
-            pass
+            print(request.vars['user_id'])
+            request.vars['user_id'] = int(request.vars['user_id'])
+            request.vars['deleted'] = True \
+                if request.vars['deleted'] == "true" else False
+            if request.vars.item_level == "query":
+                request.vars['query_id'] = int(request.vars['query_id'])
+                return _update_query(**request.vars)
+            elif request.vars.item_level == "reply":
+                request.vars['post_id'] = int(request.vars['post_id'])
+                request.vars['query_id'] = int(request.vars['query_id'])
+                return _update_query_post(**request.vars)
+            else:
+                request.vars['comment_id'] = int(request.vars['comment_id'])
+                request.vars['post_id'] = int(request.vars['post_id'])
+                return _update_post_comment(**request.vars)
         if request.method == 'GET':
             if request.vars.metadata_only == "true":
                 return _get_queries_metadata(**request.vars)
@@ -1198,6 +1217,10 @@ def _get_view_queries(step_id: str="0", user_id: str="0",
                       classmates_course: str="0",
                       students_course: str="0", metadata_only: str="false") -> str:
     """
+    Fetch a list of queries matching the supplied parameters.
+
+    All arguments are expected to be strings, since in a GET request they have
+    to be submitted as query string values.
 
     Page request parameter is indexed from 1. A value of 0 indicates the request
     is not paginated.
@@ -1904,26 +1927,62 @@ def _add_post_comment(user_id: int=0, bug_id: int=0,
                      'reason': 'Not logged in'})
 
 
-def update_query():
+def _update_query(user_id: int,
+                  query_id: int,
+                  score: Union[float, None]=None,
+                  adjusted_score: Union[float, None]=None,
+                  user_comment: Union[str, None]=None,
+                  public: Union[bool, None]=None,
+                  flagged: Union[bool, None]=None,
+                  pinned: Union[bool, None]=None,
+                  deleted: Union[bool, None]=None,
+                  hidden: Union[bool, None]=None,
+                  popularity: Union[int, None]=None,
+                  helpfulness: Union[int, None]=None,
+                  bug_status: Union[int, None]=None,
+                  item_level: str="query"
+                  ) -> str:
     """
-    Api method to update one bug record.
+    Api method to update or delete one bug record.
 
-    Expects the following required request parameters:
-    query_id (int)
-    public (bool)
-    deleted (bool)
-    hidden (bool)
+    Required arguments are user_id, query_id, and item_level. The rest are optional and only used if the corresponding data needs to be updated.
 
-    A value of None for a parameter indicates that no update is requested. A value of False is a negative boolean value to be updated.
+    A value of None for a parameter indicates that no update is requested for that field. A value of False is a negative boolean value to be updated.
+
+    If the `deleted` argument is True, the record will be deleted rather
+    than updated **currently the record is flagged as `deleted` in the DB
+    rather than actually being removed from the DB**
+
+    :param user_id:         Id of the user performing the update
+    :param query_id:        Id of the query record to be updated
+    :param score:           New score value
+    :param adjusted_score:  Original score value  ** currently not used to
+                            update anything **
+    :param user_comment:    Updated text of query
+    :param public:          Updated flag indicating whether to display the query
+                            to everyone or just to instructors and admins
+    :param flagged:         Updated flag (currently not being used)
+    :param pinned:          Updated flag indicating whether to display the query
+                            at the top of the list in UI
+    :param deleted:         Flag indicating whether query should be deleted
+                            rather than being updated **currently the record is flagged as `deleted` in the DB rather than actually
+                            being removed from the DB**
+    :param hidden:          Updated flag indicating whether to display the query
+                            at all in UI  ** currently this is not used **
+    :param popularity:      Updated numerical popularity rating for this query
+    :param helpfulness:     Updated numerical helpfulness rating for this query
+    :param bug_status:      Updated integer key for a record in the
+                            bug_status table
+    :param item_level:      This must be "query" to update an item at the query
+                            level (not used to update anything)
+
+    :returns:
+    :rtype:                 str (JSON parseable)
     ...
     """
     vbs = GLOBAL_VBS or False
     response = current.response
 
-    user_id = request.vars['user_id']
-    query_id = request.vars['query_id']
-    score = request.vars['score']
-    adjusted_score = request.vars['adjusted_score']
     op_id = db.bugs[query_id].user_name
 
     if vbs: print("administrator?", auth.has_membership('administrators'))
@@ -1937,11 +1996,15 @@ def update_query():
              and _is_my_student(auth.user_id, op_id))
          )
     ):
-        new_data = {k: v for k, v in request.vars.items()
-                    if k in ['user_comment', 'public', 'deleted',
-                             'pinned', 'popularity', 'helpfulness',
-                             'bug_status']
-                    and v is not None}
+        new_data = {k: v for k, v in {'user_comment': user_comment,
+                                      'public': public,
+                                      'deleted': deleted,
+                                      'flagged': flagged,
+                                      'pinned': pinned,
+                                      'popularity': popularity,
+                                      'helpfulness': helpfulness,
+                                      'bug_status': bug_status}.items()
+                    if v is not None}
         if score is not None:
             new_data['adjusted_score'] = copy(score)
 
@@ -2003,22 +2066,56 @@ def update_query():
                      'reason': 'Not logged in'})
 
 
-def update_query_post():
+def _update_query_post(user_id: int,
+                       post_id: int,
+                       query_id: int,
+                       post_body: Union[str, None]=None,
+                       public: Union[bool, None]=None,
+                       hidden: Union[bool, None]=None,
+                       deleted: Union[bool, None]=None,
+                       flagged: Union[bool, None]=None,
+                       pinned: Union[bool, None]=None,
+                       helpfulness: Union[int, None]=None,
+                       popularity: Union[int, None]=None,
+                       item_level: str="reply"):
     """
     API method to update a post in an existing query discussion.
 
-    Expects the following required request parameters:
-    user_id (int)
-    query_id (int)
-    post_id (int)
-    post_text (str)
-    public (bool)
-    deleted (bool)
-    hidden (bool)
+    Required arguments are user_id, post_id, query_id, and item_level. The rest are optional and only used if the corresponding data needs to be updated.
+
+    A value of None for a parameter indicates that no update is requested for that field. A value of False is a negative boolean value to be updated.
+
+    If the `deleted` argument is True, the record will be deleted rather
+    than updated **currently the record is flagged as `deleted` in the DB
+    rather than actually being removed from the DB**
+
+    :param user_id:         Id of the user performing the update
+    :param post_id:         Id of the bug_post record to be updated
+    :param query_id:        Id of the bugs record to which this bug_post is
+                            related
+    :param post_body:       Updated text of the post
+    :param public:          Updated flag indicating whether to display the query
+                            to everyone or just to instructors and admins
+    :param flagged:         Updated flag (currently not being used)
+    :param pinned:          Updated flag indicating whether to display the query
+                            at the top of the list in UI
+    :param deleted:         Flag indicating whether query should be deleted
+                            rather than being updated **currently the record is flagged as `deleted` in the DB rather than actually
+                            being removed from the DB**
+    :param hidden:          Updated flag indicating whether to display the query
+                            at all in UI for the current user
+    :param popularity:      Updated numerical popularity rating for this query
+    :param helpfulness:     Updated numerical helpfulness rating for this query
+    :param item_level:      This must be "reply" to update an item at the
+                            bug_posts level (not used to update anything)
+
+    :returns:
+    :rtype:                 str (JSON parseable)
+
     """
     vbs = GLOBAL_VBS or False
 
-    uid = request.vars['user_id']
+    uid = user_id
 
     if (auth.is_logged_in() and
         (auth.user_id == uid
@@ -2027,19 +2124,23 @@ def update_query_post():
          and _is_my_student(auth.user_id, auth.user_id, uid)
          )
     ):
-        if vbs: print('api::update_query_post: vars are', request.vars)
-        new_data = {k: v for k, v in request.vars.items()
-                    if k in ['post_body', 'public', 'deleted', 'hidden',
-                                'pinned', 'popularity', 'helpfulness']}
+        new_data = {k: v for k, v in {'post_body': post_body,
+                                      'public': public,
+                                      'deleted': deleted,
+                                      'hidden': hidden,
+                                      'pinned': pinned,
+                                      'popularity': popularity,
+                                      'helpfulness': helpfulness}.items()
+                    if v is not None}
         if vbs: print('api::update_query_post: new_data')
         result = Bug.record_bug_post(
             uid=uid,
-            bug_id=request.vars['query_id'],
-            post_id=request.vars['post_id'],
+            bug_id=query_id,
+            post_id=post_id,
             **new_data
             )
 
-        if not new_data['deleted']:
+        if 'deleted' not in new_data.keys():
             if vbs: print('api::update_query_post: flagging read status')
             read_status_updates = _flag_conversation_change(auth.user_id, 'reply',
                 op=result['new_post']['poster'],
@@ -2064,7 +2165,7 @@ def update_query_post():
                     'bug_posts': result['new_post'],
                     'comments': mycomments}
 
-        if not new_data['deleted']:
+        if 'deleted' not in new_data.keys():
             full_rec['read'] = read_status_updates['reply'
                                                    ]['op_sub']['read_status']
 
@@ -2077,25 +2178,56 @@ def update_query_post():
                      'reason': 'Not logged in'})
 
 
-def update_post_comment():
+def _update_post_comment(user_id: int,
+                         post_id: int,
+                         comment_id: int,
+                         comment_body: Union[str, None]=None,
+                         public: Union[bool, None]=None,
+                         hidden: Union[bool, None]=None,
+                         deleted: Union[bool, None]=None,
+                         flagged: Union[bool, None]=None,
+                         pinned: Union[bool, None]=None,
+                         helpfulness: Union[int, None]=None,
+                         popularity: Union[int, None]=None,
+                         item_level: str="comment"):
     """
     API method to update a post comment in an existing query discussion.
 
-    Expects the following request parameters:
-    user_id (int)* required
-    comment_id (int)* required
-    post_id (int)* required
-    comment_body (str)
-    public (bool)
-    deleted (bool)
-    hidden (bool)
-    pinned (bool)
-    helpfulness (double)
-    popularity (double)
+    Required arguments are user_id, post_id, comment_id, and item_level. The rest are optional and only used if the corresponding data needs to be updated.
+
+    A value of None for a parameter indicates that no update is requested for that field. A value of False is a negative boolean value to be updated.
+
+    If the `deleted` argument is True, the record will be deleted rather
+    than updated **currently the record is flagged as `deleted` in the DB
+    rather than actually being removed from the DB**
+
+    :param user_id:         Id of the user performing the update
+    :param comment_id:      Id of the bug_post_comments record to be updated
+    :param post_id:         Id of the bug_posts record to which this
+                            bug_post_comment is related
+    :param comment_body:    Updated text of the post
+    :param public:          Updated flag indicating whether to display the query
+                            to everyone or just to instructors and admins
+    :param flagged:         Updated flag (currently not being used)
+    :param pinned:          Updated flag indicating whether to display the query
+                            at the top of the list in UI
+    :param deleted:         Flag indicating whether query should be deleted
+                            rather than being updated **currently the record is flagged as `deleted` in the DB rather than actually
+                            being removed from the DB**
+    :param hidden:          Updated flag indicating whether to display the query
+                            at all in UI for the current user
+    :param popularity:      Updated numerical popularity rating for this query
+    :param helpfulness:     Updated numerical helpfulness rating for this query
+    :param item_level:      This must be "comment" to update an item at the
+                            bug_post_comments level (not used to update
+                            anything)
+
+    :returns:
+    :rtype:                 str (JSON parseable)
     """
     vbs = GLOBAL_VBS or False
 
-    uid = request.vars['user_id']
+    uid = user_id
 
     if (auth.is_logged_in() and
         (auth.user_id == uid
@@ -2104,10 +2236,16 @@ def update_post_comment():
          and _is_my_student(auth.user_id, auth.user_id, uid)
          )
     ):
-        if vbs: print('api::update_post_comment: vars are', request.vars)
-        new_data = {k: v for k, v in request.vars.items()
-                    if k in ['comment_body', 'public', 'deleted', 'hidden',
-                             'pinned', 'popularity', 'helpfulness']}
+        new_data = {k: v for k, v in {'comment_body': comment_body,
+                                      'public': public,
+                                      'deleted': deleted,
+                                      'hidden': hidden,
+                                      'pinned': pinned,
+                                      'popularity': popularity,
+                                      'helpfulness': helpfulness
+                                      }.items()
+                    if v is not None}
+
         result = Bug.record_post_comment(
             uid=uid,
             post_id=request.vars['post_id'],
@@ -2129,7 +2267,7 @@ def update_post_comment():
         full_rec = {'auth_user': user_rec,
                     'bug_post_comments': result['new_comment'],
                     }
-        if not new_data['deleted']:
+        if 'deleted' not in new_data.keys():
             full_rec['read'] = read_status_updates['query'
                                                    ]['op_sub']['read_status']
 
