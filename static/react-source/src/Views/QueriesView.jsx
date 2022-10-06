@@ -256,16 +256,19 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
     <Collapse in={showForm}>
       <div className="add-query-form-wrapper">
     <Formik
-      initialValues={{queryText: "", showPublic: false}}
+      initialValues={{queryText: "", private: false}}
       validationSchema={Yup.object({
         queryText: Yup.string().required(),
-        showPublic: Yup.boolean()
+        private: Yup.boolean()
       })}
-      onSubmit={(values, { setSubmitting }) => {
+      onSubmit={(values, { setSubmitting, resetForm }) => {
         // (event) => action(queryText, showPublic, event)
+        DEBUGGING && console.log(values.private);
+        DEBUGGING && console.log(!values.private);
         setSubmissionSucceeded(false);
-        action(values.queryText, !values.showPublic, setSubmitting,
+        action(values.queryText, !values.private, setSubmitting,
                setSubmissionFailure, setSubmissionSucceeded);
+        resetForm();
         }
       }
     >
@@ -311,9 +314,11 @@ const NewQueryForm = ({answer, score, action, nonStep, singleStep}) => {
 
         <Row>
           <Form.Group controlId={`addQueryPrivateCheckbox`} as={Col}>
-            <Form.Check name="showPublic"
+            <Form.Check name="private"
               type="checkbox"
               label="Keep this question or comment private."
+              checked={formik.values.private}
+              {...formik.getFieldProps("private")}
               />
           </Form.Group>
         </Row>
