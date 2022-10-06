@@ -224,7 +224,7 @@ const updateReadStatus = async({postLevel="",
                                       {user_id: userId, post_id: postId,
                                        post_level: postLevel,
                                        read_status: readStatus},
-                                      "mark_read_status", "JSON", "POST");
+                                      "queries", "JSON", "PUT");
 
 export { getQueriesMetadata,
          getViewQueries,

@@ -1138,12 +1138,15 @@ def queries():
         expected arguments for the functions _log_new_query, _add_query_post,
         and _add_post_comment
 
-    PUT request updates an existing query
-        expected request variables correspond to the expected arguments
+    PUT request updates an existing query, reply, or comment
+        Expected request variables correspond to the expected arguments
         for the appropriate update function: _update_query, _update_query_post,
         or _update_post_comment
 
-    DELETE request deletes an existing query
+        If the read_status parameter is sent, the PUT request is sent to
+        _mark_read_status instead of the regular update functions.
+
+    DELETE request deletes an existing query, reply, or comment
         Currently "deleted" records are not actually deleted from the DB but
         simply flagged as "deleted" and not displayed. So DELETE requests are
         currently routed through the same update functions as PUT requests.
@@ -1164,7 +1167,9 @@ def queries():
             else:
                 return _add_post_comment(**request.vars)
         if request.method == 'PUT':
-            if request.vars.item_level == "query":
+            if 'read_status' in request.vars.keys():
+                return _mark_read_status(**request.vars)
+            elif request.vars.item_level == "query":
                 return _update_query(**request.vars)
             elif request.vars.item_level == "reply":
                 return _update_query_post(**request.vars)
@@ -2280,20 +2285,21 @@ def _update_post_comment(user_id: int,
                      'reason': 'Not logged in'})
 
 
-def mark_read_status():
+def _mark_read_status(user_id: int, post_id: int, post_level: str,
+                      read_status: bool):
     """
     Api method to mark on user query as read for a single user.
+
     This can only be called by a logged-in user to mark their own
     read status.
 
-    Expects the following required request parameters:
-    user_id (int)
-    query_id (int)
-    read_status (bool)
-    post_level (string) the level of the identified post in the
-        conversation thread hierarchy. This tells us which table
-        to look at to record the item's read status. Allowed
-        values are 'query', 'post', and 'comment'
+    :param user_id:
+    :param query_id:
+    :param read_status:
+    :param post_level: the level of the identified post in the
+                       conversation thread hierarchy. This tells us which table
+                       to look at to record the item's read status. Allowed
+                       values are 'query', 'post', and 'comment'
     """
     vbs = GLOBAL_VBS or False
     auth = current.auth
