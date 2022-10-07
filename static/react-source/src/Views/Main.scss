@@ -1273,6 +1273,10 @@ h3                                      {font-family: $sans-fonts;
                 &:hover            {background-color: darken($pallette1, 10%);
                 }
             }
+            &:focus                {box-shadow: none;
+                                    border: 1px solid darken($pallette1, 40%);
+                                    border-bottom: 0;
+            }
             &:hover                {background-color: darken($pallette1, 5%);
             }
             .badge                 {margin-left: 0.5rem;
@@ -1286,6 +1290,9 @@ h3                                      {font-family: $sans-fonts;
                                     border: 1px solid lighten($success, 20%);
                 }
             }
+            .spinner-grow           {height: 0.75rem;
+                                     width: 0.75rem;
+            }
         }
     }
     .queries-view-pane              {opacity: 0;
@@ -1296,6 +1303,13 @@ h3                                      {font-family: $sans-fonts;
                                      padding-right: 1rem;
         @include react-transition-fade('queries-view-pane');
         .alert:first-child          {margin-top: 1.5rem;
+        }
+        .spinner-grow               {display: block;
+                                     position: relative;
+                                     top: 50%;
+                                     margin: auto;
+                                     margin-top: -1.25rem;
+                                     opacity: 50%;
         }
         .me-new-query-info          {margin-top: 0.5rem;
                                      margin-right: 1rem;

@@ -21,7 +21,8 @@ import { Alert,
 } from "react-bootstrap";
 import { useHistory,
          useLocation,
-         useParams
+         useParams,
+         Link
 } from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import { marked } from "marked";
@@ -103,7 +104,7 @@ const ControlRow = ({userId, opId, level, classId, icon, showAdderValue,
           icon={icon}
         />
         :
-        <span className={`control-row-login-msg`}>Log in to add your {labelLevel}</span>
+        <span className={`control-row-login-msg`}><Link to="login">Log in</Link> to add your {labelLevel}</span>
         )
       }
       {userId === opId &&
@@ -852,8 +853,10 @@ const ScopeView = ({scope, nonStep, singleStep,
                     queries,
                     page,
                     setPage,
-                    myCount
+                    myCount,
+                    loading
                   }) => {
+
 
   const {user, } = useContext(UserContext);
   const byClass = ["class", "students"].includes(scope);
@@ -930,6 +933,8 @@ const ScopeView = ({scope, nonStep, singleStep,
   return (
     <>
     <div className="queries-view-pane" key={scope}>
+      {!!loading ? <LoadingContent /> :
+      <>
       {scope==='user' ? (
         !!user.userLoggedIn ? (
           (nonStep===false && singleStep===false) ?
@@ -946,9 +951,9 @@ const ScopeView = ({scope, nonStep, singleStep,
               singleStep={singleStep}
             />
         )
-        : <span className="queries-view-login-message">
-          Log in to ask a question or offer a comment.
-        </span>
+        : <Alert variant="warning" className="me-new-query-info queries-view-login-message">
+            <Link to="login">Log in</Link> or <Link to="register">sign up</Link> to ask a question or offer a comment.
+          </Alert>
       )
       : ''}
       {['class', 'students'].includes(scope) ? (
@@ -992,7 +997,10 @@ const ScopeView = ({scope, nonStep, singleStep,
           scope={scope}
         />
         :
-        <Alert variant="warning">No {scope} questions to view.</Alert>
+        !!user.userLoggedIn &&
+          <Alert variant="warning">No {scope!=="students" && scope!=="class" && scope} questions to view {(scope==="students" || scope==="class") && 'for this class'}.</Alert>
+      }
+      </>
       }
     </div>
     {myPagerArray.length > 1 &&
@@ -1016,7 +1024,6 @@ const ScopeView = ({scope, nonStep, singleStep,
       </div>
     }
     </>
-
   )
 }
 
@@ -1024,6 +1031,21 @@ const LoadingContent = () => {
   return (
     <Spinner animation="grow" variant="secondary"
       className="align-self-center map-spinner" />
+  )
+}
+
+const TabCounter = ({loadingCounts, loading, totalCount, unreadCount}) => {
+  return (!!loadingCounts || !!loading ?
+    <Badge bg="secondary">
+      <Spinner animation="grow" size="sm" />
+    </Badge>
+    :
+    <>
+    <Badge bg="secondary">{totalCount || "0"}</Badge>
+    {!!unreadCount &&
+      <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {unreadCount}</Badge>
+    }
+    </>
   )
 }
 
@@ -1058,7 +1080,9 @@ const ScopesFrame = ({viewScope,
                       setReadStatusAction,
                       page,
                       setPage,
-                      filterUnread
+                      filterUnread,
+                      loading,
+                      loadingCounts
                       }) => {
 
   const {user,} = useContext(UserContext);
@@ -1141,10 +1165,8 @@ const ScopesFrame = ({viewScope,
           onClick={() => handleScopeChange('user')}
         >
           <FontAwesomeIcon icon="user" />Me
-          <Badge bg="secondary">{userTotalCount || "0"}</Badge>
-          {!!userUnreadCount &&
-            <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {userUnreadCount}</Badge>
-          }
+            <TabCounter loadingCounts={loadingCounts} loading={loading}
+              totalCount={userTotalCount} unreadCount={userUnreadCount} />
         </Button>
         {!!user.userLoggedIn && !!user.classInfo &&
         <Button
@@ -1153,10 +1175,8 @@ const ScopesFrame = ({viewScope,
           onClick={() => handleScopeChange('class')}
         >
           <FontAwesomeIcon icon="users" />Classmates
-          <Badge bg="secondary">{classmatesTotalCount}</Badge>
-          {!!classmatesUnreadCount &&
-            <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {classmatesUnreadCount}</Badge>
-          }
+            <TabCounter loadingCounts={loadingCounts} loading={loading}
+              totalCount={classmatesTotalCount} unreadCount={classmatesUnreadCount} />
         </Button>
         }
         {!!user.userRoles.some(v => ["instructors", "administrators"].includes(v)) &&
@@ -1166,10 +1186,8 @@ const ScopesFrame = ({viewScope,
             onClick={() => handleScopeChange('students')}
           >
             <FontAwesomeIcon icon="users" />Students
-            <Badge bg="secondary">{studentsTotalCount}</Badge>
-            {!!studentsUnreadCount &&
-              <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {studentsUnreadCount}</Badge>
-            }
+            <TabCounter loadingCounts={loadingCounts} loading={loading}
+              totalCount={studentsTotalCount} unreadCount={studentsUnreadCount} />
           </Button>
         }
         <Button
@@ -1178,10 +1196,8 @@ const ScopesFrame = ({viewScope,
           onClick={() => handleScopeChange('public')}
         >
           <FontAwesomeIcon icon="globe-americas" />Others
-          <Badge bg="secondary">{otherTotalCount || "0"}</Badge>
-          {!!otherUnreadCount &&
-            <Badge bg="success"><FontAwesomeIcon icon="envelope" size="sm" /> {otherUnreadCount}</Badge>
-          }
+            <TabCounter loadingCounts={loadingCounts} loading={loading}
+              totalCount={otherTotalCount} unreadCount={otherUnreadCount} />
         </Button>
       </div>
             <SwitchTransition>
@@ -1215,6 +1231,7 @@ const ScopesFrame = ({viewScope,
                   page={page}
                   setPage={setPage}
                   myCount={myCount}
+                  loading={loading}
                 />
               </CSSTransition>
             </SwitchTransition>
@@ -1618,6 +1635,7 @@ const QueriesView = () => {
     DEBUGGING && console.log(queries);
 
     const [loading, setLoading] = useState(!queries ? true : false);
+    const [loadingCounts, setLoadingCounts] = useState(false);
 
     const location = useLocation();
     const urlParams = useParams();
@@ -1718,7 +1736,7 @@ const QueriesView = () => {
     );
 
     const fetchQueriesMetadataAction = ({thenFetchQueries=true}) => {
-      // setLoading(true);
+      setLoadingCounts(true);
       getQueriesMetadata({
                   step_id: !!singleStep && !!onStep ? user.currentStep : 0,
                   user_id: user.userId,
@@ -1737,7 +1755,7 @@ const QueriesView = () => {
         setOtherTotalCount(queryfetch.other_queries_count);
         setOtherUnreadCount(queryfetch.other_unread_count);
         !!thenFetchQueries && fetchViewQueriesAction();
-        // setLoading(false);
+        setLoadingCounts(false);
       });
     }
 
@@ -2011,40 +2029,42 @@ const QueriesView = () => {
           </Form>
 
           <div className="queries-view-wrapper">
-                  <ScopesFrame
-                      viewScope={viewScope}
-                      nonStep={nonStep}
-                      singleStep={singleStep}
-                      viewingAsAdmin={viewingAsAdmin}
-                      viewCourse={viewCourse}
-                      setViewCourse={setViewCourse}
-                      viewStudents={viewStudents}
-                      setViewStudents={setViewStudents}
-                      courseChangeFunctions={courseChangeFunctions}
-                      queries={queries}
-                      setQueries={setQueries}
-                      userTotalCount={userTotalCount}
-                      userUnreadCount={userUnreadCount}
-                      classmatesTotalCount={classmatesTotalCount}
-                      classmatesUnreadCount={classmatesUnreadCount}
-                      myClassmatesCounts={myClassmatesCounts}
-                      setViewScope={setViewScope}
-                      studentsTotalCount={studentsTotalCount}
-                      studentsUnreadCount={studentsUnreadCount}
-                      myStudentsCounts={myStudentsCounts}
-                      otherTotalCount={otherTotalCount}
-                      otherUnreadCount={otherUnreadCount}
-                      newQueryAction={newQueryAction}
-                      updateQueryAction={updateQueryAction}
-                      newReplyAction={newReplyAction}
-                      updateReplyAction={updateReplyAction}
-                      newCommentAction={newCommentAction}
-                      updateCommentAction={updateCommentAction}
-                      setReadStatusAction={setReadStatusAction}
-                      page={page}
-                      setPage={setPage}
-                      filterUnread={filterUnread}
-                  />
+            <ScopesFrame
+                viewScope={viewScope}
+                nonStep={nonStep}
+                singleStep={singleStep}
+                viewingAsAdmin={viewingAsAdmin}
+                viewCourse={viewCourse}
+                setViewCourse={setViewCourse}
+                viewStudents={viewStudents}
+                setViewStudents={setViewStudents}
+                courseChangeFunctions={courseChangeFunctions}
+                queries={queries}
+                setQueries={setQueries}
+                userTotalCount={userTotalCount}
+                userUnreadCount={userUnreadCount}
+                classmatesTotalCount={classmatesTotalCount}
+                classmatesUnreadCount={classmatesUnreadCount}
+                myClassmatesCounts={myClassmatesCounts}
+                setViewScope={setViewScope}
+                studentsTotalCount={studentsTotalCount}
+                studentsUnreadCount={studentsUnreadCount}
+                myStudentsCounts={myStudentsCounts}
+                otherTotalCount={otherTotalCount}
+                otherUnreadCount={otherUnreadCount}
+                newQueryAction={newQueryAction}
+                updateQueryAction={updateQueryAction}
+                newReplyAction={newReplyAction}
+                updateReplyAction={updateReplyAction}
+                newCommentAction={newCommentAction}
+                updateCommentAction={updateCommentAction}
+                setReadStatusAction={setReadStatusAction}
+                page={page}
+                setPage={setPage}
+                filterUnread={filterUnread}
+                loading={loading}
+                loadingCounts={loadingCounts}
+            />
           </div>
         </Col>
       </Row>
