@@ -861,8 +861,11 @@ const ScopeView = ({scope, nonStep, singleStep,
     (scope==="students" ? viewStudents : null));
   const [currentQueryTotal, setCurrentQueryTotal] = useState();
   const [noGroupsAvailable, setNoGroupsAvailable] = useState(checkForGroupsAvailable());
-  // DEBUGGING && console.log("in ScopeView: user.classInfo is");
-  // DEBUGGING && console.log(user.classInfo);
+  DEBUGGING && console.log("in ScopeView: scope is");
+  DEBUGGING && console.log(scope);
+  DEBUGGING && console.log("in ScopeView: queries is");
+  DEBUGGING && console.log(queries);
+  DEBUGGING && console.log(queries.length);
   // DEBUGGING && console.log(Object.keys(user.classInfo).length);
   // DEBUGGING && console.log("in ScopeView: user.instructing is");
   // DEBUGGING && console.log(user.instructing);
@@ -1060,6 +1063,9 @@ const ScopesFrame = ({viewScope,
 
   const {user,} = useContext(UserContext);
   const [myCount, setMyCount] = useState(() => getMyCountValue());
+  DEBUGGING && console.log('in ScopesFrame:');
+  DEBUGGING && console.log('queries are');
+  DEBUGGING && console.log(queries);
 
   function getMyCountValue() {
     let myCountValue = null;
@@ -1595,7 +1601,7 @@ const QueriesView = () => {
 
     const {user, dispatch} = useContext(UserContext);
     const history = useHistory();
-    const [queries, setQueries] = useState(null);
+    const [queries, setQueries] = useState([]);
     const [userTotalCount, setUserTotalCount] = useState(null);
     const [userUnreadCount, setUserUnreadCount] = useState(null);
     const [studentsTotalCount, setStudentsTotalCount] = useState(null);
@@ -1633,6 +1639,8 @@ const QueriesView = () => {
     const [filterUnread, setFilterUnread] = useState(false);
     const [viewingAsAdmin, ] = useState(
       user.userRoles.includes("administrators"));
+    DEBUGGING && console.log("viewScope");
+    DEBUGGING && console.log(viewScope);
 
     const setScopeSingleStep = () => {
       setLoading(true);
@@ -2003,17 +2011,6 @@ const QueriesView = () => {
           </Form>
 
           <div className="queries-view-wrapper">
-            <SwitchTransition>
-              <CSSTransition
-                key={!!queries ? "loaded" : "loading"}
-                timeout={250}
-                // unmountOnExit
-                mountOnEnter
-              >
-                { !!loading ?
-                  <LoadingContent />
-                  :
-                  // <span>{viewScope}</span>
                   <ScopesFrame
                       viewScope={viewScope}
                       nonStep={nonStep}
@@ -2048,9 +2045,6 @@ const QueriesView = () => {
                       setPage={setPage}
                       filterUnread={filterUnread}
                   />
-                }
-              </CSSTransition>
-            </SwitchTransition>
           </div>
         </Col>
       </Row>
