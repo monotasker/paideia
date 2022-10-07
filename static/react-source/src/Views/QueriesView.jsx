@@ -1,7 +1,8 @@
 import React, {
          useContext,
          useState,
-         useEffect
+         useEffect,
+         useRef
 } from "react";
 import { Alert,
          Badge,
@@ -15,7 +16,7 @@ import { Alert,
          Pagination,
          Row,
          Spinner,
-         Table,
+        //  Table,
          Tooltip,
 } from "react-bootstrap";
 import { useHistory,
@@ -24,15 +25,15 @@ import { useHistory,
 } from "react-router-dom";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 import { marked } from "marked";
-import DOMPurify from 'dompurify';
+// import DOMPurify from 'dompurify';
 import TextareaAutosize from 'react-textarea-autosize';
 import Select from 'react-select';
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { findIndex } from "core-js/es/array";
+// import { findIndex } from "core-js/es/array";
 
-import UserProvider, { UserContext } from "../UserContext/UserProvider";
+import { UserContext } from "../UserContext/UserProvider";
 import { getQueriesMetadata,
          getViewQueries,
          addQuery,
@@ -1697,7 +1698,14 @@ const QueriesView = () => {
       }
     }
 
-    useEffect(() => fetchViewQueriesAction(),
+    const firstRender = useRef(true);
+    useEffect(() => {
+        if ( firstRender.current ) {
+          firstRender.current = false;
+          return;
+        }
+        fetchViewQueriesAction();
+      },
       [viewScope, viewCourse, viewStudents, page]
     );
 
@@ -1726,7 +1734,7 @@ const QueriesView = () => {
     }
 
     useEffect(() => fetchQueriesMetadataAction({thenFetchQueries: true}),
-      [user.currentStep, onStep, singleStep, nonStep, filterUnread, filterUnanswered]);
+      [user.currentStep, filterUnread, filterUnanswered, singleStep, nonStep]); // removed onStep,  as triggers
 
     const newQueryAction = (myComment, showPublic, setSubmitting,
       setSubmissionFailure, setSubmissionSucceeded) => {
