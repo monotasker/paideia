@@ -49,7 +49,6 @@ const doApiCall = async (payload, apiFunction,
       case "queryString":
         let searchParams = new URLSearchParams(payload);
         apiFunction += `?${searchParams}`;
-        console.log(apiFunction);
       case "JSON":
         callObject['headers'] = {'Content-Type': 'application/json'};
         callObject['body'] = JSON.stringify(payload);
