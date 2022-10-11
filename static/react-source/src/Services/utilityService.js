@@ -74,11 +74,11 @@ const doApiCall = async (payload, apiFunction,
   try {
     mydata = await response.json();
   } catch(err) {
-    mydata = {status: "internal server error",
+    mydata = {title: "internal server error",
               reason: `Unknown error in function ${apiFunction}`,
               error: err.message}.json()
   }
-  mydata.status_code = response.status;
+  mydata.status = response.status;
   return mydata;
 }
 
@@ -147,6 +147,7 @@ function returnStatusCheck(mydata, history, action, reducer,
 
     case 500:
       if ( otherActions.hasOwnProperty("serverErrorAction") ) {
+        console.log('Server error, yikes!');
         otherActions.serverErrorAction(mydata);
       }
       break;

@@ -578,7 +578,7 @@ const InstructorDashboard = () => {
                     // console.log(`setting ${field} value: ${info[field]}`);
                     currentValues = {...currentValues,
                                      [field]: moment(info[field]).toDate()};
-                  } else if (!["members", "status_code"].includes(field)) {
+                  } else if (!["members", "status"].includes(field)) {
                     currentValues = {...currentValues, [field]: info[field]};
                   }
                 });

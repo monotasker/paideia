@@ -558,6 +558,8 @@ const Profile = (props) => {
   const [ updating, setUpdating ] = useState(true);
   const [ authorized, setAuthorized ] = useState(true);
   const [ recordExists, setRecordExists ] = useState(true);
+  const [ serverError, setServerError ] = useState();
+  const [ loggedIn, setLoggedIn ] = useState(true);
   const viewingSelf = !userIdParam || userIdParam === user.userId;
 
   const userId = !!viewingSelf ? user.userId : userIdParam; // props.userId;
@@ -596,15 +598,25 @@ const Profile = (props) => {
   const [ calYear, setCalYear ] = useState(myDate.getFullYear());
   const [ calMonth, setCalMonth ] = useState(myDate.getMonth());
 
-  const insufficientPrivilegesAction = (mydata) => {
+  const insufficientPrivilegesAction = () => {
     console.log('User cannot view this profile');
     setAuthorized(false);
   };
 
-  const noRecordAction = (mydata) => {
+  const noRecordAction = () => {
     console.log('No record for the requested user.');
     setRecordExists(false);
   };
+
+  const serverErrorAction = (mydata) => {
+    console.log('Server Error');
+    setServerError(mydata);
+  }
+
+  const notLoggedInAction = () => {
+    console.log('Server Error');
+    setLoggedIn(false);
+  }
 
   useEffect(() => {
     window.setTimeout(2000);
@@ -641,7 +653,10 @@ const Profile = (props) => {
         },
         dispatch,
         {insufficientPrivilegesAction: insufficientPrivilegesAction,
-         noRecordAction: noRecordAction}
+         noRecordAction: noRecordAction,
+         serverErrorAction: serverErrorAction,
+         notLoggedInAction: notLoggedInAction
+        }
       )
     });
   },
@@ -658,19 +673,33 @@ const Profile = (props) => {
      text: "I've really got a solid expertise in these topics!"}
   ]
 
-  return (
+  if (!authorized) {
+    return (
     <Row className="profile-component content-view">
-      {!(authorized && recordExists) ? (
-          !authorized ?
-          <Alert variant="danger">
-            Sorry, you aren't authorized to view that student's record. If you think you should be, please contact the site administrator.
-          </Alert>
-          :
-          <Alert variant="danger">
-            Sorry, the requested user account does not exist.
-          </Alert>
-        )
-      : (<>
+      <Alert variant="danger">
+        Sorry, you aren't authorized to view that student's record. If you think you should be, please contact the site administrator.
+      </Alert>
+    </Row>
+    )
+  } else if (serverError) {
+    return(
+    <Row className="profile-component content-view">
+      <Alert variant="danger">
+        Sorry, the requested user account does not exist.
+      </Alert>
+    </Row>
+    )
+  } else if (!loggedIn) {
+    return(
+    <Row className="profile-component content-view">
+      <Alert variant="danger">
+        You must <Link to="login">log in</Link> to view a user profile.
+      </Alert>
+    </Row>
+    )
+  } else {
+    return(
+    <Row className="profile-component content-view">
         <Col className="profile-info d-none d-lg-block" xs={12} lg={3} xl={3}
         >
           <ProfileInfo
@@ -731,9 +760,9 @@ const Profile = (props) => {
             </Col>
           </Row>
       </Col>
-      </>)}
     </Row>
   )
+  }
 }
 
 export default Profile;

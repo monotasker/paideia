@@ -51,7 +51,7 @@ def contact():
     a successful request returns a JSON object with the keys
     - "result" (default value "Email sent")
     - "email" (dict with the fields used for the submission)
-    - "status_code" (number, 200 if successful)
+    - "status" (number, 200 if successful)
 
     This endpoint will only respond to a "POST" request.
     """
@@ -83,7 +83,7 @@ def contact():
             if response_dict["success"] != True or response_dict["score"] < 0.5:
                 response = current.response
                 response.status = 403
-                return json_serializer({'status': 'forbidden',
+                return json_serializer({'title': 'forbidden',
                                         'reason': 'Recaptcha check failed',
                                         'error': 'You may be a robot'})
 
@@ -93,7 +93,7 @@ def contact():
                 if request.vars[field] in ["", None, False]:
                     response = current.response
                     response.status = 400
-                    return json_serializer({'status': 'bad request',
+                    return json_serializer({'title': 'bad request',
                                             'reason': 'Missing request data',
                                             'error': {"missing": field}})
 
@@ -118,7 +118,7 @@ def contact():
             response = current.response
             response.status = 400
             # not using POST method
-            return json_serializer({'status': 'bad request',
+            return json_serializer({'title': 'bad request',
                         'reason': f'${request.method} not a valid method ' \
                                 'for this endpoint',
                         'error': None})
@@ -126,7 +126,7 @@ def contact():
         response = current.response
         print_exc()
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                                 'reason': 'Unknown error in function api.contact',
                                 'error': format_exc()})
 
@@ -145,7 +145,7 @@ def content_pages():
     else:
         response = current.response
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': f'${request.method} not a valid method ' \
                                'for this endpoint',
                     'error': None})
@@ -234,7 +234,7 @@ def get_prompt():
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -253,7 +253,7 @@ def set_viewed_slides():
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -285,7 +285,7 @@ def evaluate_answer():
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -462,17 +462,17 @@ def do_password_reset():
                and v in [None, "null", "undefined", ""]}
     if missing and len(missing.keys()) > 0:
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'Missing request data',
                     'error': missing})
     if new_password_A != new_password_B:
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'New passwords do not match',
                     'error': None})
     if not _check_password_strength(new_password_A):
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'Password is not strong enough',
                     'error': None})
 
@@ -501,19 +501,19 @@ def do_password_reset():
             t0 = int(key.split('-')[0])
             if time.time() - t0 > 60 * 60 * 48:
                 response.status = 403
-                return json_serializer({'status': 'forbidden',
+                return json_serializer({'title': 'forbidden',
                                         'reason': 'Password reset key was bad',
                                         'error': None})
             user = db(db.auth_user.reset_password_key==key).select().first()
             if not user:
                 response.status = 404
-                return json_serializer({'status': 'not found',
+                return json_serializer({'title': 'not found',
                             'reason': 'User does not exist',
                             'error': None})
             rkey = user.registration_key
             if rkey in ('pending', 'disabled', 'blocked') or (rkey or '').startswith('pending'):
                 response.status = 409
-                return json_serializer({'status': 'conflict',
+                return json_serializer({'title': 'conflict',
                                         'reason': 'Action blocked',
                                         'error': "Reset blocked or pending"})
             if vbs: print('USER=========================')
@@ -522,18 +522,18 @@ def do_password_reset():
             user.update_record(**{'password': encrypted_password,
                                 'registration_key': '',
                                 'reset_password_key': ''})
-            return json_serializer({'status': 'success',
+            return json_serializer({'title': 'success',
                                     'reason': 'Password reset successfully'})
 
         except Exception:
             print_exc()
             response.status = 500
-            return json_serializer({'status': 'internal server error',
+            return json_serializer({'title': 'internal server error',
                         'reason': 'Unknown error in function do_password_reset',
                         'error': format_exc()})
     else:
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                     'reason': 'Recaptcha failed',
                     'error': None})
 
@@ -589,7 +589,7 @@ def start_password_reset():
     if email in [None, "null", "undefined", ""] \
             or not re.search(email_pat, email.strip()):
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'Missing request data',
                     'error': {'email': email}})
     else:
@@ -598,7 +598,7 @@ def start_password_reset():
     user = db(db.auth_user.email==email).select().first()
     if not user:
         response.status = 404
-        return json_serializer({'status': 'not found',
+        return json_serializer({'title': 'not found',
                     'reason': 'User does not exist',
                     'error': None})
 
@@ -627,29 +627,29 @@ def start_password_reset():
 
             if key in ('pending', 'disabled', 'blocked') or (key or '').startswith('pending'):
                 response.status = 409
-                return json_serializer({'status': 'conflict',
+                return json_serializer({'title': 'conflict',
                             'reason': 'Action already pending',
                             'error': None})
 
             if my_email_reset_password(auth, user):
-                return json_serializer({'status': 'success',
+                return json_serializer({'title': 'success',
                             'reason': 'Reset email sent',
                             'email': email})
             else:
                 response.status = 500
-                return json_serializer({'status': 'internal server error',
+                return json_serializer({'title': 'internal server error',
                             'reason': 'Could not send reset email',
                             'error': None})
 
         except Exception:
             print_exc()
             response.status = 500
-            return json_serializer({'status': 'internal server error',
+            return json_serializer({'title': 'internal server error',
                         'reason': 'Unknown error in function start_password_reset',
                         'error': format_exc()})
     else:
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                     'reason': 'Recaptcha failed',
                     'error': None})
 
@@ -678,20 +678,20 @@ def get_registration():
                 )}
     if missing and len(missing.keys()) > 0:
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'Missing request data',
                     'error': missing})
 
     if not _check_password_strength(password):
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'Password is not strong enough',
                     'error': {"password": password}})
 
     existing_user_count = db(db.auth_user.email==email).count()
     if existing_user_count>0:
         response.status = 409
-        return json_serializer({'status': 'conflict',
+        return json_serializer({'title': 'conflict',
                     'reason': 'User with this email exists',
                     'error': None})
     else:
@@ -733,12 +733,12 @@ def get_registration():
             except Exception:
                 print_exc()
                 response.status = 500
-                return json_serializer({'status': 'internal server error',
+                return json_serializer({'title': 'internal server error',
                             'reason': 'Unknown error in function get_registration',
                             'error': format_exc()})
         else:
             response.status = 401
-            return json_serializer({'status': 'unauthorized',
+            return json_serializer({'title': 'unauthorized',
                         'reason': 'Recaptcha failed',
                         'error': None})
 
@@ -793,23 +793,23 @@ def validate_class_key():
 
         if myresult['status'] == "bad key":
             response.status = 400
-            return json_serializer({'status': 'bad request',
+            return json_serializer({'title': 'bad request',
                         'reason': 'Missing request data',
                         'error': {'course_key': myclass_key}})
 
         if myresult['status'] == "no such key":
             response.status = 404
-            return json_serializer({'status': 'Not found',
+            return json_serializer({'title': 'Not found',
                                     'reason': 'No matching record found'})
 
         if myresult['status'] == "key expired":
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Class key is expired'})
 
         if myresult['status'] == "key cancelled":
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Class key was cancelled'})
 
         myclass = myresult['class_row']
@@ -819,7 +819,7 @@ def validate_class_key():
                             ).select()
         if len(my_memberships) > 0:
             response.status = 409
-            return json_serializer({'status': 'conflict',
+            return json_serializer({'title': 'conflict',
                                     'reason': 'Action blocked',
                                     'error': "A membership for this user already exists in the course group"})
 
@@ -829,13 +829,13 @@ def validate_class_key():
                                         myclass.classes.institution
                                         )
         response.status = 200
-        return json_serializer({'status': 'success',
+        return json_serializer({'title': 'success',
                                 'class_label': class_label,
                                 'class_id': myclass.classes.id})
 
     except Exception:
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function validate_class_key',
                     'error': format_exc()})
 
@@ -859,7 +859,7 @@ def join_class_group():
             if vbs: print(validity['status'] != "ok")
             if vbs: print(validity['class_row']['classes']['id'] != class_id)
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Insufficient privileges',
                                     'error': 'Could not validate the course key provided'})
 
@@ -868,7 +868,7 @@ def join_class_group():
                             ).select()
         if len(my_memberships) > 0:
             response.status = 409
-            return json_serializer({'status': 'conflict',
+            return json_serializer({'title': 'conflict',
                                     'reason': 'Action blocked',
                                     'error': "A membership for this user already exists in the course group"})
 
@@ -877,11 +877,11 @@ def join_class_group():
                                                })
 
         response.status = 200
-        return json_serializer({'status': "success",
+        return json_serializer({'title': "success",
                                 'result_row': result})
     except Exception:
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                                 'reason': 'Unknown error in function validate_class_key',
                                 'error': format_exc()})
 
@@ -943,7 +943,7 @@ def create_checkout_intent():
 
     except Exception:
         response.status = 403
-        return json_serializer({'status': 'insufficient privileges',
+        return json_serializer({'title': 'insufficient privileges',
                     'reason': 'Stripe checkout session creation failed',
                     'error': format_exc()})
 
@@ -980,7 +980,7 @@ def get_login():
                }
     if missing and len(missing.keys()) > 0:
         response.status = 400
-        return json_serializer({'status': 'bad request',
+        return json_serializer({'title': 'bad request',
                     'reason': 'Missing request data',
                     'error': missing})
 
@@ -1011,7 +1011,7 @@ def get_login():
             if vbs: print(mylogin)
             if mylogin == False:
                 response.status = 401
-                return json_serializer({'status': 'unauthorized',
+                return json_serializer({'title': 'unauthorized',
                             'reason': 'Login failed',
                             'error': 'Did not recognize email-password combination'})
             else:
@@ -1025,12 +1025,12 @@ def get_login():
 
         else:
             response.status = 500
-            return json_serializer({'status': 'internal server error',
+            return json_serializer({'title': 'internal server error',
                         'reason': 'Unknown error in function get_registration',
                         'error': "failed recaptcha check: {}".format(response_dict["score"])})
     except Exception:
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function get_registration',
                     'error': format_exc()})
 
@@ -1050,7 +1050,7 @@ def get_userdata():
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -1200,7 +1200,7 @@ def queries():
             response = current.response
             response.status = 400
             # not using POST method
-            return json_serializer({'status': 'bad request',
+            return json_serializer({'title': 'bad request',
                         'reason': f'${request.method} not a valid method ' \
                                 'for this endpoint',
                         'error': None})
@@ -1208,7 +1208,7 @@ def queries():
         response = current.response
         print_exc()
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                                 'reason': 'Unknown error in function api.queries',
                                 'error': format_exc()})
 
@@ -1814,13 +1814,13 @@ def _log_new_query(user_id: int, step_id: int, path_id: int, loc_name: str,
         #  confirm that the newly logged query is in the updated list
         # assert [q for q in myqueries if q['bugs']['id'] == logged]
 
-        return json_serializer({'status': 'success',
+        return json_serializer({'title': 'success',
                                 'read_status_updates': read_status_changes,
                                 'queries': myqueries})
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                                 'reason': 'Not logged in'})
 
 
@@ -1875,7 +1875,7 @@ def _add_query_post(user_id: int=0, query_id: int=0, post_body: str="",
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -1928,7 +1928,7 @@ def _add_post_comment(user_id: int=0, bug_id: int=0,
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -2017,7 +2017,7 @@ def _update_query(user_id: int,
 
         if result == 'false':
             response.status = 500
-            return json_serializer({'status': 'internal server error',
+            return json_serializer({'title': 'internal server error',
                                     'reason': 'Could not update bug record'})
         else:
             read_status_updates = _flag_conversation_change(
@@ -2061,13 +2061,13 @@ def _update_query(user_id: int,
                                              unread_posts, unread_comments)[0]
             full_rec['read'] = read_status_updates['query'
                                                    ]['op_sub']['read_status']
-            return json_serializer({'status': 'success',
+            return json_serializer({'title': 'success',
                                     'new_item': full_rec,
                                     'read_status_updates': read_status_updates})
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -2179,7 +2179,7 @@ def _update_query_post(user_id: int,
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -2281,7 +2281,7 @@ def _update_post_comment(user_id: int,
     else:
         response = current.response
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
@@ -2361,12 +2361,12 @@ def _mark_read_status(user_id: int, post_id: int, post_level: str,
     try:
         if not auth.is_logged_in():
             response.status = 401
-            return json_serializer({'status': 'unauthorized',
+            return json_serializer({'title': 'unauthorized',
                                     'reason': 'Not logged in',
                                     'error': None})
         if user_id!=auth.user_id:
             response.status = 401
-            return json_serializer({'status': 'unauthorized',
+            return json_serializer({'title': 'unauthorized',
                                     'reason': 'Insufficient privileges',
                                     'error': None})
         try:
@@ -2399,11 +2399,11 @@ def _mark_read_status(user_id: int, post_id: int, post_level: str,
             if post_level != 'query' and read_status == False:
                 _mark_parents_read(post_level, post_id, user_id)
 
-            return json_serializer({'status': 'success',
+            return json_serializer({'title': 'success',
                                     'result': my_record})
         except:
             response.status = 500
-            return json_serializer({'status': 'internal server error',
+            return json_serializer({'title': 'internal server error',
                                     'reason': 'Unknown error in function '
                                             'mark_read_status',
                                     'error': format_exc()})
@@ -2729,16 +2729,68 @@ def set_review_mode():
 
     return json_serializer({'review_set': session.set_review})
 
+def users():
+    """
+    Api endpoint for operations related to user information.
 
-def get_profile_info():
+
+    GET request fetches data about the specified user. By default this retrieves full profile data.
+        if there is a `month` request parameter that is not None or "null", this method retrieves just the user's activity statistics for one calendar month
+
+    POST request allows assigning a user to a class group, but not creation of
+    a new user account. That is handled by the ??? endpoint.
+
+    PUT request updates the specified user's data.
+
+    DELETE request deletes an existing user account
+
+    :returns: the http response payload as a JSON-parsable string
+    :rtype:   str (JSON parsable)
+    """
+    try:
+        if request.method == 'POST':
+            pass
+        if request.method == 'PUT':
+            pass
+        if request.method == 'DELETE':
+            pass
+        if request.method == 'GET':
+            if "month" in request.vars.keys() and request.vars['month']:
+                return _get_calendar_month(**request.vars)
+            return _get_profile_info(**request.vars)
+        else:
+            response = current.response
+            response.status = 400
+            # not using POST method
+            return json_serializer({'title': 'bad request',
+                        'reason': f'${request.method} not a valid method ' \
+                                'for this endpoint',
+                        'error': None})
+    except Exception:
+        response = current.response
+        print_exc()
+        response.status = 500
+        return json_serializer({'title': 'internal server error',
+                                'reason': 'Unknown error in function api.queries',
+                                'error': format_exc()})
+
+
+
+def _get_profile_info(user_id: str="") -> str:
     """
     Api method to fetch a user's performance record.
 
-    One optional request parameter "user" expects an integer identifying the
-    user whose information is requested. If this parameter is not provided, the
-    request defaults to the logged in user.
+    :param user_id: A string representing the integer id for the user whose
+                    profile info is being requested. (Defaults to empty string.)
 
-    Returns a json object with the following keys:
+                    If no parameter is passed the function will return the
+                    data for the currently logged-in user.
+    :type user_id: str
+
+    :returns:   An object serialized as a JSON parseable string
+                containing the user's profile data. This object has the
+                following keys:
+
             answer_counts(list):        List of counts of right and wrong
                                             answers for each active day
             badge_levels(dict):         Dictionary with badge levels (int) as
@@ -2778,6 +2830,8 @@ def get_profile_info():
             tz(str):                    User's time zone from auth.user
                                             (extended in db.py)
             user_id(int):               The requested user's id.
+
+    :rtype:     str
     """
     vbs = GLOBAL_VBS or 0
     db = current.db
@@ -2789,17 +2843,17 @@ def get_profile_info():
                     (db.classes.id == db.class_membership.class_section)
                     ).select(db.class_membership.name).as_list()
 
-
     if not auth.is_logged_in():
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
     try:
+        assert False
         now = datetime.now(timezone.utc)
         # Allow passing explicit user but default to current user
-        if 'userId' in request.vars.keys():
-            sid = request.vars['userId']
+        if user_id:
+            sid = int(user_id)
             # only allow viewing if admin or student's instructor
             if (auth.user_id == sid
                 or auth.has_membership('administrators')
@@ -2808,14 +2862,14 @@ def get_profile_info():
                 user = db.auth_user[sid]
             else:
                 response.status = 401
-                return json_serializer({'status': 'unauthorized',
+                return json_serializer({'title': 'unauthorized',
                              'reason': 'Insufficient privileges'})
         else:
             user = db.auth_user[auth.user_id]
         # Return proper response code if no user with requested id
         if not user:
             response.status = 404
-            return json_serializer({'status': 'not found',
+            return json_serializer({'title': 'not found',
                                     'reason': 'No matching record found'})
 
         stats = Stats(user.id)
@@ -2877,7 +2931,7 @@ def get_profile_info():
     except Exception:
         print(format_exc(5))
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                                 'reason': 'Unknown error in function get_profile_info',
                                 'error': format_exc()})
 
@@ -2904,24 +2958,38 @@ def get_profile_info():
             default=my_custom_json)
 
 
-def get_calendar_month():
+def _get_calendar_month(year: str, month: str, user_id: str=""):
     """
     api method to fetch user attempt data for one calendar month
 
-    Expects the request variables "user_id", "year", "month"
-    - month is 0-based integer and year is a 4-digit year
+    :param str year: A string representation of the year of the requested
+                     month, in four-digit format
+    :param str month: A string representation of the requested month number
+                      as a 0-based integer
+    :param str user_id: A string representation of the integer user id
+                        for the user whose data is being requested. If this
+                        is not provided it defaults to an empty string and
+                        data is returned for the currently logged-in user.
 
-    Returns a json object with the keys
-    ::year
-    ::month
-    ::data
+    :returns: Returns an object serialized as a json parseable string. The
+              object has the following keys:
+                    - year
+                    - month
+                    - data
+    :rtype: str
 
     """
-    stats = Stats(request.vars.userId)
-    calendar = stats.monthcal(year=request.vars.year,
-                              month=request.vars.month)
-    return json_serializer(calendar, default=my_custom_json)
+    try:
+        stats = Stats(user_id=user_id if user_id else None)
+        calendar = stats.monthcal(year=int(year), month=int(month))
+        return json_serializer(calendar, default=my_custom_json)
 
+    except Exception:
+        print(format_exc(5))
+        response.status = 500
+        return json_serializer({'title': 'internal server error',
+                                'reason': 'Unknown error in function get_profile_info',
+                                'error': format_exc()})
 
 def update_course_membership_data():
     pass
@@ -2978,7 +3046,7 @@ def update_student_data():
                     }
             if len(update_data.keys()) == 0:
                 response.status = 200
-                return json_serializer({'status': 'success',
+                return json_serializer({'title': 'success',
                             'reason': 'no update data',
                             'error': format_exc()})
 
@@ -2998,11 +3066,13 @@ def update_student_data():
         except AttributeError:
             print(format_exc(5))
             response.status = 404
-            return json_serializer({'status': 'No such record'})
+            return json_serializer({'title': 'No such record',
+                                    'reason': 'No such record'})
 
         if not auth.is_logged_in():
             response.status = 401
-            return json_serializer({'status': 'Not logged in'})
+            return json_serializer({'title': 'Not logged in',
+                                    'reason': 'Not logged in'})
 
         instructor = db.classes(course_id).instructor
         if not (auth.has_membership('administrators') or
@@ -3010,7 +3080,7 @@ def update_student_data():
                 instructor == auth.user_id)
                 ):
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
         if vbs: print('api::update_student_data: member_rec:')
@@ -3027,11 +3097,11 @@ def update_student_data():
     except Exception:
         print_exc()
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function update_student_data',
                     'error': format_exc()})
 
-    return json_serializer({"status": 'success',
+    return json_serializer({"title": 'success',
                             "updated_record": myresult}, default=my_custom_json)
 
 def promote_user():
@@ -3047,19 +3117,19 @@ def promote_user():
         if (uid in ["undefined", "none", None, "null", 0, "0"]) or \
                 (classid in ["undefined", "none", None, "null", 0, "0"]):
             response.status = 400
-            return json_serializer({'status': 'bad request',
+            return json_serializer({'title': 'bad request',
                                     'reason': 'Missing request data'})
 
         tp_rec = db(db.tag_progress.name==uid).select()
 
         if not len(tp_rec) > 0:
             response.status = 404
-            return json_serializer({'status': 'not found',
+            return json_serializer({'title': 'not found',
                                     'reason': 'No such user progress record'})
 
         if not auth.is_logged_in():
             response.status = 401
-            return json_serializer({'status': 'unauthorized',
+            return json_serializer({'title': 'unauthorized',
                                     'reason': 'Not logged in'})
 
         instructor = db.classes(classid).instructor
@@ -3068,7 +3138,7 @@ def promote_user():
                 instructor == auth.user_id)
                 ):
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
         myresult = do_user_promotion(uid=uid, classid=classid)
@@ -3076,11 +3146,11 @@ def promote_user():
     except Exception:
         print_exc()
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function promote_user',
                     'error': format_exc()})
 
-    return json_serializer({"status": 'success',
+    return json_serializer({"title": 'success',
                             "updated_record": myresult}, default=my_custom_json)
 
 def demote_user():
@@ -3096,19 +3166,19 @@ def demote_user():
         if (uid in ["undefined", "none", None, "null", 0, "0"]) or \
                 (classid in ["undefined", "none", None, "null", 0, "0"]):
             response.status = 400
-            return json_serializer({'status': 'bad request',
+            return json_serializer({'title': 'bad request',
                                     'reason': 'Missing request data'})
 
         tp_rec = db(db.tag_progress.name==uid).select()
 
         if not len(tp_rec) > 0:
             response.status = 404
-            return json_serializer({'status': 'not found',
+            return json_serializer({'title': 'not found',
                                     'reason': 'No such user progress record'})
 
         if not auth.is_logged_in():
             response.status = 401
-            return json_serializer({'status': 'unauthorized',
+            return json_serializer({'title': 'unauthorized',
                                     'reason': 'Not logged in'})
 
         instructor = db.classes(classid).instructor
@@ -3117,7 +3187,7 @@ def demote_user():
                 instructor == auth.user_id)
                 ):
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
         myresult = do_user_demotion(uid=uid, classid=classid)
@@ -3125,11 +3195,11 @@ def demote_user():
     except Exception:
         print_exc()
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function demote_user',
                     'error': format_exc()})
 
-    return json_serializer({"status": 'success',
+    return json_serializer({"title": 'success',
                             "updated_record": myresult}, default=my_custom_json)
 
 
@@ -3207,12 +3277,12 @@ def update_course_data():
         except AttributeError:
             print(format_exc(5))
             response.status = 404
-            return json_serializer({'status': 'not found',
+            return json_serializer({'title': 'not found',
                                     'reason': 'No such record'})
 
         if not auth.is_logged_in():
             response.status = 401
-            return json_serializer({'status': 'unauthorized',
+            return json_serializer({'title': 'unauthorized',
                                     'reason': 'Not logged in'})
 
         if not (auth.has_membership('administrators') or
@@ -3220,7 +3290,7 @@ def update_course_data():
                 course_rec['instructor'] == auth.user_id)
                 ):
             response.status = 403
-            return json_serializer({'status': 'forbidden',
+            return json_serializer({'title': 'forbidden',
                                     'reason': 'Insufficient privileges'})
 
         if vbs: print('api::update_course_data: course_rec:')
@@ -3237,11 +3307,11 @@ def update_course_data():
     except Exception:
         print_exc()
         response.status = 500
-        return json_serializer({'status': 'internal server error',
+        return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function update_course_data',
                     'error': format_exc()})
 
-    return json_serializer({"status": 'success',
+    return json_serializer({"title": 'success',
                             "updated_record": myresult}, default=my_custom_json)
 
 
@@ -3313,12 +3383,12 @@ def get_course_data():
     except AttributeError:
         print(format_exc(5))
         response.status = 404
-        return json_serializer({'status': 'not found',
+        return json_serializer({'title': 'not found',
                                 'reason': 'No such class record'})
 
     if not auth.is_logged_in():
         response.status = 401
-        return json_serializer({'status': 'unauthorized',
+        return json_serializer({'title': 'unauthorized',
                                 'reason': 'Not logged in'})
 
     if not (auth.has_membership('administrators') or
@@ -3326,7 +3396,7 @@ def get_course_data():
             course_rec['instructor'] == auth.user_id)
             ):
         response.status = 403
-        return json_serializer({'status': 'forbidden',
+        return json_serializer({'title': 'forbidden',
                      'reason': 'Insufficient privileges'})
 
     mycourse = {k: v for k, v in course_rec.items() if k in [

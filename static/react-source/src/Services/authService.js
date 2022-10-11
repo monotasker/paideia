@@ -114,9 +114,12 @@ const updateUserInfo = async dispatch => {
 const getProfileInfo = async ({forSelf=false,
                                userId=null,
                                dispatch=null}) => {
-  let response = await doApiCall({userId}, "get_profile_info", "JSON");
+  let response = await doApiCall({user_id: userId},
+                                 "users",
+                                 "queryString",
+                                 "GET");
   let mydata = {};
-  if ( response.status_code===200 ) {
+  if ( response.status===200 ) {
     mydata = {
       firstName: response.the_name.first_name,
       lastName: response.the_name.last_name,
@@ -136,7 +139,7 @@ const getProfileInfo = async ({forSelf=false,
       startingSet: response.starting_set,
       classInfo: response.class_info,
       otherClassInfo: response.other_class_info,
-      status_code: response.status_code
+      status: response.status
     }
     if ( !!forSelf ) {
       dispatch({type: "updateProfileInfo", payload: mydata})
@@ -153,8 +156,11 @@ const getProfileInfo = async ({forSelf=false,
     year
     month
  */
-const getCalendarMonth = async (payload) => await doApiCall(payload,
-  "get_calendar_month", "JSON");
+const getCalendarMonth = async ({userId, year, month}
+  ) => await doApiCall({year: year,
+                        month: month,
+                        user_id: userId},
+                       "users", "queryString", "GET");
 
 const formatLoginData = (data) => {
   return {

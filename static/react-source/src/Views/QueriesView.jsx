@@ -1835,7 +1835,7 @@ const QueriesView = () => {
                         postId: postId,
                         readStatus: readStatus})
       .then(myresponse => {
-          if (myresponse.status_code===200) {
+          if (myresponse.status===200) {
             _updateItemInState(myresponse.result, postLevel, 0, scope, queries, setQueries, _setCounts);
           } else {
             DEBUGGING && console.log(myresponse);

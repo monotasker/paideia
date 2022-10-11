@@ -161,7 +161,7 @@ const CheckoutForm = ({ submitAction, courseKey, courseId, courseLabel }) => {
                                       course_key: courseKey,
                                       course_id: courseId});
     DEBUGGING && console.log(joinResult);
-    if (joinResult.status!=="success") {
+    if (joinResult.status!=="success" && joinResult.status!==200) {
       setJoinFailed(true);
       setJoinFailureReason(joinResult.error);
     }
