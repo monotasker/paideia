@@ -353,6 +353,10 @@ def _fetch_current_coursedata(uid, mydatetime):
         course['class_info']['custom_end_date'] = \
             current_class['class_membership']['custom_end']
 
+        for c in ['custom_a_cap', 'custom_b_cap', 'custom_c_cap', 'custom_d_cap']:
+            if current_class['class_membership'][c]:
+                course['class_info'][c[7:]] = current_class['class_membership'][c]
+
         mystartset = current_class['class_membership']['starting_set']
         if mystartset is None:
             mystartset = get_set_at_date(uid, abs_startdt)
@@ -1033,25 +1037,6 @@ def get_login():
         return json_serializer({'title': 'internal server error',
                     'reason': 'Unknown error in function get_registration',
                     'error': format_exc()})
-
-
-def get_userdata():
-    """
-    API method to get the user data for the currently logged in user.
-    """
-    auth = current.auth
-    session = current.session
-    if auth.is_logged_in():
-        user = db.auth_user(auth.user_id).as_dict()
-        full_user = _fetch_userdata(user, request.vars)
-        full_user['review_set'] = session.set_review \
-            if 'set_review' in session.keys() else None
-        return json_serializer(full_user, default=my_custom_json)
-    else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'title': 'unauthorized',
-                     'reason': 'Not logged in'})
 
 
 def do_logout():
@@ -2747,6 +2732,8 @@ def users():
     :returns: the http response payload as a JSON-parsable string
     :rtype:   str (JSON parsable)
     """
+    request = current.request
+    response = current.response
     try:
         if request.method == 'POST':
             pass
@@ -2759,7 +2746,6 @@ def users():
                 return _get_calendar_month(**request.vars)
             return _get_profile_info(**request.vars)
         else:
-            response = current.response
             response.status = 400
             # not using POST method
             return json_serializer({'title': 'bad request',
@@ -2767,13 +2753,30 @@ def users():
                                 'for this endpoint',
                         'error': None})
     except Exception:
-        response = current.response
         print_exc()
         response.status = 500
         return json_serializer({'title': 'internal server error',
                                 'reason': 'Unknown error in function api.queries',
                                 'error': format_exc()})
 
+
+def get_userdata():
+    """
+    API method to get the user data for the currently logged in user.
+    """
+    auth = current.auth
+    session = current.session
+    if auth.is_logged_in():
+        user = db.auth_user(auth.user_id).as_dict()
+        full_user = _fetch_userdata(user, request.vars)
+        full_user['review_set'] = session.set_review \
+            if 'set_review' in session.keys() else None
+        return json_serializer(full_user, default=my_custom_json)
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'title': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def _get_profile_info(user_id: str="") -> str:
@@ -2849,7 +2852,6 @@ def _get_profile_info(user_id: str="") -> str:
                      'reason': 'Not logged in'})
 
     try:
-        assert False
         now = datetime.now(timezone.utc)
         # Allow passing explicit user but default to current user
         if user_id:
@@ -2870,7 +2872,8 @@ def _get_profile_info(user_id: str="") -> str:
         if not user:
             response.status = 404
             return json_serializer({'title': 'not found',
-                                    'reason': 'No matching record found'})
+                                    'reason': 'No matching record found',
+                                    'error': None})
 
         stats = Stats(user.id)
 

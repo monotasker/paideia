@@ -142,8 +142,10 @@ const getProfileInfo = async ({forSelf=false,
       status: response.status
     }
     if ( !!forSelf ) {
-      dispatch({type: "updateProfileInfo", payload: mydata})
+      dispatch({type: "updateProfileInfo", payload: mydata});
     }
+  } else {
+    mydata = response;
   }
   return mydata
 }

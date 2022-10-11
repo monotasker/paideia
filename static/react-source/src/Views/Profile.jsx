@@ -238,6 +238,8 @@ const ProfileClassInfo = ({updating, classInfo, otherClassInfo}) => {
       history.push(`join_course?course_key=${formFieldValues.profile_join_class_key}`);
   }
 
+  DEBUGGING && console.log(classInfo);
+
   return (<>
     <h3>My Class Group</h3>
     <UpdateNotice status={updating} />
@@ -629,25 +631,23 @@ const Profile = (props) => {
                     dispatch: !!viewingSelf ? dispatch : null})
     .then(info => {
       returnStatusCheck(info, props.history,
-        (info) => {
-          DEBUGGING && console.log(info);
-
-          setFirstName(info.firstName);
-          setLastName(info.lastName);
-          setUserEmail(info.email);
-          setUserTimezone(info.timezone);
-          setDailyQuota(!!info.pathsPerDay ? info.pathsPerDay : 20);
-          setWeeklyQuota(!!info.daysPerWeek ? info.daysPerWeek : 5);
-          setCurrentBadgeSet(info.currentBadgeSet);
-          setBadgeLevels(info.badgeLevels);
-          setCalendarData(info.calendar);
-          setBadgeTableData(info.badgeTableData);
-          setAnswerCounts(info.answerCounts);
-          setBadgeSetDict(info.badgeSetDict);
-          setBadgeSetMilestones(info.badgeSetMilestones);
-          setChart1Data(info.chart1Data);
-          setClassInfo(info.classInfo);
-          setOtherClassInfo(info.otherClassInfo);
+        (myinfo) => {
+          setFirstName(myinfo.firstName);
+          setLastName(myinfo.lastName);
+          setUserEmail(myinfo.email);
+          setUserTimezone(myinfo.timezone);
+          setDailyQuota(!!myinfo.pathsPerDay ? myinfo.pathsPerDay : 20);
+          setWeeklyQuota(!!myinfo.daysPerWeek ? myinfo.daysPerWeek : 5);
+          setCurrentBadgeSet(myinfo.currentBadgeSet);
+          setBadgeLevels(myinfo.badgeLevels);
+          setCalendarData(myinfo.calendar);
+          setBadgeTableData(myinfo.badgeTableData);
+          setAnswerCounts(myinfo.answerCounts);
+          setBadgeSetDict(myinfo.badgeSetDict);
+          setBadgeSetMilestones(myinfo.badgeSetMilestones);
+          setChart1Data(myinfo.chart1Data);
+          setClassInfo(myinfo.classInfo);
+          setOtherClassInfo(myinfo.otherClassInfo);
           setUpdating(false);
           /* FIXME: update course data in provider if viewing self and changed */
         },
@@ -685,7 +685,7 @@ const Profile = (props) => {
     return(
     <Row className="profile-component content-view">
       <Alert variant="danger">
-        Sorry, the requested user account does not exist.
+        Sorry, something went wrong on our end. Please report this error.
       </Alert>
     </Row>
     )
@@ -694,6 +694,14 @@ const Profile = (props) => {
     <Row className="profile-component content-view">
       <Alert variant="danger">
         You must <Link to="login">log in</Link> to view a user profile.
+      </Alert>
+    </Row>
+    )
+  } else if (!recordExists) {
+    return(
+    <Row className="profile-component content-view">
+      <Alert variant="danger">
+        Sorry, no such user exists.
       </Alert>
     </Row>
     )
