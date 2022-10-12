@@ -21,13 +21,17 @@ const Walk = () => {
     const history = useHistory();
 
     const { user, dispatch } = useContext(UserContext);
-    const [ currentPage, setCurrentPage ] = useState(walkPage || "map");
+    let myPage = walkPage;
+    if (!['domus_A', 'agora', 'ne_stoa', 'synagogue', 'bath', 'gymnasion'].includes(myPage)) {
+      myPage = "map";
+    }
+    const [ currentPage, setCurrentPage ] = useState(myPage || "map");
     const [stepData, setStepData] = useState(false);
     // console.log("STEPDATA IS");
     // console.log(stepData);
 
     useEffect(() => {
-      if ( currentPage != "map" ) {
+      if ( currentPage !== "map" ) {
         // console.log("###############");
         // console.log("setting step on Walk refresh");
         const myStep = !!walkStep ? walkStep : null;
@@ -45,7 +49,7 @@ const Walk = () => {
 
     const goToLocation = async ({newLoc=null, retrying=false}) => {
       setCurrentPage(newLoc);
-      if ( newLoc != "map" ) {
+      if ( newLoc !== "map" ) {
         getPromptData({location: newLoc, repeat: retrying})
         .then(stepfetch => {
           returnStatusCheck(stepfetch, history,
