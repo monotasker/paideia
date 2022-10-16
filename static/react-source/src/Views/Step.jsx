@@ -75,6 +75,26 @@ const Instructions = ({instructions}) => {
   return icons;
 }
 
+const MoreSampleAnswers = ({answers}) => {
+  return(
+    <OverlayTrigger placement="top" trigger="click" rootClose
+      overlay={
+        <Popover id="more-answers-tooltip" >
+          <Popover.Header>More examples of correct responses</Popover.Header>
+          <Popover.Body>
+            <ul>
+              {answers.map((answer) => <li key={answer}>{answer}</li>)}
+            </ul>
+          </Popover.Body>
+        </Popover>
+    }>
+      <a className='more-answers-icon'>
+        <FontAwesomeIcon  icon="lightbulb" /> More examples
+      </a>
+    </OverlayTrigger>
+  )
+}
+
 const Slidedecks = ({decks}) => {
   return(
     <OverlayTrigger placement="top" trigger="click" rootClose
@@ -330,6 +350,9 @@ const Step = (props) => {
               <p dangerouslySetInnerHTML={{
                   __html: !!evalText ? DOMPurify.sanitize(marked(evalText)) : "" }}
               />
+              {!!stepData.readable_long && stepData.readable_long.length > 0 &&
+                <MoreSampleAnswers answers={stepData.readable_long} />
+              }
             </div>
           </CSSTransition>
         </Row>

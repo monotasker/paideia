@@ -163,26 +163,95 @@ def download():
     return mystream
 
 
-def get_prompt():
+def walk():
+    """
+    The public api endpoint for getting and evaluating learning interactions.
+
+    GET requests return data to begin an interaction (the step prompt).
+        (Returns the return value of _get_prompt.)
+
+    POST requests submit the user response to an interaction and return the
+        evaluation. (Returns the return value of _evaluate_answer.)
+
+    PUT requests are used to adjust the settings for the interaction session. If
+        a `review_set` request variable is supplied, this returns the return
+        value of _set_review_mode.
+
+    DELETE method is not currently implemented
+
+    :returns: A JSON parseable string representing the body of the http
+              response. Keys and content are determined by the function
+              to which the request method is routed.
+    :rtype: str
+    """
+    try:
+        if request.method == 'POST':
+            return _evaluate_answer(**request.vars)
+        if request.method == 'PUT':
+            if request.vars['review_set']:
+                return _set_review_mode(request.vars['review_set'])
+            else:
+                pass
+        # if request.method == 'DELETE':
+        #     pass
+        if request.method == 'GET':
+            return _get_prompt(**request.vars)
+        else:
+            response = current.response
+            response.status = 400
+            # not using POST method
+            return json_serializer({'title': 'bad request',
+                        'reason': f'${request.method} not a valid method ' \
+                                'for this endpoint',
+                        'error': None})
+    except Exception:
+        response = current.response
+        print_exc()
+        response.status = 500
+        return json_serializer({'title': 'internal server error',
+                                'reason': 'Unknown error in function api.queries',
+                                'error': format_exc()})
+
+
+def _get_prompt(loc: str,
+                repeat: str="false", set_review: str="null",
+                path: str="null", step: str="null",
+                set_blocks: str="null", new_user: str="false",
+                testing: str="false") -> str:
     """
     Return the data to begin a step interaction.
 
-    Private api method to handle calls from the react front-end.
+    Parameters are all strings since they are submitted as url query parameters
 
-    Expects the following variables in the call payload ()
-        loc: str
-        repeat: bool = False
-        response_string: str
-        set_review: bool
-        path: int = None
-        step: int = None
-        set_blocks: Dict = None
-        new_user: bool = false
-        pre_bug_step_id: int = None
-        testing: bool = False
+    :param str loc:         String slug for the current map location in which
+                            a step is being requested. (Required. No default value.)
+    :param str repeat:      If "true", indicates that the returned interaction
+                            should be a repeat attempt at the user's previous
+                            step (defaults to "false").
+    :param str set_review:  A string representation of the integer "badge set"
+                            number to be used if the interaction is to be
+                            chosen from that set for review (defaults to "null").
+    :param str path:        A string representation of the integer id of the
+                            path from which the returned interaction should be
+                            selected if the automated step selection is to be
+                            overridden (defaults to "null").
+    :param str step:        A string representation of the integer id of the
+                            step interaction to be returned if the automated
+                            step selection is to be overridden (defaults to
+                            "null").
+    :param str set_blocks:  A json object string containing any blocks that
+                            should be set prior to selecting the interaction to
+                            return (defaults to "null").
+    :param str new_user:    If "true", indicates that a fresh user record
+                            should be created and used before returning the
+                            interaction (defaults to "false").
+    :param str testing:     If "true", indicates that the interaction is being
+                            requested for testing purposes and should not be
+                            recorded normally in the current user's record
+                            (defaults to "false").
 
-    Returns:
-        JSON object with the following keys:
+    :returns: A JSON parseable string with the data to begin one interaction.
+        The JSON object will have the following keys:
 
         audio: dict
         bg_image: string
@@ -202,91 +271,119 @@ def get_prompt():
         pid: int
         new_content: bool
         paideia_vbs: ???
+
+    :rtype: str
     """
     auth = current.auth
     session = current.session
     if auth.is_logged_in():
-        myloc = request.vars.loc
-        new_user = request.vars.new_user
-        stepargs = {'path': None,
-                    'step': None,
-                    'response_string': None,
-                    'set_blocks': None,
-                    'repeat': False
+        stepargs = {'path': int(path) if path!="null" else None,
+                    'step': int(path) if path!="null" else None,
+                    'set_blocks': json.loads(set_blocks) if
+                        set_blocks!="null" else None,
+                    'repeat': True if repeat=="true" else False,
+                    # TODO: new_user not implemented in paideia module
+                    # 'new_user': True if testing=="true" and
+                    #     new_user=="true" else False
                     }
-        for k, v in request.vars.items():
-            if k in stepargs.keys() \
-                    and k not in ['loc', 'new_user', 'response_string']:
-                stepargs[k] = v
-        # handle setting of 'loc' or 'new_user' in testing scenario
-        if request.vars['testing'] is True:
-            # stepargs['loc'] = request.vars['loc']
-            if request.vars['new_user'] is True:
-                stepargs['new_user'] = request.vars['new_user']
 
         # handle setting of badge set review level
-        if session.set_review and session.set_review > 0:
+        if set_review!="null":
+            set_review==int(set_review)
+        elif session.set_review and session.set_review > 0:
             stepargs['set_review'] = session.set_review
         else:
             stepargs['set_review'] = False
-        resp = Walk(new_user=new_user).start(myloc, **stepargs)
+
+        resp = Walk(new_user=new_user).start(loc, **stepargs)
         return json_serializer(resp)
     else:
-        response = current.response
-        response.status = 401
+        current.response.status = 401
         return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
 
-def set_viewed_slides():
+def _evaluate_answer(loc: str, response_string: str,
+                     pre_bug_step_id: Union[int, None], repeat: bool=False):
     """
-    Sets a user's "viewed_slides" value of the stored session data to True
-    """
-    auth = current.auth
-    if auth.is_logged_in():
-        # find the current user's session data
-        db(db.session_data.name == auth.user_id
-           ).update(viewed_slides=True)
-        # update the "viewed_slides" value
-        db.commit()
-        return json_serializer({'message': 'set "viewed_slides" to "True"'})
-    else:
-        response = current.response
-        response.status = 401
-        return json_serializer({'title': 'unauthorized',
-                     'reason': 'Not logged in'})
+    Evaluate a user's answer to a step interaction and return response data.
 
+    :param str loc:
+    :param str response_string:
+    :param Union[int, None] pre_bug_step_id:
+    :param bool repeat:
 
-def evaluate_answer():
-    """
-    Private api method to handle calls from the react front-end.
+    :returns: A JSON parseable string with the data for presenting the
+              evaluation of the user's answer.
+
+        Keys for the JSON object are:
+
+        audio: dict         Data for presenting an audio recording of the npc's response.
+        bg_image: str       The path and filename for the image for the current location background.
+        bugreporter: dict
+        category: int
+        completed_count: int
+        eval_text: str
+        hints: list
+        instructions: list
+        loc: str
+        new_content: bool
+        npc_image: str      The path and filename for the image for the current npc.
+        paideia_debug: str  A possible system debugging message.
+        pid: int            The id of the path to which the current step belongs.
+        prompt_text: str    The text of the npc's response message giving the evaluation
+        readable_long: list     Additional sample correct answers (strings).
+        response_buttons: list  A list of strings indicating which action buttons should be presented for the user (possible values: "map", "retry", "continue").
+        score: float        The score (out of 1.0) awarded for the user's answer.
+        sid: int            The id of the step for which this answer was being evaluated.
+        slidedecks: dict    A dictionary with integer `lesson_position` values for the `lessons` table entries as keys, and lesson titles as values.
+        times_right: 1
+        times_wrong: 0
+        user_response: str  The text of the answer the user submitted.
+        widget_img: str     The path and filename for the image used in the step prompt (if any)
+
+    :rtype: str
     """
     auth = current.auth
     session = current.session
     if auth.is_logged_in():
-        myloc = request.vars.loc
-        new_user = False
+        new_user = False  # TODO: implement this
         stepargs = {'path': None,
-                    'response_string': request.vars.response_string,
-                    'set_blocks': None
+                    'response_string': response_string,
+                    'set_blocks': None,
+                    'pre_bug_step_id': pre_bug_step_id,
+                    'repeat': repeat
                     }
-        for k, v in request.vars.items():
-            if k in stepargs.keys() \
-                    and k not in ['loc', 'new_user']:
-                stepargs[k] = v
         if session.set_review and session.set_review > 0:
             stepargs['set_review'] = session.set_review
         else:
             stepargs['set_review'] = False
-        resp = Walk(new_user=new_user).start(myloc, **stepargs)
+
+        resp = Walk(new_user=new_user).start(loc, **stepargs)
+        # Adjust keys to make response data clearer
         resp['eval_text'] = copy(resp['prompt_text'])
-        resp['prompt_text'] == None
+        resp['prompt_text'] = None
         return json_serializer(resp)
     else:
-        response = current.response
-        response.status = 401
+        current.response.status = 401
         return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
+
+
+def set_review_mode():
+    """
+    Api method to set the user's review mode.
+
+    Expects one argument: "review_set"
+    """
+    session = current.session
+    try:
+        myset = int(request.vars['review_set'])
+    except (ValueError, TypeError):  # if passed a non-numeric value
+        myset = None
+    session.set_review = myset
+
+    return json_serializer({'review_set': session.set_review})
 
 
 def _fetch_other_coursedata(uid, current_class, mydatetime):
@@ -2699,21 +2796,6 @@ def get_lessons():
     return json_serializer(lessons)
 
 
-def set_review_mode():
-    """
-    Api method to set the user's review mode.
-
-    Expects one argument: "review_set"
-    """
-    session = current.session
-    try:
-        myset = int(request.vars['review_set'])
-    except (ValueError, TypeError):  # if passed a non-numeric value
-        myset = None
-    session.set_review = myset
-
-    return json_serializer({'review_set': session.set_review})
-
 def users():
     """
     Api endpoint for operations related to user information.
@@ -2758,6 +2840,25 @@ def users():
         return json_serializer({'title': 'internal server error',
                                 'reason': 'Unknown error in function api.queries',
                                 'error': format_exc()})
+
+
+def set_viewed_slides():
+    """
+    Sets a user's "viewed_slides" value of the stored session data to True
+    """
+    auth = current.auth
+    if auth.is_logged_in():
+        # find the current user's session data
+        db(db.session_data.name == auth.user_id
+           ).update(viewed_slides=True)
+        # update the "viewed_slides" value
+        db.commit()
+        return json_serializer({'message': 'set "viewed_slides" to "True"'})
+    else:
+        response = current.response
+        response.status = 401
+        return json_serializer({'title': 'unauthorized',
+                     'reason': 'Not logged in'})
 
 
 def get_userdata():

@@ -3482,10 +3482,10 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        expected = b'<img src="/paideia/static/images/' \
-            b'images.image.a23c309d310405ba.' \
-            b'70656f706c655f616c6578616e6465722e737667.svg" />'
-        actual = mynpc.get_image().xml()
+        expected = '/paideia/static/images/' \
+            'images.image.a569c83a07937bc4.' \
+            '70656f706c655f616c6578616e6465722e737667.svg'
+        actual = mynpc.get_image()
         assert actual == expected
 
     def test_npc_get_locations(self, mynpc):
@@ -3586,26 +3586,13 @@ class TestStep():
            7: 'Greek Words I'},
           None,  # widget image
           [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" '
-          'id="no_table_'
-          'response__label">Response: </label></td><td class="w2p_fw">'
-          '<input class="string" id="no_table_response" name="response" '
-          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;">'
-          '<input name="pre_bug_step_id" '
-          'type="hidden" value="1" /></div></form>',
+          {'form_type': 'text', 'values': None},
           None,  # kwargs
-          {'audio_args_for_js': "{'title': '', "
-           "'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a'"
-           "}",
-           'ogg': None,
-           'media_supplied': 'm4a',
-           'mp3': '', 'title': 'StepPrompt0001'},  # audio
+          {'download_path': '/paideia/default/download.load/',
+           'm4a': 'audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a',
+           'oga': None,
+           'mp3': None,
+           'title': 'StepPrompt0001'},  # audio
           ),
          ('case2', 2,  # StepText ------------------------------
           'agora',
@@ -3616,25 +3603,12 @@ class TestStep():
            7: 'Greek Words I'},
           None,  # widget image
           [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" '
-          'id="no_table_'
-          'response__label">Response: </label></td><td class="w2p_fw">'
-          '<input class="string" id="no_table_response" name="response" '
-          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;">'
-          '<input name="pre_bug_step_id" '
-          'type="hidden" value="2" /></div></form>',
+          {'form_type': 'text', 'values': None},
           None,  # kwargs
-          {'audio_args_for_js': "{'title': '',"
-           " 'm4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a'"
-           "}",
-           'ogg': None, 'media_supplied': 'm4a',
-           'mp3': '',
+          {'download_path': '/paideia/default/download.load/',
+           'm4a': 'audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a',
+           'oga': None,
+           'mp3': None,
            'title': 'StepPrompt0002'},  # audio
           ),
          ('case2', 19,  # StepText ------------------------------
@@ -3648,25 +3622,13 @@ class TestStep():
           {3: 'The Alphabet II', 8: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" '
-          'id="no_table_'
-          'response__label">Response: </label></td><td class="w2p_fw">'
-          '<input class="string" id="no_table_response" name="response" '
-          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;">'
-          '<input name="pre_bug_step_id" '
-          'type="hidden" value=".*" /></div></form>',
+          {'form_type': 'text', 'values': None},
           None,  # kwargs
-          {'audio_args_for_js': "{'title': '', "
-           "'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a'"
-           "}",
-           'ogg': None, 'media_supplied': 'm4a',
-           'mp3': '', 'title': 'StepPrompt0019'},  # audio
+          {'download_path': '/paideia/default/download.load/',
+           'm4a': 'audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a',
+           'oga': None,
+           'mp3': None,
+           'title': 'StepPrompt0019'},  # audio
           ),  # will redirect (currently no case works for step 19)
          ('case1', 30,  # StepRedirect ------------------------------
           'shop_of_alexander',
@@ -3690,25 +3652,7 @@ class TestStep():
           {14: 'Clause Basics'},
           None,  # widget image
           [],  # response buttons
-          r'<form action="#" enctype="multipart/form-data" '
-          'method="post"><table>'
-          '<tr id="no_table_response__row"><td class="w2p_fl"><label class="" '
-          'for="no_table_response" id="no_table_response__label">Response: '
-          '</label></td><td class="w2p_fw"><table '
-          'class="generic-widget web2py_radiowidget" '
-          'id="no_table_response" name="response"><tr><td><input '
-          'id="responseναι" name="response" type="radio" '
-          'value="ναι" /><label for="responseναι">ναι</label></td></tr><tr>'
-          '<td><input id="responseοὐ" name="response" '
-          'type="radio" value="οὐ" /><label for="responseοὐ'
-          '">οὐ</label></td></tr>'
-          '</table>'
-          '</td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td '
-          'class="w2p_fl"></td><td class="w2p_fw"><input type="submit" '
-          'value="Submit" /></td><td class="w2p_fc"></td></tr></table>'
-          '<div style="display:none;"><input name="_formkey" type="hidden" '
-          'value=".*" /><input name="_formname" type="hidden" '
-          'value="no_table/create" /></div></form>',
+          {'form_type': 'radio', 'values': ['ναι', 'οὐ']},
           None,  # kwargs
           None,  # audio
           ),
@@ -3728,14 +3672,19 @@ class TestStep():
          ('case2', 126,  # StepAwardBadges ------------------------------
           'agora',
           [1, 14, 17, 40, 41, 42],  # npcs here
-          'Congratulations, Homer! \r\n'  # prompt text
-          'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n'  # FIXME: message order is wrong
-          '\r\n'
-          ' and you\'re ready to start working on some new badges:\r\n'
-          '- beginner alphabet (intermediate)\r\n'
-          'You can click on your name above to see details '
-          'of your progress so far.',
+          '<div class="new-badge-message">\r\n'
+          '<span class="new-badge-congrats">'
+          'Congratulations, <span class="user-name">Homer</span>!</span>\r\n'
+          '<span class="promoted-list-intro">You can start working on new levels for these badges:</span>'
+          '<ul class="promoted-badges-list">'
+          '<li class="apprentice"><button name="alphabet basics" class="btn btn-link" value="2">alphabet basics (apprentice)</button></li></ul>\r\n'
+          '<span class="new-list-intro"> and you\'re ready to start working on some new badges:</span>'
+          '<ul class="new-badges-list">'
+          '<li class="beginner"><button name="alphabet (intermediate)" value="3" class="btn btn-link">alphabet (intermediate) (beginner)</button></li></ul>\r\n'
+          '<p class="check-progress alert alert-success">'
+          'You can click on the profile link beside your name in the top navigation menu to see details of your progress so far.</p>\r\n'
+          '<div class="badges-explanation alert alert-info"><h5>What are badges?</h5>Each badge covers one part of the Greek language. For each part of Greek, you begin by earning a "beginner" badge. Then you can progress into more in-depth levels of that badge: apprentice, journeyman and expert.</div>\r\n'
+          '</div>',
           None,  # instructions
           None,  # slide decks
           None,  # widget image
@@ -3748,12 +3697,23 @@ class TestStep():
          ('case3', 126,  # StepAwardBadges ------------------------------
           'synagogue',
           [31, 32],  # npcs here
-          'Congratulations, Homer! \r\n'  # prompt text
-          'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n'
+          '<div class="new-badge-message">\r\n'
+          '<span class="new-badge-congrats">Congratulations, <span '
+          'class="user-name">Homer</span>!</span>\r\n'
+          '<span class="promoted-list-intro">You can start working on new levels for '
+          'these badges:</span><ul class="promoted-badges-list"><li '
+          'class="apprentice"><button name="alphabet basics" class="btn btn-link" '
+          'value="2">alphabet basics (apprentice)</button></li></ul>\r\n'
           '\r\n'
-          'You can click on your name above to see details '
-          'of your progress so far.',
+          '<p class="check-progress alert alert-success">You can click on the profile '
+          'link beside your name in the top navigation menu to see details of your '
+          'progress so far.</p>\r\n'
+          '<div class="badges-explanation alert alert-info"><h5>What are '
+          'badges?</h5>Each badge covers one part of the Greek language. For each part '
+          'of Greek, you begin by earning a "beginner" badge. Then you can progress '
+          'into more in-depth levels of that badge: apprentice, journeyman and '
+          'expert.</div>\r\n'
+          '</div>',
           None,   # instructions
           None,   # slide decks
           None,   # widget image
@@ -3765,15 +3725,27 @@ class TestStep():
          ('case2', 127,  # StepViewSlides ------------------------------
           'agora',
           [1, 14, 17, 21, 40, 41, 42],  # npcs here
-          'Take some time now to review these new slide '
-          'sets. They will help with work on your new badges:\n'
-          '- [The Alphabet II http://ianwscott.webfactional.com/paideia/'
-          'listing/slides.html/3]',
+          '<div class="new-lesson-message">\r\n'
+          '<span class="new-lesson-intro">\r\n'
+          'Take some time now to view these lessons. They will help with work on your '
+          'new badges:\r\n'
+          '</span>\r\n'
+          '\r\n'
+          '<ul class="new-lesson-list">\r\n'
+          '<li><a href="/paideia/videos/13" target="_blank">The Alphabet II</a></li>\r\n'
+          '</ul>\r\n'
+          '\r\n'
+          '<span class="dismiss-message">\r\n'
+          'Click below to dismiss this list and continue exploring.\r\n'
+          '</span>\r\n'
+          '<button class="btn btn-success new-lessons-dismiss">Done '
+          'watching</button>\r\n'
+          '</div>',
           # removed data-w2p_disable_with="default" from <a>
           None,  # instructions
           None,  # slide decks
           None,  # widget image
-          ['map'],  # response buttons
+          ['map', 'continue'],  # response buttons
           None,  # response form
           {'new_tags': {'rev1': [62]}},  # kwargs
           None,  # audio
@@ -3816,18 +3788,16 @@ class TestStep():
             assert actual['slidedecks']
         assert actual['widget_img'] == widgimg  # FIXME: add case with image
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
-        assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        assert actual['npc_image'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
             print('ACTUAL')
             print(actual['response_form'])
             print('EXPECTED')
             print(rform)
-            print('DIFF')
-            act = actual['response_form'].xml().splitlines(1)
-            pprint(list(Differ().compare(act, rform.splitlines(1))))
-            assert re.match(rform,
-                            actual['response_form'
-                                   ].xml().decode('utf8'))
+            # print('DIFF')
+            # act = actual['response_form']
+            # pprint(list(Differ().compare(act, rform)))
+            assert rform == actual['response_form']
         elif rform:
             pprint(actual['response_form'])
             assert actual['response_form']
@@ -3909,7 +3879,7 @@ class TestStep():
         assert actual.get_name() == npcindb.name
         imageid = npcindb.npc_image
         imagesrc = '/paideia/static/images/{}'.format(db.images(imageid).image)
-        assert actual.get_image().xml() == IMG(_src=imagesrc).xml()
+        assert actual.get_image() == imagesrc
         for l in actual.get_locations():
             assert l in npcindb.map_location
 
@@ -3963,14 +3933,14 @@ class TestStep():
           'μιτ',
           ['μιτ'],
           [],
-          'Right. Κάλον.\nYou said\n- [[resp]]',
+          'Right. Κάλον.\n\nYou said\n- [[resp]]',
           ['Focus on finding Greek letters that make '  # instrs
            'the *sounds* of the English word. Don\'t '
            'look for Greek "equivalents" for each '
            'English letter.'],
-          {16: 'Introduction',  # slides
-           21: 'The Alphabet',
-           18: 'Noun Basics'},
+          {11: 'Introduction',   # slides
+           12: 'The Alphabet',
+           15: 'Noun Basics'},
           None,  # tips
           ),
          (1,  # step1, incorrect
@@ -3980,16 +3950,16 @@ class TestStep():
           'βλα',
           ['μιτ'],
           [],
-          'Incorrect. Try again!\nYou '
-          'said\n- [[resp]]\nThe correct '
+          'Incorrect. Try again!\n\nYou '
+          'said\n- [[resp]]\n\nThe correct '
           'response is[[rdbl]]',
           ['Focus on finding Greek letters that make '  # instrs
            'the *sounds* of the English word. Don\'t '
            'look for Greek "equivalents" for each '
            'English letter.'],
-          {16: 'Introduction',  # slides
-           21: 'The Alphabet',
-           18: 'Noun Basics'},
+          {11: 'Introduction',   # slides
+           12: 'The Alphabet',
+           15: 'Noun Basics'},
           None,  # tips
           ),
          (2,  # step2, correct
@@ -3999,13 +3969,14 @@ class TestStep():
           'βοτ',
           ['βατ', 'βοτ'],
           [],
-          'Right. Κάλον.\nYou said\n- '
-          '[[resp]]\nCorrect responses '
+          'Right. Κάλον.\n\n'
+          'You said\n- '
+          '[[resp]]\n\nCorrect responses '
           'would include[[rdbl]]',
           None,  # instrs
-          {16: 'Introduction',  # slides
-           21: 'The Alphabet',
-           18: 'Noun Basics'},
+          {11: 'Introduction',   # slides
+           12: 'The Alphabet',
+           15: 'Noun Basics'},
           None,  # tips
           ),
          (2,  # step2, incorrect
@@ -4015,13 +3986,13 @@ class TestStep():
           'βλα',
           ['βατ', 'βοτ'],
           [],
-          'Incorrect. Try again!\nYou '
-          'said\n- [[resp]]\nCorrect responses '
+          'Incorrect. Try again!\n\nYou '
+          'said\n- [[resp]]\n\nCorrect responses '
           'would include[[rdbl]]',
           None,  # instrs
-          {16: 'Introduction',  # slides
-           21: 'The Alphabet',
-           18: 'Noun Basics'},
+          {11: 'Introduction',   # slides
+           12: 'The Alphabet',
+           15: 'Noun Basics'},
           None,  # tips
           ),
          (101,  # step 101, correct
@@ -4031,9 +4002,10 @@ class TestStep():
           'ναι',
           ['ναι'],
           [],
-          'Right. Κάλον.\nYou said\n- [[resp]]',
+          'Right. Κάλον.\n\n'
+          'You said\n- [[resp]]',
           None,  # instrs
-          {28: 'Clause Basics'},  # slides
+          {26: 'Clause Basics'},  # slides
           None,  # tips
           ),
          (101,  # step 101, incorrect
@@ -4043,11 +4015,11 @@ class TestStep():
           'οὐ',
           ['ναι'],
           [],
-          'Incorrect. Try again!\nYou '
-          'said\n- [[resp]]\nThe correct '
+          'Incorrect. Try again!\n\nYou '
+          'said\n- [[resp]]\n\nThe correct '
           'response is[[rdbl]]',
           None,  # instrs
-          {28: 'Clause Basics'},  # slides
+          {26: 'Clause Basics'},  # slides
           None,  # tips
           ),
          ])  # only StepText and StepMultiple types
@@ -4074,7 +4046,7 @@ class TestStep():
         print('ACTUAL\n')
         pprint(actual['slidedecks'])
         if replytext[:21] == "Incorrect. Try again!":
-            slugs = ["That's not it. Try again!", 
+            slugs = ["That's not it. Try again!",
                      "Hm. Give it another try!",
                      "Good effort, but that's not right. Try again!"]
             replytexts = ["{}{}".format(s, replytext[21:]) for s in slugs]
@@ -4082,7 +4054,7 @@ class TestStep():
         else:
             assert actual['prompt_text'] == replytext
         assert actual['readable_long'] == rdbllong
-        assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        assert actual['npc_image'] == npc_data[npc.get_id()]['image']
         assert actual['audio'] is None
         assert actual['widget_img'] is None
         assert actual['instructions'] == instrs
@@ -4106,7 +4078,7 @@ class TestStepEvaluator():
         [(1,
           {'response1': '^μιτ$'},
           'μιτ',
-          'Right. Κάλον.',
+          'Right. Κάλον.\n',
           1,  # score
           1,  # times right
           0,  # times wrong
@@ -4115,7 +4087,7 @@ class TestStepEvaluator():
          (1,
           {'response1': '^μιτ$'},
           'βλα',
-          'Incorrect. Try again!',
+          'Incorrect. Try again!\n',
           0,  # score
           0,  # times right
           1,  # times wrong
@@ -4124,7 +4096,7 @@ class TestStepEvaluator():
          (2,
           {'response1': '^β(α|ο)τ$'},
           'βοτ',
-          'Right. Κάλον.',
+          'Right. Κάλον.\n',
           1,  # score
           1,  # times right
           0,  # times wrong
@@ -4133,7 +4105,7 @@ class TestStepEvaluator():
          (2,
           {'response1': '^β(α|ο)τ$'},
           'βλα',
-          'Incorrect. Try again!',
+          'Incorrect. Try again!\n',
           0,  # score
           0,  # times right
           1,  # times wrong
@@ -4142,7 +4114,7 @@ class TestStepEvaluator():
          (19,
           {'response1': '^πωλ$'},  # regexes
           'πωλ',
-          'Right. Κάλον.',
+          'Right. Κάλον.\n',
           1,  # score
           1,  # times right
           0,  # times wrong
@@ -4151,7 +4123,7 @@ class TestStepEvaluator():
          (19,
           {'response1': '^πωλ$'},  # regexes
           'βλα',
-          'Incorrect. Try again!',
+          'Incorrect. Try again!\n',
           0,  # score
           0,  # times right
           1,  # times wrong
@@ -4163,10 +4135,10 @@ class TestStepEvaluator():
         """Unit tests for StepEvaluator.get_eval() method."""
         actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
         assert actual['score'] == score
-        if rtext == "Incorrect. Try again!":
-            slugs = ["That's not it. Try again!", 
-                     "Hm. Give it another try!",
-                     "Good effort, but that's not right. Try again!"]
+        if rtext == "Incorrect. Try again!\n":
+            slugs = ["That's not it. Try again!\n",
+                     "Hm. Give it another try!\n",
+                     "Good effort, but that's not right. Try again!\n"]
             assert actual['reply'] in slugs
         else:
             assert actual['reply'] == rtext
@@ -4191,7 +4163,7 @@ class TestMultipleEvaluator():
         [(101,
           {'response1': 'ναι'},
           'ναι',
-          'Right. Κάλον.',
+          'Right. Κάλον.\n',
           1,  # score
           1,  # times right
           0,  # times wrong
@@ -4200,7 +4172,7 @@ class TestMultipleEvaluator():
          (101,
           {'response1': 'ναι'},
           'οὐ',
-          'Incorrect. Try again!',
+          'Incorrect. Try again!\n',
           0,  # score
           0,  # times right
           1,  # times wrong
@@ -4212,10 +4184,10 @@ class TestMultipleEvaluator():
         """Unit tests for multipleevaluator.get_eval() method."""
         actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
         assert actual['score'] == score
-        if rtext == "Incorrect. Try again!":
-            slugs = ["That's not it. Try again!", 
-                     "Hm. Give it another try!",
-                     "Good effort, but that's not right. Try again!"]
+        if rtext == "Incorrect. Try again!\n":
+            slugs = ["That's not it. Try again!\n",
+                     "Hm. Give it another try!\n",
+                     "Good effort, but that's not right. Try again!\n"]
             assert actual['reply'] in slugs
         else:
             assert actual['reply'] == rtext
@@ -6216,26 +6188,12 @@ class TestWalk():
           {3: 'The Alphabet II', 8: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" '
-          'id="no_table_'
-          'response__label">Response: </label></td><td class="w2p_fw">'
-          '<input class="string" id="no_table_response" name="response" '
-          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;">'
-          '<input name="pre_bug_step_id" '
-          'type="hidden" value="19" /></div></form>',
+          {'form_type': 'text', 'values': None},
           True,  # replystep
-          {'audio_args_for_js': "{'title': '', "
-           "'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a'"
-           "}",
-           'media_supplied': 'm4a',
-           'mp3': '',
-           'ogg': None,
+          {'download_path': '/paideia/default/download.load/',
+           'm4a': 'audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a',
+           'mp3': None,
+           'oga': None,
            'title': 'StepPrompt0019'}  # audio
           ),
          (19,  # path # case2 ===============================================
@@ -6267,26 +6225,12 @@ class TestWalk():
           {3: 'The Alphabet II', 8: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" '
-          'id="no_table_'
-          'response__label">Response: </label></td><td class="w2p_fw">'
-          '<input class="string" id="no_table_response" name="response" '
-          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;">'
-          '<input name="pre_bug_step_id" '
-          'type="hidden" value="19" /></div></form>',
+          {'form_type': 'text', 'values': None},
           True,  # replystep
-          {'audio_args_for_js': "{'title': '', "
-           "'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a'"
-           "}",
-           'media_supplied': 'm4a',
-           'mp3': '',
-           'ogg': None,
+          {'download_path': '/paideia/default/download.load/',
+           'm4a': 'audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a',
+           'mp3': None,
+           'oga': None,
            'title': 'StepPrompt0019'}  # audio
           ),
          (89,  # path # case2=================================================
@@ -6340,26 +6284,12 @@ class TestWalk():
            7: 'Greek Words I'},
           None,  # widget image
           [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row"><td '
-          'class="w2p_fl"><label class="" for="no_table_response" '
-          'id="no_table_response__label">Response: </label></td><td '
-          'class="w2p_fw"><input class="string" id="no_table_response" '
-          'name="response" type="text" value="" /></td><td class="w2p_fc">'
-          '</td>'
-          '</tr><tr id="submit_record__row"><td class="w2p_fl"></td><td '
-          'class="w2p_fw"><input type="submit" value="Submit" /></td><td '
-          'class="w2p_fc"></td></tr></table><div style="display:none;">'
-          '<input name="pre_bug_step_id" type="hidden" value="1" /></div>'
-          '</form>',
+          {'form_type': 'text', 'values': None},
           True,  # replystep
-          {'audio_args_for_js': "{'title': '', "
-           "'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a'"
-           "}",
-           'media_supplied': 'm4a',
-           'mp3': '',
-           'ogg': None,
+          {'download_path': '/paideia/default/download.load/',
+           'm4a': 'audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a',
+           'mp3': None,
+           'oga': None,
            'title': 'StepPrompt0001'}  # audio
           ),
          # (3,  # path # case1=================================================
@@ -6491,7 +6421,7 @@ class TestWalk():
         assert actual['completed_count'] == 0  # since reply not yet sent
         assert actual['category'] is None
         if not isinstance(actual['prompt_text'], str):
-            assert re.match(promptext, actual['prompt_text'].xml())
+            assert actual['prompt_text'] == promptext
         else:
             assert re.match(promptext, actual['prompt_text'])
         assert actual['instructions'] == instrs
@@ -6505,9 +6435,9 @@ class TestWalk():
         # assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
             print('actual["response_form"]:\n',
-                  str(actual['response_form'].xml().decode('utf8')))
+                  actual['response_form'])
             print('rform:\n', rform)
-            assert re.match(rform, actual['response_form'].xml().decode('utf8'))
+            assert actual['response_form'] == rform
         elif rform:
             # pprint(actual['response_form'])
             assert actual['response_form']
@@ -6571,13 +6501,13 @@ class TestWalk():
            'cat3': [], 'cat4': [],
            'rev1': [62, 63, 68, 115, 72, 89, 36], 'rev2': [61, 66],
            'rev3': [], 'rev4': []},
-          'Right. Κάλον.\nYou said\n- πωλ\n',  # -----------------correct reply
-          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong
+          'Right. Κάλον.\n\nYou said\n- πωλ\n',  # -----------------correct reply
+          'Incorrect. Try again!\n\nYou said\n- βλα\n\nThe correct '  # --wrong
             'response is\n- πωλ',
           ['Focus on finding Greek letters that make the *sounds* '  # instr
            'of the English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
-          {20: 'The Alphabet II'},  # --slide decks
+          {13: 'The Alphabet II'},  # --slide decks
           [],  # ---------------------------------------------response buttons
           ['πωλ'],  # ----------------------------------------readable short
           [],  # ---------------------------------------------readable long
@@ -6722,7 +6652,7 @@ class TestWalk():
         assert a['sid'] == stepid
         assert a['pid'] == pathid
         if reply_text[:21] == "Incorrect. Try again!":
-            slugs = ["That's not it. Try again!", 
+            slugs = ["That's not it. Try again!",
                      "Hm. Give it another try!",
                      "Good effort, but that's not right. Try again!"]
             replytexts = ["{}{}".format(s, reply_text[21:]) for s in slugs]
@@ -7007,10 +6937,10 @@ class TestPathChooser():
 
         print('cat:', cat)
         # get expected paths from db based on category actually used
-        exp_stepids = [s.id for s in 
+        exp_stepids = [s.id for s in
                      db(db.steps.tags.contains(exp_tags)
                         ).iterselect(db.steps.id)]
-        expected= [row['id'] for row in 
+        expected= [row['id'] for row in
                      db(db.paths.steps.contains(exp_stepids)
                         ).iterselect(db.paths.id)]
         print('expected:', expected)

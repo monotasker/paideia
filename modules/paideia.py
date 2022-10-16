@@ -217,8 +217,7 @@ class Walk(object):
             step=None, set_blocks=None, recategorize=None, set_review=None):
         """
         Return the information necessary to initiate a step interaction.
-        The "path" argument is used only for dependency injection during
-        unit testing.
+
         In the returned dictionary, 'reply' item has the following dict as its
         value:
             'prompt':
@@ -916,9 +915,12 @@ class Npc(object):
         """return the name of the current npc"""
         return self.data['name']
 
-    def get_image(self, db=None):
+    def get_image(self):
         """
         Return a URL string for the current npc character image.
+
+        :returns: a URL string for the current npc character image
+        :rtype: str
         """
         img = URL('paideia', 'static', 'images/{}'.format(self.image))
         return img

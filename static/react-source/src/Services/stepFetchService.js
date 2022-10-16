@@ -4,26 +4,22 @@ import { doApiCall } from "../Services/utilityService";
 
 const getPromptData = async ({location=null,
                               repeat=false,
-                              response_string=null,
-                              set_review=false,
+                              set_review=null,
                               path=null,
                               step=null,
                               set_blocks=null,
                               new_user=false,
-                              pre_bug_step_id=null,
                               testing=false}) => {
   return(
     doApiCall({loc: location,
                repeat: repeat,
-               response_string: response_string,
                set_review: set_review,
                path: path,
                step: step,
                set_blocks: set_blocks,
                new_user: new_user,
-               pre_bug_step_id: pre_bug_step_id,
                testing: testing},
-              "get_prompt", "JSON", "POST")
+              "walk", "queryString", "GET")
   )
 }
 
@@ -37,7 +33,7 @@ const evaluateAnswer = async ({location=null,
     doApiCall({loc: location, repeat: repeat,
               response_string: response_string,
               pre_bug_step_id: pre_bug_step_id},
-              "evaluate_answer", "JSON", "POST")
+              "walk", "JSON", "POST")
   )
 }
 
