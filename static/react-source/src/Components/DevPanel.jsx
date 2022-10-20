@@ -52,7 +52,8 @@ const PathTestForm = ({setStepData}) => {
         new_tags: vals.flagsViewLessonsTags ? vals.flagsViewLessonsTags.split(',').map(Number) : []
       };
     }
-    return(blockArray);
+    DEBUGGING && console.log(blockArray);
+    return(blockArray.length > 0 ? blockArray : null);
   }
 
   return(

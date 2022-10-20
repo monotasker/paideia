@@ -80,10 +80,10 @@ const MoreSampleAnswers = ({answers}) => {
     <OverlayTrigger placement="top" trigger="click" rootClose
       overlay={
         <Popover id="more-answers-tooltip" >
-          <Popover.Header>More examples of correct responses</Popover.Header>
+          <Popover.Header>More correct responses</Popover.Header>
           <Popover.Body>
             <ul>
-              {answers.map((answer) => <li key={answer}>{answer}</li>)}
+              {answers.map((answer) => <li key={answer}><FontAwesomeIcon icon="lightbulb" size="sm" /> {answer}</li>)}
             </ul>
           </Popover.Body>
         </Popover>
@@ -134,11 +134,11 @@ const Step = (props) => {
   const [ logID, setLogID ] = useState(null);
   const [ promptZIndex, setPromptZIndex ] = useState(null);
   const [ respButtons, setRespButtons ] = useState(stepData.response_buttons);
+  const [ readableLong, setReadableLong ] = useState(null);
   const [ evaluatingStep, setEvaluatingStep ] = useState(false);
   const [ responded, setResponded ] = useState(false);
   DEBUGGING && console.log('STEPDATA IS (in Step)');
   DEBUGGING && console.log(stepData);
-  DEBUGGING && console.log(stepData.audio);
 
   useEffect(() => {
     setStepData(props.stepdata);
@@ -208,6 +208,7 @@ const Step = (props) => {
               setAnswer(mydata.user_response);
               setRespButtons(mydata.response_buttons);
               setEvalText(mydata.eval_text);
+              setReadableLong(mydata.readable_long);
           },
           dispatch)
       });
@@ -350,8 +351,8 @@ const Step = (props) => {
               <p dangerouslySetInnerHTML={{
                   __html: !!evalText ? DOMPurify.sanitize(marked(evalText)) : "" }}
               />
-              {!!stepData.readable_long && stepData.readable_long.length > 0 &&
-                <MoreSampleAnswers answers={stepData.readable_long} />
+              {!!readableLong && readableLong.length > 0 &&
+                <MoreSampleAnswers answers={readableLong} />
               }
             </div>
           </CSSTransition>

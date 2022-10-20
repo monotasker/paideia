@@ -398,6 +398,15 @@ h3                                      {font-family: $sans-fonts;
     }
 }
 
+#more-answers-tooltip                   {
+    ul                                  {margin-bottom: 0;
+        @include icon-bullet-list(inherit, 0.3rem, -1.5rem);
+        li                              {margin-left: -0.75rem;
+                                         padding-bottom: 0.25rem;
+        }
+    }
+}
+
 .badge-term-tooltip                     {
     .modal-content                      {border: 0;
     }
@@ -3239,6 +3248,20 @@ h3                                      {font-family: $sans-fonts;
                 &:before {
                     border-bottom: 0;
                     border-right: 0;
+                }
+            }
+            .more-answers-icon                      {text-decoration: none;
+                                                     color: $blueDark;
+                                                     font-size: 0.8rem;
+                                                     text-transform: lowercase;
+                                                     font-family: $sans-fonts;
+                                                     margin-left: 0.85rem;
+                                                    //  margin-top: -0.15rem;
+                                                     display: inline-block;
+                                                     cursor: pointer;
+                                                     font-weight: 700;
+                svg                                 {font-size: 0.8rem;
+                                                     margin-right: 0.2rem;
                 }
             }
 
