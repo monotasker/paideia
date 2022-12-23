@@ -4,6 +4,7 @@
 *.swo
 *.un~
 *~
+.DS_Store
 private/*
 errors/*
 sessions/*
