@@ -1958,7 +1958,7 @@ h3                                      {font-family: $sans-fonts;
                             {height:36rem;
             }
             &.slid-in           {transform: translateX(380px);
-                                 transition: all 500ms cubic-bezier(0.015, 0.140, 0.000, 1.020) 1.5s;
+                                 transition: all 500ms cubic-bezier(0.015, 0.140, 0.000, 1.020) .5s;
                 &slid-in-first  {transition-delay: 0ms;
                 }
             }
@@ -1976,7 +1976,7 @@ h3                                      {font-family: $sans-fonts;
                                     display: none;
                                     transform: scale(0.001);
         &.slid-in                   {transform: scale(1);
-                                     transition: all 500ms cubic-bezier(0.250, 1.610, 0.485, 0.905) 1.8s;
+                                     transition: all 500ms cubic-bezier(0.250, 1.610, 0.485, 0.905) .8s;
                 &slid-in-first      {transition-delay: 0.3s;
                 }
         }
@@ -2827,7 +2827,7 @@ h3                                      {font-family: $sans-fonts;
 
 .videos-component                             {flex-grow: 1;
                                                flex-direction: column;
-                                               padding-top: 0;
+                                               padding-top: 0 !important;
     .col                                      {overflow: hidden;
                                                display: flex;
                                                flex-direction: column;

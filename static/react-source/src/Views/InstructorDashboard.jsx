@@ -632,7 +632,7 @@ const InstructorDashboard = () => {
     // console.log(flags);
 
     return(
-      <Row className="dashboard-component content-view">
+      <Row className="dashboard-component">
         <Col className="dashboard-component-inner-wrapper">
           { (!user || user.userLoggedIn !== true || !!flags.notLoggedIn ) &&
               myhistory.push(`/${urlBase}/login?need_login=true`)
