@@ -785,7 +785,7 @@ h3                                      {font-family: $sans-fonts;
 //-- tools --------------------------------------------------
 
 .tools-component           {position: fixed;
-                            right: -5.25rem;
+                            right: -5.4rem;
                             top: 5rem;
                             z-index: 101;
                             box-shadow: 0 4px 2px rgba(0,0,0,0.3);
@@ -798,6 +798,8 @@ h3                                      {font-family: $sans-fonts;
                             padding-left: .25rem;
         &.btn-primary       {background-color: $nominative;
                             border-color: $nominative;}
+        svg                {margin-right: 0.5rem;
+        }
     }
 }
 
