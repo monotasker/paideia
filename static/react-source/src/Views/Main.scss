@@ -93,7 +93,7 @@ $table-background: lighten($nominative, 60%);
 //---------------------------------------------------
 // typography
 
-@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium|Shadows+Into+Light');
+@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans|Gentium+Plus|Shadows+Into+Light');
 
 @font-face {
     font-family: 'SBLGreekRegular';
@@ -110,7 +110,7 @@ $font-size-base:               1rem;
 $font-size-lg:                 $font-size-base * 1.25;
 $font-size-sm:                 $font-size-base * .8;
 $sans-fonts:                   "Open Sans", sans-serif;
-$greek-fonts:                  "Lucida Grande", Gentium, "SBLGreekRegular", Palatino, "Arial Unicode";
+$greek-fonts:                  "Gentium Plus", "SBLGreekRegular", "Lucida Grande", Palatino, "Arial Unicode";
 $title-fonts:                  "Amatic SC";
 
 .svg-inline--fa               {margin-right: 0.25rem;
