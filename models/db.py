@@ -89,7 +89,8 @@ if _i_am_running_under_test():
 # print(('--- using dbase: ', postgre['db_name'], ' ---'))
 # check_reserved makes sure no column names conflict with back-end db's
 # connect_string = 'postgres:psycopg2://{}:{}@{}/{}'.format(postgre['username'],
-connect_string = 'postgres:psycopg2://{}:{}@{}:5434/{}'.format(postgre['username'],
+connect_string = 'postgres:psycopg2://{}:{}@{}:5434/{}'.format(
+                                                          postgre['username'],
                                                           postgre['password'],
                                                           postgre['host'],
                                                           postgre['db_name'])
