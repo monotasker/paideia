@@ -1,4 +1,4 @@
-import TownMapPng from "./Images/town_map.png";
+import TownMapPng from "./Images/town_map.jpg";
 
 const urlBase = "paideia";
 const recaptchaKey = "6LcLJyoaAAAAADFtQswBddP8CICf4sXENGHBKK2-"
