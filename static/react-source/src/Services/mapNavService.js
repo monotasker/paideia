@@ -76,6 +76,7 @@ function set_svg_interactions(select_string, navFunction) {
 function make_map_pan(select_string, navFunction) {
     // Set svg map up to pan and scroll
     let mapelem = document.getElementById(select_string);
+    console.log(mapelem);
     mapelem.onload = () => {
         let mymap = null;
         const beforePan = (oldPan, newPan) => {
