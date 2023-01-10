@@ -3149,7 +3149,7 @@ h3                                      {font-family: $sans-fonts;
             overflow: hidden;
         }
         img                                     {left: -20%;
-                                                 width: 480px;
+                                                 height: 100%;
 
             @media (max-width: map-get($grid-breakpoints, lg)) {
                 margin-left: -6rem;
@@ -3246,7 +3246,7 @@ h3                                      {font-family: $sans-fonts;
             }
         }
         .eval-text                                  {background-color: $pallette1;
-                                                    left: 1rem;
+                                                    left: 0.5rem;
                                                     z-index: 6;
             &:after {                   border-right: 25px solid $pallette1;
                                         border-top: 25px solid transparent;
