@@ -199,7 +199,7 @@ def walk():
         else:
             response = current.response
             response.status = 400
-            # not using POST method
+            # not using POST or GET methods
             return json_serializer({'title': 'bad request',
                         'reason': f'${request.method} not a valid method ' \
                                 'for this endpoint',
@@ -1258,7 +1258,6 @@ def queries():
             else:
                 return _update_post_comment(**request.vars)
         if request.method == 'DELETE':
-            print(request.vars['user_id'])
             request.vars['user_id'] = int(request.vars['user_id'])
             request.vars['deleted'] = True \
                 if request.vars['deleted'] == "true" else False

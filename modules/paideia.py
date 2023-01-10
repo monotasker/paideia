@@ -883,13 +883,14 @@ class Npc(object):
         initialize an npc object with database data for the character
         with the provided id
         """
+        debug = current.paideia_DEBUG_MODE or 0
         db = current.db if not db else db
         # FIXME: this is a hack to handle being passed npc obj somewhere
         if isinstance(id_num, Npc):
             self.id_num = id_num.get_id()
         else:
             self.id_num = id_num
-        print("Npc::init: id_num is", id_num)
+        if debug: print("Npc::init: id_num is", id_num)
         self.data = db.npcs(id_num).as_dict()
         # get image here so that db interaction stays in __init__ method
         self.image_id = self.data['npc_image']
@@ -1713,10 +1714,11 @@ class StepEvaluator(object):
 
     def __init__(self, responses, tips):
         """Initializes a StepEvaluator object"""
+        debug = current.paideia_DEBUG_MODE or 0
         self.responses = responses
         self.tips = tips
-        print('responses: ====================')
-        print(self.responses)
+        if debug: print('responses: ====================')
+        if debug: print(self.responses)
 
     def get_eval(self, user_response=None):
         """
@@ -1728,7 +1730,7 @@ class StepEvaluator(object):
         Special responses (and a score of 0.9) are also given if the only error
         is the presence or absence of appropriate final punctuation.
         """
-        debug = current.paideia_DEBUG_MODE
+        debug = current.paideia_DEBUG_MODE or 0
         if not user_response:
             request = current.request
             user_response = request.vars['response']
@@ -1900,25 +1902,26 @@ class Path(object):
                         to self.step_for_reply if the restored state is mid-way
                         through completing a step.
         """
-        print('restore_position: steps are', [s.get_id() for s in self.steps])
+        debug = current.paideia_DEBUG_MODE or 0
+        if debug: print('restore_position: steps are', [s.get_id() for s in self.steps])
         self.completed_steps = [s for s in self.steps if s.get_id() not in                              [*remaining_steps, step_for_prompt,
                                  step_for_reply]]
-        print('restore_position: setting completed steps to',
+        if debug: print('restore_position: setting completed steps to',
               [s.get_id() for s in self.completed_steps])
         if step_for_prompt:
             self.step_for_prompt = [s for s in self.steps
                                    if s.get_id() == step_for_prompt][0]
-            print('restore_position: setting step for prompt to',
+            if debug: print('restore_position: setting step for prompt to',
                 [self.step_for_prompt.get_id()])
         elif step_for_reply:
             self.step_for_reply = [s for s in self.steps
                                    if s.get_id() == step_for_reply][0]
-            print('restore_position: setting step for reply to',
+            if debug: print('restore_position: setting step for reply to',
                 [self.step_for_reply.get_id()])
         self.steps = [s for s in self.steps
                       if s not in [*self.completed_steps, self.step_for_prompt,
                                    self.step_for_reply]]
-        print('restore_position: steps are now', [s.get_id() for s
+        if debug: print('restore_position: steps are now', [s.get_id() for s
                                                   in self.steps])
         return True
 
@@ -2168,11 +2171,28 @@ class PathChooser(object):
         """
         Assemble list of paths tagged with tags in the chosen category.
 
-        pathset :: list of dictionaries holding the data for selected paths
-        cat :: integer representing the category from which choice was made
-        force_cat1 :: boolean indicating whether or not cat1 selection was
-        forced
+        :param int cat: the selection category number for which we are
+                        retrieving paths
+        :param int rank: the user's current rank--the maximum badge set they
+                         have reached to date
+                         !! FIXME: This param is no longer used. Remove?
 
+        :returns: 4-member tuple with these items
+             [0] list: list if integers containing the ids of paths fitting the
+                    chosen selection category for the current user. None if
+                    there are no steps with tags matching the current
+                    selection category.
+             [1] int: the number of the selection category used to assemble the
+                    list
+             [2] bool: flag indicating whether the selection was made from new
+                    tags only ('beginner' level, not review)
+             [3] list: list if integers containing the ids of paths in the
+                    current user's newest unlearned material ('beginner'
+                    level). This is not the same as paths in selection category
+                    1 because it contains no paths that are due for review.
+                    None if there are no steps with the tags for new material.
+
+        :rtype: tuple
         """
         debug = current.paideia_DEBUG_MODE
         db = current.db
@@ -2225,11 +2245,12 @@ class PathChooser(object):
             if not stepslist:
                 break
 
+            # collect paths for selection category
             pathset = list(set(row['path_id'] for row in
                        db(db.path2steps.step_id.belongs(stepslist)
                        ).iterselect(db.path2steps.path_id)
                        ))
-            # figure out whether actually new material
+            # collect paths for new material if we are forcing new
             if cat == 1 and new_stepslist:
                 pathset_new = list(set(row['path_id'] for row in
                                db(db.path2steps.step_id.belongs(new_stepslist)
@@ -2239,19 +2260,13 @@ class PathChooser(object):
         if debug:
             print('PathChooser::_paths_by_cateogry: returning pathset',
                   [p['id'] for p in pathset])
-
         return pathset, cat, force_cat1, pathset_new
 
     # @profile
     def _choose_from_cat(self, cpaths, category):
         """
-        Select a path from the category supplied as an argument.
-        Returns a 3-member tuple. The first value is the chosen path, and the
-        second is a location id. If the location id is None, it means that the
-        path can be begun in the current location. If that second member is an
-        integer then the user should be redirected to that location. The third
-        member is an integer between 1 and 4 corresponding to the category from
-        which the path was chosen.
+        Select a path from the list of ids supplied, fitting the specified
+        selection category for the current user.
 
         Note: This method is *not* intended to handle categories with no
         available paths for this user. If such a category is supplied the
@@ -2260,8 +2275,25 @@ class PathChooser(object):
         _paths_by_category is supposed to have filtered out
         all paths that have steps with no locations
 
+        :param list cpaths:     A list of integers holding ids of paths
+                                matching the current selection category
+        :param int category:    The number of the current selection category
+                                to be used
+
+        :returns: a 4-member tuple with the following members
+
+            [0] The first value is the chosen path,
+            [1] int|None: location id where the path is begun. If the
+                    location id is None, it means that the path can be begun
+                    in the user's current location. If it is an integer then
+                    the user should be redirected to that location.
+            [2] int: the selection category number from which the path was
+                    chosen. (from 1 to 4)
+            [3] str: the selection mode that was used. Possible values are
+                    "new_here", "new_elsewhere", "repeated"
         """
         debug = current.paideia_DEBUG_MODE
+        db = current.db
         path = None
         new_loc = None
         mode = None
@@ -2271,11 +2303,10 @@ class PathChooser(object):
             print('in _choose_from_cat ---------------------------------')
         while True:
             loc_id = self.loc_id
-            db = current.db
+            p_all = [p for p in cpaths]
+            # note which paths are untried this session
             p_new = [p for p in cpaths if p['id'] not in completed_list]
-            if debug:
-                print('p_new:', [p['id'] for p in p_new])
-
+            # note which paths can be begun in current location
             pid_here = [p['path2steps']['path_id'] for p
                          in db((db.path2steps.step_id == db.steps.id) &
                                (db.steps.locations.contains(loc_id))
@@ -2284,20 +2315,12 @@ class PathChooser(object):
                          if loc_id in p['steps']['locations']
                          ]
             p_here = [p for p in cpaths if p['id'] in pid_here]
-            if debug:
-                print('p_here:', [p['id'] for p in p_here])
             p_here_new = [p for p in p_here if p in p_new]
-            if debug:
-                print('p_here_new:', [p['id'] for p in p_here_new])
-            p_all = [p for p in cpaths]
+            # note which paths have been tried this session
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
-            if debug:
-                print('p_tried:', p_tried_ids)
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
 
-            if debug:
-                print('self.completed:', self.completed['paths'])
             # untried path available here
             if p_here_new:
                 path = p_here_new[randrange(0, len(p_here_new))]
@@ -2328,11 +2351,12 @@ class PathChooser(object):
                     except ValueError:
                         print(traceback.format_exc(5))
                 break
+            # no untried paths available
             if p_tried:
                 try:
                     repeats = [{'id': str(p['id']), 'count': 0, 'path': p}
                                for p in p_tried]
-                    # get number of attempts for each path visited
+                    # get number of attempts this session for each path
                     for prep in repeats:
                         pid = int(prep['id'])
                         try:
@@ -2345,7 +2369,7 @@ class PathChooser(object):
                     mode = 'repeated'
                     new_loc = None
 
-                    while True:  # find an available repeat path
+                    while True:  # find a repeat path with a viable location
                         if not repeats:  # prevent infinite loop
                             break
                         # repeat all once before repeating another twice, etc.
@@ -2403,85 +2427,72 @@ class PathChooser(object):
     def choose(self, set_review=None, db=None):
         """
         Choose a path for the current user based on performance record.
+
         The algorithm looks for paths using the following tests, in this order:
         - has a due tag & can be started in current location & untried today
         - has a due tag & untried today
         - has a due tag & already tried today
         - has a tag that's not due & untried today
         - any random path
-        Returns a 3-member tuple:
-            [0] Path chosen (as a row object as_dict)
-            [1] location id where Path must be started (or None if current loc)
-            [2] the category number for this new path (int in range 1-4)
+
+        :param int set_review: The number of a badge set being reviewed by the
+                               user. If this is supplied, the path is selected from the specified badge set only. Defaults to None.
+        :param db:          Used for dependency injection during testing.
+                            Supplies a gluon db object for database access. If
+                            this is not provided, the default is to use the
+                            db object in the global `current` object. Defaults to None.
+
+        :returns: a 6-member tuple including
+            [0] Row: Path chosen (gluon row object)
+            [1] int: location id where Path must be started (or None if
+                staying in user's current location)
+            [2] int: the selection priority category number for this new Path
+                (in range 1-4)
+            [3] str: a string describing the selection mode used to retrieve the
+                selected Path
+            [4] bool: flag indicating whether the selected Path relates to the
+                user's newest badges (still at beginner level, never promoted)
+            [5] dict: the user's tag_progress record after this selection
+
+        :rtype: tuple
         """
         db = current.db if not db else db
         debug = current.paideia_DEBUG_MODE
         new_material = False
 
-        def chunks(l, n):
-            '''
-            Divides a list into new lists of a given length.
-            '''
-            # For item i in a range that is a length of l,
-            for i in range(0, len(l), n):
-                # Create an index range for l of n items:
-                yield l[i:i + n]
-
-        if set_review:  # select randomly from the supplied set
-            myset = set_review
-            if debug:
-                print('myset', myset)
+        if set_review:  # select randomly from the specified badge set if any
             taglist = [t['id'] for t in
-                       db(db.tags.tag_position == myset).iterselect(db.tags.id)]
-            if debug:
-                print('taglist', taglist)
+                db(db.tags.tag_position == set_review).iterselect(db.tags.id)]
             set_steps = [s.id for s in
                          db(db.steps.tags.contains(taglist)).iterselect()]
-            if debug:
-                print('set_steps', set_steps)
 
-            # FIXME: I don't think this works -- bitwise or operator
-            set_paths = db(db.paths.steps.contains(set_steps[:20])).select()
-            for steps_chunk in chunks(set_steps, 20):
-                set_paths |= db(db.paths.steps.contains(steps_chunk)).select()
-            if debug:
-                print('got set_paths')
-                print(sorted([p['id'] for p in set_paths]))
+            set_paths = db(db.paths.steps.contains(set_steps)).select()
             path = set_paths[randrange(0, len(set_paths))]
             first_step = db.steps[path['steps'][0]]
-            if debug:
-                print('PathChooser::choose: first_step is', first_step.id)
             if self.loc_id in first_step['locations']:
                 new_loc = None
             else:
                 new_loc = [l for l in first_step['locations']
                            if db.locations[l].loc_active][0]
             category = None  # using badge set, not categories
-            mode = "reviewing set {}".format(myset)
+            mode = "reviewing set {}".format(set_review)
             new_material = False
             return path, new_loc, category, mode, new_material, \
                 self.tag_progress
 
         else:  # regular category based selection (default)
+
+            # skip categories for which no tags are due
             cat_list = [c for c in self._order_cats()
                         if self.categories['rev{}'.format(c)]]
-            # 'if' guarantees that no categories are attempted for which no
-            # tags due
 
-            # cycle through categories, prioritised in _order_cats()
+            # cycle through categories, prioritised above in _order_cats()
             for cat in cat_list:
-                if debug:
-                    print('PathChooser::choose: checking in cat', cat)
                 catpaths, category, use_cat1, pathset_new = \
                     self._paths_by_category(cat, self.rank)
-                if debug:
-                    print('forcing cat1?', use_cat1)
-                    print('catpaths:', [c['id'] for c in catpaths])
                 if catpaths and len(catpaths):
-                    if debug:
-                        print('PathChooser::choose: using category', category)
-                    path, newloc, category, mode = self._choose_from_cat(
-                        catpaths, category)
+                    path, newloc, category, mode = \
+                        self._choose_from_cat(catpaths, category)
                     if mode:
                         # catch unforced choices of new material for this user
                         # and pass back whether or not the path is new material
@@ -2493,9 +2504,6 @@ class PathChooser(object):
                                     self.cat1_choices
                         elif self.force_new:
                             new_material = True
-                        if debug:
-                            print('PathChooser::choose: new_material =',
-                                  new_material)
                         return path, newloc, category, mode, new_material, \
                             self.tag_progress
                     else:
@@ -2657,16 +2665,16 @@ class User(object):
                         'repeating', 'new_content', 'active_cat', 'quota']:
                     if k in list(sd.keys()):
                         setattr(self, k, sd[k])
-                        print("User::init::", k, sd[k], type(sd[k]))
+                        if debug: print("User::init::", k, sd[k], type(sd[k]))
                     else:
                         setattr(self, k, None)
-                        print("User::init::", k, None)
+                        if debug: print("User::init::", k, None)
                 # Blocks must be set after flags above are set
                 for condition, kwargs in json.loads(sd['blocks']).items():
-                    print("User::init::", sd['blocks'])
-                    print('"User::init:: got blocks===================================')
-                    print("User::init:: condition: ", condition)
-                    print("User::init:: kwargs: ", kwargs)
+                    if debug: print("User::init::", sd['blocks'])
+                    if debug: print('"User::init:: got blocks===================================')
+                    if debug: print("User::init:: condition: ", condition)
+                    if debug: print("User::init:: kwargs: ", kwargs)
                     self.set_block(condition, kwargs=kwargs)
                 if debug: print('User::init:: blocks after set_block:', self.blocks)
                 if debug: print('User::init:: D')
@@ -2905,7 +2913,8 @@ class User(object):
         The arguments 'now', 'start', and 'tzone' are only used for dependency
         injection in unit testing.
         """
-        print('T')
+        debug = current.paideia_DEBUG_MODE or 0
+        if debug: print('T')
         db = current.db if not db else db
         now = datetime.datetime.utcnow() if not now else now
         time_zone = self.time_zone if not time_zone else time_zone
@@ -2914,18 +2923,18 @@ class User(object):
         tz = timezone(time_zone)
         local_now = tz.fromutc(now)
         # adjust start for local time
-        print('U')
+        if debug: print('U')
         start = self.session_start if not start else start
         lstart = tz.fromutc(start)
         daystart = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
         if lstart < daystart:
-            print('X')
+            if debug: print('X')
             return True
         elif lstart > local_now:
-            print('V')
+            if debug: print('V')
             return False
         else:
-            print('W')
+            if debug: print('W')
             return False
 
     def set_npc(self, npc):

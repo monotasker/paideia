@@ -1164,13 +1164,13 @@ create_steps_inactive_locations_for_steps()
 # Badges for header ===========================================================
 try:
     db = current.db
-    print(auth.user_id)
+    # print(auth.user_id)
     bug_rows = db((db.bugs.user_name == auth.user_id) &
                   (db.bugs.deleted == False) &
                   (db.bugs.admin_comment != '')).select()
                   #  FIXME: (db.bugs.hidden == False)
     bug_count = len(bug_rows)
-    print(bug_count, "bugs")
+    # print(bug_count, "bugs")
     if bug_count > 0:
         response.badges = SPAN(A(I(_class='fa fa-inbox'), "  ",
                                  SPAN(bug_count),
