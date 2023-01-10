@@ -3093,6 +3093,7 @@ h3                                      {font-family: $sans-fonts;
     }
   }
   .stepPane                                     {position: absolute;
+                                                 overflow: auto;
                                                  width: 100%;
                                                  top: -3000px;
                                                  background-position-x: 0%;
