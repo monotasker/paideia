@@ -3669,49 +3669,170 @@ h3                                      {font-family: $sans-fonts;
 
 // Instructors dashboard
 
-.dashboard-component                            {
+#root .Main .content .dashboard-component       {padding-left: 0;
+                                                 padding-right: 0;
     #classFormClassSelector                     {font-size: 1.5rem;
+                                                 margin-bottom: 1rem;
+                                                 padding-right: 2rem;
     }
-    .form-label                                      {color: $pallette4;
-
+    .form-label, th                             {color: $pallette4;
     }
     .dashboard-component-inner-wrapper          {padding-right: 0;
-        .form-label                             {margin-bottom: 0;
+                                                 padding-left: 0;
+        h2                                      {margin-left: 1rem;
         }
-        .course-details                             {
-            .dashboard-class-basic,
-            .dashboard-class-key                {padding-right: 1rem;
-                                                 padding-left: 1rem;
-            }
-            .dashboard-class-key            {
-                .dashboard-class-key-string {font-size: 1.5rem;
-                                                display: inline-block;
-                                                border: 1px solid lighten($niceGrey, 40%);
-                                                background-color: lighten($niceGrey, 50%);
-                                                padding: 1rem 1.5rem;
-                                                border-radius: 0.25rem;
-                }
-                .alert                      {font-size: $font-size-sm;
-                                             margin-top: 0.5rem;
-                }
-            }
-            .dashboard-class-info           {
-                .form-text                  {margin-bottom: 0.5rem;
-                }
-                .row:first-child            {margin-bottom: 0.5rem;
-                    h3                      {margin-bottom: 1rem;
-                    }
-                }
-            }
-            .dashboard-class-targets        {
-                .form-group                 {margin-bottom: 0;
-                    input                       {width: 3rem;
-                                                display: inline-block;
-                    }
+        .class-group-selector                   {margin-left: 1rem;
+                                                 padding-right: 2.5rem;
+        }
+        .nav-tabs                               {margin-left: 1rem;
+            .nav-link                               {color: $blueDark;
+                &.active                            {background-color: lighten($niceGrey, 50%);
+                                                    border-bottom: 1px solid lighten($niceGrey, 50%);
                 }
             }
         }
-        .course-students                    {
+        .tab-content                            {background-color: lighten($niceGrey, 50%);
+                                                 padding-left: 0.5rem;
+                                                 padding-right: 0.5rem;
+            form                                {margin-top: 0;
+
+            }
+            .form-label                             {margin-bottom: 0;
+            }
+            .course-details                             {
+                .dashboard-class-basic,
+                .dashboard-class-key,
+                .dashboard-class-info,
+                .dashboard-class-targets           {margin-top: 0.75rem;
+                    > .container                        { padding-top: 1rem;
+                                                    padding-bottom: 1rem;
+                                                    padding-right: 0;
+                                                    padding-left: 0;
+                                                    margin-top: 1rem;
+                                                    background-color: $white;
+                                                    border-radius: 1rem;
+                                                    border: 1px solid lighten($niceGrey, 40%);
+                        .row                        {padding-right: 1rem;
+                                                     padding-left: 1rem;
+                            > div                   {padding-left: 0;
+                                                     padding-right: 0;
+                            }
+                            .form-label             {margin-top: 0.25rem;
+                            }
+                            .col:nth-child(2)       {margin-left: 0.75rem;
+
+                            }
+                        }
+                        h3                          {padding-left: 1rem;
+                                                     padding-right: 1rem;
+                            svg                     {float: right;
+                                                     position: relative;
+                                                     top: 0.15rem;
+                            }
+                        }
+                    }
+                }
+                .dashboard-class-key            {
+                    .container                  {
+                    }
+                    .dashboard-class-key-string {font-size: 1.5rem;
+                                                 display: inline-block;
+                                                 text-align: center;
+                                                 border: 1px solid lighten($niceGrey, 40%);
+                                                 background-color: lighten($niceGrey, 50%);
+                                                 padding: 1rem 1.5rem;
+                                                 border-radius: 0.25rem;
+                                                 margin-top: 0.75rem;
+                    }
+                    .form-text                  {padding: 0;
+                    }
+                    a                           {padding: 0;
+                    }
+                    .alert                      {font-size: $font-size-sm;
+                                                padding: 1rem !important;
+                                                margin-top: 0.5rem;
+                                                margin-bottom: 0;
+                    }
+                }
+                .dashboard-class-info           {
+                    .form-text                  {margin-bottom: 0.5rem;
+                                                 padding: 0;
+                    }
+                    .row:first-child            {margin-bottom: 0.5rem;
+                        h3                      {margin-bottom: 1rem;
+                        }
+                    }
+                    .start-date-picker,
+                    .end-date-picker            {
+                        div                     {display: flex;
+                            .form-label             {flex-grow: 1;
+                            }
+                        }
+                    }
+                    .start-date-picker          {margin-top: 1.25rem;
+                    }
+                    .end-date-picker            {margin-top: 0.75rem;
+                                                 margin-bottom: 1.25rem;
+                    }
+                    .DayPickerInput input       {
+                        display: block;
+                        width: 100%;
+                        padding: .375rem .75rem;
+                        font-size: 1rem;
+                        font-weight: 400;
+                        line-height: 1.5;
+                        color: #212529;
+                        background-color: #fff;
+                        background-clip: padding-box;
+                        border: 1px solid #ced4da;
+                        -webkit-appearance: none;
+                        -moz-appearance: none;
+                        appearance: none;
+                        border-radius: .375rem;
+                        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+                    }
+                }
+                .dashboard-class-targets        {
+                    table                       {margin-bottom: 0;
+                        thead            {
+                            tr th:first-child   {padding-left: 1rem;
+                            }
+                            tr th:last-child    {padding-right: 1rem;
+                            }
+                            tr th               {text-align: center;
+
+                            }
+                        }
+                        tbody            {
+                            tr td:first-child   {padding-left: 1rem;
+                                                 font-size: $font-size-lg;
+                            }
+                            tr td:nth-child(3)  {color: $headingColorDark;
+                            }
+                            tr td:last-child    {padding-right: 1rem;
+                            }
+                            td                  {text-align: center;
+                                                 vertical-align: middle;
+                                div                     {margin-bottom: 0;
+                                    input                   {width: 3rem;
+                                                            display: block;
+                                                            margin-left: auto;
+                                                            margin-right: auto;
+                                    }
+                                    label                   {font-size: small;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .course-form-submit             {position: sticky;
+                                                 bottom: 0.5rem;
+                }
+            }
+        }
+        .course-students                    {padding-top: 1.5rem;
+                                             padding-left: 1rem;
             .dashboard-student-info-progressed-label,
             .dashboard-student-info-letter-label,
             .dashboard-student-info-current-label,

@@ -12,6 +12,7 @@ import {
   ButtonGroup,
   Col,
   Collapse,
+  Container,
   Form,
   FormGroup,
   InputGroup,
@@ -330,7 +331,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
           <h4>Individual Course Dates</h4>
           <Row>
             <Form.Group controlId={`custom_start%${uid}`}
-              className={!formFieldValues[`custom_start%${uid}`] ? "default-value" : ""}
+              classNames={!formFieldValues[`custom_start%${uid}`] ? "default-value" : ""}
             >
               <Form.Label>Individual start date</Form.Label>
 
@@ -359,7 +360,7 @@ const StudentRow = ({ studentData, classInProcess, history, dispatch,
           </Row>
           <Row>
             <Form.Group controlId={`custom_end%${uid}`}
-              className={!formFieldValues[`custom_end%${uid}`] ? "default-value" : ""}
+              classNames={!formFieldValues[`custom_end%${uid}`] ? "default-value" : ""}
             >
               <Form.Label>Individual end date</Form.Label>
               <InputGroup>
@@ -650,7 +651,7 @@ const InstructorDashboard = () => {
             :
           <React.Fragment>
           <h2>My Dashboard</h2>
-          <Form.Group controlId="classFormClassSelector">
+          <Form.Group controlId="classFormClassSelector" className="class-group-selector">
             <Form.Label>Choose a class group</Form.Label>
             <Form.Control as="select"
               onChange={e => setActiveClassId(e.target.value)}
@@ -673,42 +674,47 @@ const InstructorDashboard = () => {
           >
             <Row>
               <Col className="dashboard-class-basic" xs={12} md={6} lg={4}>
-                <h3>Basic Info<FontAwesomeIcon icon="graduation-cap" /></h3>
-                <Form.Group controlId="institution">
-                  <Form.Label>Institution</Form.Label>
-                  <Form.Control
-                    value={formFieldValues.institution || ''}
-                    onChange={e => setFormFieldValue(e.target.value, "institution")}
-                  ></Form.Control>
-                </Form.Group>
-                <Form.Group controlId="course_section">
-                  <Form.Label>Course Title</Form.Label>
-                  <Form.Control
-                    value={formFieldValues.course_section || ''}
-                    onChange={e => setFormFieldValue(e.target.value, "course_section")}
-                  ></Form.Control>
-                </Form.Group>
-                <Row>
-                  <Col>
-                    <Form.Group controlId="academic_year">
-                      <Form.Label>Year</Form.Label>
+                <Container>
+                  <h3>Basic Info<FontAwesomeIcon icon="graduation-cap" /></h3>
+                  <Row>
+                    <Form.Group controlId="institution">
+                      <Form.Label>Institution</Form.Label>
                       <Form.Control
-                        value={formFieldValues.academic_year || ''}
-                        onChange={e => setFormFieldValue(e.target.value, "academic_year")}
+                        value={formFieldValues.institution || ''}
+                        onChange={e => setFormFieldValue(e.target.value, "institution")}
                       ></Form.Control>
                     </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group controlId="term">
-                      <Form.Label>Term</Form.Label>
+                    </Row>
+                    <Row>
+                    <Form.Group controlId="course_section">
+                      <Form.Label>Course Title</Form.Label>
                       <Form.Control
-                        value={formFieldValues.term || ''}
-                        onChange={e => setFormFieldValue(e.target.value, "term")}
+                        value={formFieldValues.course_section || ''}
+                        onChange={e => setFormFieldValue(e.target.value, "course_section")}
                       ></Form.Control>
                     </Form.Group>
-                  </Col>
-                </Row>
-                <Row>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <Form.Group controlId="academic_year">
+                          <Form.Label>Year</Form.Label>
+                          <Form.Control
+                            value={formFieldValues.academic_year || ''}
+                            onChange={e => setFormFieldValue(e.target.value, "academic_year")}
+                          ></Form.Control>
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group controlId="term">
+                          <Form.Label>Term</Form.Label>
+                          <Form.Control
+                            value={formFieldValues.term || ''}
+                            onChange={e => setFormFieldValue(e.target.value, "term")}
+                          ></Form.Control>
+                        </Form.Group>
+                      </Col>
+                  </Row>
+                  <Row>
                     <Form.Group controlId="instructor">
                       <Form.Label>Instructor</Form.Label>
                       <Form.Control
@@ -716,63 +722,71 @@ const InstructorDashboard = () => {
                         disabled
                       ></Form.Control>
                     </Form.Group>
-                </Row>
+                  </Row>
+                </Container>
               </Col>
               <Col className="dashboard-class-key" xs={12} md={6} lg={4}>
-                <h3>Course Registration Key<FontAwesomeIcon icon="key" /></h3>
-                <span className="dashboard-class-key-string">{courseKey}</span>
-                <Form.Text>Give this key to students in your classes. To join this
-                  course group in Paideia, they need to enter the key at this link:
-                </Form.Text>
-                <FontAwesomeIcon icon="link" size="sm" /><Link to={joiningLoc}>https://learngreek.ca/paideia/join_course</Link>
-                <Alert variant="info">Note that each student will be required to upgrade their account to "Student" level (paid) to join the course group if they are not already a premium supporter.
-                </Alert>
+                <Container>
+                  <h3>Course Registration Key<FontAwesomeIcon icon="key" /></h3>
+                  <Row>
+                    <span className="dashboard-class-key-string">{courseKey}</span>
+                    <Form.Text>Give this key to students in your classes. To join this course group in Paideia, they need to enter the key at this link:
+                    </Form.Text>
+                      {/* <fontawesomeicon icon="link" size="sm" /> */}
+                    <Link to={joiningLoc}>https://learngreek.ca<wbr />/<wbr />paideia<wbr />/<wbr />join_course</Link>
+                  </Row>
+                  <Row>
+                    <Alert variant="info">Note that each student will be required to upgrade their account to "Student" level (paid) to join the course group if they are not already a premium supporter.
+                    </Alert>
+                  </Row>
+                </Container>
               </Col>
               <Col className="dashboard-class-info" xs={12} md={6} lg={4}>
-                <Row>
-                  <Col>
-                    <h3>Course Dates<FontAwesomeIcon icon="calendar-check"  /></h3>
-                    <Form.Group controlId="start_date">
-                      <Form.Label>Begins</Form.Label>
-                      <DayPickerInput
-                        onDayChange={day => setFormFieldValue(day, "start_date")}
-                        formatDate={formatDate}
-                        parseDate={parseDate}
-                        format="LL"
-                        // dayPickerProps={{
-                        //   selectedDays: formFieldValues.start_date
-                        // }}
-                        value={formFieldValues.start_date}
-                        placeholder={`${formatDate(new Date(formFieldValues.start_date), 'LL')}`}
-                        onChange={e => setFormFieldValue(e.target.value, "start_date")}
-                        // classNames="form-control"
-                      />
-                    </Form.Group>
-                    <Form.Group controlId="end_date">
-                      <Form.Label>Ends</Form.Label>
-                      <DayPickerInput
-                        onDayChange={day => setFormFieldValue(day, "end_date")}
-                        formatDate={formatDate}
-                        parseDate={parseDate}
-                        format="LL"
-                        // dayPickerProps={{
-                        //   selectedDays: formFieldValues.end_date
-                        // }}
-                        value={formFieldValues.end_date}
-                        placeholder={`${formatDate(new Date(formFieldValues.end_date), 'LL')}`}
-                        onChange={e => setFormFieldValue(e.target.value, "end_date")}
-                        // classNames="form-control"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <h3>Minimum Participation<FontAwesomeIcon icon="check-circle"  /></h3>
-                    <Form.Text>
-                        How much will you require your students to use Paideia? The app will track whether students are meeting these minimum targets.
-                    </Form.Text>
-                    <Row>
+                <Container>
+                  <h3>Course Dates<FontAwesomeIcon icon="calendar-check"  /></h3>
+                  <Row className="start-date-picker">
+                      <Form.Group controlId="start_date">
+                        <Form.Label>Begins</Form.Label>
+                        <DayPickerInput
+                          onDayChange={day => setFormFieldValue(day, "start_date")}
+                          formatDate={formatDate}
+                          parseDate={parseDate}
+                          format="LL"
+                          // dayPickerProps={{
+                          //   selectedDays: formFieldValues.start_date
+                          // }}
+                          value={formFieldValues.start_date}
+                          placeholder={`${formatDate(new Date(formFieldValues.start_date), 'LL')}`}
+                          onChange={e => setFormFieldValue(e.target.value, "start_date")}
+                          // classNames="form-control"
+                        />
+                      </Form.Group>
+                  </Row>
+                  <Row className="end-date-picker">
+                      <Form.Group controlId="end_date">
+                        <Form.Label>Ends</Form.Label>
+                        <DayPickerInput
+                          onDayChange={day => setFormFieldValue(day, "end_date")}
+                          formatDate={formatDate}
+                          parseDate={parseDate}
+                          format="LL"
+                          // dayPickerProps={{
+                          //   selectedDays: formFieldValues.end_date
+                          // }}
+                          value={formFieldValues.end_date}
+                          placeholder={`${formatDate(new Date(formFieldValues.end_date), 'LL')}`}
+                          onChange={e => setFormFieldValue(e.target.value, "end_date")}
+                          // classNames="form-control"
+                        />
+                      </Form.Group>
+                  </Row>
+                  <h3>Minimum Participation<FontAwesomeIcon icon="check-circle"  /></h3>
+                  <Row>
+                      <Form.Text>
+                          How much will you require your students to use Paideia? The app will track whether students are meeting these minimum targets.
+                      </Form.Text>
+                  </Row>
+                  <Row>
                       <Col>
                         <Form.Group controlId="paths_per_day">
                           <Form.Label>Paths per day</Form.Label>
@@ -791,120 +805,140 @@ const InstructorDashboard = () => {
                           ></Form.Control>
                         </Form.Group>
                       </Col>
-                    </Row>
-                  </Col>
-                </Row>
+                  </Row>
+                </Container>
               </Col>
               <Col className="dashboard-class-targets" xs={12} md={6} lg={12}>
-                <h3>Grading Targets<FontAwesomeIcon icon="bullseye"  /></h3>
-                <Table size="sm">
-                  <thead>
-                    <tr>
-                      <th>Letter Grade</th>
-                      <th>Personal Set Progress</th>
-                      <th></th>
-                      <th>Absolute Set Reached</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>A</td>
-                      <td>
-                        <FormGroup controlId="a_target">
-                          <Form.Control value={formFieldValues.a_target || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "a_target")}
-                          /> new sets
-                        </FormGroup>
-                      </td>
-                      <td>OR</td>
-                      <td>
-
-                        <FormGroup controlId="a_cap">
-                          Begin set <Form.Control value={formFieldValues.a_cap || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "a_cap")}
-                          />
-                        </FormGroup>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>B</td>
-                      <td>
-                        <FormGroup controlId="b_target">
-                          <Form.Control value={formFieldValues.b_target || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "b_target")}
-                          /> new sets
-                        </FormGroup>
-                      </td>
-                      <td>OR</td>
-                      <td>
-                        <FormGroup controlId="b_cap">
-                          Begin set <Form.Control value={formFieldValues.b_cap || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "b_cap")}
-                          />
-                        </FormGroup>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>C</td>
-                      <td>
-                        <FormGroup controlId="c_target">
-                          <Form.Control value={formFieldValues.c_target || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "c_target")}
-                          /> new sets
-                        </FormGroup>
-                      </td>
-                      <td>OR</td>
-                      <td>
-                        <FormGroup controlId="c_cap">
-                          Begin set <Form.Control value={formFieldValues.c_cap || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "c_cap")}
-                          />
-                        </FormGroup>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>D</td>
-                      <td>
-                        <FormGroup controlId="d_target">
-                          <Form.Control value={formFieldValues.d_target || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "d_target")}
-                          /> new sets
-                        </FormGroup>
-                      </td>
-                      <td>OR</td>
-                      <td>
-                        <FormGroup controlId="d_cap">
-                          Begin set <Form.Control value={formFieldValues.d_cap || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "d_cap")}
-                          />
-                        </FormGroup>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>F</td>
-                      <td>
-                        <FormGroup controlId="f_target">
-                          <Form.Control value={formFieldValues.f_target || ''}
-                            onChange={e => setFormFieldValue(parseInt(e.target.value), "f_target")}
-                          /> new sets
-                        </FormGroup>
-                      </td>
-                      <td>OR</td>
-                      <td>
-                        NA
-                      </td>
-                    </tr>
-                  </tbody>
-                </Table>
+                <Container>
+                  <h3>Grading Targets<FontAwesomeIcon icon="bullseye"  /></h3>
+                  <Table size="sm">
+                    <thead>
+                      <tr>
+                        <th>Letter Grade</th>
+                        <th>Personal Set Progress</th>
+                        <th></th>
+                        <th>Absolute Set Reached</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>A</td>
+                        <td>
+                          <FormGroup controlId="a_target">
+                            <label>began</label>
+                            <Form.Control value={formFieldValues.a_target || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "a_target")}
+                            />
+                            <label>new sets</label>
+                          </FormGroup>
+                        </td>
+                        <td>OR</td>
+                        <td>
+                          <FormGroup controlId="a_cap">
+                            <label>set number</label>
+                            <Form.Control value={formFieldValues.a_cap || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "a_cap")}
+                            />
+                            <label>reached</label>
+                          </FormGroup>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>B</td>
+                        <td>
+                          <FormGroup controlId="b_target">
+                            <label>began</label>
+                            <Form.Control value={formFieldValues.b_target || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "b_target")}
+                            />
+                            <label>new sets</label>
+                          </FormGroup>
+                        </td>
+                        <td>OR</td>
+                        <td>
+                          <FormGroup controlId="b_cap">
+                            <label>set number</label>
+                            <Form.Control value={formFieldValues.b_cap || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "b_cap")}
+                            />
+                            <label>reached</label>
+                          </FormGroup>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>C</td>
+                        <td>
+                          <FormGroup controlId="c_target">
+                            <label>began</label>
+                            <Form.Control value={formFieldValues.c_target || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "c_target")}
+                            />
+                            <label>new sets</label>
+                          </FormGroup>
+                        </td>
+                        <td>OR</td>
+                        <td>
+                          <FormGroup controlId="c_cap">
+                            <label>set number</label>
+                            <Form.Control value={formFieldValues.c_cap || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "c_cap")}
+                            />
+                            <label>reached</label>
+                          </FormGroup>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>D</td>
+                        <td>
+                          <FormGroup controlId="d_target">
+                            <label>began</label>
+                            <Form.Control value={formFieldValues.d_target || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "d_target")}
+                            />
+                            <label>new sets</label>
+                          </FormGroup>
+                        </td>
+                        <td>OR</td>
+                        <td>
+                          <FormGroup controlId="d_cap">
+                            <label>set number</label>
+                            <Form.Control value={formFieldValues.d_cap || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "d_cap")}
+                            />
+                            <label>reached</label>
+                          </FormGroup>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>F</td>
+                        <td>
+                          <FormGroup controlId="f_target">
+                            <label>began</label>
+                            <Form.Control value={formFieldValues.f_target || ''}
+                              onChange={e => setFormFieldValue(parseInt(e.target.value), "f_target")}
+                            />
+                            <label>new sets</label>
+                          </FormGroup>
+                        </td>
+                        <td>OR</td>
+                        <td>
+                          NA
+                        </td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </Container>
               </Col>
             </Row>
-            <Button variant="primary"
-                type="submit"
-                onClick={updateClassData}
-                disabled={!!fetchingClass ? true : false }
-            >
-              <FontAwesomeIcon icon="save" /> Save changes
-            </Button>
+            <Row className="course-form-submit">
+              <Button variant="primary"
+                  type="submit"
+                  onClick={updateClassData}
+                  disabled={!!fetchingClass ? true : false }
+              >
+                <FontAwesomeIcon icon="save" /> Save changes
+              </Button>
+            </Row>
           </Form>
         }
         </Tab> {/* end of course parameters tab */}
