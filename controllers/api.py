@@ -2800,36 +2800,123 @@ def users():
     """
     Api endpoint for operations related to user information.
 
+    Return value is the request body, in the form of a JSON parseable string.
+    The response status code may also be set via the web2py response object.
 
-    GET request fetches data about the specified user. By default this retrieves full profile data.
-        if there is a `month` request parameter that is not None or "null", this method retrieves just the user's activity statistics for one calendar month
+    http parameters:
+        - name: user_id
+          in: query
+          type: integer (as string)
+          required: true (all methods)
+          description: the id of the user whose record is being
+                       requested or modified. If no parameter is passed the
+                       function assumes the request is for the currently
+                       logged-in user.
 
-    POST request allows assigning a user to a class group, but not creation of
-    a new user account. That is handled by the ??? endpoint.
+        - name: year
+          in: query
+          type: integer (as string)
+          required: false
+          description: the 4-digit year of the month being requested. Used
+                       only for GET requests fetching attempt counts for
+                       a month. Ignored if `month` parameter is missing,
+                       required if `month` parameter is present.
+        - name: month
+          in: query
+          type: integer (as string)
+          required: false
+          description: the month number for GET requests fetching attempt
+                       counts for one month. If present, this parameter acts
+                       as a switch to signal that a month of counts should
+                       be returned rather than full user profile data.
+        - name: badge_stats
+          in: query
+          type: boolean (as string)
+          required: false
+          description: if true, the request returns only the user's performance
+                       statistics for individual badges. This data is returned
+                       separately because of the higher overhead involved. This
+                       should never be true if a month parameter is also specified.
+        - name: course
+          in: query
+          type: integer (as string)
+          required: true (POST and DELETE only)
+          description: for POST requests, specifies the course group into which
+                       the user should be placed
 
-    PUT request updates the specified user's data.
+    http methods
 
-    DELETE request deletes an existing user account
+        GET     Returns data about the specified user. By default this
+                returns full user profile data.
+
+                if `month` parameter is present (and not None or "null"),
+                instead returns just the user's activity counts for one
+                calendar month. In this case the `year` parameter must also
+                be provided.
+
+                if `badge_stats` parameter is present (and True or "true"),
+                instead returns just the user's performance statistics for
+                individual badges. This information is *not* included in
+                the default profile data response.
+
+        POST    **Method is not used for this endpoint.**
+
+        PATCH   updates the specified user's data with whatever fields are
+                supplied as request parameters.
+
+        DELETE  **Method is not used for this endpoing.**
 
     :returns: the http response payload as a JSON-parsable string
+
     :rtype:   str (JSON parsable)
     """
     request = current.request
     response = current.response
+    auth = current.auth
+    user_id = request.vars["user_id"]
+
+    if not auth.is_logged_in():
+        response.status = 401
+        return json_serializer({'title': 'unauthorized',
+                                'reason': 'Not logged in',
+                                'error': None})
+
+    # Allow passing explicit user but default to current user
+    if user_id:
+        sid = int(user_id)
+        # only allow viewing if admin or student's instructor
+        if (auth.user_id == sid
+            or auth.has_membership('administrators')
+            or (auth.has_membership('instructors') and
+                _is_my_student(auth.user_id, sid))):
+            user_rec = db.auth_user[sid]
+        else:
+            response.status = 401
+            return json_serializer({'title': 'unauthorized',
+                            'reason': 'Insufficient privileges'})
+    else:
+        user_rec = db.auth_user[auth.user_id]
+    if not user_rec:
+        response.status = 404
+        return json_serializer({'title': 'not found',
+                                'reason': 'No matching record found',
+                                'error': None})
+
     try:
-        if request.method == 'POST':
-            pass
-        if request.method == 'PUT':
-            pass
-        if request.method == 'DELETE':
+        if request.method == 'PATCH':
             pass
         if request.method == 'GET':
             if "month" in request.vars.keys() and request.vars['month']:
-                return _get_calendar_month(**request.vars)
-            return _get_profile_info(**request.vars)
+                return _get_calendar_month(int(request.vars['year']),
+                                           int(request.vars['month']),
+                                           user_rec.id)
+            elif ("badge_stats" in request.vars.keys()
+                   and request.vars['badge_stats']):
+                return _get_badge_stats(user_id=user_rec.id)
+            return _get_profile_info(user_rec=user_rec)
         else:
             response.status = 400
-            # not using POST method
+            # not using accepted method
             return json_serializer({'title': 'bad request',
                         'reason': f'${request.method} not a valid method ' \
                                 'for this endpoint',
@@ -2838,7 +2925,8 @@ def users():
         print_exc()
         response.status = 500
         return json_serializer({'title': 'internal server error',
-                                'reason': 'Unknown error in function api.queries',
+                                'reason': 'Unknown error in function '
+                                          'api::users',
                                 'error': format_exc()})
 
 
@@ -2879,17 +2967,39 @@ def get_userdata():
         return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
-# @profile
-def _get_profile_info(user_id: str="") -> str:
+
+def _get_badge_stats(user_id: str="") -> str:
     """
-    Api method to fetch a user's performance record.
 
-    :param user_id: A string representing the integer id for the user whose
-                    profile info is being requested. (Defaults to empty string.)
 
-                    If no parameter is passed the function will return the
-                    data for the currently logged-in user.
-    :type user_id: str
+    :param str user_id: A string representing the integer id for the user whose
+                        badge data is being requested. (Defaults to empty
+                        string.)
+
+                        If no parameter is passed the function will return the
+                        data for the currently logged-in user.
+
+    :returns:   A dictionary serialized as a JSON-parseable string. Contains
+                one key, "badge_table_data", whose value is a list of
+                dictionaries with statistics on user progress and activity
+                for each badge (from Stats.active_tags)
+
+    :rtype: str (JSON parseable)
+    """
+    vbs = GLOBAL_VBS or 0
+    stats = Stats(user_id)
+
+    return json_serializer({'badge_table_data': stats.active_tags()},
+                           default=my_custom_json)
+
+
+# @profile
+def _get_profile_info(user_rec: dict) -> str:
+    """
+    Fetch a user's performance record as a JSON-parseable string.
+
+    :param dict user_rec: A dictionary containing basic auth_user data for
+                          the user whose profile info is being requested.
 
     :returns:   An object serialized as a JSON parseable string
                 containing the user's profile data. This object has the
@@ -2903,9 +3013,6 @@ def _get_profile_info(user_id: str="") -> str:
             badge_set_dict():           badge_set_dict,
             badge_set_milestones(list): List of 'upgrades' of the highest badge
                                             set and their dates
-            badge_table_data(list):     A list of dictionaries with info on
-                                            user badge progress (from
-                                            Stats.active_tags)
             cal(html helper obj):       html calendar with user path stats
                                             (from Stats.monthcal)
             chart1_data(dict):          dictionary of data to build stats chart
@@ -2939,86 +3046,42 @@ def _get_profile_info(user_id: str="") -> str:
     """
     vbs = GLOBAL_VBS or 0
     db = current.db
-    auth = current.auth
     session = current.session
     response = current.response
 
-    mystudents = db((db.classes.instructor == auth.user_id) &
-                    (db.classes.id == db.class_membership.class_section)
-                    ).select(db.class_membership.name).as_list()
-
-    if not auth.is_logged_in():
-        response.status = 401
-        return json_serializer({'title': 'unauthorized',
-                     'reason': 'Not logged in'})
-
     try:
         now = datetime.now(timezone.utc)
-        # Allow passing explicit user but default to current user
-        if user_id:
-            sid = int(user_id)
-            # only allow viewing if admin or student's instructor
-            if (auth.user_id == sid
-                or auth.has_membership('administrators')
-                or (auth.has_membership('instructors') and
-                    _is_my_student(auth.user_id, sid))):
-                user = db.auth_user[sid]
-            else:
-                response.status = 401
-                return json_serializer({'title': 'unauthorized',
-                             'reason': 'Insufficient privileges'})
-        else:
-            user = db.auth_user[auth.user_id]
-        # Return proper response code if no user with requested id
-        if not user:
-            response.status = 404
-            return json_serializer({'title': 'not found',
-                                    'reason': 'No matching record found',
-                                    'error': None})
 
-        stats = Stats(user.id)
+        stats = Stats(user_rec['id'])
 
         # get user's current course
-        if vbs: print('getting current course')
-        myc = _fetch_current_coursedata(user.id, datetime.now(timezone.utc))
+        myc = _fetch_current_coursedata(user_rec['id'],
+                                        datetime.now(timezone.utc))
         myc_id = myc['classes']['id'] if 'classes' in myc else 0
-        myc_other = _fetch_other_coursedata(user.id, myc_id,
+        myc_other = _fetch_other_coursedata(user_rec['id'], myc_id,
                                             datetime.now(timezone.utc))
-        if vbs: print('myc=============')
-        if vbs: print(myc)
         if myc['class_info']:
             starting_set = myc['class_info']['starting_set']
         # FIXME: UserProvider should be updated here with class info if new
 
         # tab1
-
-        if vbs: print('getting user data')
         name = stats.get_name()
-        tz = user.time_zone
-        email = user.email
-        if vbs: print('getting max set')
+        tz = user_rec['time_zone']
+        email = user_rec['email']
         max_set = stats.get_max()
-        if vbs: print('getting badge_levels')
         badge_levels = stats.get_badge_levels()
-        if vbs: print('getting active_tags')
-        badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
 
         # tab2
-        if vbs: print('getting monthcal')
         mycal = stats.monthcal()
-        # badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
-        # sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
-        # steps_most_wrong = stats.steps_most_wrong(badge_table_data)
+        # TODO: badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
+        # TODO: sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
+        # TODO: steps_most_wrong = stats.steps_most_wrong(badge_table_data)
 
         # tab5
-        if vbs: print('getting chart1_data')
-        mydata = get_chart1_data(user_id=user.id)
+        mydata = get_chart1_data(user_id=user_rec['id'])
         chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
-        if vbs: print('getting milestones')
         badge_set_milestones = mydata['badge_set_milestones']
-        if vbs: print('getting answer_counts')
         answer_counts = mydata['answer_counts']
-        if vbs: print('getting badge_set_dict')
         badge_set_dict = {}
         set_list_rows = db().select(db.tags.tag_position, distinct=True)
         set_list = sorted([row.tag_position for row in set_list_rows
@@ -3036,44 +3099,39 @@ def _get_profile_info(user_id: str="") -> str:
         print(format_exc(5))
         response.status = 500
         return json_serializer({'title': 'internal server error',
-                                'reason': 'Unknown error in function get_profile_info',
+                                'reason': 'Unknown error in function'
+                                          ' api::get_profile_info',
                                 'error': format_exc()})
 
     return json_serializer({'the_name': name,
-            'user_id': user.id,
-            'tz': tz,
-            'email': email,
-            'paths_per_day': myc['daily_quota'] if myc else None,
-            'days_per_week': myc['weekly_quota'] if myc else None,
-            'starting_set': myc['class_info']['starting_set']
-                if myc['class_info'] else None,
-            'cal': mycal,
-            'max_set': max_set,
-            'badge_levels': badge_levels,
-            'badge_table_data': badge_table_data,
-            'badge_set_milestones': badge_set_milestones,
-            'answer_counts': answer_counts,
-            'chart1_data': chart1_data,
-            'reviewing_set': session.set_review,
-            'badge_set_dict': badge_set_dict,
-            'class_info': myc['class_info'] if myc['class_info'] else None,
-            'other_class_info': myc_other
-            },
-            default=my_custom_json)
+        'user_id': user_rec['id'],
+        'tz': tz,
+        'email': email,
+        'paths_per_day': myc['daily_quota'] if myc else None,
+        'days_per_week': myc['weekly_quota'] if myc else None,
+        'starting_set': myc['class_info']['starting_set']
+            if myc['class_info'] else None,
+        'cal': mycal,
+        'max_set': max_set,
+        'badge_levels': badge_levels,
+        'badge_set_milestones': badge_set_milestones,
+        'answer_counts': answer_counts,
+        'chart1_data': chart1_data,
+        'reviewing_set': session.set_review,
+        'badge_set_dict': badge_set_dict,
+        'class_info': myc['class_info'] if myc['class_info'] else None,
+        'other_class_info': myc_other
+        },
+        default=my_custom_json)
 
 
-def _get_calendar_month(year: str, month: str, user_id: str=""):
+def _get_calendar_month(year: int, month: int, user_id: int):
     """
     api method to fetch user attempt data for one calendar month
 
-    :param str year: A string representation of the year of the requested
-                     month, in four-digit format
-    :param str month: A string representation of the requested month number
-                      as a 0-based integer
-    :param str user_id: A string representation of the integer user id
-                        for the user whose data is being requested. If this
-                        is not provided it defaults to an empty string and
-                        data is returned for the currently logged-in user.
+    :param int year: The 4-digit year of the requested month
+    :param int month: The requested month number as a 0-based integer
+    :param int user_id: The user id for the user whose data is being requested.
 
     :returns: Returns an object serialized as a json parseable string. The
               object has the following keys:
@@ -3085,14 +3143,15 @@ def _get_calendar_month(year: str, month: str, user_id: str=""):
     """
     try:
         stats = Stats(user_id=user_id if user_id else None)
-        calendar = stats.monthcal(year=int(year), month=int(month))
+        calendar = stats.monthcal(year=year, month=month)
         return json_serializer(calendar, default=my_custom_json)
 
     except Exception:
         print(format_exc(5))
         response.status = 500
         return json_serializer({'title': 'internal server error',
-                                'reason': 'Unknown error in function get_profile_info',
+                                'reason': 'Unknown error in function '
+                                          ' api::get_calendar_month',
                                 'error': format_exc()})
 
 def update_course_membership_data():

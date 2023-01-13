@@ -111,6 +111,28 @@ const updateUserInfo = async dispatch => {
   return myinfo;
 }
 
+const getBadgeTableData = async ({forSelf=false,
+                                  userId=null,
+                                  dispatch=null}) => {
+  let response = await doApiCall({user_id: userId, badge_stats: true},
+                                 "users",
+                                 "queryString",
+                                 "GET");
+  let mydata = {};
+  if ( response.status===200 ) {
+    mydata = {
+      badgeTableData: response.badge_table_data,
+      status: response.status
+    }
+    if ( !!forSelf ) {
+      dispatch({type: "updateProfileInfo", payload: mydata});
+    }
+  } else {
+    mydata = response;
+  }
+  return mydata
+}
+
 const getProfileInfo = async ({forSelf=false,
                                userId=null,
                                dispatch=null}) => {
@@ -258,6 +280,7 @@ export {
   logout,
   checkLogin,
   updateUserInfo,
+  getBadgeTableData,
   getProfileInfo,
   getCalendarMonth,
   formatLoginData,

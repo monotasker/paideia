@@ -24,7 +24,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { urlBase, DEBUGGING } from "../variables";
 import { isAlphanumericString, returnStatusCheck } from "../Services/utilityService";
 import { useFormManagement } from "../Services/formsService";
-import { getProfileInfo } from "../Services/authService";
+import { getProfileInfo,
+         getBadgeTableData } from "../Services/authService";
 import { UserContext } from "../UserContext/UserProvider";
 import Calendar from "../Components/Calendar";
 import { withinOneDay,
@@ -505,7 +506,13 @@ const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
           eventKey={blevel.slug}
           title={<React.Fragment><Badge variant="primary">{badgeLevels[blevel.index].length}</Badge> {blevel.title}</React.Fragment>}
         >
-          <span className="level-explanation">{blevel.text} (Click a badge for details.)</span>
+          {!!updating ?
+            <span className="stages-loading-message">
+              <Spinner animation="grow" size="md" /> Getting your up-to-date info
+            </span>
+            :
+            <span className="level-explanation">{blevel.text} (Click a badge for details.)</span>
+          }
           {badgeLevels[blevel.index].length!==0 &&
            badgeLevels[blevel.index].map(b => {
               if (!!badgeTableData) {
@@ -558,6 +565,7 @@ const Profile = (props) => {
   DEBUGGING && console.log(user);
 
   const [ updating, setUpdating ] = useState(true);
+  const [ badgeTableUpdating, setBadgeTableUpdating ] = useState(true);
   const [ authorized, setAuthorized ] = useState(true);
   const [ recordExists, setRecordExists ] = useState(true);
   const [ serverError, setServerError ] = useState();
@@ -616,7 +624,7 @@ const Profile = (props) => {
   }
 
   const notLoggedInAction = () => {
-    console.log('Server Error');
+    console.log('User must be logged in to view profile information.');
     setLoggedIn(false);
   }
 
@@ -650,6 +658,27 @@ const Profile = (props) => {
           setOtherClassInfo(myinfo.otherClassInfo);
           setUpdating(false);
           /* FIXME: update course data in provider if viewing self and changed */
+        },
+        dispatch,
+        {insufficientPrivilegesAction: insufficientPrivilegesAction,
+         noRecordAction: noRecordAction,
+         serverErrorAction: serverErrorAction,
+         notLoggedInAction: notLoggedInAction
+        }
+      )
+    });
+  },
+  []);
+
+  useEffect(() => {
+    getBadgeTableData({forSelf: viewingSelf,
+                       userId: userId,
+                       dispatch: !!viewingSelf ? dispatch : null})
+    .then(info => {
+      returnStatusCheck(info, props.history,
+        (myinfo) => {
+          setBadgeTableData(myinfo.badgeTableData);
+          setBadgeTableUpdating(false);
         },
         dispatch,
         {insufficientPrivilegesAction: insufficientPrivilegesAction,
@@ -760,7 +789,7 @@ const Profile = (props) => {
 
             <Col className="profile-stages" xs={12} lg={12}>
               <ProfileStages
-                updating={updating}
+                updating={badgeTableUpdating}
                 badgeLevelTitles={badgeLevelTitles}
                 badgeLevels={badgeLevels}
                 badgeTableData={badgeTableData}

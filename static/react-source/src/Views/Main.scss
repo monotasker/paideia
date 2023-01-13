@@ -2786,8 +2786,9 @@ h3                                      {font-family: $sans-fonts;
                     }
                     .badge                          {color: $white;
                                                     line-height: 1rem;
-                                                    width: 1.5rem;
                                                     border-radius: 1.5rem;
+                                                    position: relative;
+                                                    top: -0.1rem;
                     }
                 }
             }
@@ -2828,6 +2829,16 @@ h3                                      {font-family: $sans-fonts;
                                                  @include neumorphism-shadow();
                 .tab-pane.active.show               {min-height: 20rem;
                     &.empty                         {display: flex;
+                    }
+                }
+                .stages-loading-message         {color: $pallette2;
+                                                 display: block;
+                                                 margin: auto;
+                                                 top: 5rem;
+                                                 position: relative;
+                                                 text-align: center;
+                    .spinner-grow               {display: block;
+                                                 margin: 0.5em auto;
                     }
                 }
                 .badge                          {padding: 0.5rem;
