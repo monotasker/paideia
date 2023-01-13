@@ -13,6 +13,7 @@ from gluon.serializers import custom_json, json as json_serializer
 from gluon.utils import web2py_uuid
 from itertools import chain
 import json
+from memory_profiler import profile
 import os
 from pprint import pprint
 from paideia import Walk
@@ -1237,7 +1238,7 @@ def queries():
         they need to be converted from strings before being sent to the
         relevant update function.
 
-    :returns: the http response payload as a JSON-parsable string
+    :returns: the http response payload as a JSON-parseable string
     :rtype:   str (JSON parsable)
     """
     try:
@@ -2878,7 +2879,7 @@ def get_userdata():
         return json_serializer({'title': 'unauthorized',
                      'reason': 'Not logged in'})
 
-
+# @profile
 def _get_profile_info(user_id: str="") -> str:
     """
     Api method to fetch a user's performance record.

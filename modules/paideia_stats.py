@@ -406,8 +406,9 @@ class Stats(object):
         Returns a dictionary whose keys are datetimes for the beginning of each day with logs since "recent_start". The value for each day is a 2-member tuple. The first member is a list of log id numbers for correct answers on that day. The second is a list of log id numbers for incorrect (score<1.0).
         '''
         db = current.db
-        debug = 0
+        debug = 1
 
+        # get recorded weekly stats that overlap with recent period
         mystats = db((db.weekly_user_stats.name==self.user_id) &
                      (db.weekly_user_stats.tag==tag_id) &
                      (db.weekly_user_stats.week_end > recent_start)
@@ -415,9 +416,11 @@ class Stats(object):
                               ).as_list()
         if debug: print('got from db:', len(mystats))
 
+        # get date for most recent recorded stats
         most_recent_stats = mystats[-1]['week_end'] if mystats else None
         if debug: print('most_recent is', most_recent_stats)
 
+        # if no recorded weekly stats available, find date of most recent
         if not most_recent_stats:
             latest = db((db.weekly_user_stats.name==self.user_id) &
                         (db.weekly_user_stats.tag==tag_id)
@@ -425,6 +428,7 @@ class Stats(object):
                                  ).as_list()
             most_recent_stats = latest[-1]['week_end'] if latest else None
             if debug: print('most_recent is', most_recent_stats)
+        # if no recorded stats at all, get most recent attempt log
         if not most_recent_stats:
                 mylog = db((db.attempt_log.name == self.user_id) &
                            (db.attempt_log.step == db.step2tags.step_id) &
@@ -433,6 +437,7 @@ class Stats(object):
                 if mylog:
                     if debug: print('any logs?', mylog.attempt_log.id)
 
+        # collect stats more recent than those recorded
         newstats = self._initialize_weekly_stats(tag_id, recent_start,
                                                  most_recent_stats)
         if debug: print('got from method:', len(newstats))
@@ -530,11 +535,12 @@ class Stats(object):
         yest_start = (daystart - datetime.timedelta(days=1))
         yeststart_raw = yest_start + offset
 
+        # retrieve records for tag performance
         if debug: print('fetching tag_records')
         tag_records = db((db.tag_records.name == self.user_id) &
                          (db.tag_records.tag.belongs(self.tags))
                           ).select().as_list()  # cacheable=True
-        # shorten keys for readability
+        # shorten keys for code readability
         if debug: print('shortening keys')
         shortforms = {'tlast_right': 'tlr',
                       'tlast_wrong': 'tlw',
@@ -546,12 +552,6 @@ class Stats(object):
                     tag_records[idx][alt] = row[k]
                     del tag_records[idx][k]
 
-
-        # FIXME:
-        # mydel = db(db.weekly_user_stats.name == self.user_id).delete()
-        # db.commit()
-        # print('deleted', mydel)
-
         # loop over tag_records entries
         if debug: print('looping over tag_records entries')
         for idx, t in enumerate(tag_records):
@@ -560,16 +560,15 @@ class Stats(object):
             tag_records[idx] = {k: v for k, v in list(t.items())
                 if k not in ['id', 'name', 'in_path', 'step',
                              'secondary_right']}
+            if debug: print('removed extra keys')
 
+            # Get average recent score =====================================
             # Count attempt log rows for recent attempts (today, yesterday,
             # and within last 5 days)
             # log fields used below are dt_attempted, score
-            if debug: t0 = time.time()
             tagstats = self._get_logs_for_tag(t['tag'], recent_start)
-            if debug: t1 = time.time()
-            if debug: print('a', t1-t0)
+            if debug: print('got tag logs')
 
-            if debug: t2 = time.time()
             try:
                 todaylogs = tagstats[daystart_raw]
                 tag_records[idx]['todaycount'] = len(todaylogs[0]) + len(todaylogs[1])
@@ -580,15 +579,10 @@ class Stats(object):
                 tag_records[idx]['yestcount'] = len(yestlogs[0]) + len(yestlogs[1])
             except KeyError:  # no logs from yesterday
                 tag_records[idx]['yestcount'] = 0
-            if debug: t3 = time.time()
-            if debug: print('b', t3-t2)
 
-            if debug: t4 = time.time()
             # get average score over recent period
             tag_records[idx]['avg_score'] = self._get_avg_score(
                 t['tag'], logs=tagstats)
-            if debug: t5 = time.time()
-            if debug: print('c', t5-t4)
 
             # get right/wrong ratio (from tag_records itself)
             if debug: t6 = time.time()
@@ -826,7 +820,7 @@ class Stats(object):
 
     def _initialize_weekly_stats(self, tag, recent_start,
                                  most_recent_row=None, now=None):
-        """Process and  store user's logs and return newly stored recent stats.
+        """Process and store user's weekly performance on a tag and return newly stored recent stats.
 
         This assumes that "most_recent_row" is in UTC time, but that day/week
         boundaries need to be adjusted based on the user's timezone offset. In
@@ -836,14 +830,21 @@ class Stats(object):
         Sunday. The "week_end" datetime is also actually minute 0 of the following week.
 
         :param int tag:     Id of the tag for which records are being stored.
+        :param datetime recent_start:   Start of the period considered "recent"
+                                        for stats purposes
         :param datetime most_recent_row:    Datetime of the most recent row in
                                             weekly_user_stats already stored.
         :param datetime now:    Datetime to treat as current. For use only for
                                 dependency injection in testing.
+
+        :returns:
+
+        :rtype: list
         """
         db = current.db
-        debug = 0
+        debug = 1
         now = now if now else self.utcnow
+        now_year, now_week = now.isocalendar()[:2]
         offset = get_offset(self.user)
         if most_recent_row:
             firstyear, firstweek = most_recent_row.isocalendar()[:2]
@@ -852,7 +853,7 @@ class Stats(object):
             most_recent_row = datetime.datetime(2011, 1, 1)
         recent_year, recent_week = recent_start.isocalendar()[:2]
 
-        def inner_build_dict(weeklogs):
+        def inner_build_dict(weeklogs, days):
             weekdict = {'name': self.user_id,
                         'tag': tag,
                         'year': year,
@@ -861,29 +862,36 @@ class Stats(object):
                         'week_start': start,
                         'week_end': days[7],
                         }
-            valid = 0
-            for n in range(1, 8):
-                rlogs = [r['attempt_log']['id'] for r in weeklogs if
-                         r['attempt_log']['dt_attempted'] > most_recent_row and
-                         r['attempt_log']['dt_attempted'] >= days[n-1] and
-                         r['attempt_log']['dt_attempted'] < days[n] and
-                         (abs((r['attempt_log']['score'] or 0) - 1.0) < 0.01)]
-                wlogs = [r['attempt_log']['id'] for r in weeklogs if
-                         r['attempt_log']['dt_attempted'] > most_recent_row and
-                         r['attempt_log']['dt_attempted'] >= days[n-1] and
-                         r['attempt_log']['dt_attempted'] < days[n] and
-                         abs((r['attempt_log']['score'] or 0) - 1.0) > 0.01]
-                if len(rlogs) or len(wlogs):
-                    valid = 1
-                weekdict['day{}_right'.format(str(n))] = rlogs
-                weekdict['day{}_wrong'.format(str(n))] = wlogs
-            return weekdict if valid else None
+            if len(weeklogs) > 0:
+                for n in range(1, 8):
+                    rlogs = [r['attempt_log']['id'] for r in weeklogs if
+                            r['attempt_log']['dt_attempted'] > most_recent_row and
+                            r['attempt_log']['dt_attempted'] >= days[n-1] and
+                            r['attempt_log']['dt_attempted'] < days[n] and
+                            (abs((r['attempt_log']['score'] or 0) - 1.0) < 0.01)]
+                    wlogs = [r['attempt_log']['id'] for r in weeklogs if
+                            r['attempt_log']['dt_attempted'] > most_recent_row and
+                            r['attempt_log']['dt_attempted'] >= days[n-1] and
+                            r['attempt_log']['dt_attempted'] < days[n] and
+                            abs((r['attempt_log']['score'] or 0) - 1.0) > 0.01]
+                    weekdict['day{}_right'.format(str(n))] = rlogs
+                    weekdict['day{}_wrong'.format(str(n))] = wlogs
+            else:
+                for n in range(1, 8):
+                    weekdict['day{}_right'.format(str(n))] = []
+                    weekdict['day{}_wrong'.format(str(n))] = []
+            return weekdict
 
         return_list = []
         for year in range(firstyear, now.year+1):
-            # print(year)
-            for week in range(firstweek, 54):
-                # print(week)
+            if debug: print(year)
+            lastweek = 53
+            if year == now_year:
+                lastweek = now_week + 1
+                if lastweek > datetime.date(now_year, 12, 31).isocalendar()[1]:
+                    lastweek = now_week
+            for week in range(firstweek, lastweek + 1):
+                if debug: print(week)
                 naivestart = datetime.datetime.strptime(
                     '{} {} 1'.format( year, week), '%G %V %u')
                 # Adjust weekday number so that week starts on Sunday
@@ -899,19 +907,19 @@ class Stats(object):
                             (db.attempt_log.step == db.step2tags.step_id) &
                             (db.step2tags.tag_id == tag)
                             ).select().as_list()
-                if mylogs:
-                    weekdict = inner_build_dict(mylogs)
-                    if weekdict:
-                        if days[7] < now:  # week is finished, write to db
-                            myrow = db.weekly_user_stats.insert(**weekdict)
-                            db.commit()
-                            if debug: print('inserting row', myrow)
-                        # only return if
-                        if year >= recent_year and week >= recent_week:
-                            return_list.append(weekdict)
-                    else:
-                        pass  # week had no logs
-        # print ('finished')
+                if debug: print('found logs', len(mylogs))
+                # build stats for week and record if week is done
+                weekdict = inner_build_dict(mylogs, days)
+                if days[7] < now:  # week is finished, write to db
+                    myrow = db.weekly_user_stats.insert(**weekdict)
+                    db.commit()
+                    if debug: print('inserting row', myrow)
+                    if debug: print(weekdict)
+                # only add to return list if within recent period
+                if year >= recent_year and week >= recent_week:
+                    return_list.append(weekdict)
+        if debug: print('return list=================')
+        if debug: print(return_list)
 
         return return_list
 
@@ -1071,7 +1079,7 @@ class Stats(object):
         to that date. An extra dict is added to the end of the list with the
         current date and the highest badge_set reached (to pad out graph).
         """
-        debug = 1
+        debug = 0
         db = current.db
         today = datetime.date.today().strftime('%Y-%m-%d')
 
