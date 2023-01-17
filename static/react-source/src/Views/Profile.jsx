@@ -97,13 +97,13 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
           {!!data && data.curlev===1 && data.avg_score < 0.8 && data.rw_ratio < 5 &&
             <span className="badge-promotion-tip">Keep trying to get more of your responses right to raise your average score and have this badge promoted.</span>
           }
-          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright < 20 &&
-            <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.tright} more right attempts with this badge to have it promoted.</span>
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.times_right < 20 &&
+            <span className="badge-promotion-tip">You're doing great. Just complete a {20 - data.times_right} more right attempts with this badge to have it promoted.</span>
           }
-          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && data.delta_r > (30*3600*24) &&
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.times_right >= 20 && data.delta_right > (30*3600*24) &&
             <span className="badge-promotion-tip">You've done great in the past. Just complete a right attempt again now to have it promoted.</span>
           }
-          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.tright >= 20 && withinOneDay(data.cat1_reached[0]) &&
+          {!!data && data.curlev===1 && (data.avg_score >= 0.8 || data.rw_ratio >= 5) && data.times_right >= 20 && withinOneDay(data.cat1_reached[0]) &&
             <span className="badge-promotion-tip">You've done great job so far. You just can't begin and promote a badge within the same day. Keep it up and this badge should be promoted tomorrow!</span>
           }
           <Table borderless size="sm"
@@ -122,16 +122,16 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
                 <tr className="total-right">
                   <td><FontAwesomeIcon icon="check-circle" /></td>
                   <td>Total right attempts</td>
-                  {data.curlev===1 && data.tright >= 20 ?
-                    <td className="target-reached">{data.tright}<FontAwesomeIcon icon="check-circle" /></td>
+                  {data.curlev===1 && data.times_right >= 20 ?
+                    <td className="target-reached">{data.times_right}<FontAwesomeIcon icon="check-circle" /></td>
                     :
-                    <td>{data.tright}</td>
+                    <td>{data.times_right}</td>
                   }
                 </tr>
                 <tr className="total-wrong">
                   <td><FontAwesomeIcon icon="times-circle" /></td>
                   <td>Total wrong attempts</td>
-                  <td>{data.twrong}</td>
+                  <td>{data.times_wrong}</td>
                 </tr>
                 <tr className="right-per-wrong">
                   <td><FontAwesomeIcon icon="balance-scale" /></td>
@@ -141,12 +141,12 @@ const BadgeTerm = ({title, description, lessons, data, level}) => {
                 <tr className="days-since-right">
                   <td><FontAwesomeIcon icon="clock" /></td>
                   <td>Days since last right</td>
-                  <td>{Math.floor(data.delta_r / (3600*24))}</td>
+                  <td>{Math.floor(data.delta_right / (3600*24))}</td>
                 </tr>
                 <tr className="days-since-wrong">
                   <td><FontAwesomeIcon icon="clock" /></td>
                   <td>Days since last wrong</td>
-                  <td>{Math.floor(data.delta_w / (3600*24))}</td>
+                  <td>{Math.floor(data.delta_wrong / (3600*24))}</td>
                 </tr>
               </tbody>
             </Table>

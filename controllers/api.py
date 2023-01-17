@@ -3123,9 +3123,9 @@ def get_userdata():
                      'reason': 'Not logged in'})
 
 
-def _get_badge_stats(user_id: str="") -> str:
+def _get_badge_stats(user_id: int) -> str:
     """
-
+    Return the user's performance statistics for each active badge.
 
     :param str user_id: A string representing the integer id for the user whose
                         badge data is being requested. (Defaults to empty
@@ -3142,9 +3142,8 @@ def _get_badge_stats(user_id: str="") -> str:
     :rtype: str (JSON parseable)
     """
     vbs = GLOBAL_VBS or 0
-    stats = Stats(user_id)
 
-    return json_serializer({'badge_table_data': stats.active_tags()},
+    return json_serializer({'badge_table_data': Stats.active_tags(user_id)},
                            default=my_custom_json)
 
 
