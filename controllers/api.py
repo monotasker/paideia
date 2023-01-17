@@ -2800,14 +2800,21 @@ def users():
     """
     Api endpoint for operations related to user information.
 
-    Return value is the request body, in the form of a JSON parseable string.
-    The response status code may also be set via the web2py response object.
+    This endpoint allows fetching basic user information and user performance data (GET), updating user basic user information and minimum daily/weekly
+    activity targets (PATCH), and triggering promotion of the user to the next badge set or demotion to the previous badge set (PATCH). See below under "http methods" for more details.
+
+    Operations to create or delete user accounts are not handled here but on the `registration` endpoint. Operations to create or change a user's
+    membership in a course group are handled on the `course_groups` endpoint.
+
+    Returns the http response body for the request, in the form of a JSON
+    parseable string. The response status code may also be set as needed via
+    the web2py response object.
 
     http parameters:
         - name: user_id
-          in: query
+          in: path
           type: integer (as string)
-          required: true (all methods)
+          required: false
           description: the id of the user whose record is being
                        requested or modified. If no parameter is passed the
                        function assumes the request is for the currently
@@ -2837,12 +2844,55 @@ def users():
                        statistics for individual badges. This data is returned
                        separately because of the higher overhead involved. This
                        should never be true if a month parameter is also specified.
-        - name: course
+        - name: "viewed_slides"
+          in: query
+          type: boolean (as string)
+          required: false
+          description: for PATCH requests, if true, sets the user's
+                       "viewed_slides" flag (on session_data table) to true.
+        - name: "email"
+          in: query
+          type: string
+          required: false
+          description: for PATCH requests, provides an updated email address
+                       for the specified user. This email will be used for
+                       login as well as communication with the user.
+        - name: "first_name"
+          in: query
+          type: string
+          required: false
+          description: for PATCH requests, provides an updated given name
+                       for the specified user.
+        - name: "last_name"
+          in: query
+          type: string
+          required: false
+          description: for PATCH requests, provides an updated family name
+                       for the specified user.
+        - name: "time_zone"
+          in: query
+          type: string
+          required: false
+          description: for PATCH requests, provides an updated time zone
+                       for the specified user. This must be an official time
+                       zone name from the Olson time zone database, as provided
+                       in the pytz module (current_timezones).
+        - name: "daily_target"
           in: query
           type: integer (as string)
-          required: true (POST and DELETE only)
-          description: for POST requests, specifies the course group into which
-                       the user should be placed
+          required: false
+          description: for PATCH requests, provides an updated number of paths
+                       to serve as the user's minimum target for each active
+                       day. This sets the user's global default target. If the user is currently in a course group, and the chosen target is higher than the course default, then the user's target for that course will also be updated. If the user is currently in a course group, and the chosen target is *lower* than the course default, the response
+                       will contain an error message.
+        - name: "weekly_target"
+          in: query
+          type: integer (as string)
+          required: false
+          description: for PATCH requests, provides an updated number of paths
+                       to serve as the user's minimum target for each active
+                       day. This sets the user's global default target. If the user is currently in a course group, and the chosen target is higher than the course default, then the user's target for that course will also be updated. If the user is currently in a course group, and the chosen target is *lower* than the course default, the response
+                       will contain an error message.
 
     http methods
 
@@ -2861,50 +2911,157 @@ def users():
 
         POST    **Method is not used for this endpoint.**
 
-        PATCH   updates the specified user's data with whatever fields are
-                supplied as request parameters.
+        PATCH   By default updates the specified user's data with any of the
+                following fields that are supplied as parameters: "email",
+                "first_name", "last_name", "time_zone", "viewed_slides",
+                "daily_target", "weekly_target".
 
-        DELETE  **Method is not used for this endpoing.**
+                if "daily_target" or "weekly_target" is specified, this method
+                sets the user's global default targets. If the user is
+                currently in a course group, and the chosen target is higher
+                than the course default, then the user's individualized target
+                for that course will also be updated. If the user is currently
+                in a course group, and the chosen target is *lower* than the
+                course default, the response will contain an error message.
+
+        DELETE  **Method is not used for this endpoint.**
 
     :returns: the http response payload as a JSON-parsable string
 
     :rtype:   str (JSON parsable)
     """
-    request = current.request
-    response = current.response
-    auth = current.auth
-    user_id = request.vars["user_id"]
+    request, response, auth = current.request, current.response, current.auth
 
     if not auth.is_logged_in():
         response.status = 401
         return json_serializer({'title': 'unauthorized',
-                                'reason': 'Not logged in',
-                                'error': None})
+                                'reason': 'Not logged in'})
 
     # Allow passing explicit user but default to current user
-    if user_id:
-        sid = int(user_id)
-        # only allow viewing if admin or student's instructor
-        if (auth.user_id == sid
+    if len(request.args) > 0:
+        raw_user_id = request.args[0]
+        try:
+            user_id = int(raw_user_id)
+        except ValueError:
+            response.status = 400
+            return json_serializer({'title': 'bad request',
+                                    'reason': 'User id must be an integer'})
+        # only allow viewing if admin or student':s instructor
+        if (auth.user_id == user_id
             or auth.has_membership('administrators')
             or (auth.has_membership('instructors') and
-                _is_my_student(auth.user_id, sid))):
-            user_rec = db.auth_user[sid]
+                _is_my_student(auth.user_id, user_id))):
+            user_rec = db.auth_user[user_id]
         else:
-            response.status = 401
-            return json_serializer({'title': 'unauthorized',
-                            'reason': 'Insufficient privileges'})
+            response.status = 403
+            return json_serializer({'title': 'forbidden',
+                                    'reason': 'Insufficient privileges'})
     else:
         user_rec = db.auth_user[auth.user_id]
     if not user_rec:
         response.status = 404
         return json_serializer({'title': 'not found',
-                                'reason': 'No matching record found',
-                                'error': None})
+                                'reason': 'No such user record found'})
 
     try:
         if request.method == 'PATCH':
-            pass
+            passed_args = {k: v for k, v in request.vars.items() if k in
+                           ['first_name', 'last_name', 'email', 'time_zone',
+                            'viewed_slides', 'daily_target', 'weekly_target', 'promote_user', 'demote_user']
+                           and v not in ['null', None]
+                           }
+            if [k for k in ['promote_user', 'demote_user']
+                    if k in passed_args.keys()]:
+                set_change = _promote_or_demote_user(user_id=user_rec.id,
+                                                     **passed_args)
+                if set_change['result'] == 'failure':
+                    if set_change['reason'] == 'max set reached':
+                        response.status = 409
+                        return json_serializer(
+                            {'title': 'conflict',
+                             'reason': 'User already at maximum badge set'})
+                    elif set_change['reason'] == 'min set reached':
+                        response.status = 409
+                        return json_serializer(
+                            {'title': 'conflict',
+                             'reason': 'User already at maximum badge set'})
+                    else:
+                        response.status = 500
+                        return json_serializer(
+                            {'title': 'internal server error',
+                             'reason': 'Unknown error in function'
+                                       'api::_promote_or_demote_user',
+                             'error': info_update['error']})
+                return json_serializer({'new_badge_set': set_change['result']})
+            all_updates = {}
+            if [k for k in ['daily_target', 'weekly_target']
+                  if k in passed_args.keys()]:
+                target_change = _update_user_targets(user_id=user_rec.id,
+                                                     **passed_args)
+                if target_change['result'] == 'failure':
+                    if target_change['reason'] == 'below course targets':
+                        response.status = 422
+                        return json_serializer(
+                            {'title': 'unprocessable entity',
+                             'reason': 'Cannot set user\'s targets lower than '
+                                       'current course targets '})
+                    else:
+                        response.status = 500
+                        return json_serializer(
+                            {'title': 'internal server error',
+                             'reason': 'Unknown error in function'
+                                       'api::_update_user_targets',
+                             'error': target_change['error']})
+                all_updates['targets'] = target_change['result']
+            if [k for k in ['first_name', 'last_name', 'email', 'time_zone']
+                    if k in passed_args.keys()]:
+                info_update = _update_user_info(user_id=user_rec.id,
+                                                **passed_args)
+                if info_update['result'] == 'failure':
+                    if info_update['reason'] == 'invalid time zone':
+                        response.status = 422
+                        tz = passed_args['time_zone']
+                        return json_serializer({'title': 'unprocessable entity',
+                                                'reason': f'${tz} is not a '
+                                                           'valid time zone'})
+                    elif info_update['reason'] == 'invalid email address':
+                        response.status = 422
+                        return json_serializer({'title': 'unprocessable entity',
+                                                'reason': f'${passed_args["email"]} is not an '
+                                                'email address'})
+                    elif info_update['reason'] == 'string too long':
+                        response.status = 422
+                        bad_field = info_update['bad_field']
+                        return json_serializer(
+                            {'title': 'unprocessable entity',
+                             'reason': f'String provided for ${bad_field} is '
+                                        'too long'})
+                    elif info_update['reason'] == 'invalid characters':
+                        response.status = 422
+                        bad_field = info_update['bad_field']
+                        return json_serializer(
+                            {'title': 'unprocessable entity',
+                             'reason': f'String provided for ${bad_field} '
+                                        'contains invalid characters'})
+                    else:
+                        response.status = 500
+                        return json_serializer(
+                            {'title': 'internal server error',
+                             'reason': 'Unknown error in function'
+                                       'api::_update_user_info',
+                             'error': info_update['error']})
+                all_updates.update(info_update['result'])
+            if 'viewed_slides' in passed_args.keys():
+                vs_update = _set_viewed_slides(user_id=user_rec.id)
+                if vs_update['result'] == 'failure':
+                    response.status = 500
+                    return json_serializer(
+                        {'title': 'internal server error',
+                            'reason': 'Unknown error in function'
+                                      'api::_update_viewed_slides',
+                            'error': info_update['error']})
+                all_updates.update(vs_update['result'])
+            return json_serializer(all_updates)
         if request.method == 'GET':
             if "month" in request.vars.keys() and request.vars['month']:
                 return _get_calendar_month(int(request.vars['year']),
@@ -2915,12 +3072,10 @@ def users():
                 return _get_badge_stats(user_id=user_rec.id)
             return _get_profile_info(user_rec=user_rec)
         else:
-            response.status = 400
-            # not using accepted method
-            return json_serializer({'title': 'bad request',
-                        'reason': f'${request.method} not a valid method ' \
-                                'for this endpoint',
-                        'error': None})
+            response.status = 405
+            return json_serializer({'title': 'method not allowed',
+                                    'reason': f'${request.method} not a valid '
+                                               'method for this endpoint'})
     except Exception:
         print_exc()
         response.status = 500
@@ -2956,7 +3111,7 @@ def get_userdata():
     auth = current.auth
     session = current.session
     if auth.is_logged_in():
-        user = db.auth_user(auth.user_id).as_dict()
+        user = db.auth_use(auth.user_id).as_dict()
         full_user = _fetch_userdata(user, request.vars)
         full_user['review_set'] = session.set_review \
             if 'set_review' in session.keys() else None
@@ -3153,6 +3308,38 @@ def _get_calendar_month(year: int, month: int, user_id: int):
                                 'reason': 'Unknown error in function '
                                           ' api::get_calendar_month',
                                 'error': format_exc()})
+
+
+def _set_viewed_slides(user_id: int, first_name: str=None, last_name: str=None,
+                       email: str=None, time_zone: str=None) -> dict:
+    """
+    TODO: write this
+    """
+    pass
+
+
+def _update_user_info(user_id: int, first_name: str=None, last_name: str=None,
+                      email: str=None, time_zone: str=None) -> dict:
+    """
+    TODO: write this
+    """
+    pass
+
+
+def _update_user_targets(user_id: int,
+                         daily_target: int=None, weekly_target: int=None):
+    """
+    TODO: write this
+    """
+    pass
+
+
+def _promote_or_demote_user(user_id: int,
+                            promote_user: bool=None, demote_user: bool=None):
+    """
+    TODO: write this
+    """
+    pass
 
 def update_course_membership_data():
     pass

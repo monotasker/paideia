@@ -114,8 +114,8 @@ const updateUserInfo = async dispatch => {
 const getBadgeTableData = async ({forSelf=false,
                                   userId=null,
                                   dispatch=null}) => {
-  let response = await doApiCall({user_id: userId, badge_stats: true},
-                                 "users",
+  let response = await doApiCall({badge_stats: true},
+                                 `users/${userId}`,
                                  "queryString",
                                  "GET");
   let mydata = {};
@@ -136,8 +136,8 @@ const getBadgeTableData = async ({forSelf=false,
 const getProfileInfo = async ({forSelf=false,
                                userId=null,
                                dispatch=null}) => {
-  let response = await doApiCall({user_id: userId},
-                                 "users",
+  let response = await doApiCall({},
+                                 `users/${userId}`,
                                  "queryString",
                                  "GET");
   let mydata = {};
@@ -182,9 +182,8 @@ const getProfileInfo = async ({forSelf=false,
  */
 const getCalendarMonth = async ({userId, year, month}
   ) => await doApiCall({year: year,
-                        month: month,
-                        user_id: userId},
-                       "users", "queryString", "GET");
+                        month: month},
+                       `users/${userId}`, "queryString", "GET");
 
 const formatLoginData = (data) => {
   return {
