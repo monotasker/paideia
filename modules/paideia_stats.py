@@ -114,8 +114,8 @@ class Stats(object):
         # TODO: find and notify re. duplicate tag_records rows
         # FIXME: Retrieve this locally
         self.badge_levels, self.review_levels = self._find_badge_levels(user_id)
-        self.tags = list(set([tup[1] for v
-                              in list(self.badge_levels.values()) for tup in v]))
+        self.tags = [tup[1] for v in list(self.badge_levels.values())
+                     for tup in v]
 
         # date of each tag promotion
         # FIXME: Retrieve this locally
@@ -262,9 +262,9 @@ class Stats(object):
     """
 
     @staticmethod
-    def _add_tag_data(tag_recs: list[dict]) -> list[dict]:
+    def _add_badge_info(tag_recs: list[dict]) -> list[dict]:
         """
-        Return add fields for tag information to a list of tag records.
+        Return add fields for badge information to a list of tag records.
 
         :param list[dict] tagrecs:  A list of tag_records records serialized
                                     as dictionaries. These are the records
@@ -349,7 +349,7 @@ class Stats(object):
         return tag_recs
 
     @staticmethod
-    def _get_avg_score(logs: dict[tuple]) -> float:
+    def _get_avg_score(logs: dict[datetime.datetime, tuple]) -> float:
         """
         Return the user's average score for the supplied attempt logs.
 
@@ -380,9 +380,9 @@ class Stats(object):
         return avg_score
 
     @classmethod
-    def _get_logs_for_tag(cls, user_id: int, offset: datetime.timedelta,
-                          tag_id: int, recent_start: datetime
-                          ) -> dict[str, tuple]:
+    def _get_tag_logs_by_day(cls, user_id: int, offset: datetime.timedelta,
+                             tag_id: int, recent_start: datetime.datetime
+                             ) -> dict[datetime.datetime, tuple]:
         '''
         Returns the log ids for recent attempts related to a given tag.
 
@@ -399,7 +399,7 @@ class Stats(object):
                     id numbers for correct answers on that day. The second is a
                     list of log id numbers for incorrect (score<1.0).
 
-        :rtype: dict[str, tuple]
+        :rtype: dict[datetime.datetime, tuple]
         '''
         db = current.db
         debug = 1
@@ -412,11 +412,11 @@ class Stats(object):
                               ).as_list()
         if debug: print('got from db:', len(mystats))
 
-        # get date for most recent recorded stats
+        # get date for most recent recorded stats in recent period
         most_recent_stats = mystats[-1]['week_end'] if mystats else None
         if debug: print('most_recent is', most_recent_stats)
 
-        # if no recorded weekly stats available, find date of most recent
+        # if no recent weekly stats available, find week end of most recent
         if not most_recent_stats:
             latest = db((db.weekly_user_stats.name==user_id) &
                         (db.weekly_user_stats.tag==tag_id)
@@ -424,14 +424,18 @@ class Stats(object):
                                  ).as_list()
             most_recent_stats = latest[-1]['week_end'] if latest else None
             if debug: print('most_recent is', most_recent_stats)
-        # if no recorded stats at all, get most recent attempt log
+        # if no recorded weekly stats at all, get most recent attempt log
         if not most_recent_stats:
-                mylog = db((db.attempt_log.name == user_id) &
-                           (db.attempt_log.step == db.step2tags.step_id) &
-                           (db.step2tags.tag_id == tag_id)
-                           ).select().last()
-                if mylog:
-                    if debug: print('any logs?', mylog.attempt_log.id)
+            last_log = db((db.attempt_log.name == user_id) &
+                          (db.attempt_log.step == db.step2tags.step_id) &
+                          (db.step2tags.tag_id == tag_id)
+                          ).select(db.attempt_log.dt_attempted).last()
+            if last_log:
+                most_recent_stats = \
+                    last_log['dt_attempted'] - datetime.timedelta(days=1)
+            else:
+                most_recent_stats = \
+                    datetime.datetime.utcnow() - datetime.timedelta(days=1)
 
         # collect stats more recent than those recorded
         newstats = cls._initialize_weekly_stats(user_id, offset, tag_id,
@@ -441,7 +445,6 @@ class Stats(object):
         mystats = mystats + newstats
 
         flatstats = {}
-        # pprint(mystats)
         for w in mystats:
             for day in range(1,8):
                 mydate = datetime.datetime.strptime(
@@ -454,8 +457,9 @@ class Stats(object):
 
     @staticmethod
     def _initialize_weekly_stats(user_id: int, offset: datetime.timedelta,
-                                 tag: int, recent_start: datetime,
-                                 most_recent_row: datetime, now: datetime=None
+                                 tag: int, recent_start: datetime.datetime,
+                                 most_recent_row: datetime.datetime,
+                                 now: Optional[datetime.datetime]=None
                                  ) -> list[dict]:
         """
         Retrieve and store a user's recent weekly performance on a tag.
@@ -610,6 +614,21 @@ class Stats(object):
         # yeststart_utc = yeststart_offset + offset
         return todaycount
 
+    @staticmethod
+    def _get_delta_right_wrong():
+        """
+        get time delta between last right and wrong attempts
+
+        :rtype: datetime.timedelta
+        """
+        # TODO: was done in performance_by_tag, but not used in client
+        # if tag_records[i]['tlast_right'] > tag_records[i]['tlast_wrong']:
+        #     tag_records[i]['delta_rw'] = (
+        #         tag_records[i]['tlast_right'] - tag_records[i]['tlast_wrong'])
+        # else:
+        #     tag_records[i]['delta_rw'] = datetime.timedelta(days=0)
+        pass
+
     # @profile
     @classmethod
     def performance_by_tag(cls, user_id: Optional[int]=None,
@@ -618,6 +637,9 @@ class Stats(object):
         '''
         Calculate and return performance stats related to each tag for one user.
 
+        :param int user_id: The id of the user whose stats are being retrieved.
+                            Optional. If not supplied, the method returns stats
+                            for the currently logged in user.
         :param datetime now:    The current time, used as the reference point
                                 for calculating time-based statistics. **Only
                                 used for dependency injection during testing**
@@ -628,32 +650,33 @@ class Stats(object):
         :returns:    a list of dictionaries, one per active tag for this user.
                      Each dictionary includes the following keys:
 
-            tag (int)           tag row id
-            times_right (float) total number of times right
-            times_wrong (float) total number of times wrong
-            rw_ratio (float)    ratio of user's total right attempts to
-                                wrong attempts with current tag
+            tag (int)                   tag row id
+            times_right (float)         total number of right attempts
+            times_wrong (float)         total number of wrong attempts
+            rw_ratio (float)            ratio of user's total right attempts to
+                                        wrong attempts with current tag
             delta_wrong (timedelta)     length of time since last wrong answer
             delta_right (timedelta)     length of time since last right answer
-            avg_score (float)   average score for the user's recent attempts
-            curlev (int)        highest level attained for tag
-            revlev (int)        current level used for path selection
-            set (int)           the tag's "position" in set sequence. From
-                                db tags.
-            bname (str)         name of the badge corresponding to this tag.
-                                From db.badges.
-            bdesc (str)         description of the badge corresponding to this
-                                tag. From db.badges
-            slides (list[int])  list of ids for the video lessons (slides)
-                                related to the tag
-            cat1_reached (tuple)    a tuple of (datetime, prettydate string),
-                                    date when tag became active for user. From
-                                    db.badges_begun.
-            cat2_reached (tuple)    same for category 2
-            cat3_reached (tuple)    same for category 3
-            cat4_reached (tuple)    same for category 4
-            tlast_wrong (datetime)  last wrong attempt
-            tlast_right (datetime)  last right attempt
+            recent_avg_score (float)    average score for the user's recent
+                                        attempts
+            curlev (int)                highest level attained for tag
+            revlev (int)                current level used for path selection
+            set (int)                   the tag's "position" in set sequence.
+                                        From db tags.
+            bname (str)                 name of the badge corresponding to this
+                                        tag. From db.badges.
+            bdesc (str)                 description of the badge corresponding
+                                        to this tag. From db.badges
+            slides (list[int])          list of ids for the video lessons
+                                        (slides) related to the tag
+            cat1_reached (tuple)        a tuple of (datetime, prettydate
+                                        string) for date when tag became active
+                                        for user. From db.badges_begun.
+            cat2_reached (tuple)        same for reaching category 2
+            cat3_reached (tuple)        same for reaching category 3
+            cat4_reached (tuple)        same for reaching category 4
+            tlast_wrong (datetime)      most recent wrong attempt
+            tlast_right (datetime)      most recent right attempt
 
             This method used to also return the following deprecated keys,
             which are not presently returned:
@@ -675,7 +698,7 @@ class Stats(object):
         user = db.auth_user(auth.user_id if not user_id else user_id)
         recent_period = 4
 
-        # get bounds for today and yesterday
+        # get bounds for today, yesterday, recent period
         now = datetime.datetime.utcnow() if not now else now
         offset = get_offset(user)
         daystart_utc = datetime.datetime.combine(now.date(),
@@ -684,9 +707,9 @@ class Stats(object):
         recent_start_offset = (
             daystart_offset - datetime.timedelta(days=recent_period))
 
-        # retrieve records for tag performance
+        # retrieve basic performance records for user's active tags
         badge_levels, review_levels = cls._find_badge_levels(user.id)
-        tags = list(set([tup[1] for v in badge_levels.values() for tup in v]))
+        tags = [tup[1] for v in badge_levels.values() for tup in v]
         tag_records = db((db.tag_records.name == user.id) &
                          (db.tag_records.tag.belongs(tags))).select(
                             db.tag_records.tag,
@@ -696,101 +719,70 @@ class Stats(object):
                             db.tag_records.tlast_wrong
                          ).as_list()
 
-        # loop over tag_records entries
         for i, t in enumerate(tag_records):
-            if debug: print('active_tags: tag', t['tag'])
-            # Get average score within 5 days =============================
-            # log fields used below are dt_attempted, score
-            tagstats = cls._get_logs_for_tag(user.id, offset, t['tag'],
-                                             recent_start_offset)
-            if debug: print('got tag logs')
-
-            # get average score over recent period
-            tag_records[i]['avg_score'] = cls._get_avg_score(tagstats)
+            logs_by_day = cls._get_tag_logs_by_day(user.id, offset, t['tag'],
+                                                   recent_start_offset)
+            tag_records[i]['recent_avg_score'] = cls._get_avg_score(logs_by_day)
 
             # get right/wrong ratio
             try:
-                # TODO: sanitize None values
+                # sanitize None values before rounding
                 t['times_right'] = t['times_right'] or 0
                 t['times_wrong'] = t['times_wrong'] or 0
                 tag_records[i]['rw_ratio'] = round(
                     t['times_right'] / t['times_wrong'], 2)
-            except (ZeroDivisionError, TypeError):
+            except ZeroDivisionError:
                 tag_records[i]['rw_ratio'] = round(t['times_right'], 2)
 
             # parse last_right and last_wrong as datetimes if necessary
-            try:
-                if not isinstance(t['tlast_wrong'], datetime.datetime):
-                    t['tlast_wrong'] = parse(t['tlast_wrong'])
-                    tag_records[i]['tlast_wrong'] = t['tlast_wrong']
-                if not isinstance(t['tlast_right'], datetime.datetime):
-                    t['tlast_right'] = parse(t['tlast_right'])
-                    tag_records[i]['tlast_right'] = t['tlast_right']
-            except AttributeError:
-                pass
+            if not isinstance(t['tlast_wrong'], datetime.datetime):
+                t['tlast_wrong'] = parse(t['tlast_wrong'])
+                tag_records[i]['tlast_wrong'] = t['tlast_wrong']
+            if not isinstance(t['tlast_right'], datetime.datetime):
+                t['tlast_right'] = parse(t['tlast_right'])
+                tag_records[i]['tlast_right'] = t['tlast_right']
 
             # get time deltas since last right and wrong
-            for x in ['right', 'wrong']:
+            for opt in ['right', 'wrong']:
                 try:
-                    tag_records[i]['delta_' + x] = now - t['tlast_' + x]
+                    tag_records[i][f'delta_{opt}'] = now - t[f'tlast_{opt}']
                 except TypeError:  # record is timezone-aware, shouldn't be yet
-                    t['tlast_' + x] = t['tlast_' + x].replace(tzinfo=None)
-                    tag_records[i]['delta_' + x] = now - t['tlast_' + x]
-
-            # get time delta between last right and wrong attempts
-            # TODO: not used in client
-            # if tag_records[i]['tlast_right'] > tag_records[i]['tlast_wrong']:
-            #     tag_records[i]['delta_rw'] = (
-            #         tag_records[i]['tlast_right'] - tag_records[i]['tlast_wrong'])
-            # else:
-            #     tag_records[i]['delta_rw'] = datetime.timedelta(days=0)
+                    t[f'tlast_{opt}'] = t[f'tlast_{opt}'].replace(tzinfo=None)
+                    tag_records[i][f'delta_{opt}'] = now - t[f'tlast_{opt}']
 
             # localize datetimes and add readable string for display
-            # TODO: not used in client
-            # for z in ['tlast_right', 'tlast_wrong']:
-            #     t[z] = cls._local(t[z], user['tz_obj'])
-            #     strf = '%b %e' if t[z].year == now.year else '%b %e, %Y'
-            #     tag_records[i][z] = (t[z], t[z].strftime(strf))
+            for z in ['tlast_right', 'tlast_wrong']:
+                t[z] = cls._local(t[z], user['tz_obj'])
+                strf = '%b %e' if t[z].year == now.year else '%b %e, %Y'
+                tag_records[i][z] = (t[z], t[z].strftime(strf))
 
             # add user's historic maximum and current review levels for tag
             try:
                 tag_records[i]['curlev'] = [
-                    l for l, tgs in list(badge_levels.items())
-                    if t['tag'] in [tg[1] for tg in tgs]
-                    ][0]
+                    l for l, tgs in badge_levels.items()
+                    if t['tag'] in tgs][0]
             except IndexError:
-                traceback.print_exc(5)
                 tag_records[i]['curlev'] = 0
             try:
                 tag_records[i]['revlev'] = [
-                    l for l, tgs in list(review_levels.items())
-                    if t['tag'] in [tg[1] for tg in tgs]
-                    ][0]
+                    l for l, tgs in review_levels.items()
+                    if t['tag'] in tgs][0]
             except IndexError:
-                traceback.print_exc(5)
                 tag_records[i]['revlev'] = 0
 
             # round total right and wrong attempt counts to closest int for
             # readability
-            for y in ['right', 'wrong']:
+            for option in ['right', 'wrong']:
                 try:
-                    tag_records[i]['times_' + y] = remove_trailing_0s(
-                        t['times_' + y], fmt='num')
+                    tag_records[i][f'times_{option}'] = \
+                        remove_trailing_0s(t[f'times_{option}'], fmt='num')
                 except TypeError:  # because value is None
-                    tag_records[i]['t' + y] = 0
+                    tag_records[i][f'times_{option}'] = 0
 
-        try:
-            if debug: print('adding tag data to tag_records')
-            # FIXME: only slides being used in view from add_tag_data
-            tag_records = cls._add_tag_data(tag_records)
-            if debug: print('adding promotion data to tag_records')
-            tag_records = cls._add_promotion_data(tag_records,
-                                                  user.id, user['tz_obj'])
-            if debug: print('returning...')
-            return tag_records
-        except Exception:
-            traceback.print_exc(5)
-            return None
+        tag_records = cls._add_badge_info(tag_records)
+        tag_records = cls._add_promotion_data(tag_records,
+                                              user.id, user['tz_obj'])
+        return tag_records
 
     def get_max(self):
         """
@@ -837,7 +829,8 @@ class Stats(object):
         return self.badge_levels
 
     @staticmethod
-    def _find_badge_levels(user_id: int) -> set[dict]:
+    def _find_badge_levels(user_id: int) -> tuple[dict[int, list[tuple]],
+                                                  dict[int, list[tuple]]]:
         """
         Returns the user's current badge (tag) ids grouped by level.
 
@@ -848,7 +841,29 @@ class Stats(object):
                     absolute level (maximum level ever reached) and the second
                     dictionary uses the current review level (based on core
                     algorithm)
-        :rtype: tuple[dict]
+
+                    The keys of each dictionary are the integers 1-4. Each
+                    value is a list of tuples, with each tuple representing one
+                    badge assigned to the given level.
+
+                    The badge tuples in both dictionaries include:
+                        [0]     (str) the badge name
+                        [1]     (int) the tag id number
+                    The first dictionary (for absolute level reached) also
+                    includes the following members in each badge tuple:
+                        [2]     (str) the badge description
+                        [3]     (list) the lessons corresponding to the
+                                       given badge. Each lesson is represented
+                                       by a tuple of [0] (int) lesson_position,
+                                       and [1] (str) lesson title
+
+        FIXME: Should separate fetching of badge levels from gathering of
+                badge info. Only the former is used in performance_by_tag,
+                which is also duplicating the gathering of badge info
+                with _add_badge_info
+
+        :rtype: tuple[dict[int, list[tuple]],
+                      dict[int, list[tuple]]]
         """
         db = current.db
 
@@ -889,6 +904,8 @@ class Stats(object):
             badgelist = []
             if v:
                 for tag in v:
+                    if tag in [79, 80, 81]:
+                        break
                     mybadge = db.badges(db.badges.tag == tag)
                     badge_name = mybadge.badge_name if mybadge \
                         else 'tag id: {}'.format(tag)
