@@ -3143,8 +3143,9 @@ def _get_badge_stats(user_id: int) -> str:
     """
     vbs = GLOBAL_VBS or 0
 
-    return json_serializer({'badge_table_data': Stats.active_tags(user_id)},
-                           default=my_custom_json)
+    return json_serializer(
+        {'badge_table_data': Stats.performance_by_tag(user_id)},
+        default=my_custom_json)
 
 
 # @profile

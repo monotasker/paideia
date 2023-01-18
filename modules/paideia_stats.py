@@ -1,23 +1,25 @@
 import calendar
-import datetime
-import decimal
 from collections import defaultdict
-from dateutil.parser import parse
-import traceback
 from copy import copy
-from memory_profiler import profile
-from operator import itemgetter
-from pytz import timezone, utc, BaseTzInfo
-import time
+import datetime
+from dateutil.parser import parse
+import decimal
 from gluon import current
 from gluon._compat import to_native, integer_types
 from gluon.dal import DAL
 from gluon.html import XmlComponent
 from gluon.languages import lazyT
+from itertools import chain, groupby
+from memory_profiler import profile
+from operator import itemgetter
 from plugin_utils import make_json, load_json
 from pprint import pprint
-from itertools import chain, groupby
+from pytz import timezone, utc, BaseTzInfo
+import time
+import traceback
+from typing import Optional
 
+GLOBAL_DEBUG = 0
 
 class Stats(object):
     '''
@@ -586,9 +588,10 @@ class Stats(object):
         return return_list
 
     @staticmethod
-    def _get_today_counts(tagstats: list[dict],
-                          today: datetime) -> tuple[int]:
+    def _get_today_counts(tagstats: dict,
+                          today: datetime.datetime) -> int:
         """
+        Return the number of attempts from tagstats for a specific day
         """
         try:
             todaylogs = tagstats[today]
@@ -596,14 +599,24 @@ class Stats(object):
         except KeyError:  # no logs from today
             todaycount = 0
 
+        # FIXME: Was being called in active_tags like this:
+        # tag_records[idx]['todaycount'] = cls._get_today_counts(
+        #     tagstats, daystart_offset)
+        # tag_records[idx]['yestcount'] = cls._get_today_counts(
+        #     tagstats, yeststart_offset)
+
+        # FIXME: in active_tags, this assembled dt for yesterday:
+        # yeststart_offset = daystart_offset - datetime.timedelta(days=1)
+        # yeststart_utc = yeststart_offset + offset
         return todaycount
 
     # @profile
     @classmethod
-    def active_tags(cls, user_id: int=None,
-                    now: datetime=None, db: DAL=None) -> list[dict]:
+    def performance_by_tag(cls, user_id: Optional[int]=None,
+                           now: Optional[datetime.datetime]=None,
+                           db: DAL=None) -> list[dict]:
         '''
-        Calculate and return activity stats for the user related to each tag.
+        Calculate and return performance stats related to each tag for one user.
 
         :param datetime now:    The current time, used as the reference point
                                 for calculating time-based statistics. **Only
@@ -639,16 +652,13 @@ class Stats(object):
             cat2_reached (tuple)    same for category 2
             cat3_reached (tuple)    same for category 3
             cat4_reached (tuple)    same for category 4
+            tlast_wrong (datetime)  last wrong attempt
+            tlast_right (datetime)  last right attempt
 
             This method used to also return the following deprecated keys,
             which are not presently returned:
-            [todaycount]        int, number of attempts for this tag by current
-                                user today
-            [yestcount]         int, number of attempts for this tag by current
-                                    user yesterday
-            [tlast_wrong]               datetime, last wrong attempt
-            [tlast_right]               datetime, last right attempt
-            [delta_rw]          timedelta, length of time between last right
+
+            delta_rw (timedelta)    length of time between last right
                                     answer and previous wrong answer (0 if last
                                     answer was wrong).
             steplist              a list of steps tagged with this tag
@@ -659,10 +669,11 @@ class Stats(object):
 
         :rtype: list[dict]
         '''
-        debug = 0
+        debug = GLOBAL_DEBUG or 0
         db = current.db if not db else db
         auth = current.auth
         user = db.auth_user(auth.user_id if not user_id else user_id)
+        recent_period = 4
 
         # get bounds for today and yesterday
         now = datetime.datetime.utcnow() if not now else now
@@ -670,16 +681,12 @@ class Stats(object):
         daystart_utc = datetime.datetime.combine(now.date(),
                                                  datetime.time(0, 0, 0, 0))
         daystart_offset = daystart_utc - offset
-        recent_start_offset = (daystart_offset - datetime.timedelta(days=4))
-        # FIXME: not called
-        # yeststart_offset = daystart_offset - datetime.timedelta(days=1)
-        # yeststart_utc = yeststart_offset + offset
+        recent_start_offset = (
+            daystart_offset - datetime.timedelta(days=recent_period))
 
         # retrieve records for tag performance
-        if debug: print('active_tags: fetching records')
         badge_levels, review_levels = cls._find_badge_levels(user.id)
-        tags = list(set([tup[1] for v in list(badge_levels.values())
-                         for tup in v]))
+        tags = list(set([tup[1] for v in badge_levels.values() for tup in v]))
         tag_records = db((db.tag_records.name == user.id) &
                          (db.tag_records.tag.belongs(tags))).select(
                             db.tag_records.tag,
@@ -697,12 +704,6 @@ class Stats(object):
             tagstats = cls._get_logs_for_tag(user.id, offset, t['tag'],
                                              recent_start_offset)
             if debug: print('got tag logs')
-
-            # FIXME: Not being called
-            # tag_records[idx]['todaycount'] = cls._get_today_counts(
-            #     tagstats, daystart_offset)
-            # tag_records[idx]['yestcount'] = cls._get_today_counts(
-            #     tagstats, yeststart_offset)
 
             # get average score over recent period
             tag_records[i]['avg_score'] = cls._get_avg_score(tagstats)
@@ -842,12 +843,12 @@ class Stats(object):
 
         :param int user_id:     The id of the user whose records
                                 are being retrieved.
-        :returns:   A set of two dictionaries listing the user's active badges
+        :returns:   A tuple of two dictionaries listing the user's active badges
                     grouped in levels 1-4. The first dictionary uses the
                     absolute level (maximum level ever reached) and the second
                     dictionary uses the current review level (based on core
                     algorithm)
-        :rtype: set[dict]
+        :rtype: tuple[dict]
         """
         db = current.db
 
