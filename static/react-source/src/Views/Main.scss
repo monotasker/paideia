@@ -417,25 +417,28 @@ h3                                      {font-family: $sans-fonts;
         }
         svg                             {margin-right: 0.25rem;
                                          font-size: 3.5rem;
-                                         top: 0.5rem;
+                                         top: 0.3rem;
                                          position: absolute;
                                          left: -1rem;
                                          z-index: 1;
         }
         .btn-close                          {color: $white;
-                                         position: relative;
-                                         top: 0.35rem;
-
         }
     }
     &.Beginner                          {
         .modal-header                 {background-color: $beginner-color;
+            .modal-title                {
+                text-shadow: 0 0 0.5rem $beginner-color;
+            }
             svg                         {color: desaturate(lighten($beginner-color, 10%), 10%);
             }
         }
     }
     &.Apprentice                        {
         .modal-header                 {background-color: $apprentice-color;
+            .modal-title                {
+                text-shadow: 0 0 0.5rem $apprentice-color;
+            }
             svg                       {color: desaturate(lighten($apprentice-color, 10%), 10%);
             }
         }
@@ -443,6 +446,9 @@ h3                                      {font-family: $sans-fonts;
     }
     &.Journeyman                        {
         .modal-header                   {background-color: $journeyman-color;
+            .modal-title                {
+                text-shadow: 0 0 0.5rem $journeyman-color;
+            }
             svg                         {color: desaturate(lighten($journeyman-color, 10%), 10%);
             }
         }
@@ -450,6 +456,9 @@ h3                                      {font-family: $sans-fonts;
     }
     &.Expert                            {
         .modal-header                   {background-color: $expert-color;
+            .modal-title                {
+                text-shadow: 0 0 0.5rem $expert-color;
+            }
             svg                         {color: desaturate(lighten($expert-color, 10%), 10%);
             }
         }
