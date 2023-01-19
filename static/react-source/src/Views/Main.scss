@@ -2594,6 +2594,30 @@ h3                                      {font-family: $sans-fonts;
                                                     flex-grow: 1;
                                                     margin-left: 0.5rem;
                             }
+                            &.set-1         {transform: translate(-10%, 0);
+                                &::before   {left: 10%;
+                                }
+                                &::after    {left: 10%;
+                                }
+                            }
+                            &.set-2         {transform: translate(-25%, 0);
+                                &::before   {left: 25%;
+                                }
+                                &::after    {left: 25%;
+                                }
+                            }
+                            &.set-19        {transform: translate(-75%, 0);
+                                &::before   {left: 75%;
+                                }
+                                &::after    {left: 75%;
+                                }
+                            }
+                            &.set-20        {transform: translate(-90%, 0);
+                                &::before   {left: 90%;
+                                }
+                                &::after    {left: 90%;
+                                }
+                            }
                         }
                     }
                 }

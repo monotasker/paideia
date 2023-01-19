@@ -450,7 +450,7 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
         {Array.from('x'.repeat(20), (_, i) => 1 + i).map(n =>
           <div key={n} className="profile-progress-unit">{n}
             {n===scaleBadgeSet &&
-            <div className="current-set">
+            <div className={`current-set set-${n}`}>
               <span className="current-set-intro">
                 I've reached badge set</span>
               <span className="current-set-number">{n}</span>

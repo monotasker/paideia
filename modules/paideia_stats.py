@@ -775,7 +775,7 @@ class Stats(object):
             for option in ['right', 'wrong']:
                 try:
                     tag_records[i][f'times_{option}'] = \
-                        remove_trailing_0s(t[f'times_{option}'], fmt='num')
+                        round(t[f'times_{option}'])
                 except TypeError:  # because value is None
                     tag_records[i][f'times_{option}'] = 0
 
