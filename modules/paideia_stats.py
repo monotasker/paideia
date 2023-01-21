@@ -381,7 +381,8 @@ class Stats(object):
 
     @classmethod
     def _get_tag_logs_by_day(cls, user_id: int, offset: datetime.timedelta,
-                             tag_id: int, recent_start: datetime.datetime
+                             tag_id: int, recent_start: datetime.datetime,
+                             recent_span: int=4
                              ) -> dict[datetime.datetime, tuple]:
         '''
         Returns the log ids for recent attempts related to a given tag.
@@ -392,6 +393,8 @@ class Stats(object):
                                         of the "recent" period. This should
                                         be a UTC datetime, but already be offset
                                         for the user's time zone adjustment.
+        :param int recent_span: number of days considered "recent" for the
+                                purposes of these stats. Defaults to 4.
 
         :Returns:   a dictionary whose keys are datetimes for the beginning of
                     each day with logs since "recent_start". The value for each
@@ -402,194 +405,241 @@ class Stats(object):
         :rtype: dict[datetime.datetime, tuple]
         '''
         db = current.db
-        debug = 1
+        debug = 0
 
         # get recorded weekly stats that overlap with recent period
-        mystats = db((db.weekly_user_stats.name==user_id) &
-                     (db.weekly_user_stats.tag==tag_id) &
-                     (db.weekly_user_stats.week_end > recent_start)
-                     ).select(orderby=db.weekly_user_stats.week_end
-                              ).as_list()
-        if debug: print('got from db:', len(mystats))
+        # mystats = db((db.weekly_user_stats.name==user_id) &
+        #              (db.weekly_user_stats.tag==tag_id) &
+        #              (db.weekly_user_stats.week_end > recent_start)
+        #              ).select(orderby=db.weekly_user_stats.week_end
+        #                       ).as_list()
+        # if debug: print('got from db:', len(mystats))
 
         # get date for most recent recorded stats in recent period
-        most_recent_stats = mystats[-1]['week_end'] if mystats else None
-        if debug: print('most_recent is', most_recent_stats)
+        # most_recent_stats = mystats[-1]['week_end'] if mystats else None
+        # if debug: print('most_recent is', most_recent_stats)
 
         # if no recent weekly stats available, find week end of most recent
-        if not most_recent_stats:
-            latest = db((db.weekly_user_stats.name==user_id) &
-                        (db.weekly_user_stats.tag==tag_id)
-                        ).select(orderby=db.weekly_user_stats.week_end
-                                 ).as_list()
-            most_recent_stats = latest[-1]['week_end'] if latest else None
-            if debug: print('most_recent is', most_recent_stats)
+        # if not most_recent_stats:
+        #     latest = db((db.weekly_user_stats.name==user_id) &
+        #                 (db.weekly_user_stats.tag==tag_id)
+        #                 ).select(orderby=db.weekly_user_stats.week_end
+        #                          ).as_list()
+        #     most_recent_stats = latest[-1]['week_end'] if latest else None
+        #     if debug: print('most_recent is', most_recent_stats)
         # if no recorded weekly stats at all, get most recent attempt log
-        if not most_recent_stats:
-            last_log = db((db.attempt_log.name == user_id) &
-                          (db.attempt_log.step == db.step2tags.step_id) &
-                          (db.step2tags.tag_id == tag_id)
-                          ).select(db.attempt_log.dt_attempted).last()
-            if last_log:
-                most_recent_stats = \
-                    last_log['dt_attempted'] - datetime.timedelta(days=1)
-            else:
-                most_recent_stats = \
-                    datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        # if not most_recent_stats:
+        #     last_log = db((db.attempt_log.name == user_id) &
+        #                   (db.attempt_log.step == db.step2tags.step_id) &
+        #                   (db.step2tags.tag_id == tag_id)
+        #                   ).select(db.attempt_log.dt_attempted).last()
+        #     if last_log:
+        #         most_recent_stats = \
+        #             last_log['dt_attempted'] - datetime.timedelta(days=1)
+        #     else:
+        #         most_recent_stats = \
+        #             datetime.datetime.utcnow() - datetime.timedelta(days=1)
 
         # collect stats more recent than those recorded
-        newstats = cls._initialize_weekly_stats(user_id, offset, tag_id,
-                                                recent_start,
-                                                most_recent_stats)
-        if debug: print('got from method:', len(newstats))
-        mystats = mystats + newstats
+        # newstats = cls._initialize_weekly_stats(user_id, offset, tag_id,
+        #                                         recent_start)
+                                                # had arg most_recent_stats
+
+
+        mylogs = db((db.attempt_log.name == user_id) &
+                    (db.attempt_log.dt_attempted >= recent_start) &
+                    (db.attempt_log.step == db.step2tags.step_id) &
+                    (db.step2tags.tag_id == tag_id)
+                    ).select().as_list()
+        # if debug: print('got from method:', len(newstats))
+        # mystats = mystats + newstats
 
         flatstats = {}
-        for w in mystats:
-            for day in range(1,8):
-                mydate = datetime.datetime.strptime(
-                    '{} {} {}'.format(w['year'], w['week'], day),
-                    '%G %V %u')
-                flatstats[mydate] = (w['day{}_right'.format(day)],
-                                     w['day{}_wrong'.format(day)])
+        for day in range(recent_span):
+            day_start = recent_start + datetime.timedelta(days=day)
+            day_end = day_start + datetime.timedelta(days=1)
+            # day end is actually start of next day
 
+            day_year, day_week, weekday = day_start.isocalendar()
+            mydate = datetime.datetime.strptime(
+                '{} {} {}'.format(day_year, day_week, weekday),
+                '%G %V %u')
+            daylogs_right = [l for l in mylogs
+                if l['attempt_log']['dt_attempted'] >= day_start
+                and l['attempt_log']['dt_attempted'] < day_end
+                and (abs(l['attempt_log']['score'] or 0) - 1.0) < 0.01
+                ]
+            daylogs_wrong = [l for l in mylogs
+                if l['attempt_log']['dt_attempted'] >= day_start
+                and l['attempt_log']['dt_attempted'] < day_end
+                and (abs(l['attempt_log']['score'] or 0) - 1.0) >= 0.01
+                ]
+            flatstats[mydate] = (daylogs_right, daylogs_wrong)
+                #   performance logs. Each dictionary has the following keys:
+                #     - 'name' (int): the user's id
+                #     - 'tag' (int): the tag id
+                #     - 'year' (int): 4-digit year
+                #     - 'month' (int): the iso month number
+                #     - 'week' (int): the iso week number
+                #     - 'week_start': timezone-offset utc datetime for the start
+                #                     of the week
+                #     - 'week_end': timezone-offset utc datetime for the start
+                #                   of the week
+
+                #   Then 14 further keys with the pattern
+                #     - 'day1_right' (list): a list of attempt_log id numbers for
+                #                            right attempts on that day
+                #     - 'day1_wrong' (list): a list of attempt_log id numbers for
+                #                            wrong attempts on that day
+                #   Two for each day from 1 to 7
+        # for w in mystats:
+        #     for day in range(1,8):
+        #         mydate = datetime.datetime.strptime(
+        #             '{} {} {}'.format(w['year'], w['week'], day),
+        #             '%G %V %u')
+        #         flatstats[mydate] = (w['day{}_right'.format(day)],
+        #                              w['day{}_wrong'.format(day)])
+        if debug: pprint(flatstats)
         return flatstats
 
-    @staticmethod
-    def _initialize_weekly_stats(user_id: int, offset: datetime.timedelta,
-                                 tag: int, recent_start: datetime.datetime,
-                                 most_recent_row: datetime.datetime,
-                                 now: Optional[datetime.datetime]=None
-                                 ) -> list[dict]:
-        """
-        Retrieve and store a user's recent weekly performance on a tag.
+    # FIXME: Deprecated!
+    # @staticmethod
+    # def _initialize_weekly_stats(user_id: int, offset: datetime.timedelta,
+    #                              tag: int, recent_start: datetime.datetime,
+    #                              most_recent_row: datetime.datetime,
+    #                              now: Optional[datetime.datetime]=None
+    #                              ) -> list[dict]:
+    #     """
+    #     Retrieve and store a user's recent weekly performance on a tag.
 
-        The method finds the attempt log entries that were evaluated right
-        and wrong for each day since the recent_start datetime. These daily
-        attempts are grouped by week. If they include whole weeks that are
-        finished, those weeks are also recorded as records in the
-        weekly_user_stats table.
+    #     ** FIXME: had param: most_recent_row: datetime.datetime
 
-        This assumes that "most_recent_row" is in UTC time, but that day/week
-        boundaries need to be offset based on the user's time zone. In
-        other words, all datetimes remain in UTC time but week/day boundaries will be offset from 0,0 to fit the user's local day.
+    #     The method finds the attempt log entries that were evaluated right
+    #     and wrong for each day since the recent_start datetime. These daily
+    #     attempts are grouped by week. If they include whole weeks that are
+    #     finished, those weeks are also recorded as records in the
+    #     weekly_user_stats table.
 
-        Although the weeks follow iso calendar week numbers, they begin on the
-        Sunday. The "week_end" datetime is also actually minute 0 of the following week.
+    #     This assumes that "most_recent_row" is in UTC time, but that day/week
+    #     boundaries need to be offset based on the user's time zone. In
+    #     other words, all datetimes remain in UTC time but week/day boundaries will be offset from 0,0 to fit the user's local day.
 
-        :param int user_id:     Id of the user for which records are being
-                                stored.
-        :param datetime.timedelta offset:   The user's time zone offset from
-                                            utc time.
-        :param int tag:     Id of the tag for which records are being stored.
-        :param datetime recent_start:   Start of the period considered "recent"
-                                        for stats purposes
-        :param datetime most_recent_row:    Datetime of the most recent row in
-                                            weekly_user_stats already stored.
-        :param datetime now:    Datetime to treat as current. For use only for
-                                dependency injection in testing.
+    #     Although the weeks follow iso calendar week numbers, they begin on the
+    #     Sunday. The "week_end" datetime is also actually minute 0 of the following week.
 
-        :returns: A list of dictionaries, each representing one week of user
-                  performance logs. Each dictionary has the following keys:
-                    - 'name' (int): the user's id
-                    - 'tag' (int): the tag id
-                    - 'year' (int): 4-digit year
-                    - 'month' (int): the iso month number
-                    - 'week' (int): the iso week number
-                    - 'week_start': timezone-offset utc datetime for the start
-                                    of the week
-                    - 'week_end': timezone-offset utc datetime for the start
-                                  of the week
+    #     :param int user_id:     Id of the user for which records are being
+    #                             stored.
+    #     :param datetime.timedelta offset:   The user's time zone offset from
+    #                                         utc time.
+    #     :param int tag:     Id of the tag for which records are being stored.
+    #     :param datetime recent_start:   Start of the period considered "recent"
+    #                                     for stats purposes
+    #     :param datetime most_recent_row:    Datetime of the most recent row in
+    #                                         weekly_user_stats already stored.
+    #     :param datetime now:    Datetime to treat as current. For use only for
+    #                             dependency injection in testing.
 
-                  Then 14 further keys with the pattern
-                    - 'day1_right' (list): a list of attempt_log id numbers for
-                                           right attempts on that day
-                    - 'day1_wrong' (list): a list of attempt_log id numbers for
-                                           wrong attempts on that day
-                  Two for each day from 1 to 7
+    #     :returns: A list of dictionaries, each representing one week of user
+    #               performance logs. Each dictionary has the following keys:
+    #                 - 'name' (int): the user's id
+    #                 - 'tag' (int): the tag id
+    #                 - 'year' (int): 4-digit year
+    #                 - 'month' (int): the iso month number
+    #                 - 'week' (int): the iso week number
+    #                 - 'week_start': timezone-offset utc datetime for the start
+    #                                 of the week
+    #                 - 'week_end': timezone-offset utc datetime for the start
+    #                               of the week
 
-        :rtype: list[dict]
-        """
-        db = current.db
-        debug = 1
-        now = now if now else datetime.datetime.utcnow()
-        now_year, now_week = now.isocalendar()[:2]
-        if most_recent_row:
-            firstyear, firstweek = most_recent_row.isocalendar()[:2]
-        else:
-            firstyear, firstweek = 2011, 1
-            most_recent_row = datetime.datetime(2011, 1, 1)
-        recent_year, recent_week = recent_start.isocalendar()[:2]
+    #               Then 14 further keys with the pattern
+    #                 - 'day1_right' (list): a list of attempt_log id numbers for
+    #                                        right attempts on that day
+    #                 - 'day1_wrong' (list): a list of attempt_log id numbers for
+    #                                        wrong attempts on that day
+    #               Two for each day from 1 to 7
 
-        def inner_build_dict(weeklogs, days):
-            weekdict = {'name': user_id,
-                        'tag': tag,
-                        'year': year,
-                        'month': start.month,  # start and days are UTC offset
-                        'week': week,
-                        'week_start': start,
-                        'week_end': days[7],
-                        }
-            if len(weeklogs) > 0:
-                for n in range(1, 8):
-                    rlogs = [r['attempt_log']['id'] for r in weeklogs if
-                            r['attempt_log']['dt_attempted'] > most_recent_row and
-                            r['attempt_log']['dt_attempted'] >= days[n-1] and
-                            r['attempt_log']['dt_attempted'] < days[n] and
-                            (abs((r['attempt_log']['score'] or 0) - 1.0) < 0.01)]
-                    wlogs = [r['attempt_log']['id'] for r in weeklogs if
-                            r['attempt_log']['dt_attempted'] > most_recent_row and
-                            r['attempt_log']['dt_attempted'] >= days[n-1] and
-                            r['attempt_log']['dt_attempted'] < days[n] and
-                            abs((r['attempt_log']['score'] or 0) - 1.0) > 0.01]
-                    weekdict['day{}_right'.format(str(n))] = rlogs
-                    weekdict['day{}_wrong'.format(str(n))] = wlogs
-            else:
-                for n in range(1, 8):
-                    weekdict['day{}_right'.format(str(n))] = []
-                    weekdict['day{}_wrong'.format(str(n))] = []
-            return weekdict
+    #     :rtype: list[dict]
+    #     """
+    #     db = current.db
+    #     debug = 1
+    #     now = now if now else datetime.datetime.utcnow()
+    #     now_year, now_week = now.isocalendar()[:2]
+    #     if most_recent_row:
+    #         firstyear, firstweek = most_recent_row.isocalendar()[:2]
+    #     else:
+    #         firstyear, firstweek = 2011, 1
+    #         most_recent_row = datetime.datetime(2011, 1, 1)
+    #     recent_year, recent_week = recent_start.isocalendar()[:2]
 
-        return_list = []
-        for year in range(firstyear, now.year+1):
-            if debug: print(year)
-            lastweek = 53
-            if year == now_year:
-                lastweek = now_week + 1
-                if lastweek > datetime.date(now_year, 12, 31).isocalendar()[1]:
-                    lastweek = now_week
-            for week in range(firstweek, lastweek + 1):
-                if debug: print(week)
-                naivestart = datetime.datetime.strptime(
-                    '{} {} 1'.format( year, week), '%G %V %u')
-                # Adjust weekday number so that week starts on Sunday
-                adjustedstart = naivestart - datetime.timedelta(days=1)
-                start = adjustedstart - offset
-                days = [start + datetime.timedelta(days=n) for n in range(0, 8)
-                        ]
+    #     def inner_build_dict(weeklogs, days):
+    #         weekdict = {'name': user_id,
+    #                     'tag': tag,
+    #                     'year': year,
+    #                     'month': start.month,  # start and days are UTC offset
+    #                     'week': week,
+    #                     'week_start': start,
+    #                     'week_end': days[7],
+    #                     }
+    #         if len(weeklogs) > 0:
+    #             for n in range(1, 8):
+    #                 rlogs = [r['attempt_log']['id'] for r in weeklogs if
+    #                         r['attempt_log']['dt_attempted'] > most_recent_row and
+    #                         r['attempt_log']['dt_attempted'] >= days[n-1] and
+    #                         r['attempt_log']['dt_attempted'] < days[n] and
+    #                         (abs((r['attempt_log']['score'] or 0) - 1.0) < 0.01)]
+    #                 wlogs = [r['attempt_log']['id'] for r in weeklogs if
+    #                         r['attempt_log']['dt_attempted'] > most_recent_row and
+    #                         r['attempt_log']['dt_attempted'] >= days[n-1] and
+    #                         r['attempt_log']['dt_attempted'] < days[n] and
+    #                         abs((r['attempt_log']['score'] or 0) - 1.0) > 0.01]
+    #                 weekdict['day{}_right'.format(str(n))] = rlogs
+    #                 weekdict['day{}_wrong'.format(str(n))] = wlogs
+    #         else:
+    #             for n in range(1, 8):
+    #                 weekdict['day{}_right'.format(str(n))] = []
+    #                 weekdict['day{}_wrong'.format(str(n))] = []
+    #         return weekdict
 
-                # search logs based on tz-adjusted datetimes
-                mylogs = db((db.attempt_log.name == user_id) &
-                            (db.attempt_log.dt_attempted >= start) &
-                            (db.attempt_log.dt_attempted < days[7]) &
-                            (db.attempt_log.step == db.step2tags.step_id) &
-                            (db.step2tags.tag_id == tag)
-                            ).select().as_list()
-                if debug: print('found logs', len(mylogs))
-                # build stats for week and record if week is done
-                weekdict = inner_build_dict(mylogs, days)
-                if days[7] < now:  # week is finished, write to db
-                    myrow = db.weekly_user_stats.insert(**weekdict)
-                    db.commit()
-                    if debug: print('inserting row', myrow)
-                    if debug: print(weekdict)
-                # only add to return list if within recent period
-                if year >= recent_year and week >= recent_week:
-                    return_list.append(weekdict)
-        if debug: print('return list=================')
-        if debug: print(return_list)
+    #     return_list = []
+    #     for year in range(firstyear, now.year+1):
+    #         if debug: print(year)
+    #         lastweek = 53
+    #         if year == now_year:
+    #             lastweek = now_week + 1
+    #             if lastweek > datetime.date(now_year, 12, 31).isocalendar()[1]:
+    #                 lastweek = now_week
+    #         for week in range(firstweek, lastweek + 1):
+    #             if debug: print(week)
+    #             naivestart = datetime.datetime.strptime(
+    #                 '{} {} 1'.format( year, week), '%G %V %u')
+    #             # Adjust weekday number so that week starts on Sunday
+    #             adjustedstart = naivestart - datetime.timedelta(days=1)
+    #             start = adjustedstart - offset
+    #             days = [start + datetime.timedelta(days=n) for n in range(0, 8)
+    #                     ]
 
-        return return_list
+    #             # search logs based on tz-adjusted datetimes
+    #             mylogs = db((db.attempt_log.name == user_id) &
+    #                         (db.attempt_log.dt_attempted >= start) &
+    #                         (db.attempt_log.dt_attempted < days[7]) &
+    #                         (db.attempt_log.step == db.step2tags.step_id) &
+    #                         (db.step2tags.tag_id == tag)
+    #                         ).select().as_list()
+    #             if debug: print('found logs', len(mylogs))
+    #             # build stats for week and record if week is done
+    #             weekdict = inner_build_dict(mylogs, days)
+    #             if days[7] < now:  # week is finished, write to db
+    #                 myrow = db.weekly_user_stats.insert(**weekdict)
+    #                 db.commit()
+    #                 if debug: print('inserting row', myrow)
+    #                 if debug: print(weekdict)
+    #             # only add to return list if within recent period
+    #             if year >= recent_year and week >= recent_week:
+    #                 return_list.append(weekdict)
+    #     if debug: print('return list=================')
+    #     if debug: print(return_list)
+
+    #     return return_list
 
     @staticmethod
     def _get_today_counts(tagstats: dict,
@@ -721,7 +771,8 @@ class Stats(object):
 
         for i, t in enumerate(tag_records):
             logs_by_day = cls._get_tag_logs_by_day(user.id, offset, t['tag'],
-                                                   recent_start_offset)
+                                                   recent_start_offset,
+                                                   recent_period)
             tag_records[i]['recent_avg_score'] = cls._get_avg_score(logs_by_day)
 
             # get right/wrong ratio
