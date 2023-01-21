@@ -366,6 +366,8 @@ class Stats(object):
         mylogids = []
         for r in logs.values():
             mylogids.extend(r[0] + r[1])
+        print("mylogids")
+        print(mylogids)
         mylogs = db(db.attempt_log.id.belongs(mylogids)
                     ).select(db.attempt_log.score).as_list()
         myscores = [s['score'] for s in mylogs]
@@ -464,12 +466,12 @@ class Stats(object):
             mydate = datetime.datetime.strptime(
                 '{} {} {}'.format(day_year, day_week, weekday),
                 '%G %V %u')
-            daylogs_right = [l for l in mylogs
+            daylogs_right = [l['attempt_log']['id'] for l in mylogs
                 if l['attempt_log']['dt_attempted'] >= day_start
                 and l['attempt_log']['dt_attempted'] < day_end
                 and (abs(l['attempt_log']['score'] or 0) - 1.0) < 0.01
                 ]
-            daylogs_wrong = [l for l in mylogs
+            daylogs_wrong = [l['attempt_log']['id'] for l in mylogs
                 if l['attempt_log']['dt_attempted'] >= day_start
                 and l['attempt_log']['dt_attempted'] < day_end
                 and (abs(l['attempt_log']['score'] or 0) - 1.0) >= 0.01

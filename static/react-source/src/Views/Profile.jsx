@@ -496,6 +496,8 @@ const ProfileProgress = ({updating, scaleBadgeSet, badgeSetMilestones}) => {
 
 const ProfileStages = ({updating, badgeLevelTitles, badgeLevels,
                         badgeTableData}) => {
+  if ( DEBUGGING ) { console.log("badgeTableData") };
+  if ( DEBUGGING ) { console.log(badgeTableData) };
   return (<>
     <h3>My Badge Expertise</h3>
     <UpdateNotice status={updating} />
