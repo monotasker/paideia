@@ -81,8 +81,9 @@ const doApiCall = async (payload, apiFunction,
               error: err.message}.json()
   }
   mydata.status = response.status;
-  DEBUGGING && console.log(`response status is ${response.status}`);
-  DEBUGGING && console.log(`data is ${response.mydata}`);
+  DEBUGGING && console.log(`${apiFunction} response status is ${response.status}`);
+  DEBUGGING && console.log(`${apiFunction} data is...`);
+  DEBUGGING && console.log(mydata);
   return mydata;
 }
 

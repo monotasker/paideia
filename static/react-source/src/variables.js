@@ -2,7 +2,7 @@ import TownMapPng from "./Images/town_map.jpg";
 
 const urlBase = "paideia";
 const recaptchaKey = "6LcLJyoaAAAAADFtQswBddP8CICf4sXENGHBKK2-"
-const DEBUGGING = true;
+const DEBUGGING = false;
 
 const images = {
   $mapPng: TownMapPng,

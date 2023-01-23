@@ -651,7 +651,6 @@ const Profile = (props) => {
           setCurrentBadgeSet(myinfo.currentBadgeSet);
           setBadgeLevels(myinfo.badgeLevels);
           setCalendarData(myinfo.calendar);
-          setBadgeTableData(myinfo.badgeTableData);
           setAnswerCounts(myinfo.answerCounts);
           setBadgeSetDict(myinfo.badgeSetDict);
           setBadgeSetMilestones(myinfo.badgeSetMilestones);
