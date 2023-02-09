@@ -13,6 +13,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   useHistory,
+  useLocation,
   Link
 } from 'react-router-dom';
 
@@ -27,10 +28,13 @@ import {
   sendFormRequest,
   useFormManagement
 } from "../Services/formsService";
+import { DEBUGGING } from "../variables";
 
 const LoginInner = ({submitAction}) => {
   const { user, dispatch } = useContext(UserContext);
   const history = useHistory();
+  const location = useLocation();
+  DEBUGGING && console.log(location);
   const queryParams = useQuery();
   const [ requestInProgress, setRequestInProgress ] = useState(false);
 
@@ -82,7 +86,7 @@ const LoginInner = ({submitAction}) => {
               queryParams.get("just_registered")==="true" ) ?
               history.push('home')
               :
-              history.goBack()
+              !location.key ? history.push('home') : history.goBack()
             )
           )
         }

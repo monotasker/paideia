@@ -229,7 +229,8 @@ const myroutes = [
   {path: "/" + urlBase + "/reset_password", exact: false,
     Component: ResetPassword},
   {path: "/" + urlBase + "/join_course:courseKey?", exact: false,
-    Component: JoinCourse}
+    Component: JoinCourse},
+  {path: "/" + urlBase + "", exact: false, Component: Home}
 ]
 
 const myPrivateRoutes = [
